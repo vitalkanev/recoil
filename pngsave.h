@@ -28,6 +28,7 @@
 extern "C" {
 #endif
 
+ #ifndef _FAIL_H_
 /* Handy type definitions. */
 #ifndef FALSE
 #define FALSE  0
@@ -37,6 +38,7 @@ extern "C" {
 #endif
 typedef int abool;
 typedef unsigned char byte;
+ #endif
 
 abool PNG_Save(const char *filename,
                int width, int height, int colors,
