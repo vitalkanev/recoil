@@ -34,8 +34,12 @@ abool PNG_Save(const char *filename,
 	png_structp png_ptr;
 	png_infop info_ptr;
 	png_byte bit_depth;
-	png_bytep *row_pointers = NULL;
+	png_bytep *row_pointers;
 	int i, bpp = palette != NULL && colors <= 256 ? 1 : 3;
+
+	row_pointers = (png_bytep*)malloc(height * sizeof(png_bytep));
+	if (row_pointers == NULL)
+		return FALSE;
 
 	fp = fopen(filename, "wb");
 	if (fp == NULL)
@@ -59,8 +63,7 @@ abool PNG_Save(const char *filename,
 	if (setjmp(png_jmpbuf(png_ptr))) {
 		/* If we get here, we had a problem writing the file */
 		fclose(fp);
-		if (row_pointers != NULL)
-			free(row_pointers);
+		free(row_pointers);
 		png_destroy_write_struct(&png_ptr, &info_ptr);
 		return FALSE;
 	}
@@ -93,7 +96,6 @@ abool PNG_Save(const char *filename,
 	if (bit_depth < 8)
 		png_set_packing(png_ptr);
 
-	row_pointers = (png_bytep*)malloc(height * sizeof(png_bytep));
 	for (i = 0; i < height; i++)
 		row_pointers[i] = (png_bytep)(pixels + i*width*bpp);
 
