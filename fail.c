@@ -47,6 +47,8 @@ static void decode_video_memory(const byte image[], const byte color_regs[],
 		xe = bytes_per_line*8;
 	
 	for (y = 0; y < line_count; y++) {
+		for (x = 0; x < xb; x++)
+			frame[dest_pos + x] = 0;
 		for (x = xb; x < xe; x++) {
 			b = image[src_pos + (x - dest_horz_offset)/8];
 			i = (x - dest_horz_offset)%8;
@@ -69,6 +71,8 @@ static void decode_video_memory(const byte image[], const byte color_regs[],
 				frame[dest_pos + x] = color_regs[gr15_palette_mapping[(b & (0xC0 >> (i&6))) >> (6 - (i&6))]] & 0xFE;
 			}
 		}
+		for ( /* x = xe */ ; x < bytes_per_line*8; x++)
+			frame[dest_pos + x] = 0;
 		dest_pos += dest_vert_stride*bytes_per_line*8;
 		src_pos += src_stride;
 	}
