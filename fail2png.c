@@ -95,9 +95,11 @@ static void process_file(const char *input_file)
 	if (output_file == NULL) {
 		static char output_default[FILENAME_MAX];
 		int i;
-		for (i = 0; input_file[i] != '.' && input_file[i] != '\0' && i < FILENAME_MAX - 5; i++)
-			output_default[i] = input_file[i];
-		strcpy(output_default + i, ".png");
+		int dotp = 0;
+		for (i = 0; input_file[i] != '\0' && i < FILENAME_MAX - 5; i++)
+			if ((output_default[i] = input_file[i]) == '.')
+				dotp = i;
+		strcpy(output_default + (dotp == 0 ? i : dotp), ".png");
 		output_file = output_default;
 	}
 	if (!PNG_Save(output_file, width, height, colors, pixels, palette))
