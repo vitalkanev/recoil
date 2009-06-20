@@ -90,9 +90,10 @@ DLL_EXPORT void * API gfpLoadPictureInit(LPCSTR filename)
 	return fail;
 }
 
-DLL_EXPORT BOOL API gfpLoadPictureGetInfo(void *ptr, INT *pictype, INT *width, INT *height,
-										  INT *dpi, INT *bits_per_pixel, INT *bytes_per_line,
-										  BOOL *has_colormap, LPSTR label, INT label_max_size)
+DLL_EXPORT BOOL API gfpLoadPictureGetInfo(
+	void *ptr, INT *pictype, INT *width, INT *height,
+	INT *dpi, INT *bits_per_pixel, INT *bytes_per_line,
+	BOOL *has_colormap, LPSTR label, INT label_max_size)
 {
 	FailData *fail = (FailData*)ptr;
 
