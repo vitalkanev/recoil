@@ -58,7 +58,7 @@ DLL_EXPORT BOOL API gfpGetPluginInfo(DWORD version, LPSTR label, INT label_max_s
 		return FALSE;
 
 	strncpy(label, "First Atari Image Library", label_max_size);
-	strncpy(extension, "gr8;mic;hip;tip", extension_max_size);
+	strncpy(extension, "gr8;mic;hip;tip;int;inp;hr;gr9;pic;cpr;cin;cci", extension_max_size);
 
 	*support = GFP_READ;
 
@@ -115,7 +115,7 @@ DLL_EXPORT BOOL API gfpLoadPictureGetLine(void *ptr, INT line, unsigned char *bu
 {
 	FailData *fail = (FailData*)ptr;
 
-	memcpy(buffer, fail->pixels + line*fail->bytes_per_line, fail->bytes_per_line);
+	memcpy(buffer, fail->pixels + line * fail->bytes_per_line, fail->bytes_per_line);
 	return TRUE;
 }
 
