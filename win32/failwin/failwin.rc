@@ -1,0 +1,101 @@
+/*
+ * failwin.rc - FAILWin GUI definition
+ *
+ * Copyright (C) 2009  Piotr Fusik and Adrian Matoga
+ *
+ * This file is part of FAIL (First Atari Image Library),
+ * see http://fail.sourceforge.net
+ *
+ * FAIL is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published
+ * by the Free Software Foundation; either version 2 of the License,
+ * or (at your option) any later version.
+ *
+ * FAIL is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty
+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with FAIL; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#include <windows.h>
+
+#include "failwin.h"
+
+IDR_MENU MENU
+{
+	POPUP "&File"
+	{
+		MENUITEM "&Open...\tO", IDM_OPEN
+		MENUITEM "&Next file\tPage Down", IDM_NEXTFILE
+		MENUITEM "&Previous file\tPage Up", IDM_PREVFILE
+		MENUITEM SEPARATOR
+		MENUITEM "&Save as...\tS", IDM_SAVEAS
+		MENUITEM SEPARATOR
+		MENUITEM "&Load palette...\tP", IDM_LOADPALETTE
+		MENUITEM SEPARATOR
+		MENUITEM "&Exit\tEsc", IDM_EXIT
+	}
+	POPUP "&Edit"
+	{
+		MENUITEM "&Copy\tC", IDM_COPY
+	}
+	POPUP "&View"
+	{
+		MENUITEM "&Fullscreen\tEnter", IDM_FULLSCREEN
+		MENUITEM "Zoom &in\t+", IDM_ZOOMIN
+		MENUITEM "Zoom &out\t-", IDM_ZOOMOUT
+		MENUITEM SEPARATOR
+		MENUITEM "&Invert\tI", IDM_INVERT
+	}
+	POPUP "&Help"
+	{
+		MENUITEM "&About...", IDM_ABOUT
+	}
+}
+
+IDR_ACCELERATORS ACCELERATORS
+{
+	"o", IDM_OPEN
+	"^o", IDM_OPEN
+	VK_PRIOR, IDM_NEXTFILE, VIRTKEY
+	VK_DOWN, IDM_NEXTFILE, VIRTKEY
+	VK_RIGHT, IDM_NEXTFILE, VIRTKEY
+	VK_NEXT, IDM_PREVFILE, VIRTKEY
+	VK_UP, IDM_PREVFILE, VIRTKEY
+	VK_LEFT, IDM_PREVFILE, VIRTKEY
+	"s", IDM_SAVEAS
+	"^s", IDM_SAVEAS
+	"p", IDM_LOADPALETTE
+	"^p", IDM_LOADPALETTE
+	VK_ESCAPE, IDM_EXIT, VIRTKEY
+	"c", IDM_COPY
+	"^c", IDM_COPY
+	"\n", IDM_FULLSCREEN
+	VK_RETURN, IDM_FULLSCREEN, ALT, VIRTKEY
+	"f", IDM_FULLSCREEN
+	"+", IDM_ZOOMIN
+	"=", IDM_ZOOMIN
+	"-", IDM_ZOOMOUT
+	"i", IDM_INVERT
+}
+
+1 24
+{
+	"<?xml version=\0421.0\042?>"
+	"<assembly xmlns=\042urn:schemas-microsoft-com:asm.v1\042 "
+		"manifestVersion=\0421.0\042>"
+	"<assemblyIdentity version=\0421.0.0.0\042 "
+		"processorArchitecture=\042X86\042 "
+		"name=\042FAILWin\042 type=\042win32\042 />"
+	"<dependency><dependentAssembly>"
+	"<assemblyIdentity type=\042win32\042 "
+		"name=\042Microsoft.Windows.Common-Controls\042 "
+		"version=\0426.0.0.0\042 processorArchitecture=\042X86\042 "
+		"publicKeyToken=\0426595b64144ccf1df\042 language=\042*\042 />"
+	"</dependentAssembly></dependency>"
+	"</assembly>"
+}
