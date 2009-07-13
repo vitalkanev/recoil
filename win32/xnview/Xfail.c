@@ -58,7 +58,7 @@ DLL_EXPORT BOOL API gfpGetPluginInfo(DWORD version, LPSTR label, INT label_max_s
 		return FALSE;
 
 	strncpy(label, "First Atari Image Library", label_max_size);
-	strncpy(extension, "gr8;mic;hip;tip;int;inp;hr;gr9;pic;cpr;cin;cci", extension_max_size);
+	strncpy(extension, "rip;gr8;mic;hip;tip;int;inp;apc;ap3;gr9;pic;cpr;cin;cci;hr;plm;ilc", extension_max_size);
 
 	*support = GFP_READ;
 

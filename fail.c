@@ -37,8 +37,11 @@ static void decode_video_memory(
 	int dest_horz_offset, int bytes_per_line,	/* in pixels, in bytes */
     int line_count, int dest_mode, byte frame[])
 {
+	int pixels_per_line = bytes_per_line * 8;
 	int src_pos = src_start_offset;
-	int dest_pos = dest_vert_offset * bytes_per_line * 8;
+	int dest_pos = dest_vert_offset * pixels_per_line;
+	int odd = dest_vert_offset & 1;
+	int pa = odd ? -pixels_per_line : pixels_per_line;
 	int x;
 	int y;
 	int i;
@@ -67,11 +70,18 @@ static void decode_video_memory(
 				frame[dest_pos + x] = color_regs[(b & (0xF0 >> (i & 4))) >> (4 - (i & 4))];
 				break;
 			case 11:
-				/* 1 reg, only intensity is meaningful. we assume color information is the same in
-				   each pair of lines: 2k and 2k+1, and the other line has only grays */
-				frame[dest_pos + x] = ((b & (0xF0 >> (i & 4))) << (i & 4)) | (color_regs[0] & 0x0F);
-				frame[dest_pos + bytes_per_line * (dest_vert_offset & 1 ? -8 : 8) + x] &= 0x0F;
-				frame[dest_pos + bytes_per_line * (dest_vert_offset & 1 ? -8 : 8) + x] |= frame[dest_pos + x] & 0xF0;
+				/* copy hue to the other line so lines 2k and 2k+1 have the same
+				   hue (emulating PAL color resolution reduction), and average intensity
+				   from both neighboring lines (to avoid distortion in tip/apac modes
+				   with non-integer zoom factors) */
+				{
+					int hu = ((b & (0xF0 >> (i & 4))) << (i & 4));
+					int in =
+						((y == 0 && !odd ? 0 : frame[dest_pos - pixels_per_line + x] & 0x0F) +
+						(y == line_count - 1 && odd ? 0 : frame[dest_pos + pixels_per_line + x] & 0x0F)) / 2;
+					frame[dest_pos + x] = hu | in;
+					frame[dest_pos + pa + x] = (frame[dest_pos + pa + x] & 0x0F) | hu;
+				}
 				break;
 			case 15: /* 4 regs */
 				frame[dest_pos + x] = color_regs[(b & (0xC0 >> (i & 6))) >> (6 - (i & 6))] & 0xFE;
@@ -500,7 +510,7 @@ static abool decode_mic(
 	byte pixels[], byte palette[])
 {
 	abool has_palette;
-	byte frame[320 * FAIL_HEIGHT_MAX];
+	byte frame[320 * 192];
 	byte color_regs[9];
 	
 	memset(color_regs, 0, sizeof(color_regs));
@@ -634,8 +644,8 @@ static abool decode_inp(
 	int *width, int *height, int *colors,
 	byte pixels[], byte palette[])
 {
-	byte frame1[320 * FAIL_HEIGHT_MAX];
-	byte frame2[320 * FAIL_HEIGHT_MAX];
+	byte frame1[320 * 200];
+	byte frame2[320 * 200];
 
 	if (image_len < 16004)
 		return FALSE;
@@ -666,8 +676,8 @@ static abool decode_cin(
 	int *width, int *height, int *colors,
 	byte pixels[], byte palette[])
 {
-	byte frame1[320 * FAIL_HEIGHT_MAX];
-	byte frame2[320 * FAIL_HEIGHT_MAX];
+	byte frame1[320 * 192];
+	byte frame2[320 * 192];
 
 	if (image_len != 16384)
 		return FALSE;
@@ -675,7 +685,6 @@ static abool decode_cin(
 	*width = 320;
 	*height = 192;
 
-	/* even frame, gr11 + gr15 */
 	decode_video_memory(
 		image, image + 0x3C00,
 		40, 80, 1, 2, 0, 40, 96, FAIL_MODE_CIN15,
@@ -686,7 +695,6 @@ static abool decode_cin(
 		7680, 80, 0, 2, 0, 40, 96, 11,
 		frame1);
 
-	/* odd frame, gr11 + gr10 */
 	decode_video_memory(
 		image, image + 0x3C00,
 		0, 80, 0, 2, 0, 40, 96, FAIL_MODE_CIN15,
@@ -803,6 +811,156 @@ static abool decode_tip(
 	return TRUE;
 }
 
+/* serves both APC and PLM formats */
+static abool decode_apc(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	int *width, int *height, int *colors,
+	byte pixels[], byte palette[])
+{
+	byte frame[320 * 192];
+	
+	if (image_len != 7680 && image_len != 7720)
+		return FALSE;
+	
+	*width = 320;
+	*height = 192;
+
+	decode_video_memory(
+		image, hip_color_regs, 
+		40, 80, 1, 2, 0, 40, 96, 9,
+		frame);
+
+	decode_video_memory(
+		image, gr8_color_regs,
+		0, 80, 0, 2, 0, 40, 96, 11,
+		frame);
+
+	frame_to_rgb(frame, *height * *width, atari_palette, pixels);
+
+	rgb_to_palette(pixels, *height * *width, palette, colors);
+	
+	return TRUE;
+}
+
+/* serves both AP3 and ILC */
+static abool decode_ap3(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	int *width, int *height, int *colors,
+	byte pixels[], byte palette[])
+{
+	byte frame1[320 * 192];
+	byte frame2[320 * 192];
+
+	if (image_len != 15872 && image_len != 15360)
+		return FALSE;
+
+	*width = 320;
+	*height = 192;
+
+	decode_video_memory(
+		image, hip_color_regs, 
+		40, 40, 1, 2, 0, 40, 96, 9,
+		frame1);
+
+	decode_video_memory(
+		image, gr8_color_regs,
+		image_len == 15360 ? 7680 : 8192, 40, 0, 2, 0, 40, 96, 11,
+		frame1);
+
+	decode_video_memory(
+		image, hip_color_regs,
+		0, 40, 0, 2, 0, 40, 96, 9,
+		frame2);
+
+	decode_video_memory(
+		image, gr8_color_regs,
+		image_len == 15360 ? 7720 : 8232, 40, 1, 2, 0, 40, 96, 11,
+		frame2);
+
+	frames_to_rgb(frame1, frame2, *height * *width, atari_palette, pixels);
+
+	rgb_to_palette(pixels, *height * *width, palette, colors);
+	
+	return TRUE;
+}
+
+static abool unpack_rip(const byte data[], int data_len, int cprtype, int max_unp_len, byte unpacked_data[])
+{
+	switch (cprtype) {
+	case 0:
+		if (data_len > max_unp_len)
+			return FALSE;
+		memcpy(unpacked_data, data, data_len);
+		return TRUE;
+	case 1:
+		break;
+	default:
+		return FALSE;
+	}
+	
+	return FALSE;
+	//return TRUE;
+}
+
+static abool decode_rip(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	int *width, int *height, int *colors,
+	byte pixels[], byte palette[])
+{
+	byte unpacked_image[24576];
+	byte frame1[FAIL_WIDTH_MAX * FAIL_HEIGHT_MAX];
+	byte frame2[FAIL_WIDTH_MAX * FAIL_HEIGHT_MAX];
+	int txt_len = image[17];
+	int pal_len = image[20 + txt_len];
+	int hdr_len = 24 + txt_len + pal_len;
+	int line_len;
+	int frame_len;
+
+	if (image[0] != 'R' || image[1] != 'I' || image[2] != 'P'
+	 || image[13] > 80 || image[15] > 238 || txt_len > 152
+	 || image[18] != 'T' || image[19] != ':' || pal_len != 9
+	 || image[21 + txt_len] != 'C' || image[22 + txt_len] != 'M'
+	 || image[23 + txt_len] != ':')
+		return FALSE;
+	
+	if (!unpack_rip(image + hdr_len, image_len - hdr_len, image[9], 24576, unpacked_image))
+		return FALSE;
+	
+	*width = image[13] * 4;
+	*height = image[15];
+
+	line_len = image[13] / 2;
+	frame_len = line_len * *height;
+
+	switch (image[7]) {
+	case 0x20:
+		/* hip, rip */
+		decode_video_memory(
+			unpacked_image, image + 24 + txt_len,
+			0, line_len, 0, 1, -1, line_len, *height, 10,
+			frame1);
+		decode_video_memory(
+			unpacked_image, hip_color_regs,
+			frame_len, line_len, 0, 1, +1, line_len, *height, 9,
+			frame2);
+		break;
+	case 0x30:
+		/* multi rip */
+		break;
+	default:
+		return FALSE;
+	}
+
+	frames_to_rgb(frame1, frame2, *height * *width, atari_palette, pixels);
+
+	rgb_to_palette(pixels, *height * *width, palette, colors);
+
+	return TRUE;
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -835,6 +993,11 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('C', 'P', 'R'):
 	case FAIL_EXT('C', 'I', 'N'):
 	case FAIL_EXT('C', 'C', 'I'):
+	case FAIL_EXT('A', 'P', 'C'):
+	case FAIL_EXT('P', 'L', 'M'):
+	case FAIL_EXT('A', 'P', '3'):
+	case FAIL_EXT('I', 'L', 'C'):
+	case FAIL_EXT('R', 'I', 'P'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -871,8 +1034,12 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('P', 'I', 'C'), decode_pic },
 		{ FAIL_EXT('C', 'P', 'R'), decode_cpr },
 		{ FAIL_EXT('C', 'I', 'N'), decode_cin },
-		{ FAIL_EXT('C', 'C', 'I'), decode_cci }
-		
+		{ FAIL_EXT('C', 'C', 'I'), decode_cci },
+		{ FAIL_EXT('A', 'P', 'C'), decode_apc },
+		{ FAIL_EXT('P', 'L', 'M'), decode_apc },
+		{ FAIL_EXT('A', 'P', '3'), decode_ap3 },
+		{ FAIL_EXT('I', 'L', 'C'), decode_ap3 },
+		{ FAIL_EXT('R', 'I', 'P'), decode_rip }
 	}, *ph;
 
 	if (atari_palette == NULL)
