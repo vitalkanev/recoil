@@ -32,7 +32,11 @@
 #define WND_CLASS_NAME   "FAILWin"
 
 static HWND hWnd;
+static byte atari_palette[FAIL_PALETTE_MAX + 1];
+static BOOL use_atari_palette = FALSE;
 static char current_filename[MAX_PATH] = "";
+static byte image[FAIL_IMAGE_MAX];
+static int image_len;
 static int width = 0;
 static int height;
 static int colors;
@@ -50,23 +54,28 @@ static BOOL LoadFile(const char *filename, byte *buffer, int *len)
 	BOOL ok;
 	fh = CreateFile(filename, GENERIC_READ, 0, NULL, OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-	if (fh == INVALID_HANDLE_VALUE) {
-		ShowError("Cannot open file");
+	if (fh == INVALID_HANDLE_VALUE)
 		return FALSE;
-	}
 	ok = ReadFile(fh, buffer, *len, (LPDWORD) len, NULL);
 	CloseHandle(fh);
 	return ok;
 }
 
+static BOOL DecodeImage(const char *filename)
+{
+	return FAIL_DecodeImage(filename, image, image_len,
+		use_atari_palette ? atari_palette : NULL,
+		&width, &height, &colors, pixels, palette);
+}
+
 static void OpenImage(void)
 {
-	byte image[FAIL_IMAGE_MAX];
-	int image_len;
 	image_len = sizeof(image);
-	if (!LoadFile(current_filename, image, &image_len))
+	if (!LoadFile(current_filename, image, &image_len)) {
+		ShowError("Cannot open file");
 		return;
-	if (!FAIL_DecodeImage(current_filename, image, image_len, NULL, &width, &height, &colors, pixels, palette)) {
+	}
+	if (!DecodeImage(current_filename)) {
 		width = 0;
 		ShowError("Decoding error");
 		return;
@@ -105,9 +114,71 @@ static void SelectAndOpenImage(void)
 		OpenImage();
 }
 
+static int GetPathLength(const char *filename)
+{
+	int i;
+	int len = 0;
+	for (i = 0; filename[i] != '\0'; i++)
+		if (filename[i] == '\\' || filename[i] == '/')
+			len = i + 1;
+	return len;
+}
+
+static BOOL GetSiblingFile(char *filename, int dir)
+{
+	int len;
+	char mask[MAX_PATH];
+	char best[MAX_PATH];
+	HANDLE fh;
+	WIN32_FIND_DATA wfd;
+	len = GetPathLength(filename);
+	if (len > MAX_PATH - 2)
+		return FALSE;
+	memcpy(mask, filename, len);
+	mask[len] = '*';
+	mask[len + 1] = '\0';
+	best[0] = '\0';
+	fh = FindFirstFile(mask, &wfd);
+	if (fh == INVALID_HANDLE_VALUE)
+		return FALSE;
+	do {
+		if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0
+			&& wfd.nFileSizeHigh == 0
+			&& wfd.nFileSizeLow <= FAIL_IMAGE_MAX
+			&& FAIL_IsOurFile(wfd.cFileName)
+			&& _stricmp(wfd.cFileName, filename + len) * dir > 0) {
+			if (best[0] == '\0'
+			 || _stricmp(wfd.cFileName, best) * dir < 0) {
+				strcpy(best, wfd.cFileName);
+			}
+		}
+	} while (FindNextFile(fh, &wfd));
+	FindClose(fh);
+	if (best[0] == '\0')
+		return FALSE;
+	if (len + strlen(best) + 1 >= MAX_PATH)
+		return FALSE;
+	strcpy(filename + len, best);
+	return TRUE;
+}
+
+static void OpenSiblingImage(int dir)
+{
+	char filename[MAX_PATH];
+	strcpy(filename, current_filename);
+	while (GetSiblingFile(filename, dir)) {
+		image_len = sizeof(image);
+		if (LoadFile(filename, image, &image_len) && DecodeImage(filename)) {
+			strcpy(current_filename, filename);
+			InvalidateRect(hWnd, NULL, TRUE);
+			return;
+		}
+	}
+}
+
 static void SelectAndSaveImage(void)
 {
-	static char png_filename[MAX_PATH];
+	static char png_filename[MAX_PATH] = "";
 	static OPENFILENAME ofn = {
 		sizeof(OPENFILENAME),
 		NULL,
@@ -115,7 +186,7 @@ static void SelectAndSaveImage(void)
 		"PNG images (*.png)\0*.png\0\0",
 		NULL,
 		0,
-		0,
+		1,
 		png_filename,
 		MAX_PATH,
 		NULL,
@@ -135,6 +206,50 @@ static void SelectAndSaveImage(void)
 		return;
 	if (!PNG_Save(png_filename, width, height, colors, pixels, palette))
 		ShowError("Error writing file");
+}
+
+static void SelectAndOpenPalette(void)
+{
+	static char act_filename[MAX_PATH] = "";
+	static OPENFILENAME ofn = {
+		sizeof(OPENFILENAME),
+		NULL,
+		0,
+		"Palette files (*.act)\0"
+		"*.act\0"
+		"\0",
+		NULL,
+		0,
+		1,
+		act_filename,
+		MAX_PATH,
+		NULL,
+		0,
+		NULL,
+		"Select 8-bit Atari palette",
+		OFN_ENABLESIZING | OFN_EXPLORER | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST,
+		0,
+		0,
+		NULL,
+		0,
+		NULL,
+		NULL
+	};
+	ofn.hwndOwner = hWnd;
+	if (GetOpenFileName(&ofn)) {
+		int palette_len = sizeof(atari_palette);
+		use_atari_palette = FALSE;
+		if (!LoadFile(act_filename, atari_palette, &palette_len)) {
+			ShowError("Cannot open file");
+			return;
+		}
+		if (palette_len != FAIL_PALETTE_MAX) {
+			ShowError("Invalid file length - must be 768 bytes");
+			return;
+		}
+		use_atari_palette = TRUE;
+		OpenImage();
+	}
 }
 
 static void SwapRedAndBlue(void)
@@ -191,14 +306,29 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 				SwapRedAndBlue();
 		}
 		break;
+	case WM_LBUTTONDOWN:
+		OpenSiblingImage(1);
+		break;
+	case WM_RBUTTONDOWN:
+		OpenSiblingImage(-1);
+		break;
 	case WM_COMMAND:
 		idc = LOWORD(wParam);
 		switch (idc) {
 		case IDM_OPEN:
 			SelectAndOpenImage();
 			break;
+		case IDM_PREVFILE:
+			OpenSiblingImage(-1);
+			break;
+		case IDM_NEXTFILE:
+			OpenSiblingImage(1);
+			break;
 		case IDM_SAVEAS:
 			SelectAndSaveImage();
+			break;
+		case IDM_LOADPALETTE:
+			SelectAndOpenPalette();
 			break;
 		case IDM_EXIT:
 			PostQuitMessage(0);
@@ -275,7 +405,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wc.hInstance = hInstance;
 	wc.hIcon = NULL; // TODO LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APP));
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 1);
+	wc.hbrBackground = GetStockObject(BLACK_BRUSH);
 	wc.lpszMenuName = MAKEINTRESOURCE(IDR_MENU);
 	wc.lpszClassName = WND_CLASS_NAME;
 	RegisterClass(&wc);

@@ -23,8 +23,8 @@
 
 #define IDR_MENU         200
 #define IDM_OPEN         201
-#define IDM_NEXTFILE     202
-#define IDM_PREVFILE     203
+#define IDM_PREVFILE     202
+#define IDM_NEXTFILE     203
 #define IDM_SAVEAS       204
 #define IDM_LOADPALETTE  205
 #define IDM_EXIT         206
