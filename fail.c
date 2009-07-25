@@ -29,6 +29,7 @@
 #include "palette.h"
 
 #define FAIL_MODE_CIN15 31
+#define FAIL_MODE_MULTIRIP 48
 
 static void decode_video_memory(
 	const byte image[], const byte color_regs[],
@@ -45,6 +46,7 @@ static void decode_video_memory(
 	int x;
 	int y;
 	int i;
+	int col;
 	byte b;
 	int xe = dest_horz_offset + bytes_per_line * 8;
 	int xb = (dest_horz_offset > 0 ? dest_horz_offset : 0);
@@ -88,6 +90,10 @@ static void decode_video_memory(
 				break;
 			case FAIL_MODE_CIN15: /* 4 * 256 regs, only first 192 of each 256-byte group are used */
 				frame[dest_pos + x] = color_regs[((b & (0xC0 >> (i & 6))) >> (6 - (i & 6))) * 256 + y] & 0xFE;
+				break;
+			case FAIL_MODE_MULTIRIP:
+				col = (b & (0xF0 >> (i & 4))) >> (4 - (i & 4));
+				frame[dest_pos + x] = col == 0 ? 0 : color_regs[col + (y / 2) * 8 - 1];
 			}
 		}
 		for ( /* x = xe */ ; x < bytes_per_line * 8; x++)
@@ -886,22 +892,235 @@ static abool decode_ap3(
 	return TRUE;
 }
 
-static abool unpack_rip(const byte data[], int data_len, int cprtype, int max_unp_len, byte unpacked_data[])
+/* unpack_rip* are directly translated from Visage 2.7 assembly source.
+   TODO: may need to be rewritten in more understandable way */
+
+static void unpack_rip_cnibl(const byte data[], int size, byte output[])
 {
-	switch (cprtype) {
-	case 0:
-		if (data_len > max_unp_len)
-			return FALSE;
-		memcpy(unpacked_data, data, data_len);
-		return TRUE;
-	case 1:
-		break;
-	default:
-		return FALSE;
+	int x = 0;
+	int y = 0;
+	while (y < size) {
+		byte a = data[x++];
+		output[y++] = a >> 4;
+		output[y++] = a & 0x0f;
 	}
+}
+
+static void unpack_rip_sort(const byte data[], int size, byte tre01[], byte tre02[])
+{
+	byte pom[16];
+	int y;
+	int x;
+	int md_ = 0;
+	int md = 0;
+
+	unpack_rip_cnibl(data, size, tre02);
+	memset(pom, 0, sizeof(pom));
+	for (y = 0; y < size; y++)
+		pom[tre02[y]]++;
+
+	x = 0;
+	do {
+		y = 0;
+		do {
+			if (x == tre02[y])
+				tre01[md_++] = y;
+			y++;
+		} while (y < size);
+		x++;
+	} while (x < 16);
 	
-	return FALSE;
-	//return TRUE;
+	x = 0;
+	do {
+		y = pom[x];
+		while (y) {
+			tre02[md++] = x;
+			y--;
+		}
+		x++;
+	} while (x < 16);
+}
+
+static void unpack_rip_fano(const byte data[], int size, byte tre01[], byte tre02[], byte l0[], byte h0[], byte l1[], byte h1[])
+{
+	int p;
+	int err;
+	int l;
+	int nxt;
+	int y;
+
+	unpack_rip_sort(data, size, tre01, tre02);
+
+	memset(l0, 0, size);
+	memset(l1, 0, size);
+	memset(h0, 0, size);
+	memset(h1, 0, size);
+
+	p = 0;
+	err = 0;
+	l = 0;
+	nxt = 0;
+	y = 0;
+	do {
+		if (tre02[y]) {
+			int x;
+			int tmp;
+			int val;
+			int a;
+			p += err;
+			x = tre02[y];
+			if (x != l) {
+				l = x;
+				err = 0x10000 >> x;
+			}
+			tmp = p;
+			val = tre01[y];
+			x = tre02[y];
+			a = 0;
+			for (;;) {
+				int z = a;
+				x--;
+				tmp <<= 1;
+				if (tmp < 0x10000) {
+					if (x == 0) {
+						a = val;
+						l0[z] = a;
+						break;
+					}
+					a = h0[z];
+					if (a == 0) {
+						a = ++nxt;
+						h0[z] = a;
+					}
+				}
+				else {
+					tmp &= 0xFFFF;
+					if (x == 0) {
+						a = val;
+						l1[z] = a;
+						break;
+					}
+					a = h1[z];
+					if (a == 0) {
+						a = ++nxt;
+						h1[z] = a;
+					}
+				}
+			}
+		}
+		y++;
+	} while (y < size);
+}
+
+static abool unpack_rip(const byte data[], int data_len, byte unpacked_data[])
+{
+	byte adl0[576];
+	byte adh0[576];
+	byte adl1[576];
+	byte adh1[576];
+	
+	byte tre01[256];
+	byte tre02[256];
+
+	int unpacked_len;
+	int sx;
+	int dx;
+	int cx;
+	byte csh = 0;
+	byte c;
+	int lic;
+
+	/* "PCK" header (16 bytes) + 288 bytes shannon-fano */
+	if (data_len < 304 || data[0] != 'P' || data[1] != 'C' || data[2] != 'K')
+		return FALSE;
+
+	unpacked_len = data[4] + 256 * data[5] - 33;
+	if (unpacked_len > 0x5EFE)
+		return FALSE;
+
+	unpack_rip_fano(data + 16, 64, tre01, tre02, adl0, adh0, adl1, adh1);
+	unpack_rip_fano(data + 16 + 32, 256, tre01, tre02, adl0 + 64, adh0 + 64, adl1 + 64, adh1 + 64);
+	unpack_rip_fano(data + 16 + 160, 256, tre01, tre02, adl0 + 320, adh0 + 320, adl1 + 320, adh1 + 320);
+
+	sx = 16 + 288;
+	dx = 0;
+	lic = -1;
+
+#define GBIT \
+	do { \
+		if (--lic < 0) { \
+			if (sx >= data_len) \
+				return FALSE; \
+			csh = data[sx++]; \
+			lic = 7; \
+		} \
+		c = csh & (1 << lic); \
+	} while (FALSE)
+
+	do {
+		GBIT;
+		if (!c) {
+			int a = 0;
+			for (;;) {
+				int y = a;
+				GBIT;
+				if (!c) {
+					if ((a = adh0[320 + y]) == 0) {
+						unpacked_data[dx] = adl0[320 + y];
+						break;
+					}
+				}
+				else {
+					if ((a = adh1[320 + y]) == 0) {
+						unpacked_data[dx] = adl1[320 + y];
+						break;
+					}
+				}
+			}
+			++dx;
+		}
+ 		else {
+			int a = 0;
+			for (;;) {
+				int y = a;
+				GBIT;
+				if (!c) {
+					if ((a = adh0[64 + y]) == 0) {
+						a = adl0[64 + y];
+						break;
+					}
+				}
+				else {
+					if ((a = adh1[64 + y]) == 0) {
+						a = adl1[64 + y];
+						break;
+					}
+				}
+			}
+			cx = dx - (a + 2);
+			a = 0;
+			for (;;) {
+				int y = a;
+				GBIT;
+				if (!c) {
+					if ((a = adh0[y]) == 0) {
+						a = adl0[y];
+						break;
+					}
+				}
+				else {
+					if ((a = adh1[y]) == 0) {
+						a = adl1[y];
+						break;
+					}
+				}
+			}
+			memcpy(unpacked_data + dx, unpacked_data + cx, a + 2);
+			dx += a + 2;
+		}
+	} while (dx < unpacked_len);
+ 
+	return TRUE;
 }
 
 static abool decode_rip(
@@ -915,20 +1134,31 @@ static abool decode_rip(
 	byte frame2[FAIL_WIDTH_MAX * FAIL_HEIGHT_MAX];
 	int txt_len = image[17];
 	int pal_len = image[20 + txt_len];
-	int hdr_len = 24 + txt_len + pal_len;
+	int hdr_len = image[11] + 256 * image[12];
+	int data_len = image_len - hdr_len;
 	int line_len;
 	int frame_len;
 
 	if (image[0] != 'R' || image[1] != 'I' || image[2] != 'P'
-	 || image[13] > 80 || image[15] > 238 || txt_len > 152
+	 || image[13] > 80 || image[15] > 239 || txt_len > 152
 	 || image[18] != 'T' || image[19] != ':' || pal_len != 9
 	 || image[21 + txt_len] != 'C' || image[22 + txt_len] != 'M'
 	 || image[23 + txt_len] != ':')
 		return FALSE;
-	
-	if (!unpack_rip(image + hdr_len, image_len - hdr_len, image[9], 24576, unpacked_image))
+
+	switch (image[9]) {
+	case 0:
+		if (data_len > 24576)
+			return FALSE;
+		memcpy(unpacked_image, image + hdr_len, data_len);
+		break;
+	case 1:
+		if (unpack_rip(image + hdr_len, data_len, unpacked_image))
+			break;
+	default:
 		return FALSE;
-	
+	}
+
 	*width = image[13] * 4;
 	*height = image[15];
 
@@ -949,6 +1179,24 @@ static abool decode_rip(
 		break;
 	case 0x30:
 		/* multi rip */
+		{
+			int x, y;
+			for (y = 0; y < 119; y++) {
+				for (x = 0; x < 8; x++) {
+					int ix = 2 * frame_len + y * 8 + x;
+					if (y > 0 && unpacked_image[ix] == 0)
+						unpacked_image[ix] = unpacked_image[ix - 8];
+				}
+			}
+		}
+		decode_video_memory(
+			unpacked_image, unpacked_image + 2 * frame_len,
+			0, line_len, 0, 1, -1, line_len, *height, FAIL_MODE_MULTIRIP,
+			frame1);
+		decode_video_memory(
+			unpacked_image, hip_color_regs,
+			frame_len, line_len, 0, 1, +1, line_len, *height, 9,
+			frame2);
 		break;
 	default:
 		return FALSE;
