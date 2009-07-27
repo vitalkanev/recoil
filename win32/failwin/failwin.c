@@ -34,6 +34,8 @@
 static HWND hWnd;
 static byte atari_palette[FAIL_PALETTE_MAX + 1];
 static BOOL use_atari_palette = FALSE;
+static BOOL invert = FALSE;
+
 static char current_filename[MAX_PATH] = "";
 static byte image[FAIL_IMAGE_MAX];
 static int image_len;
@@ -262,6 +264,13 @@ static void SwapRedAndBlue(void)
 	}
 }
 
+static void CopyColor(RGBQUAD *dest, int i)
+{
+	dest->rgbRed = palette[3 * i];
+	dest->rgbGreen = palette[3 * i + 1];
+	dest->rgbBlue = palette[3 * i + 2];
+}
+
 static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	int idc;
@@ -289,10 +298,14 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			bmi.bmiHeader.biClrUsed = 0;
 			bmi.bmiHeader.biClrImportant = 0;
 			if (colors <= 256) {
-				for (i = 0; i < colors; i++) {
-					bmi.bmiColors[i].rgbRed = palette[3 * i];
-					bmi.bmiColors[i].rgbGreen = palette[3 * i + 1];
-					bmi.bmiColors[i].rgbBlue = palette[3 * i + 2];
+				if (colors == 2 && invert) {
+					CopyColor(bmi.bmiColors, 1);
+					CopyColor(bmi.bmiColors + 1, 0);
+				}
+				else
+				{
+					for (i = 0; i < colors; i++)
+						CopyColor(bmi.bmiColors + i, i);
 				}
 			}
 			else
@@ -332,6 +345,10 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			break;
 		case IDM_EXIT:
 			PostQuitMessage(0);
+			break;
+		case IDM_INVERT:
+			invert = !invert;
+			InvalidateRect(hWnd, NULL, TRUE);
 			break;
 		case IDM_ABOUT:
 			MessageBox(hWnd,
