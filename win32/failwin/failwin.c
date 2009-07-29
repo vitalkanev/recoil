@@ -41,7 +41,6 @@ static byte atari_palette[FAIL_PALETTE_MAX + 1];
 static BOOL use_atari_palette = FALSE;
 static BOOL fullscreen = FALSE;
 static int zoom = 100;
-static BOOL invert = FALSE;
 
 static char current_filename[MAX_PATH] = "";
 static byte image[FAIL_IMAGE_MAX];
@@ -55,6 +54,57 @@ static int show_width;
 static int show_height;
 static int window_width;
 static int window_height;
+
+static struct {
+	BITMAPINFOHEADER bmiHeader;
+	RGBQUAD bmiColors[256];
+	byte pixels[FAIL_PIXELS_MAX];
+} bitmap;
+static byte *bitmap_pixels;
+
+static void UpdateBitmap(void)
+{
+	bitmap.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bitmap.bmiHeader.biWidth = width;
+	bitmap.bmiHeader.biHeight = height;
+	bitmap.bmiHeader.biPlanes = 1;
+	bitmap.bmiHeader.biBitCount = colors <= 256 ? 8 : 24;
+	bitmap.bmiHeader.biCompression = BI_RGB;
+	bitmap.bmiHeader.biXPelsPerMeter = 1000;
+	bitmap.bmiHeader.biYPelsPerMeter = 1000;
+	if (colors <= 256) {
+		int i;
+		int y;
+		bitmap.bmiHeader.biSizeImage = sizeof(BITMAPINFOHEADER) + colors * sizeof(RGBQUAD) + width * height;
+		bitmap.bmiHeader.biClrUsed = colors;
+		bitmap.bmiHeader.biClrImportant = colors;
+		for (i = 0; i < colors; i++) {
+			bitmap.bmiColors[i].rgbRed = palette[3 * i];
+			bitmap.bmiColors[i].rgbGreen = palette[3 * i + 1];
+			bitmap.bmiColors[i].rgbBlue = palette[3 * i + 2];
+		}
+		bitmap_pixels = (byte *) (bitmap.bmiColors + colors);
+		for (y = 0; y < height; y++)
+			memcpy(bitmap_pixels + (height - 1 - y) * width, pixels + y * width, width);
+	}
+	else {
+		int y;
+		bitmap.bmiHeader.biSizeImage = sizeof(BITMAPINFOHEADER) + width * height * 3;
+		bitmap.bmiHeader.biClrUsed = 0;
+		bitmap.bmiHeader.biClrImportant = 0;
+		bitmap_pixels = (byte *) bitmap.bmiColors;
+		for (y = 0; y < height; y++) {
+			const byte *p = pixels + y * width * 3;
+			byte *q = bitmap_pixels + (height - 1 - y) * width * 3;
+			int i;
+			for (i = 0; i < width * 3; i += 3) {
+				q[i] = p[i + 2];
+				q[i + 1] = p[i + 1];
+				q[i + 2] = p[i];
+			}
+		}
+	}
+}
 
 static void ShowError(const char *message)
 {
@@ -191,6 +241,7 @@ static void OpenImage(void)
 		ShowError("Decoding error");
 		return;
 	}
+	UpdateBitmap();
 	Repaint();
 }
 
@@ -281,6 +332,7 @@ static void OpenSiblingImage(int dir)
 		image_len = sizeof(image);
 		if (LoadFile(filename, image, &image_len) && DecodeImage(filename)) {
 			strcpy(current_filename, filename);
+			UpdateBitmap();
 			Repaint();
 			return;
 		}
@@ -363,23 +415,6 @@ static void SelectAndOpenPalette(void)
 	}
 }
 
-static void SwapRedAndBlue(void)
-{
-	byte *p;
-	for (p = pixels + width * height * 3; (p -= 3) >= pixels; ) {
-		byte t = p[0];
-		p[0] = p[2];
-		p[2] = t;
-	}
-}
-
-static void CopyColor(RGBQUAD *dest, int i)
-{
-	dest->rgbRed = palette[3 * i];
-	dest->rgbGreen = palette[3 * i + 1];
-	dest->rgbBlue = palette[3 * i + 2];
-}
-
 static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	int idc;
@@ -392,44 +427,13 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			RECT rect;
 			int x;
 			int y;
-			struct {
-				BITMAPINFOHEADER bmiHeader;
-				RGBQUAD bmiColors[256];
-			} bmi;
-			int i;
-			bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-			bmi.bmiHeader.biWidth = width;
-			bmi.bmiHeader.biHeight = -height;
-			bmi.bmiHeader.biPlanes = 1;
-			bmi.bmiHeader.biBitCount = colors <= 256 ? 8 : 24;
-			bmi.bmiHeader.biCompression = BI_RGB;
-			bmi.bmiHeader.biSizeImage = 0;
-			bmi.bmiHeader.biXPelsPerMeter = 1000;
-			bmi.bmiHeader.biYPelsPerMeter = 1000;
-			bmi.bmiHeader.biClrUsed = 0;
-			bmi.bmiHeader.biClrImportant = 0;
-			if (colors <= 256) {
-				if (colors == 2 && invert) {
-					CopyColor(bmi.bmiColors, 1);
-					CopyColor(bmi.bmiColors + 1, 0);
-				}
-				else
-				{
-					for (i = 0; i < colors; i++)
-						CopyColor(bmi.bmiColors + i, i);
-				}
-			}
-			else
-				SwapRedAndBlue();
 			GetClientRect(hWnd, &rect);
 			x = rect.right > show_width ? (rect.right - show_width) >> 1 : 0;
 			y = rect.bottom > show_height ? (rect.bottom - show_height) >> 1 : 0;
 			hdc = BeginPaint(hWnd, &ps);
 			StretchDIBits(hdc, x, y, show_width, show_height, 0, 0, width, height,
-				pixels, (CONST BITMAPINFO *) &bmi, DIB_RGB_COLORS, SRCCOPY);
+				bitmap_pixels, (CONST BITMAPINFO *) &bitmap, DIB_RGB_COLORS, SRCCOPY);
 			EndPaint(hWnd, &ps);
-			if (colors > 256)
-				SwapRedAndBlue();
 		}
 		break;
 	case WM_LBUTTONDOWN:
@@ -465,6 +469,19 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 		case IDM_EXIT:
 			PostQuitMessage(0);
 			break;
+		case IDM_COPY:
+			if (width > 0 && height > 0) {
+				if (OpenClipboard(hWnd)) {
+					void *p = (void *) GlobalAlloc(GMEM_FIXED, bitmap.bmiHeader.biSizeImage);
+					if (p != NULL) {
+						memcpy(p, &bitmap, bitmap.bmiHeader.biSizeImage);
+						EmptyClipboard();
+						SetClipboardData(CF_DIB, GlobalHandle(p));
+					}
+					CloseClipboard();
+				}
+			}
+			break;
 		case IDM_FULLSCREEN:
 			ToggleFullscreen();
 			break;
@@ -475,8 +492,12 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			ZoomOut();
 			break;
 		case IDM_INVERT:
-			invert = !invert;
-			Repaint();
+			if (colors == 2) {
+				RGBQUAD tmp = bitmap.bmiColors[0];
+				bitmap.bmiColors[0] = bitmap.bmiColors[1];
+				bitmap.bmiColors[1] = tmp;
+				Repaint();
+			}
 			break;
 		case IDM_ABOUT:
 			MessageBox(hWnd,
