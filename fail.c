@@ -442,9 +442,9 @@ static abool decode_hr(
 		0, 32, 0, 1, 0, 32, 240, 8,
 		frame2);
 
-	frames_to_rgb(frame1, frame2, *height * 320, atari_palette, pixels);
+	frames_to_rgb(frame1, frame2, 256 * 240, atari_palette, pixels);
 
-	rgb_to_palette(pixels, *height * 320, palette, colors);
+	rgb_to_palette(pixels, 256 * 240, palette, colors);
 
 	return TRUE;
 }
