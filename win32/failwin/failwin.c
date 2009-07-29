@@ -28,12 +28,19 @@
 #include "pngsave.h"
 #include "failwin.h"
 
-#define APP_TITLE        "FAILWin"
-#define WND_CLASS_NAME   "FAILWin"
+#define ZOOM_STEP               10
+#define ZOOM_MIN                100
+#define WINDOW_WIDTH_MIN        100
+#define WINDOW_HEIGHT_MIN       100
+#define APP_TITLE               "FAILWin"
+#define WND_CLASS_NAME          "FAILWin"
 
 static HWND hWnd;
+static HMENU hMenu;
 static byte atari_palette[FAIL_PALETTE_MAX + 1];
 static BOOL use_atari_palette = FALSE;
+static BOOL fullscreen = FALSE;
+static int zoom = 100;
 static BOOL invert = FALSE;
 
 static char current_filename[MAX_PATH] = "";
@@ -44,10 +51,112 @@ static int height;
 static int colors;
 static byte pixels[FAIL_PIXELS_MAX];
 static byte palette[FAIL_PALETTE_MAX];
+static int show_width;
+static int show_height;
+static int window_width;
+static int window_height;
 
 static void ShowError(const char *message)
 {
 	MessageBox(hWnd, message, APP_TITLE, MB_OK | MB_ICONERROR);
+}
+
+static int Fit(int dest_width, int dest_height)
+{
+	if (width * dest_height < height * dest_width) {
+		show_width = MulDiv(width, dest_height, height);
+		show_height = dest_height;
+		return MulDiv(100, dest_height, height);
+	}
+	else {
+		show_width = dest_width;
+		show_height = MulDiv(height, dest_width, width);
+		return MulDiv(100, dest_width, width);
+	}
+}
+
+static void CalculateWindowSize(void)
+{
+	window_width = show_width + GetSystemMetrics(SM_CXFIXEDFRAME) * 2;
+	window_height = show_height + GetSystemMetrics(SM_CYFIXEDFRAME) * 2 + GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYMENU);
+	if (window_width < WINDOW_WIDTH_MIN)
+		window_width = WINDOW_WIDTH_MIN;
+	if (window_height < WINDOW_HEIGHT_MIN)
+		window_height = WINDOW_HEIGHT_MIN;
+}
+
+static void ResizeWindow(void)
+{
+	RECT rect;
+	if (!GetWindowRect(hWnd, &rect))
+		return;
+	MoveWindow(hWnd,
+		(rect.left + rect.right - window_width) >> 1,
+		(rect.top + rect.bottom - window_height) >> 1,
+		window_width, window_height, TRUE);
+}
+
+static void Repaint(void)
+{
+	if (width > 0 && height > 0) {
+		if (fullscreen)
+			Fit(GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+		else {
+			int desktop_width = GetSystemMetrics(SM_CXFULLSCREEN);
+			int desktop_height = GetSystemMetrics(SM_CYFULLSCREEN);
+			RECT rect;
+			show_width = MulDiv(width, zoom, 100);
+			show_height = MulDiv(height, zoom, 100);
+			CalculateWindowSize();
+			if (window_width > desktop_width || window_height > desktop_height) {
+				zoom = Fit(desktop_width, desktop_height);
+				CalculateWindowSize();
+			}
+			ResizeWindow();
+			GetClientRect(hWnd, &rect);
+			if (rect.bottom < show_height) {
+				window_height += show_height - rect.bottom;
+				ResizeWindow();
+			}
+		}
+	}
+	InvalidateRect(hWnd, NULL, TRUE);
+}
+
+static void ToggleFullscreen(void)
+{
+	if (fullscreen) {
+		ShowCursor(TRUE);
+		SetWindowLong(hWnd, GWL_STYLE, WS_VISIBLE | WS_CAPTION | WS_SYSMENU);
+		SetMenu(hWnd, hMenu);
+		fullscreen = FALSE;
+	}
+	else {
+		ShowCursor(FALSE);
+		SetWindowLong(hWnd, GWL_STYLE, WS_VISIBLE | WS_POPUP);
+		SetMenu(hWnd, NULL);
+		MoveWindow(hWnd, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), TRUE);
+		fullscreen = TRUE;
+	}
+	Repaint();
+}
+
+static void ZoomIn(void)
+{
+	if (fullscreen)
+		return;
+	zoom += ZOOM_STEP;
+	Repaint();
+}
+
+static void ZoomOut(void)
+{
+	if (fullscreen)
+		return;
+	zoom -= ZOOM_STEP;
+	if (zoom < ZOOM_MIN)
+		zoom = ZOOM_MIN;
+	Repaint();
 }
 
 static BOOL LoadFile(const char *filename, byte *buffer, int *len)
@@ -82,7 +191,7 @@ static void OpenImage(void)
 		ShowError("Decoding error");
 		return;
 	}
-	InvalidateRect(hWnd, NULL, TRUE);
+	Repaint();
 }
 
 static void SelectAndOpenImage(void)
@@ -172,7 +281,7 @@ static void OpenSiblingImage(int dir)
 		image_len = sizeof(image);
 		if (LoadFile(filename, image, &image_len) && DecodeImage(filename)) {
 			strcpy(current_filename, filename);
-			InvalidateRect(hWnd, NULL, TRUE);
+			Repaint();
 			return;
 		}
 	}
@@ -277,10 +386,12 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 	PCOPYDATASTRUCT pcds;
 	switch (msg) {
 	case WM_PAINT:
-		if (width > 0) {
+		if (width > 0 && height > 0) {
 			PAINTSTRUCT ps;
 			HDC hdc;
 			RECT rect;
+			int x;
+			int y;
 			struct {
 				BITMAPINFOHEADER bmiHeader;
 				RGBQUAD bmiColors[256];
@@ -310,9 +421,11 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			}
 			else
 				SwapRedAndBlue();
-			hdc = BeginPaint(hWnd, &ps);
 			GetClientRect(hWnd, &rect);
-			StretchDIBits(hdc, 0, 0, rect.right, rect.bottom, 0, 0, width, height,
+			x = rect.right > show_width ? (rect.right - show_width) >> 1 : 0;
+			y = rect.bottom > show_height ? (rect.bottom - show_height) >> 1 : 0;
+			hdc = BeginPaint(hWnd, &ps);
+			StretchDIBits(hdc, x, y, show_width, show_height, 0, 0, width, height,
 				pixels, (CONST BITMAPINFO *) &bmi, DIB_RGB_COLORS, SRCCOPY);
 			EndPaint(hWnd, &ps);
 			if (colors > 256)
@@ -324,6 +437,12 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 		break;
 	case WM_RBUTTONDOWN:
 		OpenSiblingImage(-1);
+		break;
+	case WM_MOUSEWHEEL:
+		if (GET_WHEEL_DELTA_WPARAM(wParam) > 0)
+			ZoomIn();
+		else
+			ZoomOut();
 		break;
 	case WM_COMMAND:
 		idc = LOWORD(wParam);
@@ -346,9 +465,18 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 		case IDM_EXIT:
 			PostQuitMessage(0);
 			break;
+		case IDM_FULLSCREEN:
+			ToggleFullscreen();
+			break;
+		case IDM_ZOOMIN:
+			ZoomIn();
+			break;
+		case IDM_ZOOMOUT:
+			ZoomOut();
+			break;
 		case IDM_INVERT:
 			invert = !invert;
-			InvalidateRect(hWnd, NULL, TRUE);
+			Repaint();
 			break;
 		case IDM_ABOUT:
 			MessageBox(hWnd,
@@ -429,7 +557,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	hWnd = CreateWindow(WND_CLASS_NAME,
 		APP_TITLE,
-		WS_VISIBLE | WS_OVERLAPPEDWINDOW,
+		WS_VISIBLE | WS_CAPTION | WS_SYSMENU,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
@@ -439,6 +567,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		hInstance,
 		NULL
 	);
+	hMenu = GetMenu(hWnd);
 
 	hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATORS));
 
