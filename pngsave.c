@@ -80,8 +80,6 @@ abool PNG_Save(const char *filename,
 			bit_depth = 4;
 	}
 	
-	printf("colors: %d; bit_depth: %d\n", colors, bit_depth);
-
 	png_set_IHDR(png_ptr, info_ptr, width, height, bit_depth,
 				 palette != NULL && colors <= 256 ?
 					PNG_COLOR_TYPE_PALETTE : PNG_COLOR_TYPE_RGB,
