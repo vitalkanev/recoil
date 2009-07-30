@@ -6,13 +6,13 @@ PERL = perl
 all: fail2png.exe Xfail.dll failwin.exe
 
 fail2png.exe: ../fail2png.c ../pngsave.c ../fail.c ../pngsave.h ../fail.h ../palette.h
-	$(FAIL_CC) ../fail2png.c ../pngsave.c ../fail.c -lpng -lzlib
+	$(FAIL_CC) ../fail2png.c ../pngsave.c ../fail.c -lpng -lz
 
 Xfail.dll: xnview/Xfail.c ../fail.c ../fail.h ../palette.h
 	$(FAIL_CC_DLL) ../fail.c xnview/Xfail.c
 
 failwin.exe: failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c failwin/failwin.h ../pngsave.h ../fail.h ../palette.h
-	$(FAIL_CC) -Wl,-subsystem,windows failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c -lcomdlg32 -lgdi32 -lpng -lzlib
+	$(FAIL_CC) -Wl,-subsystem,windows failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c -lcomdlg32 -lgdi32 -lpng -lz
 
 failwin/failwin-res.o: failwin/failwin.rc failwin/failwin.h
 	$(WINDRES) failwin/failwin.rc
