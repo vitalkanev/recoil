@@ -220,21 +220,18 @@ static abool rgb_to_palette(
 	}
 
 	/* convert rgb pixels to palette indices */
-	if (palette != NULL) {
-		if (*colors <= 256) {
-			memcpy(palette, temp_palette, FAIL_PALETTE_MAX);
-			for (i = 0; i < pixel_count; i++) {
-				int index;
-				if (find_rgb_color(temp_palette, *colors, rgb_to_int(pixels + i * 3), &index))
-					pixels[i] = index;
-			}
-			/* pad palette with 0s */
-			for (i = *colors * 3; i < FAIL_PALETTE_MAX; i++)
-				palette[i] = 0;
-		}
-		else
-			return FALSE;
+	if (palette == NULL || *colors > 256)
+		return FALSE;
+	
+	memcpy(palette, temp_palette, FAIL_PALETTE_MAX);
+	for (i = 0; i < pixel_count; i++) {
+		int index;
+		if (find_rgb_color(temp_palette, *colors, rgb_to_int(pixels + i * 3), &index))
+			pixels[i] = index;
 	}
+	/* pad palette with 0s */
+	for (i = *colors * 3; i < FAIL_PALETTE_MAX; i++)
+		palette[i] = 0;
 
 	return TRUE;
 }
