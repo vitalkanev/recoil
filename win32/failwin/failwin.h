@@ -33,6 +33,7 @@
 #define IDM_ZOOMIN       209
 #define IDM_ZOOMOUT      210
 #define IDM_INVERT       211
-#define IDM_STATUSBAR    212
-#define IDM_ABOUT        213
+#define IDM_SHOWPATH     212
+#define IDM_STATUSBAR    213
+#define IDM_ABOUT        214
 #define IDR_ACCELERATORS 300

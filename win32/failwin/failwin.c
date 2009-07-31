@@ -45,7 +45,8 @@ static byte atari_palette[FAIL_PALETTE_MAX + 1];
 static BOOL use_atari_palette = FALSE;
 static BOOL fullscreen = FALSE;
 static int zoom = 100;
-static BOOL statusbar = TRUE;
+static BOOL show_path = FALSE;
+static BOOL status_bar = TRUE;
 
 static char current_filename[MAX_PATH] = "";
 static byte image[FAIL_IMAGE_MAX];
@@ -114,6 +115,11 @@ static void UpdateBitmap(void)
 static void ShowError(const char *message)
 {
 	MessageBox(hWnd, message, APP_TITLE, MB_OK | MB_ICONERROR);
+}
+
+static void UpdateMenuCheck(int id, BOOL check)
+{
+	CheckMenuItem(hMenu, id, MF_BYCOMMAND | (check ? MF_CHECKED : MF_UNCHECKED));
 }
 
 static int Fit(int dest_width, int dest_height)
@@ -200,7 +206,7 @@ static void ToggleFullscreen(void)
 		ShowCursor(TRUE);
 		SetWindowLong(hWnd, GWL_STYLE, WS_VISIBLE | WS_CAPTION | WS_SYSMENU);
 		SetMenu(hWnd, hMenu);
-		ShowStatusBar(statusbar);
+		ShowStatusBar(status_bar);
 		fullscreen = FALSE;
 	}
 	else {
@@ -262,13 +268,21 @@ static int GetPathLength(const char *filename)
 	return len;
 }
 
-static void ShowImage(void)
+static void UpdateText(void)
 {
 	char buf[MAX_PATH + 32];
-	sprintf(buf, "%s - " APP_TITLE, current_filename + GetPathLength(current_filename));
+	const char *filename = current_filename;
+	if (!show_path)
+		filename += GetPathLength(filename);
+	sprintf(buf, "%s - " APP_TITLE, filename);
 	SetWindowText(hWnd, buf);
 	sprintf(buf, "%dx%d, %d colors", width, height, colors);
 	SetWindowText(hStatus, buf);
+}
+
+static void ShowImage(void)
+{
+	UpdateText();
 	UpdateBitmap();
 	Repaint();
 }
@@ -537,10 +551,16 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 				Repaint();
 			}
 			break;
+		case IDM_SHOWPATH:
+			show_path = !show_path;
+			UpdateMenuCheck(IDM_SHOWPATH, show_path);
+			if (width > 0)
+				UpdateText();
+			break;
 		case IDM_STATUSBAR:
-			statusbar = !statusbar;
-			ShowStatusBar(statusbar);
-			CheckMenuItem(hMenu, IDM_STATUSBAR, MF_BYCOMMAND | (statusbar ? MF_CHECKED : MF_UNCHECKED));
+			status_bar = !status_bar;
+			UpdateMenuCheck(IDM_STATUSBAR, status_bar);
+			ShowStatusBar(status_bar);
 			Repaint();
 			break;
 		case IDM_ABOUT:
