@@ -22,6 +22,8 @@
  */
 
 #include <windows.h>
+#define _WIN32_IE	0x0300
+#include <commctrl.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -38,10 +40,12 @@
 
 static HWND hWnd;
 static HMENU hMenu;
+static HWND hStatus;
 static byte atari_palette[FAIL_PALETTE_MAX + 1];
 static BOOL use_atari_palette = FALSE;
 static BOOL fullscreen = FALSE;
 static int zoom = 100;
+static BOOL statusbar = TRUE;
 
 static char current_filename[MAX_PATH] = "";
 static byte image[FAIL_IMAGE_MAX];
@@ -126,6 +130,21 @@ static int Fit(int dest_width, int dest_height)
 	}
 }
 
+static void ShowStatusBar(BOOL show)
+{
+	SetWindowLong(hStatus, GWL_STYLE, show ? WS_VISIBLE | WS_CHILD : WS_CHILD);
+}
+
+static int GetStatusBarHeight(void)
+{
+	RECT rect;
+	if ((GetWindowLong(hStatus, GWL_STYLE) & WS_VISIBLE) == 0)
+		return 0;
+	if (!GetWindowRect(hStatus, &rect))
+		return 0;
+	return rect.bottom - rect.top;
+}
+
 static void CalculateWindowSize(void)
 {
 	window_width = show_width + GetSystemMetrics(SM_CXFIXEDFRAME) * 2;
@@ -134,6 +153,7 @@ static void CalculateWindowSize(void)
 		window_width = WINDOW_WIDTH_MIN;
 	if (window_height < WINDOW_HEIGHT_MIN)
 		window_height = WINDOW_HEIGHT_MIN;
+	window_height += GetStatusBarHeight();
 }
 
 static void ResizeWindow(void)
@@ -180,12 +200,14 @@ static void ToggleFullscreen(void)
 		ShowCursor(TRUE);
 		SetWindowLong(hWnd, GWL_STYLE, WS_VISIBLE | WS_CAPTION | WS_SYSMENU);
 		SetMenu(hWnd, hMenu);
+		ShowStatusBar(statusbar);
 		fullscreen = FALSE;
 	}
 	else {
 		ShowCursor(FALSE);
 		SetWindowLong(hWnd, GWL_STYLE, WS_VISIBLE | WS_POPUP);
 		SetMenu(hWnd, NULL);
+		ShowStatusBar(FALSE);
 		MoveWindow(hWnd, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), TRUE);
 		fullscreen = TRUE;
 	}
@@ -242,9 +264,11 @@ static int GetPathLength(const char *filename)
 
 static void ShowImage(void)
 {
-	char title[MAX_PATH + 32];
-	sprintf(title, "%s - " APP_TITLE, current_filename + GetPathLength(current_filename));
-	SetWindowText(hWnd, title);
+	char buf[MAX_PATH + 32];
+	sprintf(buf, "%s - " APP_TITLE, current_filename + GetPathLength(current_filename));
+	SetWindowText(hWnd, buf);
+	sprintf(buf, "%dx%d, %d colors", width, height, colors);
+	SetWindowText(hStatus, buf);
 	UpdateBitmap();
 	Repaint();
 }
@@ -259,6 +283,7 @@ static void OpenImage(void)
 	if (!DecodeImage(current_filename)) {
 		width = 0;
 		SetWindowText(hWnd, APP_TITLE);
+		SetWindowText(hStatus, NULL);
 		ShowError("Decoding error");
 		return;
 	}
@@ -437,6 +462,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			int x;
 			int y;
 			GetClientRect(hWnd, &rect);
+			rect.bottom -= GetStatusBarHeight();
 			x = rect.right > show_width ? (rect.right - show_width) >> 1 : 0;
 			y = rect.bottom > show_height ? (rect.bottom - show_height) >> 1 : 0;
 			hdc = BeginPaint(hWnd, &ps);
@@ -444,6 +470,9 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 				bitmap_pixels, (CONST BITMAPINFO *) &bitmap, DIB_RGB_COLORS, SRCCOPY);
 			EndPaint(hWnd, &ps);
 		}
+		break;
+	case WM_SIZE:
+		SendMessage(hStatus, WM_SIZE, 0, 0);
 		break;
 	case WM_LBUTTONDOWN:
 		OpenSiblingImage(1);
@@ -508,6 +537,12 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 				Repaint();
 			}
 			break;
+		case IDM_STATUSBAR:
+			statusbar = !statusbar;
+			ShowStatusBar(statusbar);
+			CheckMenuItem(hMenu, IDM_STATUSBAR, MF_BYCOMMAND | (statusbar ? MF_CHECKED : MF_UNCHECKED));
+			Repaint();
+			break;
 		case IDM_ABOUT:
 			MessageBox(hWnd,
 				FAIL_CREDITS
@@ -540,6 +575,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 {
 	char *pb;
 	char *pe;
+	static INITCOMMONCONTROLSEX iccx = { sizeof(INITCOMMONCONTROLSEX), ICC_BAR_CLASSES };
 	WNDCLASS wc;
 	HACCEL hAccel;
 	MSG msg;
@@ -573,6 +609,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 0;
 	}
 
+	InitCommonControlsEx(&iccx);
 	wc.style = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
 	wc.lpfnWndProc = MainWndProc;
 	wc.cbClsExtra = 0;
@@ -598,6 +635,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		NULL
 	);
 	hMenu = GetMenu(hWnd);
+
+	hStatus = CreateWindow(STATUSCLASSNAME,
+		NULL,
+		WS_VISIBLE | WS_CHILD,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		hWnd,
+		NULL,
+		hInstance,
+		NULL
+	);
 
 	hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATORS));
 
