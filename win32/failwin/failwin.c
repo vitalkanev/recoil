@@ -22,6 +22,7 @@
  */
 
 #include <windows.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "fail.h"
@@ -229,6 +230,25 @@ static BOOL DecodeImage(const char *filename)
 		&width, &height, &colors, pixels, palette);
 }
 
+static int GetPathLength(const char *filename)
+{
+	int i;
+	int len = 0;
+	for (i = 0; filename[i] != '\0'; i++)
+		if (filename[i] == '\\' || filename[i] == '/')
+			len = i + 1;
+	return len;
+}
+
+static void ShowImage(void)
+{
+	char title[MAX_PATH + 32];
+	sprintf(title, "%s - " APP_TITLE, current_filename + GetPathLength(current_filename));
+	SetWindowText(hWnd, title);
+	UpdateBitmap();
+	Repaint();
+}
+
 static void OpenImage(void)
 {
 	image_len = sizeof(image);
@@ -238,11 +258,11 @@ static void OpenImage(void)
 	}
 	if (!DecodeImage(current_filename)) {
 		width = 0;
+		SetWindowText(hWnd, APP_TITLE);
 		ShowError("Decoding error");
 		return;
 	}
-	UpdateBitmap();
-	Repaint();
+	ShowImage();
 }
 
 static void SelectAndOpenImage(void)
@@ -274,16 +294,6 @@ static void SelectAndOpenImage(void)
 	ofn.hwndOwner = hWnd;
 	if (GetOpenFileName(&ofn))
 		OpenImage();
-}
-
-static int GetPathLength(const char *filename)
-{
-	int i;
-	int len = 0;
-	for (i = 0; filename[i] != '\0'; i++)
-		if (filename[i] == '\\' || filename[i] == '/')
-			len = i + 1;
-	return len;
 }
 
 static BOOL GetSiblingFile(char *filename, int dir)
@@ -332,8 +342,7 @@ static void OpenSiblingImage(int dir)
 		image_len = sizeof(image);
 		if (LoadFile(filename, image, &image_len) && DecodeImage(filename)) {
 			strcpy(current_filename, filename);
-			UpdateBitmap();
-			Repaint();
+			ShowImage();
 			return;
 		}
 	}
