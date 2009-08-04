@@ -81,15 +81,13 @@ static void process_file(const char *input_file)
 {
 	static byte image[FAIL_IMAGE_MAX];
 	int image_len;
-	int width;
-	int height;
-	int colors;
+	FAIL_ImageInfo image_info;
 	static byte pixels[FAIL_PIXELS_MAX];
 	static byte palette[FAIL_PALETTE_MAX];
 	image_len = load_file(input_file, image, sizeof(image));
 	if (!FAIL_DecodeImage(input_file, image, image_len,
 		use_atari_palette ? atari_palette : NULL,
-		&width, &height, &colors, pixels, palette)) {
+		&image_info, pixels, palette)) {
 		fatal_error("%s: file decoding error", input_file);
 	}
 	if (output_file == NULL) {
@@ -102,7 +100,8 @@ static void process_file(const char *input_file)
 		strcpy(output_default + (dotp == 0 ? i : dotp), ".png");
 		output_file = output_default;
 	}
-	if (!PNG_Save(output_file, width, height, colors, pixels, palette))
+	if (!PNG_Save(output_file, image_info.width, image_info.height,
+		image_info.colors, pixels, palette))
 		fatal_error("cannot write %s", output_file);
 	output_file = NULL;
 }

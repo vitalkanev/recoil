@@ -343,552 +343,6 @@ static abool unpack_cci(const byte data[], int data_len, int step, int count, by
 		return FALSE;
 }
 
-static abool parse_binary_header(const byte image[], int *len)
-{
-	if (image[0] == 0xFF && image[1] == 0xFF) {
-		int start_address = image[4] | (image[5] << 8);
-		int end_address = image[2] | (image[3] << 8);
-		*len = start_address - end_address + 1;
-		return TRUE;
-	}
-	else
-		return FALSE;
-}
-
-static const byte gr8_color_regs[] = { 0x00, 0x0F };
-
-static abool decode_gr8_gr9(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	int *width, int *height, int *colors,
-	byte pixels[], byte palette[],
-	int dest_mode, const byte color_regs[])
-{
-	int offset = 0;
-	int frame_len;
-	byte frame[320 * FAIL_HEIGHT_MAX];
-
-	/* optional binary file header */
-	if (parse_binary_header(image, &frame_len) 
-	 && frame_len == image_len - 6)
-		offset = 6;
-
-	*width = 320;
-	*height = (image_len - offset) / 40;
-	if ((image_len - offset) % 40 != 0 || *height > FAIL_HEIGHT_MAX)
-		return FALSE;
-	
-	decode_video_memory(
-		image, color_regs,
-		offset, 40, 0, 1, 0, 40, *height, dest_mode,
-		frame);
-
-	frame_to_rgb(frame, *height * 320, atari_palette, pixels);
-
-	rgb_to_palette(pixels, *height * 320, palette, colors);
-
-	return TRUE;
-}
-
-static abool decode_gr8(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	int *width, int *height, int *colors,
-	byte pixels[], byte palette[])
-{
-	return decode_gr8_gr9(
-		image, image_len, atari_palette,
-		width, height, colors,
-		pixels, palette, 8, gr8_color_regs);
-}
-
-static abool decode_gr9(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	int *width, int *height, int *colors,
-	byte pixels[], byte palette[])
-{
-	return decode_gr8_gr9(
-		image, image_len, atari_palette,
-		width, height, colors,
-		pixels, palette, 9, gr8_color_regs);
-}
-
-static abool decode_hr(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	int *width, int *height, int *colors,
-	byte pixels[], byte palette[])
-{
-	byte frame1[256 * 240];
-	byte frame2[256 * 240];
-
-	if (image_len != 16384)
-		return FALSE;
-
-	*width = 256;
-	*height = 240;
-	
-	decode_video_memory(
-		image, gr8_color_regs,
-		0, 32, 0, 1, 0, 32, 240, 8,
-		frame1);
-
-	decode_video_memory(
-		image + 8192, gr8_color_regs,
-		0, 32, 0, 1, 0, 32, 240, 8,
-		frame2);
-
-	frames_to_rgb(frame1, frame2, 256 * 240, atari_palette, pixels);
-
-	rgb_to_palette(pixels, 256 * 240, palette, colors);
-
-	return TRUE;
-}
-
-static const byte hip_color_regs[] = { 0x00, 0x00, 0x02, 0x04, 0x06, 0x08, 0x0A, 0x0C, 0x0E };
-
-static abool decode_hip(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	int *width, int *height, int *colors,
-	byte pixels[], byte palette[])
-{
-	int offset1 = 0;
-	int offset2 = 0;
-	int	frame1_len;
-	int frame2_len;
-	abool has_palette = FALSE;
-	byte frame1[320 * FAIL_HEIGHT_MAX];
-	byte frame2[320 * FAIL_HEIGHT_MAX];
-
-	/* hip image with binary file headers */
-	if (parse_binary_header(image, &frame1_len)
-	 && frame1_len > 0
-	 && frame1_len * 2 + 12 == image_len
-	 && frame1_len % 40 == 0
-	 && parse_binary_header(image + frame1_len + 6, &frame2_len)
-	 && frame2_len == frame1_len) {
-		offset1 = 6;
-		offset2 = frame1_len + 12;
-		*height = frame1_len / 40;
-	}
-	/* hip image with gr10 palette */
-	else if ((image_len - 9) % 80 == 0) {
-		offset1 = 0;
-		offset2 = (image_len - 9) / 2;
-		*height = (image_len - 9) / 80;
-		has_palette = TRUE;
-	}
-	else
-		return FALSE;
-
-	*width = 320;
-	if (*height > FAIL_HEIGHT_MAX)
-		return FALSE;
-
-	decode_video_memory(
-		image, hip_color_regs,
-		offset1, 40, 0, 1, -1, 40, *height, has_palette ? 9 : 10,
-		frame1);
-
-	decode_video_memory(
-		image, has_palette ? image + image_len - 9 : hip_color_regs,
-		offset2, 40, 0, 1, +1, 40, *height, has_palette ? 10 : 9,
-		frame2);
-
-	frames_to_rgb(frame1, frame2, *height * 320, atari_palette, pixels);
-
-	rgb_to_palette(pixels, *height * 320, palette, colors);
-	
-	return TRUE;
-}
-
-static const byte mic_color_regs[] = {0, 4, 8, 12};
-
-static abool decode_mic(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	int *width, int *height, int *colors,
-	byte pixels[], byte palette[])
-{
-	abool has_palette;
-	byte frame[320 * 192];
-	byte color_regs[9];
-	
-	memset(color_regs, 0, sizeof(color_regs));
-
-	if (image_len % 40 == 4)
-		has_palette = TRUE;
-	else if (image_len % 40 == 0)
-		has_palette = FALSE;
-	else
-		return FALSE;
-
-	*width = 320;
-	*height = image_len / 40;
-	if (*height > FAIL_HEIGHT_MAX)
-		return FALSE;
-
-	decode_video_memory(
-		image, has_palette ? image + image_len - 4 : mic_color_regs,
-		0, 40, 0, 1, 0, 40, *height, 15,
-		frame);
-
-	frame_to_rgb(frame, *height * 320, atari_palette, pixels);
-
-	rgb_to_palette(pixels, *height * 320, palette, colors);
-
-	return TRUE;
-}
-
-static abool decode_pic(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	int *width, int *height, int *colors,
-	byte pixels[], byte palette[])
-{
-	/* some images with .pic extension are
-	   in micropainter format */
-	if (image_len == 7684 || image_len == 7680)
-		return decode_mic(
-			image, image_len,
-			atari_palette, width, height, colors,
-			pixels, palette);
-
-	else {
-		byte unpacked_image[7680 + 4];
-
-		if (image[0] != 0xff || image[1] != 0x80
-		 || image[2] != 0xc9 || image[3] != 0xc7
-		 || image[4] < 0x1a || image[5] != 0
-		 || image[6] != 1 || image[8] != 0x0e
-		 || image[9] != 0 || image[10] != 40
-		 || image[11] != 0 || image[12] != 192
-		 || image[20] != 0 || image[21] != 0
-		 || image[4] < image_len)
-		
-		if (!unpack_koala(
-			image + image[4] + 1, image_len - image[4] - 1,
-			image[7], unpacked_image))
-			return FALSE;
-
-		unpacked_image[7680] = image[17];
-		unpacked_image[7681] = image[13];
-		unpacked_image[7682] = image[14];
-		unpacked_image[7683] = image[15];
-		
-		return decode_mic(
-			unpacked_image, 7684,
-			atari_palette, width, height, colors,
-			pixels, palette);
-	}
-}
-
-static abool decode_cpr(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	int *width, int *height, int *colors,
-	byte pixels[], byte palette[])
-{
-	byte unpacked_image[7680];
-
-	if (!unpack_koala(
-		image + 1, image_len - 1,
-		image[0], unpacked_image))
-		return FALSE;
-
-	return decode_gr8(
-		unpacked_image, 7680,
-		atari_palette, width, height, colors,
-		pixels, palette);
-}
-
-static abool decode_int(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	int *width, int *height, int *colors,
-	byte pixels[], byte palette[])
-{
-	byte frame1[320 * FAIL_HEIGHT_MAX];
-	byte frame2[320 * FAIL_HEIGHT_MAX];
-
-	if (image[0] != 'I' || image[1] != 'N' || image[2] != 'T'
-	 || image[3] != '9' || image[4] != '5' || image[5] != 'a'
-	 || image[6] == 0 || image[6] > 40
-	 || image[7] == 0 || image[7] > 239
-	 || image[8] != 0x0f || image[9] != 0x2b
-	 || 18 + (image[6] * image[7] * 2) != image_len)
-		return FALSE;
-
-	*width = image[6] * 8;
-	*height = image[7];
-
-	decode_video_memory(
-		image + 18, image + 10,
-		0, 40, 0, 1, 0, 40, *height, 15,
-		frame1);
-
-	decode_video_memory(
-		image + 18 + image[6] * *height, image + 14,
-		0, 40, 0, 1, 0, 40, *height, 15,
-		frame2);
-
-	frames_to_rgb(frame1, frame2, *height * 320, atari_palette, pixels);
-
-	rgb_to_palette(pixels, *height * 320, palette, colors);
-	
-	return TRUE;
-}
-
-static abool decode_inp(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	int *width, int *height, int *colors,
-	byte pixels[], byte palette[])
-{
-	byte frame1[320 * 200];
-	byte frame2[320 * 200];
-
-	if (image_len < 16004)
-		return FALSE;
-
-	*width = 320;
-	*height = 200;
-
-	decode_video_memory(
-		image, image + 16000,
-		0, 40, 0, 1, 0, 40, *height, 15,
-		frame1);
-
-	decode_video_memory(
-		image + 8000, image + 16000,
-		0, 40, 0, 1, 0, 40, *height, 15,
-		frame2);
-
-	frames_to_rgb(frame1, frame2, *height * 320, atari_palette, pixels);
-
-	rgb_to_palette(pixels, *height * 320, palette, colors);
-	
-	return TRUE;
-}
-
-static abool decode_cin(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	int *width, int *height, int *colors,
-	byte pixels[], byte palette[])
-{
-	byte frame1[320 * 192];
-	byte frame2[320 * 192];
-
-	if (image_len != 16384)
-		return FALSE;
-	
-	*width = 320;
-	*height = 192;
-
-	decode_video_memory(
-		image, image + 0x3C00,
-		40, 80, 1, 2, 0, 40, 96, FAIL_MODE_CIN15,
-		frame1);
-
-	decode_video_memory(
-		image, gr8_color_regs,
-		7680, 80, 0, 2, 0, 40, 96, 11,
-		frame1);
-
-	decode_video_memory(
-		image, image + 0x3C00,
-		0, 80, 0, 2, 0, 40, 96, FAIL_MODE_CIN15,
-		frame2);
-
-	decode_video_memory(
-		image, gr8_color_regs,
-		7720, 80, 1, 2, 0, 40, 96, 11,
-		frame2);
-
-	frames_to_rgb(frame1, frame2, *height * *width, atari_palette, pixels);
-
-	rgb_to_palette(pixels, *height * *width, palette, colors);
-	
-	return TRUE;
-}
-
-static abool decode_cci(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	int *width, int *height, int *colors,
-	byte pixels[], byte palette[])
-{
-	const byte *data;
-	int data_len;
-	byte unpacked_image[16384];
-	memset(unpacked_image, 0, sizeof(unpacked_image));
-
-	if (image[0] != 'C' || image[1] != 'I' || image[2] != 'N' || image[3] != ' '
-	 || image[4] != '1' || image[5] != '.' || image[6] != '2' || image[7] != ' ')
-		return FALSE;
-
-	/* compressed even lines of gr15 frame */
-	data = image + 8;
-	data_len = data[0] + (data[1] << 8);
-	if (!unpack_cci(data + 2, data_len, 80, 96, unpacked_image))
-		return FALSE;
-	
-	/* compressed odd lines of gr15 frame */
-	data += 2 + data_len;
-	data_len = data[0] + (data[1] << 8);
-	if (!unpack_cci(data + 2, data_len, 80, 96, unpacked_image + 40))
-		return FALSE;
-
-	/* compressed gr11 frame */
-	data += 2 + data_len;
-	data_len = data[0] + (data[1] << 8);
-	if (!unpack_cci(data + 2, data_len, 40, 192, unpacked_image + 7680))
-		return FALSE;
-
-	/* compressed color values for gr15 */
-	data += 2 + data_len;
-	data_len = data[0] + (data[1] << 8);
-	if (!unpack_cci(data + 2, data_len, 1, 0x400, unpacked_image + 0x3C00))
-		return FALSE;
-
-	if (data + 2 + data_len != image + image_len)
-		return FALSE;
-
-	return decode_cin(
-		unpacked_image, 16384,
-		atari_palette, width, height, colors,
-		pixels, palette);
-}
-
-static abool decode_tip(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	int *width, int *height, int *colors,
-	byte pixels[], byte palette[])
-{
-	int frame_len;
-	int line_len;
-	byte frame1[320 * FAIL_HEIGHT_MAX];
-	byte frame2[320 * FAIL_HEIGHT_MAX];
-
-	if (image[0] != 'T' || image[1] != 'I' || image[2] != 'P'
-	 || image[3] != 1 || image[4] != 0
-	 || image[5] == 0 || image[5] > 160
-	 || image[6] == 0 || image[6] > 119
-	 || 9 + (frame_len = image[7] | (image[8] << 8)) * 3 != image_len)
-		return FALSE;
-	
-	*width = image[5] * 2;
-	*height = image[6] * 2;
-
-	line_len = (image[5] + 3) / 4;
-	/* even frame, gr11 + gr9 */
-	decode_video_memory(
-		image, hip_color_regs, 
-		9, line_len, 1, 2, -1, line_len, *height / 2, 9,
-		frame1);
-
-	decode_video_memory(
-		image, gr8_color_regs,
-		9 + 2 * frame_len, line_len, 0, 2, -1, line_len, *height / 2, 11,
-		frame1);
-
-	/* odd frame, gr11 + gr10 */
-	decode_video_memory(
-		image, hip_color_regs,
-		9 + frame_len, line_len, 1, 2, +1, line_len, *height / 2, 10,
-		frame2);
-
-	decode_video_memory(
-		image, gr8_color_regs,
-		9 + 2 * frame_len, line_len, 0, 2, -1, line_len, *height / 2, 11,
-		frame2);
-
-	frames_to_rgb(frame1, frame2, *height * *width, atari_palette, pixels);
-
-	rgb_to_palette(pixels, *height * *width, palette, colors);
-	
-	return TRUE;
-}
-
-/* serves both APC and PLM formats */
-static abool decode_apc(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	int *width, int *height, int *colors,
-	byte pixels[], byte palette[])
-{
-	byte frame[320 * 192];
-	
-	if (image_len != 7680 && image_len != 7720)
-		return FALSE;
-	
-	*width = 320;
-	*height = 192;
-
-	decode_video_memory(
-		image, hip_color_regs, 
-		40, 80, 1, 2, 0, 40, 96, 9,
-		frame);
-
-	decode_video_memory(
-		image, gr8_color_regs,
-		0, 80, 0, 2, 0, 40, 96, 11,
-		frame);
-
-	frame_to_rgb(frame, *height * *width, atari_palette, pixels);
-
-	rgb_to_palette(pixels, *height * *width, palette, colors);
-	
-	return TRUE;
-}
-
-/* serves both AP3 and ILC */
-static abool decode_ap3(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	int *width, int *height, int *colors,
-	byte pixels[], byte palette[])
-{
-	byte frame1[320 * 192];
-	byte frame2[320 * 192];
-
-	if (image_len != 15872 && image_len != 15360)
-		return FALSE;
-
-	*width = 320;
-	*height = 192;
-
-	decode_video_memory(
-		image, hip_color_regs, 
-		40, 40, 1, 2, 0, 40, 96, 9,
-		frame1);
-
-	decode_video_memory(
-		image, gr8_color_regs,
-		image_len == 15360 ? 7680 : 8192, 40, 0, 2, 0, 40, 96, 11,
-		frame1);
-
-	decode_video_memory(
-		image, hip_color_regs,
-		0, 40, 0, 2, 0, 40, 96, 9,
-		frame2);
-
-	decode_video_memory(
-		image, gr8_color_regs,
-		image_len == 15360 ? 7720 : 8232, 40, 1, 2, 0, 40, 96, 11,
-		frame2);
-
-	frames_to_rgb(frame1, frame2, *height * *width, atari_palette, pixels);
-
-	rgb_to_palette(pixels, *height * *width, palette, colors);
-	
-	return TRUE;
-}
-
 /* unpack_rip* are directly translated from Visage 2.7 assembly source.
    TODO: may need to be rewritten in more understandable way */
 
@@ -1120,10 +574,583 @@ static abool unpack_rip(const byte data[], int data_len, byte unpacked_data[])
 	return TRUE;
 }
 
+static abool parse_binary_header(const byte image[], int *len)
+{
+	if (image[0] == 0xFF && image[1] == 0xFF) {
+		int start_address = image[4] | (image[5] << 8);
+		int end_address = image[2] | (image[3] << 8);
+		*len = start_address - end_address + 1;
+		return TRUE;
+	}
+	else
+		return FALSE;
+}
+
+static const byte gr8_color_regs[] = { 0x00, 0x0F };
+
+static abool decode_gr8_gr9(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[],
+	int dest_mode, const byte color_regs[])
+{
+	int offset = 0;
+	int frame_len;
+	byte frame[320 * FAIL_HEIGHT_MAX];
+
+	/* optional binary file header */
+	if (parse_binary_header(image, &frame_len) 
+	 && frame_len == image_len - 6)
+		offset = 6;
+
+	image_info->width = 320;
+	image_info->height = (image_len - offset) / 40;
+	image_info->original_height = image_info->height;
+		
+	if ((image_len - offset) % 40 != 0 || image_info->height > FAIL_HEIGHT_MAX)
+		return FALSE;
+	
+	decode_video_memory(
+		image, color_regs,
+		offset, 40, 0, 1, 0, 40, image_info->height, dest_mode,
+		frame);
+
+	frame_to_rgb(frame, image_info->height * 320, atari_palette, pixels);
+
+	rgb_to_palette(pixels, image_info->height * 320, palette, &image_info->colors);
+
+	return TRUE;
+}
+
+static abool decode_gr8(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
+{
+	image_info->original_width = 320;
+	return decode_gr8_gr9(
+		image, image_len, atari_palette,
+		image_info,
+		pixels, palette, 8, gr8_color_regs);
+}
+
+static abool decode_gr9(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
+{
+	image_info->original_width = 80;
+	return decode_gr8_gr9(
+		image, image_len, atari_palette,
+		image_info,
+		pixels, palette, 9, gr8_color_regs);
+}
+
+static abool decode_hr(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
+{
+	byte frame1[256 * 240];
+	byte frame2[256 * 240];
+
+	if (image_len != 16384)
+		return FALSE;
+
+	image_info->width = 256;
+	image_info->original_width = 256;
+	image_info->height = 240;
+	image_info->original_height = 240;
+	
+	decode_video_memory(
+		image, gr8_color_regs,
+		0, 32, 0, 1, 0, 32, 240, 8,
+		frame1);
+
+	decode_video_memory(
+		image + 8192, gr8_color_regs,
+		0, 32, 0, 1, 0, 32, 240, 8,
+		frame2);
+
+	frames_to_rgb(frame1, frame2, 256 * 240, atari_palette, pixels);
+
+	rgb_to_palette(pixels, 256 * 240, palette, &image_info->colors);
+
+	return TRUE;
+}
+
+static const byte hip_color_regs[] = { 0x00, 0x00, 0x02, 0x04, 0x06, 0x08, 0x0A, 0x0C, 0x0E };
+
+static abool decode_hip(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
+{
+	int offset1 = 0;
+	int offset2 = 0;
+	int	frame1_len;
+	int frame2_len;
+	abool has_palette = FALSE;
+	byte frame1[320 * FAIL_HEIGHT_MAX];
+	byte frame2[320 * FAIL_HEIGHT_MAX];
+
+	/* hip image with binary file headers */
+	if (parse_binary_header(image, &frame1_len)
+	 && frame1_len > 0
+	 && frame1_len * 2 + 12 == image_len
+	 && frame1_len % 40 == 0
+	 && parse_binary_header(image + frame1_len + 6, &frame2_len)
+	 && frame2_len == frame1_len) {
+		offset1 = 6;
+		offset2 = frame1_len + 12;
+		image_info->height = frame1_len / 40;
+	}
+	/* hip image with gr10 palette */
+	else if ((image_len - 9) % 80 == 0) {
+		offset1 = 0;
+		offset2 = (image_len - 9) / 2;
+		image_info->height = (image_len - 9) / 80;
+		has_palette = TRUE;
+	}
+	else
+		return FALSE;
+
+	image_info->width = 320;
+	image_info->original_width = 160;
+	if (image_info->height > FAIL_HEIGHT_MAX)
+		return FALSE;
+	image_info->original_height = image_info->height;
+
+	decode_video_memory(
+		image, hip_color_regs,
+		offset1, 40, 0, 1, -1, 40, image_info->height, has_palette ? 9 : 10,
+		frame1);
+
+	decode_video_memory(
+		image, has_palette ? image + image_len - 9 : hip_color_regs,
+		offset2, 40, 0, 1, +1, 40, image_info->height, has_palette ? 10 : 9,
+		frame2);
+
+	frames_to_rgb(frame1, frame2, image_info->height * 320, atari_palette, pixels);
+
+	rgb_to_palette(pixels, image_info->height * 320, palette, &image_info->colors);
+	
+	return TRUE;
+}
+
+static const byte mic_color_regs[] = {0, 4, 8, 12};
+
+static abool decode_mic(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
+{
+	abool has_palette;
+	byte frame[320 * 192];
+	byte color_regs[9];
+	
+	memset(color_regs, 0, sizeof(color_regs));
+
+	if (image_len % 40 == 4)
+		has_palette = TRUE;
+	else if (image_len % 40 == 0)
+		has_palette = FALSE;
+	else
+		return FALSE;
+
+	image_info->width = image_info->original_width = 320;
+	image_info->height = image_len / 40;
+	if (image_info->height > FAIL_HEIGHT_MAX)
+		return FALSE;
+	image_info->original_height = image_info->height;
+
+	decode_video_memory(
+		image, has_palette ? image + image_len - 4 : mic_color_regs,
+		0, 40, 0, 1, 0, 40, image_info->height, 15,
+		frame);
+
+	frame_to_rgb(frame, image_info->height * 320, atari_palette, pixels);
+
+	rgb_to_palette(pixels, image_info->height * 320, palette, &image_info->colors);
+
+	return TRUE;
+}
+
+static abool decode_pic(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
+{
+	/* some images with .pic extension are
+	   in micropainter format */
+	if (image_len == 7684 || image_len == 7680)
+		return decode_mic(
+			image, image_len,
+			atari_palette, image_info,
+			pixels, palette);
+
+	else {
+		byte unpacked_image[7680 + 4];
+
+		if (image[0] != 0xff || image[1] != 0x80
+		 || image[2] != 0xc9 || image[3] != 0xc7
+		 || image[4] < 0x1a || image[5] != 0
+		 || image[6] != 1 || image[8] != 0x0e
+		 || image[9] != 0 || image[10] != 40
+		 || image[11] != 0 || image[12] != 192
+		 || image[20] != 0 || image[21] != 0
+		 || image[4] < image_len)
+		
+		if (!unpack_koala(
+			image + image[4] + 1, image_len - image[4] - 1,
+			image[7], unpacked_image))
+			return FALSE;
+
+		unpacked_image[7680] = image[17];
+		unpacked_image[7681] = image[13];
+		unpacked_image[7682] = image[14];
+		unpacked_image[7683] = image[15];
+		
+		return decode_mic(
+			unpacked_image, 7684,
+			atari_palette, image_info,
+			pixels, palette);
+	}
+}
+
+static abool decode_cpr(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
+{
+	byte unpacked_image[7680];
+
+	if (!unpack_koala(
+		image + 1, image_len - 1,
+		image[0], unpacked_image))
+		return FALSE;
+
+	return decode_gr8(
+		unpacked_image, 7680,
+		atari_palette, image_info,
+		pixels, palette);
+}
+
+static abool decode_int(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
+{
+	byte frame1[320 * FAIL_HEIGHT_MAX];
+	byte frame2[320 * FAIL_HEIGHT_MAX];
+
+	if (image[0] != 'I' || image[1] != 'N' || image[2] != 'T'
+	 || image[3] != '9' || image[4] != '5' || image[5] != 'a'
+	 || image[6] == 0 || image[6] > 40
+	 || image[7] == 0 || image[7] > 239
+	 || image[8] != 0x0f || image[9] != 0x2b
+	 || 18 + (image[6] * image[7] * 2) != image_len)
+		return FALSE;
+
+	image_info->width = image[6] * 8;
+	image_info->original_width = image[6] * 4;
+	image_info->height = image[7];
+	image_info->original_height = image[7];
+
+	decode_video_memory(
+		image + 18, image + 10,
+		0, 40, 0, 1, 0, 40, image_info->height, 15,
+		frame1);
+
+	decode_video_memory(
+		image + 18 + image[6] * image_info->height, image + 14,
+		0, 40, 0, 1, 0, 40, image_info->height, 15,
+		frame2);
+
+	frames_to_rgb(frame1, frame2, image_info->height * 320, atari_palette, pixels);
+
+	rgb_to_palette(pixels, image_info->height * 320, palette, &image_info->colors);
+	
+	return TRUE;
+}
+
+static abool decode_inp(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
+{
+	byte frame1[320 * 200];
+	byte frame2[320 * 200];
+
+	if (image_len < 16004)
+		return FALSE;
+
+	image_info->width = 320;
+	image_info->original_width = 160;
+	image_info->height = 200;
+	image_info->original_height = 200;
+
+	decode_video_memory(
+		image, image + 16000,
+		0, 40, 0, 1, 0, 40, image_info->height, 15,
+		frame1);
+
+	decode_video_memory(
+		image + 8000, image + 16000,
+		0, 40, 0, 1, 0, 40, image_info->height, 15,
+		frame2);
+
+	frames_to_rgb(frame1, frame2, image_info->height * 320, atari_palette, pixels);
+
+	rgb_to_palette(pixels, image_info->height * 320, palette, &image_info->colors);
+	
+	return TRUE;
+}
+
+static abool decode_cin(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
+{
+	byte frame1[320 * 192];
+	byte frame2[320 * 192];
+
+	if (image_len != 16384)
+		return FALSE;
+	
+	image_info->width = 320;
+	image_info->original_width = 160;
+	image_info->height = 192;
+	image_info->original_height = 192;
+
+	decode_video_memory(
+		image, image + 0x3C00,
+		40, 80, 1, 2, 0, 40, 96, FAIL_MODE_CIN15,
+		frame1);
+
+	decode_video_memory(
+		image, gr8_color_regs,
+		7680, 80, 0, 2, 0, 40, 96, 11,
+		frame1);
+
+	decode_video_memory(
+		image, image + 0x3C00,
+		0, 80, 0, 2, 0, 40, 96, FAIL_MODE_CIN15,
+		frame2);
+
+	decode_video_memory(
+		image, gr8_color_regs,
+		7720, 80, 1, 2, 0, 40, 96, 11,
+		frame2);
+
+	frames_to_rgb(frame1, frame2, 320 * 192, atari_palette, pixels);
+
+	rgb_to_palette(pixels, 320 * 192, palette, &image_info->colors);
+	
+	return TRUE;
+}
+
+static abool decode_cci(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
+{
+	const byte *data;
+	int data_len;
+	byte unpacked_image[16384];
+	memset(unpacked_image, 0, sizeof(unpacked_image));
+
+	if (image[0] != 'C' || image[1] != 'I' || image[2] != 'N' || image[3] != ' '
+	 || image[4] != '1' || image[5] != '.' || image[6] != '2' || image[7] != ' ')
+		return FALSE;
+
+	/* compressed even lines of gr15 frame */
+	data = image + 8;
+	data_len = data[0] + (data[1] << 8);
+	if (!unpack_cci(data + 2, data_len, 80, 96, unpacked_image))
+		return FALSE;
+	
+	/* compressed odd lines of gr15 frame */
+	data += 2 + data_len;
+	data_len = data[0] + (data[1] << 8);
+	if (!unpack_cci(data + 2, data_len, 80, 96, unpacked_image + 40))
+		return FALSE;
+
+	/* compressed gr11 frame */
+	data += 2 + data_len;
+	data_len = data[0] + (data[1] << 8);
+	if (!unpack_cci(data + 2, data_len, 40, 192, unpacked_image + 7680))
+		return FALSE;
+
+	/* compressed color values for gr15 */
+	data += 2 + data_len;
+	data_len = data[0] + (data[1] << 8);
+	if (!unpack_cci(data + 2, data_len, 1, 0x400, unpacked_image + 0x3C00))
+		return FALSE;
+
+	if (data + 2 + data_len != image + image_len)
+		return FALSE;
+
+	return decode_cin(
+		unpacked_image, 16384,
+		atari_palette, image_info,
+		pixels, palette);
+}
+
+static abool decode_tip(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
+{
+	int frame_len;
+	int line_len;
+	byte frame1[320 * FAIL_HEIGHT_MAX];
+	byte frame2[320 * FAIL_HEIGHT_MAX];
+
+	if (image[0] != 'T' || image[1] != 'I' || image[2] != 'P'
+	 || image[3] != 1 || image[4] != 0
+	 || image[5] == 0 || image[5] > 160
+	 || image[6] == 0 || image[6] > 119
+	 || 9 + (frame_len = image[7] | (image[8] << 8)) * 3 != image_len)
+		return FALSE;
+	
+	image_info->original_width = image[5];
+	image_info->width = image[5] * 2;
+	image_info->original_height = image[6];
+	image_info->height = image[6] * 2;
+
+	line_len = (image_info->original_width + 3) / 4;
+	/* even frame, gr11 + gr9 */
+	decode_video_memory(
+		image, hip_color_regs, 
+		9, line_len, 1, 2, -1, line_len, image[6], 9,
+		frame1);
+
+	decode_video_memory(
+		image, gr8_color_regs,
+		9 + 2 * frame_len, line_len, 0, 2, -1, line_len, image[6], 11,
+		frame1);
+
+	/* odd frame, gr11 + gr10 */
+	decode_video_memory(
+		image, hip_color_regs,
+		9 + frame_len, line_len, 1, 2, +1, line_len, image[6], 10,
+		frame2);
+
+	decode_video_memory(
+		image, gr8_color_regs,
+		9 + 2 * frame_len, line_len, 0, 2, -1, line_len, image[6], 11,
+		frame2);
+
+	frames_to_rgb(frame1, frame2,
+		image_info->height * image_info->width, atari_palette, pixels);
+
+	rgb_to_palette(pixels, image_info->height * image_info->width,
+		palette, &image_info->colors);
+	
+	return TRUE;
+}
+
+/* serves both APC and PLM formats */
+static abool decode_apc(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
+{
+	byte frame[320 * 192];
+	
+	if (image_len != 7680 && image_len != 7720)
+		return FALSE;
+	
+	image_info->width = 320;
+	image_info->original_width = 80;
+	image_info->height = 192;
+	image_info->original_height = 96;
+
+	decode_video_memory(
+		image, hip_color_regs, 
+		40, 80, 1, 2, 0, 40, 96, 9,
+		frame);
+
+	decode_video_memory(
+		image, gr8_color_regs,
+		0, 80, 0, 2, 0, 40, 96, 11,
+		frame);
+
+	frame_to_rgb(frame, image_info->height * image_info->width,
+		atari_palette, pixels);
+
+	rgb_to_palette(pixels, image_info->height * image_info->width,
+		palette, &image_info->colors);
+	
+	return TRUE;
+}
+
+/* serves both AP3 and ILC */
+static abool decode_ap3(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
+{
+	byte frame1[320 * 192];
+	byte frame2[320 * 192];
+
+	if (image_len != 15872 && image_len != 15360)
+		return FALSE;
+
+	image_info->width = 320;
+	image_info->original_width = 80;
+	image_info->height = 192;
+	image_info->original_height = 192;
+
+	decode_video_memory(
+		image, hip_color_regs, 
+		40, 40, 1, 2, 0, 40, 96, 9,
+		frame1);
+
+	decode_video_memory(
+		image, gr8_color_regs,
+		image_len == 15360 ? 7680 : 8192, 40, 0, 2, 0, 40, 96, 11,
+		frame1);
+
+	decode_video_memory(
+		image, hip_color_regs,
+		0, 40, 0, 2, 0, 40, 96, 9,
+		frame2);
+
+	decode_video_memory(
+		image, gr8_color_regs,
+		image_len == 15360 ? 7720 : 8232, 40, 1, 2, 0, 40, 96, 11,
+		frame2);
+
+	frames_to_rgb(frame1, frame2,
+		image_info->height * image_info->width, atari_palette, pixels);
+
+	rgb_to_palette(pixels, image_info->height * image_info->width,
+		palette, &image_info->colors);
+	
+	return TRUE;
+}
+
 static abool decode_rip(
 	const byte image[], int image_len,
 	const byte atari_palette[],
-	int *width, int *height, int *colors,
+	FAIL_ImageInfo* image_info,
 	byte pixels[], byte palette[])
 {
 	byte unpacked_image[24576];
@@ -1156,23 +1183,25 @@ static abool decode_rip(
 		return FALSE;
 	}
 
-	*width = image[13] * 4;
-	*height = image[15];
+	image_info->width = image[13] * 4;
+	image_info->original_width = image[13] * 2;
+	image_info->height = image[15];
+	image_info->original_height = image[15];
 
 	line_len = image[13] / 2;
-	frame_len = line_len * *height;
+	frame_len = line_len * image_info->height;
 
 	switch (image[7]) {
 	case 0x20:
 		/* hip, rip */
 		decode_video_memory(
 			unpacked_image, image + 24 + txt_len,
-			0, line_len, 0, 1, -1, line_len, *height, 10,
-			frame1);
+			0, line_len, 0, 1, -1, line_len, image_info->height,
+			10, frame1);
 		decode_video_memory(
 			unpacked_image, hip_color_regs,
-			frame_len, line_len, 0, 1, +1, line_len, *height, 9,
-			frame2);
+			frame_len, line_len, 0, 1, +1, line_len, image_info->height,
+			9, frame2);
 		break;
 	case 0x30:
 		/* multi rip */
@@ -1188,20 +1217,22 @@ static abool decode_rip(
 		}
 		decode_video_memory(
 			unpacked_image, unpacked_image + 2 * frame_len,
-			0, line_len, 0, 1, -1, line_len, *height, FAIL_MODE_MULTIRIP,
-			frame1);
+			0, line_len, 0, 1, -1, line_len, image_info->height,
+			FAIL_MODE_MULTIRIP, frame1);
 		decode_video_memory(
 			unpacked_image, hip_color_regs,
-			frame_len, line_len, 0, 1, +1, line_len, *height, 9,
-			frame2);
+			frame_len, line_len, 0, 1, +1, line_len, image_info->height,
+			9, frame2);
 		break;
 	default:
 		return FALSE;
 	}
 
-	frames_to_rgb(frame1, frame2, *height * *width, atari_palette, pixels);
+	frames_to_rgb(frame1, frame2,
+		image_info->height * image_info->width, atari_palette, pixels);
 
-	rgb_to_palette(pixels, *height * *width, palette, colors);
+	rgb_to_palette(pixels, image_info->height * image_info->width,
+		palette, &image_info->colors);
 
 	return TRUE;
 }
@@ -1256,17 +1287,17 @@ abool FAIL_IsOurFile(const char *filename)
 }
 
 abool FAIL_DecodeImage(const char *filename,
-                       const byte image[], int image_len,
-                       const byte atari_palette[],
-                       int *width, int *height, int *colors,
-                       byte pixels[], byte palette[])
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
 {
 	int ext;
 	static const struct {
 		int ext;
 		int (*func)(
 			const byte[], int, const byte[],
-			int*, int*, int*, byte[], byte[]);
+			FAIL_ImageInfo*, byte[], byte[]);
 	} handlers[] = {
 		{ FAIL_EXT('G', 'R', '8'), decode_gr8 },
 		{ FAIL_EXT('H', 'I', 'P'), decode_hip },
@@ -1294,7 +1325,7 @@ abool FAIL_DecodeImage(const char *filename,
 		if (ph->ext == ext)
 			return ph->func(
 				image, image_len, atari_palette,
-				width, height, colors, pixels, palette);
+				image_info, pixels, palette);
 	}
 	return FALSE;
 }

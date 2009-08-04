@@ -51,9 +51,7 @@ static BOOL status_bar = TRUE;
 static char current_filename[MAX_PATH] = "";
 static byte image[FAIL_IMAGE_MAX];
 static int image_len;
-static int width = 0;
-static int height;
-static int colors;
+static FAIL_ImageInfo image_info = { 0, 0, 0, 0, 0 };
 static byte pixels[FAIL_PIXELS_MAX];
 static byte palette[FAIL_PALETTE_MAX];
 static int show_width;
@@ -71,39 +69,42 @@ static byte *bitmap_pixels;
 static void UpdateBitmap(void)
 {
 	bitmap.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bitmap.bmiHeader.biWidth = width;
-	bitmap.bmiHeader.biHeight = height;
+	bitmap.bmiHeader.biWidth = image_info.width;
+	bitmap.bmiHeader.biHeight = image_info.height;
 	bitmap.bmiHeader.biPlanes = 1;
-	bitmap.bmiHeader.biBitCount = colors <= 256 ? 8 : 24;
+	bitmap.bmiHeader.biBitCount = image_info.colors <= 256 ? 8 : 24;
 	bitmap.bmiHeader.biCompression = BI_RGB;
 	bitmap.bmiHeader.biXPelsPerMeter = 1000;
 	bitmap.bmiHeader.biYPelsPerMeter = 1000;
-	if (colors <= 256) {
+	if (image_info.colors <= 256) {
 		int i;
 		int y;
-		bitmap.bmiHeader.biSizeImage = sizeof(BITMAPINFOHEADER) + colors * sizeof(RGBQUAD) + width * height;
-		bitmap.bmiHeader.biClrUsed = colors;
-		bitmap.bmiHeader.biClrImportant = colors;
-		for (i = 0; i < colors; i++) {
+		bitmap.bmiHeader.biSizeImage =
+			sizeof(BITMAPINFOHEADER) + image_info.colors * sizeof(RGBQUAD) + image_info.width * image_info.height;
+		bitmap.bmiHeader.biClrUsed = image_info.colors;
+		bitmap.bmiHeader.biClrImportant = image_info.colors;
+		for (i = 0; i < image_info.colors; i++) {
 			bitmap.bmiColors[i].rgbRed = palette[3 * i];
 			bitmap.bmiColors[i].rgbGreen = palette[3 * i + 1];
 			bitmap.bmiColors[i].rgbBlue = palette[3 * i + 2];
 		}
-		bitmap_pixels = (byte *) (bitmap.bmiColors + colors);
-		for (y = 0; y < height; y++)
-			memcpy(bitmap_pixels + (height - 1 - y) * width, pixels + y * width, width);
+		bitmap_pixels = (byte *) (bitmap.bmiColors + image_info.colors);
+		for (y = 0; y < image_info.height; y++)
+			memcpy(bitmap_pixels + (image_info.height - 1 - y) * image_info.width,
+				pixels + y * image_info.width, image_info.width);
 	}
 	else {
 		int y;
-		bitmap.bmiHeader.biSizeImage = sizeof(BITMAPINFOHEADER) + width * height * 3;
+		bitmap.bmiHeader.biSizeImage =
+			sizeof(BITMAPINFOHEADER) + image_info.width * image_info.height * 3;
 		bitmap.bmiHeader.biClrUsed = 0;
 		bitmap.bmiHeader.biClrImportant = 0;
 		bitmap_pixels = (byte *) bitmap.bmiColors;
-		for (y = 0; y < height; y++) {
-			const byte *p = pixels + y * width * 3;
-			byte *q = bitmap_pixels + (height - 1 - y) * width * 3;
+		for (y = 0; y < image_info.height; y++) {
+			const byte *p = pixels + y * image_info.width * 3;
+			byte *q = bitmap_pixels + (image_info.height - 1 - y) * image_info.width * 3;
 			int i;
-			for (i = 0; i < width * 3; i += 3) {
+			for (i = 0; i < image_info.width * 3; i += 3) {
 				q[i] = p[i + 2];
 				q[i + 1] = p[i + 1];
 				q[i + 2] = p[i];
@@ -124,15 +125,15 @@ static void UpdateMenuCheck(int id, BOOL check)
 
 static int Fit(int dest_width, int dest_height)
 {
-	if (width * dest_height < height * dest_width) {
-		show_width = MulDiv(width, dest_height, height);
+	if (image_info.width * dest_height < image_info.height * dest_width) {
+		show_width = MulDiv(image_info.width, dest_height, image_info.height);
 		show_height = dest_height;
-		return MulDiv(100, dest_height, height);
+		return MulDiv(100, dest_height, image_info.height);
 	}
 	else {
 		show_width = dest_width;
-		show_height = MulDiv(height, dest_width, width);
-		return MulDiv(100, dest_width, width);
+		show_height = MulDiv(image_info.height, dest_width, image_info.width);
+		return MulDiv(100, dest_width, image_info.width);
 	}
 }
 
@@ -175,15 +176,15 @@ static void ResizeWindow(void)
 
 static void Repaint(void)
 {
-	if (width > 0 && height > 0) {
+	if (image_info.width > 0 && image_info.height > 0) {
 		if (fullscreen)
 			Fit(GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
 		else {
 			int desktop_width = GetSystemMetrics(SM_CXFULLSCREEN);
 			int desktop_height = GetSystemMetrics(SM_CYFULLSCREEN);
 			RECT rect;
-			show_width = MulDiv(width, zoom, 100);
-			show_height = MulDiv(height, zoom, 100);
+			show_width = MulDiv(image_info.width, zoom, 100);
+			show_height = MulDiv(image_info.height, zoom, 100);
 			CalculateWindowSize();
 			if (window_width > desktop_width || window_height > desktop_height) {
 				zoom = Fit(desktop_width, desktop_height);
@@ -255,7 +256,7 @@ static BOOL DecodeImage(const char *filename)
 {
 	return FAIL_DecodeImage(filename, image, image_len,
 		use_atari_palette ? atari_palette : NULL,
-		&width, &height, &colors, pixels, palette);
+		&image_info, pixels, palette);
 }
 
 static int GetPathLength(const char *filename)
@@ -276,7 +277,8 @@ static void UpdateText(void)
 		filename += GetPathLength(filename);
 	sprintf(buf, "%s - " APP_TITLE, filename);
 	SetWindowText(hWnd, buf);
-	sprintf(buf, "%dx%d, %d colors", width, height, colors);
+	sprintf(buf, "%dx%d, %d colors", image_info.original_width,
+		image_info.original_height, image_info.colors);
 	SetWindowText(hStatus, buf);
 }
 
@@ -295,7 +297,7 @@ static void OpenImage(void)
 		return;
 	}
 	if (!DecodeImage(current_filename)) {
-		width = 0;
+		image_info.width = 0;
 		SetWindowText(hWnd, APP_TITLE);
 		SetWindowText(hStatus, NULL);
 		ShowError("Decoding error");
@@ -415,7 +417,7 @@ static void SelectAndSaveImage(void)
 	ofn.hwndOwner = hWnd;
 	if (!GetSaveFileName(&ofn))
 		return;
-	if (!PNG_Save(png_filename, width, height, colors, pixels, palette))
+	if (!PNG_Save(png_filename, image_info.width, image_info.height, image_info.colors, pixels, palette))
 		ShowError("Error writing file");
 }
 
@@ -469,7 +471,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 	PCOPYDATASTRUCT pcds;
 	switch (msg) {
 	case WM_PAINT:
-		if (width > 0 && height > 0) {
+		if (image_info.width > 0 && image_info.height > 0) {
 			PAINTSTRUCT ps;
 			HDC hdc;
 			RECT rect;
@@ -480,7 +482,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			x = rect.right > show_width ? (rect.right - show_width) >> 1 : 0;
 			y = rect.bottom > show_height ? (rect.bottom - show_height) >> 1 : 0;
 			hdc = BeginPaint(hWnd, &ps);
-			StretchDIBits(hdc, x, y, show_width, show_height, 0, 0, width, height,
+			StretchDIBits(hdc, x, y, show_width, show_height, 0, 0, image_info.width, image_info.height,
 				bitmap_pixels, (CONST BITMAPINFO *) &bitmap, DIB_RGB_COLORS, SRCCOPY);
 			EndPaint(hWnd, &ps);
 		}
@@ -522,7 +524,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			PostQuitMessage(0);
 			break;
 		case IDM_COPY:
-			if (width > 0 && height > 0) {
+			if (image_info.width > 0 && image_info.height > 0) {
 				if (OpenClipboard(hWnd)) {
 					void *p = (void *) GlobalAlloc(GMEM_FIXED, bitmap.bmiHeader.biSizeImage);
 					if (p != NULL) {
@@ -544,7 +546,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			ZoomOut();
 			break;
 		case IDM_INVERT:
-			if (colors == 2) {
+			if (image_info.colors == 2) {
 				RGBQUAD tmp = bitmap.bmiColors[0];
 				bitmap.bmiColors[0] = bitmap.bmiColors[1];
 				bitmap.bmiColors[1] = tmp;
@@ -554,7 +556,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 		case IDM_SHOWPATH:
 			show_path = !show_path;
 			UpdateMenuCheck(IDM_SHOWPATH, show_path);
-			if (width > 0)
+			if (image_info.width > 0)
 				UpdateText();
 			break;
 		case IDM_STATUSBAR:

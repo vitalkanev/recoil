@@ -46,12 +46,10 @@ typedef struct {
 typedef struct {
 	byte image[FAIL_IMAGE_MAX];
 	int image_len;
-	int width;
-	int height;
-	int colors;
 	byte pixels[FAIL_PIXELS_MAX];
 //	byte palette[FAIL_PALETTE_MAX];
 	int bytes_per_line;
+	FAIL_ImageInfo image_info;
 } FailData;
 
 #ifdef __cplusplus
@@ -101,7 +99,7 @@ DLL_EXPORT void * API gfpLoadPictureInit(LPCSTR filename)
 	if (fail != NULL) {
 		fail->image_len = fread(fail->image, 1, sizeof(fail->image), fp);
 		if (!FAIL_DecodeImage(filename, fail->image, fail->image_len, NULL,
-			&fail->width, &fail->height, &fail->colors,
+			&fail->image_info,
 			fail->pixels, NULL /* fail->palette */)) {
 			fclose(fp);
 			free(fail);
@@ -121,8 +119,8 @@ DLL_EXPORT BOOL API gfpLoadPictureGetInfo(
 	FailData *fail = (FailData*)ptr;
 
 	*pictype = GFP_RGB;
-	*width = fail->width;
-	*height = fail->height;
+	*width = fail->image_info.width;
+	*height = fail->image_info.height;
 	*dpi = 68;
 	*bits_per_pixel = 24; // fail->colors <= 256 ? 8 : 24;
 	fail->bytes_per_line = *bytes_per_line = 

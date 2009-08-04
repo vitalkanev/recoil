@@ -61,6 +61,16 @@ typedef unsigned char byte;
 #define FAIL_PALETTE_MAX  768
 #define FAIL_PIXELS_MAX   (FAIL_WIDTH_MAX * FAIL_HEIGHT_MAX * 3)
 
+/* Structure holding information on converted image.
+   See FAIL_DecodeImage for details. */
+typedef struct {
+	int width;
+	int height;
+	int colors;
+	int original_width;
+	int original_height;
+} FAIL_ImageInfo;
+
 /* Checks whether the filename extension is supported by FAIL.
    TRUE doesn't necessarily mean that the file contents is valid for FAIL.
    This function is meant to avoid reading files which are known to be
@@ -77,9 +87,13 @@ abool FAIL_IsOurFile(const char *filename);
     * atari_palette (in, optional) - 768-byte array containing triplets
 	                                 of bytes (R, G, B) for Atari palette colors
 	                                 (NULL for built-in palette jakub.act)
-    * width (out) - image width
-    * height (out) - image height
-    * colors (out ) - number of colors (determines format of pixels and palette)
+    * image_info (out):
+        * width - converted image width
+        * height - converted image height
+        * colors - exact number of colors in converted image (determines format
+                   of pixels and palette)
+		* original_width - original image width (informational)
+		* original_height - original image height (informational)
     * pixels (out, optional) - width*height pixels, top-down, left-to-right
     * palette (out, optional) - if colors <= 256, this array is filled
 	                            with 256 triplets of bytes (R, G, B)
@@ -91,10 +105,10 @@ abool FAIL_IsOurFile(const char *filename);
 	  and palette is not set. 
    After unsuccessful execution, the contents of 'out' parameters is undefined. */
 abool FAIL_DecodeImage(const char *filename,
-                       const byte image[], int image_len,
-                       const byte atari_palette[],
-                       int *width, int *height, int *colors,
-                       byte pixels[], byte palette[]);
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[]);
 
 #ifdef __cplusplus
 }
