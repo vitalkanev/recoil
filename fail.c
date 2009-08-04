@@ -1237,6 +1237,85 @@ static abool decode_rip(
 	return TRUE;
 }
 
+static abool decode_fonts(
+	const byte ordered_bytes[],
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
+{
+	byte frame[256 * 32];
+
+	image_info->width = 256;
+	image_info->original_width = 256;
+	image_info->height = 32;
+	image_info->original_height = 32;
+
+	decode_video_memory(
+		ordered_bytes, gr8_color_regs,
+		0, 32, 0, 1, 0, 32, 32, 8, frame);
+	
+	frame_to_rgb(frame, 256 * 32, atari_palette, pixels);
+
+	rgb_to_palette(pixels, 256 * 32, palette, &image_info->colors);
+
+	return TRUE;
+}
+
+static abool decode_fnt(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
+{
+	byte ordered_bytes[1024];
+	int i;
+	int len;
+	const byte* s;
+
+	if ((image_len != 1030 || !parse_binary_header(image, &len) || len != 1024)
+	 && image_len != 1024)
+		return FALSE;
+
+	s = image + (image_len - 1024);
+	for (i = 0; i < 1024; i++) {
+		ordered_bytes[
+			(i & 0x300)
+			+ ((i & 7) << 5)
+			+ ((i >> 3) & 0x1f)
+		] = s[i];	
+	}
+
+	return decode_fonts(ordered_bytes, atari_palette,
+		image_info, pixels, palette);
+}
+
+static abool decode_sxs(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], byte palette[])
+{
+	byte ordered_bytes[1024];
+	int i;
+	int len;
+
+	if (image_len != 1030 || !parse_binary_header(image, &len) || len != 1024)
+		return FALSE;
+	
+	for (i = 0; i < 1024; i++) {
+		ordered_bytes[
+			(i & 0x200)
+			+ ((i & 16) << 4)
+			+ ((i & 7) << 5)
+			+ ((i >> 4) & 0x1e)
+			+ ((i >> 3) & 1)
+		] = image[6 + i];
+	}
+
+	return decode_fonts(ordered_bytes, atari_palette,
+		image_info, pixels, palette);
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -1274,6 +1353,8 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('A', 'P', '3'):
 	case FAIL_EXT('I', 'L', 'C'):
 	case FAIL_EXT('R', 'I', 'P'):
+	case FAIL_EXT('F', 'N', 'T'):
+	case FAIL_EXT('S', 'X', 'S'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -1315,7 +1396,9 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('P', 'L', 'M'), decode_apc },
 		{ FAIL_EXT('A', 'P', '3'), decode_ap3 },
 		{ FAIL_EXT('I', 'L', 'C'), decode_ap3 },
-		{ FAIL_EXT('R', 'I', 'P'), decode_rip }
+		{ FAIL_EXT('R', 'I', 'P'), decode_rip },
+		{ FAIL_EXT('F', 'N', 'T'), decode_fnt },
+		{ FAIL_EXT('S', 'X', 'S'), decode_sxs }
 	}, *ph;
 
 	if (atari_palette == NULL)

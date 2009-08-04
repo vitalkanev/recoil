@@ -313,7 +313,7 @@ static void SelectAndOpenImage(void)
 		NULL,
 		0,
 		"All supported\0"
-		"*.ap3;*.apc;*.cci;*.cin;*.cpr;*.gr8;*.gr9;*.hip;*.hr;*.ilc;*.inp;*.int;*.mic;*.pic;*.plm;*.rip;*.tip\0"
+		"*.ap3;*.apc;*.cci;*.cin;*.cpr;*.fnt;*.gr8;*.gr9;*.hip;*.hr;*.ilc;*.inp;*.int;*.mic;*.pic;*.plm;*.rip;*.sxs;*.tip\0"
 		"\0",
 		NULL,
 		0,
