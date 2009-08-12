@@ -38,6 +38,7 @@
 #define APP_TITLE               "FAILWin"
 #define WND_CLASS_NAME          "FAILWin"
 
+static HINSTANCE hInst;
 static HWND hWnd;
 static HMENU hMenu;
 static HWND hStatus;
@@ -116,6 +117,25 @@ static void UpdateBitmap(void)
 static void ShowError(const char *message)
 {
 	MessageBox(hWnd, message, APP_TITLE, MB_OK | MB_ICONERROR);
+}
+
+static void ShowAbout(void)
+{
+	MSGBOXPARAMS mbp = {
+		sizeof(MSGBOXPARAMS),
+		hWnd,
+		hInst,
+		FAIL_CREDITS
+		"FAIL icon (C) 2009 Pawel Szewczyk\n\n"
+		FAIL_COPYRIGHT,
+		APP_TITLE " " FAIL_VERSION,
+		MB_OK | MB_USERICON,
+		MAKEINTRESOURCE(IDI_APP),
+		0,
+		NULL,
+		LANG_NEUTRAL
+	};
+	MessageBoxIndirect(&mbp);
 }
 
 static void UpdateMenuCheck(int id, BOOL check)
@@ -566,12 +586,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			Repaint();
 			break;
 		case IDM_ABOUT:
-			MessageBox(hWnd,
-				FAIL_CREDITS
-				"\n"
-				FAIL_COPYRIGHT,
-				APP_TITLE " " FAIL_VERSION,
-				MB_OK | MB_ICONINFORMATION);
+			ShowAbout();
 			break;
 		default:
 			break;
@@ -631,13 +646,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 0;
 	}
 
+	hInst = hInstance;
 	InitCommonControlsEx(&iccx);
 	wc.style = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
 	wc.lpfnWndProc = MainWndProc;
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = hInstance;
-	wc.hIcon = NULL; // TODO LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APP));
+	wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APP));
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wc.hbrBackground = GetStockObject(BLACK_BRUSH);
 	wc.lpszMenuName = MAKEINTRESOURCE(IDR_MENU);

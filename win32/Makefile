@@ -14,7 +14,7 @@ Xfail.dll: xnview/Xfail.c ../fail.c ../fail.h ../palette.h
 failwin.exe: failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c failwin/failwin.h ../pngsave.h ../fail.h ../palette.h
 	$(FAIL_CC) -Wl,-subsystem,windows failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c -lcomctl32 -lcomdlg32 -lgdi32 -lpng -lz
 
-failwin/failwin-res.o: failwin/failwin.rc failwin/failwin.h
+failwin/failwin-res.o: failwin/failwin.rc failwin/failwin.h faileye.ico
 	$(WINDRES) failwin/failwin.rc
 
 ../palette.h: ../raw2c.pl ../jakub.act

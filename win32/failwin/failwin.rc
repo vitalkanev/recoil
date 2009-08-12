@@ -25,6 +25,8 @@
 
 #include "failwin.h"
 
+IDI_APP ICON "../faileye.ico"
+
 IDR_MENU MENU
 {
 	POPUP "&File"
