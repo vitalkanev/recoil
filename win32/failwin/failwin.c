@@ -143,6 +143,29 @@ static void UpdateMenuCheck(int id, BOOL check)
 	CheckMenuItem(hMenu, id, MF_BYCOMMAND | (check ? MF_CHECKED : MF_UNCHECKED));
 }
 
+static int GetPathLength(const char *filename)
+{
+	int i;
+	int len = 0;
+	for (i = 0; filename[i] != '\0'; i++)
+		if (filename[i] == '\\' || filename[i] == '/')
+			len = i + 1;
+	return len;
+}
+
+static void UpdateText(void)
+{
+	char buf[MAX_PATH + 32];
+	const char *filename = current_filename;
+	if (!show_path)
+		filename += GetPathLength(filename);
+	sprintf(buf, "%s - " APP_TITLE, filename);
+	SetWindowText(hWnd, buf);
+	sprintf(buf, "%dx%d, %d colors, %d%%", image_info.original_width,
+		image_info.original_height, image_info.colors, zoom);
+	SetWindowText(hStatus, buf);
+}
+
 static int Fit(int dest_width, int dest_height)
 {
 	if (image_info.width * dest_height < image_info.height * dest_width) {
@@ -221,6 +244,7 @@ static BOOL Repaint(BOOL fit_to_desktop)
 		}
 	}
 	InvalidateRect(hWnd, NULL, TRUE);
+	UpdateText();
 	return TRUE;
 }
 
@@ -286,32 +310,8 @@ static BOOL DecodeImage(const char *filename)
 		&image_info, pixels, palette);
 }
 
-static int GetPathLength(const char *filename)
-{
-	int i;
-	int len = 0;
-	for (i = 0; filename[i] != '\0'; i++)
-		if (filename[i] == '\\' || filename[i] == '/')
-			len = i + 1;
-	return len;
-}
-
-static void UpdateText(void)
-{
-	char buf[MAX_PATH + 32];
-	const char *filename = current_filename;
-	if (!show_path)
-		filename += GetPathLength(filename);
-	sprintf(buf, "%s - " APP_TITLE, filename);
-	SetWindowText(hWnd, buf);
-	sprintf(buf, "%dx%d, %d colors", image_info.original_width,
-		image_info.original_height, image_info.colors);
-	SetWindowText(hStatus, buf);
-}
-
 static void ShowImage(void)
 {
-	UpdateText();
 	UpdateBitmap();
 	Repaint(TRUE);
 }
