@@ -194,7 +194,7 @@ static void ResizeWindow(void)
 		window_width, window_height, TRUE);
 }
 
-static void Repaint(void)
+static BOOL Repaint(BOOL fit_to_desktop)
 {
 	if (image_info.width > 0 && image_info.height > 0) {
 		if (fullscreen)
@@ -207,6 +207,8 @@ static void Repaint(void)
 			show_height = MulDiv(image_info.height, zoom, 100);
 			CalculateWindowSize();
 			if (window_width > desktop_width || window_height > desktop_height) {
+				if (!fit_to_desktop)
+					return FALSE;
 				zoom = Fit(desktop_width, desktop_height);
 				CalculateWindowSize();
 			}
@@ -219,6 +221,7 @@ static void Repaint(void)
 		}
 	}
 	InvalidateRect(hWnd, NULL, TRUE);
+	return TRUE;
 }
 
 static void ToggleFullscreen(void)
@@ -238,7 +241,7 @@ static void ToggleFullscreen(void)
 		MoveWindow(hWnd, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), TRUE);
 		fullscreen = TRUE;
 	}
-	Repaint();
+	Repaint(TRUE);
 }
 
 static void ZoomIn(void)
@@ -246,17 +249,21 @@ static void ZoomIn(void)
 	if (fullscreen)
 		return;
 	zoom += ZOOM_STEP;
-	Repaint();
+	Repaint(TRUE);
 }
 
 static void ZoomOut(void)
 {
 	if (fullscreen)
 		return;
-	zoom -= ZOOM_STEP;
-	if (zoom < ZOOM_MIN)
-		zoom = ZOOM_MIN;
-	Repaint();
+	do {
+		zoom -= zoom % ZOOM_STEP + ZOOM_STEP;
+		if (zoom < ZOOM_MIN) {
+			zoom = ZOOM_MIN;
+			Repaint(TRUE);
+			break;
+		}
+	} while (!Repaint(FALSE));
 }
 
 static BOOL LoadFile(const char *filename, byte *buffer, int *len)
@@ -306,7 +313,7 @@ static void ShowImage(void)
 {
 	UpdateText();
 	UpdateBitmap();
-	Repaint();
+	Repaint(TRUE);
 }
 
 static void OpenImage(void)
@@ -570,7 +577,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 				RGBQUAD tmp = bitmap.bmiColors[0];
 				bitmap.bmiColors[0] = bitmap.bmiColors[1];
 				bitmap.bmiColors[1] = tmp;
-				Repaint();
+				Repaint(TRUE);
 			}
 			break;
 		case IDM_SHOWPATH:
@@ -583,7 +590,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			status_bar = !status_bar;
 			UpdateMenuCheck(IDM_STATUSBAR, status_bar);
 			ShowStatusBar(status_bar);
-			Repaint();
+			Repaint(TRUE);
 			break;
 		case IDM_ABOUT:
 			ShowAbout();
