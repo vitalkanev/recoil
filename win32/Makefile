@@ -1,7 +1,10 @@
+VERSION = 1.0.0
+
 FAIL_CC = mingw32-gcc -s -O2 -Wall -o $@ -I..
 FAIL_CC_DLL = $(FAIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
 WINDRES = windres -o $@
 PERL = perl
+RM = rm -f
 UNIX2DOS = unix2dos
 ASCIIDOC = python C:/bin/asciidoc/asciidoc.py -o $@ -a doctime
 ASCIIDOC_POSTPROCESS = $(PERL) -pi.bak -e "s/527bbd;/800080;/;END{unlink '$@.bak'}" $@
@@ -27,10 +30,33 @@ COPYING.txt: ../COPYING
 	$(UNIX2DOS) <$< >$@
 
 ../README.html: ../README
-	$(ASCIIDOC) ../README
+	$(ASCIIDOC) -a failsrc ../README
 	$(ASCIIDOC_POSTPROCESS)
 
+README_Windows.html: ../README
+	$(ASCIIDOC) -a failwin ../README
+	$(ASCIIDOC_POSTPROCESS)
+
+srcdist: ../README.html
+	$(RM) ../../fail-$(VERSION).tar.gz
+	$(PERL) -x.. ../maketar.pl -d fail-$(VERSION) \
+		-t fail.c fail.h \
+		fail2png.c pngsave.c pngsave.h \
+		win32/failwin/failwin.c win32/failwin/failwin.h win32/failwin/failwin.rc \
+		win32/xnview/Xfail.c \
+		Makefile win32/Makefile \
+		COPYING README README.html \
+		-s maketar.pl raw2c.pl \
+		-b jakub.act win32/faileye.ico \
+		| 7z a -tgzip -si -mx=9 ../../fail-$(VERSION).tar.gz
+
+dist: srcdist all COPYING.txt README_Windows.html
+	$(RM) ../../fail-$(VERSION)-win32.zip
+	7z a -tzip -mx=9 ../../fail-$(VERSION)-win32.zip \
+		COPYING.txt README_Windows.html \
+		fail2png.exe Xfail.dll failwin.exe
+
 clean:
-	rm fail2png.exe Xfail.dll failwin.exe failwin/failwin-res.o ../palette.h COPYING.txt ../README.html
+	$(RM) fail2png.exe Xfail.dll failwin.exe failwin/failwin-res.o ../palette.h COPYING.txt ../README.html README_Windows.html
 
 .DELETE_ON_ERROR:
