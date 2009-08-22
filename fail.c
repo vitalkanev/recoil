@@ -800,12 +800,13 @@ static abool decode_pic(
 
 		if (image[0] != 0xff || image[1] != 0x80
 		 || image[2] != 0xc9 || image[3] != 0xc7
-		 || image[4] < 0x1a || image[5] != 0
+		 || image[4] < 0x1a || image[4] >= image_len
+		 || image[5] != 0
 		 || image[6] != 1 || image[8] != 0x0e
 		 || image[9] != 0 || image[10] != 40
 		 || image[11] != 0 || image[12] != 192
-		 || image[20] != 0 || image[21] != 0
-		 || image[4] < image_len)
+		 || image[20] != 0 || image[21] != 0)
+			return FALSE;
 		
 		if (!unpack_koala(
 			image + image[4] + 1, image_len - image[4] - 1,
