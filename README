@@ -1,0 +1,51 @@
+FAIL - First Atari Image Library
+================================
+
+// This file is in AsciiDoc format. It is the source for README.html.
+:Compact-Option:
+
+FAIL is a portable viewer of several
+http://en.wikipedia.org/wiki/Atari_8-bit_family[8-bit Atari] image formats.
+
+Currently the project consists of:
+
+- fail2png - portable command-line converter to PNG files
+- FAILWin - viewer for Windows
+- plugin for http://www.xnview.com[XnView]
+
+Supported file formats
+----------------------
+
+[horizontal]
+AP3:: 80x192, 256 colors, interlaced.
+APC:: "Any Point, Any Color", 80x96, 256 colors, interlaced.
+CCI:: "Champions' Interlace", 160x192, compressed.
+CIN:: "Champions' Interlace", 160x192.
+CPR:: "Trzmiel", 320x192, mono, compressed.
+FNT:: Standard 8x8 font, mono.
+GR8:: Standard 320x192, mono.
+GR9:: Standard 80x192, grayscale.
+HIP:: "Hard Interlace Picture", 160x200, grayscale.
+Both 16009- and 16012-byte formats are supported.
+HR:: 256x239, 3 colors, interlaced.
+ILC:: 80x192, 256 colors, interlaced.
+INP:: 160x200, 7 colors, interlaced.
+INT:: "INT95a", up to 160x239, 16 colors, interlaced.
+MIC:: Standard 160x192, 4 colors.
+PIC:: "Koala MicroIllustrator", 160x192, 4 colors, compressed.
+PLM:: "Plama 256", 80x96, 256 colors.
+RIP:: "Rocky Interlace Picture", 160x200.
+SXS:: 16x16 font, mono.
+TIP:: "Taquart Interlace Picture", up to 160x119.
+
+Authors
+-------
+
+Piotr Fusik <fox@scene.pl>::
+Idea, FAILWin programming.
+
+Adrian Matoga::
+Programming.
+
+Pawel Szewczyk::
+FAILWin icon, testing.
