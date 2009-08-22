@@ -36,8 +36,9 @@ static void decode_video_memory(
 	int src_start_offset, int src_stride,	/* in bytes */
 	int dest_vert_offset, int dest_vert_stride,	/* in lines */
 	int dest_horz_offset, int bytes_per_line,	/* in pixels, in bytes */
-    int line_count, int dest_mode, byte frame[])
+	int line_count, int dest_mode, byte frame[])
 {
+	static const byte gr10_to_reg[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8, 8, 4, 5, 6, 7 };
 	int pixels_per_line = bytes_per_line * 8;
 	int src_pos = src_start_offset;
 	int dest_pos = dest_vert_offset * pixels_per_line;
@@ -61,15 +62,15 @@ static void decode_video_memory(
 			switch (dest_mode) {
 			case 8:
 				/* color_regs should be 2 bytes long */
-				frame[dest_pos + x] = color_regs[((b & (0x80 >> i)) == 0 ? 0 : 1)] & 0xFE;
+				frame[dest_pos + x] = color_regs[b >> (7 - i) & 1] & 0xFE;
 				break;
 			case 9:
 				/* 1 reg, only hue is meaningful */
-				frame[dest_pos + x] = ((b & (0xF0 >> (i & 4))) >> (4 - (i & 4))) | (color_regs[0] & 0xF0);
+				frame[dest_pos + x] = (b >> (~i & 4) & 0x0F) | (color_regs[0] & 0xFE);
 				break;
 			case 10:
 				/* 16 regs, typically only colors 0-8 are used */
-				frame[dest_pos + x] = color_regs[(b & (0xF0 >> (i & 4))) >> (4 - (i & 4))];
+				frame[dest_pos + x] = color_regs[gr10_to_reg[b >> (~i & 4) & 0x0F]] & 0xFE;
 				break;
 			case 11:
 				/* copy hue to the other line so lines 2k and 2k+1 have the same
@@ -77,7 +78,7 @@ static void decode_video_memory(
 				   from both neighboring lines (to avoid distortion in tip/apac modes
 				   with non-integer zoom factors) */
 				{
-					int hu = ((b & (0xF0 >> (i & 4))) << (i & 4));
+					int hu = b << (i & 4) & 0xF0;
 					int in =
 						((y == 0 && !odd ? 0 : frame[dest_pos - pixels_per_line + x] & 0x0F) +
 						(y == line_count - 1 && odd ? 0 : frame[dest_pos + pixels_per_line + x] & 0x0F)) / 2;
@@ -86,14 +87,15 @@ static void decode_video_memory(
 				}
 				break;
 			case 15: /* 4 regs */
-				frame[dest_pos + x] = color_regs[(b & (0xC0 >> (i & 6))) >> (6 - (i & 6))] & 0xFE;
+				frame[dest_pos + x] = color_regs[b >> (~i & 6) & 3] & 0xFE;
 				break;
 			case FAIL_MODE_CIN15: /* 4 * 256 regs, only first 192 of each 256-byte group are used */
-				frame[dest_pos + x] = color_regs[((b & (0xC0 >> (i & 6))) >> (6 - (i & 6))) * 256 + y] & 0xFE;
+				frame[dest_pos + x] = color_regs[(b >> (~i & 6) & 3) * 256 + y] & 0xFE;
 				break;
 			case FAIL_MODE_MULTIRIP:
-				col = (b & (0xF0 >> (i & 4))) >> (4 - (i & 4));
-				frame[dest_pos + x] = col == 0 ? 0 : color_regs[col + (y / 2) * 8 - 1];
+				col = b >> (~i & 4) & 0x0F;
+				frame[dest_pos + x] = col == 0 ? 0 : color_regs[col + (y / 2) * 8 - 1] & 0xFE;
+				break;
 			}
 		}
 		for ( /* x = xe */ ; x < bytes_per_line * 8; x++)
@@ -244,10 +246,8 @@ static abool unpack_koala(const byte data[], int data_len, int cprtype, byte unp
 	case 0:
 		if (data_len != 7680)
 			return FALSE;
-		else {
-			memcpy(unpacked_data, data, 7680);
-			return TRUE;
-		}
+		memcpy(unpacked_data, data, 7680);
+		return TRUE;
 	case 1:
 	case 2:
 		break;
@@ -331,9 +331,8 @@ static abool unpack_cci(const byte data[], int data_len, int step, int count, by
 			if (i >= size - 1)
 				return TRUE;
 			i += step;
-			if (i >= size) {
+			if (i >= size)
 				i -= size - 1;
-			}
 		} while (--len > 0);
 		block_count--;
 	}
@@ -655,30 +654,30 @@ static abool decode_hr(
 	FAIL_ImageInfo* image_info,
 	byte pixels[], byte palette[])
 {
-	byte frame1[256 * 240];
-	byte frame2[256 * 240];
+	byte frame1[256 * 239];
+	byte frame2[256 * 239];
 
 	if (image_len != 16384)
 		return FALSE;
 
 	image_info->width = 256;
 	image_info->original_width = 256;
-	image_info->height = 240;
-	image_info->original_height = 240;
+	image_info->height = 239;
+	image_info->original_height = 239;
 	
 	decode_video_memory(
 		image, gr8_color_regs,
-		0, 32, 0, 1, 0, 32, 240, 8,
+		0, 32, 0, 1, 0, 32, 239, 8,
 		frame1);
 
 	decode_video_memory(
 		image + 8192, gr8_color_regs,
-		0, 32, 0, 1, 0, 32, 240, 8,
+		0, 32, 0, 1, 0, 32, 239, 8,
 		frame2);
 
-	frames_to_rgb(frame1, frame2, 256 * 240, atari_palette, pixels);
+	frames_to_rgb(frame1, frame2, 256 * 239, atari_palette, pixels);
 
-	rgb_to_palette(pixels, 256 * 240, palette, &image_info->colors);
+	rgb_to_palette(pixels, 256 * 239, palette, &image_info->colors);
 
 	return TRUE;
 }
@@ -693,7 +692,7 @@ static abool decode_hip(
 {
 	int offset1 = 0;
 	int offset2 = 0;
-	int	frame1_len;
+	int frame1_len;
 	int frame2_len;
 	abool has_palette = FALSE;
 	byte frame1[320 * FAIL_HEIGHT_MAX];
@@ -858,7 +857,7 @@ static abool decode_int(
 	 || image[6] == 0 || image[6] > 40
 	 || image[7] == 0 || image[7] > 239
 	 || image[8] != 0x0f || image[9] != 0x2b
-	 || 18 + (image[6] * image[7] * 2) != image_len)
+	 || 18 + image[6] * image[7] * 2 != image_len)
 		return FALSE;
 
 	image_info->width = image[6] * 8;
@@ -1270,13 +1269,15 @@ static abool decode_fnt(
 	byte ordered_bytes[1024];
 	int i;
 	int len;
-	const byte* s;
+	const byte *s;
 
-	if ((image_len != 1030 || !parse_binary_header(image, &len) || len != 1024)
-	 && image_len != 1024)
+	if (image_len == 1024)
+		s = image;
+	else if (image_len == 1030 && parse_binary_header(image, &len) && len == 1024)
+		s = image + 6;
+	else
 		return FALSE;
 
-	s = image + (image_len - 1024);
 	for (i = 0; i < 1024; i++) {
 		ordered_bytes[
 			(i & 0x300)
