@@ -8,6 +8,7 @@ RM = rm -f
 UNIX2DOS = unix2dos
 ASCIIDOC = python C:/bin/asciidoc/asciidoc.py -o $@ -a doctime
 ASCIIDOC_POSTPROCESS = $(PERL) -pi.bak -e "s/527bbd;/800080;/;END{unlink '$@.bak'}" $@
+ASCIIDOC_VALIDATE = xmllint --noout --nonet --dtdvalid c:/bin/xhtml11-flat.dtd $@
 SEVENZIP = 7z a -mx=9
 
 all: fail2png.exe Xfail.dll failwin.exe
@@ -33,10 +34,12 @@ COPYING.txt: ../COPYING
 ../README.html: ../README ../INSTALL
 	$(ASCIIDOC) -a failsrc ../README
 	$(ASCIIDOC_POSTPROCESS)
+	$(ASCIIDOC_VALIDATE)
 
 README_Windows.html: ../README USAGE
 	$(ASCIIDOC) -a failwin ../README
 	$(ASCIIDOC_POSTPROCESS)
+	$(ASCIIDOC_VALIDATE)
 
 srcdist: ../README.html
 	$(RM) ../../fail-$(VERSION).tar.gz
@@ -62,6 +65,7 @@ www: ../../www/index.html
 ../../www/index.html: ../README
 	$(ASCIIDOC) -a failwww ../README
 	$(ASCIIDOC_POSTPROCESS)
+	$(ASCIIDOC_VALIDATE)
 
 clean:
 	$(RM) fail2png.exe Xfail.dll failwin.exe failwin/failwin-res.o ../palette.h COPYING.txt ../README.html README_Windows.html
