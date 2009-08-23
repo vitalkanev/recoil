@@ -1,0 +1,8 @@
+How to install and use
+----------------------
+
+XnView plugin::
+For versions <1.80, extract `Xfail.dll` to the `PluginsEx` directory of your XnView
+installation.
+For versions >=1.80, extract `Xfail.dll` to the `Plugins` directory of your XnView
+installation, then change its name `Xfail.usr`.

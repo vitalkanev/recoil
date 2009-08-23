@@ -34,9 +34,13 @@ INT:: "INT95a", up to 160x239, 16 colors, interlaced.
 MIC:: Standard 160x192, 4 colors.
 PIC:: "Koala MicroIllustrator", 160x192, 4 colors, compressed.
 PLM:: "Plama 256", 80x96, 256 colors.
-RIP:: "Rocky Interlace Picture", 160x200.
+RIP:: "Rocky Interlace Picture", up to 160x239.
 SXS:: 16x16 font, mono.
 TIP:: "Taquart Interlace Picture", up to 160x119.
+
+ifdef::failwin[]
+include::win32/USAGE[]
+endif::failwin[]
 
 Authors
 -------
@@ -44,7 +48,7 @@ Authors
 Piotr Fusik <fox@scene.pl>::
 Idea, FAILWin programming.
 
-Adrian Matoga::
+Adrian Matoga <epi@atari8.info>::
 Programming.
 
 Pawel Szewczyk::
