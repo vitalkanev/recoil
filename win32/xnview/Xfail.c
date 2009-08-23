@@ -72,14 +72,30 @@ DLL_EXPORT void API gfpSavePictureExit(void * ptr);
 }
 #endif
 
+#ifndef XNVIEW_FAIL_EXT
+#define XNVIEW_FAIL_EXT "rip;gr8;mic;hip;tip;int;inp;apc;ap3;gr9;pic;cpr;cin;cci;fnt;sxs;hr;plm;ilc"
+#endif
+
+static size_t strlcpy(char *dst, const char *src, size_t size)
+{
+	int i;
+	for (i = 0; i < size - 1 && src[i] != '\0'; i++)
+		dst[i] = src[i];
+	dst[i] = '\0';
+	while  (src[i] != '\0')
+		i++;
+	return i;
+}
 
 DLL_EXPORT BOOL API gfpGetPluginInfo(DWORD version, LPSTR label, INT label_max_size, LPSTR extension, INT extension_max_size, INT *support)
 {
+	static const char* fail_label = "First Atari Image Library";
+	static const char* fail_ext = XNVIEW_FAIL_EXT;
+
 	if (version != 0x0002)
 		return FALSE;
-
-	strncpy(label, "First Atari Image Library", label_max_size);
-	strncpy(extension, "rip;gr8;mic;hip;tip;int;inp;apc;ap3;gr9;pic;cpr;cin;cci;fnt;sxs;hr;plm;ilc", extension_max_size);
+	strlcpy(label, fail_label, label_max_size);
+	strlcpy(extension, fail_ext, extension_max_size);
 
 	*support = GFP_READ;
 
