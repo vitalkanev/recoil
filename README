@@ -69,5 +69,5 @@ Pawel Szewczyk::
 FAILWin icon, testing.
 
 ifdef::failwww[]
-image::http://sflogo.sourceforge.net/sflogo.php?group_id=258474&type=13["Get FAIL at SourceForge.net. Fast, secure and Free Open Source software downloads",width=120,height=30,link="http://sourceforge.net/projects/fail/"]
+image::http://sflogo.sourceforge.net/sflogo.php?group_id=258474&amp;type=13["Get FAIL at SourceForge.net. Fast, secure and Free Open Source software downloads",width=120,height=30,link="http://sourceforge.net/projects/fail/"]
 endif::failwww[]
