@@ -32,10 +32,10 @@ IDR_MENU MENU
 	POPUP "&File"
 	{
 		MENUITEM "&Open...\tO", IDM_OPEN
-		MENUITEM "&Previous file in directory\tUp", IDM_PREVFILE
-		MENUITEM "&Next file in directory\tDown", IDM_NEXTFILE
+		MENUITEM "&Previous file in directory\tUp", IDM_PREVFILE, GRAYED
+		MENUITEM "&Next file in directory\tDown", IDM_NEXTFILE, GRAYED
 		MENUITEM SEPARATOR
-		MENUITEM "&Save as...\tS", IDM_SAVEAS
+		MENUITEM "&Save as...\tS", IDM_SAVEAS, GRAYED
 		MENUITEM SEPARATOR
 		MENUITEM "&Load palette...\tP", IDM_LOADPALETTE
 		MENUITEM SEPARATOR
@@ -43,15 +43,15 @@ IDR_MENU MENU
 	}
 	POPUP "&Edit"
 	{
-		MENUITEM "&Copy\tC", IDM_COPY
+		MENUITEM "&Copy\tC", IDM_COPY, GRAYED
 	}
 	POPUP "&View"
 	{
-		MENUITEM "&Fullscreen\tEnter", IDM_FULLSCREEN
-		MENUITEM "Zoom &in\t+", IDM_ZOOMIN
-		MENUITEM "Zoom &out\t-", IDM_ZOOMOUT
+		MENUITEM "&Fullscreen\tEnter", IDM_FULLSCREEN, GRAYED
+		MENUITEM "Zoom &in\t+", IDM_ZOOMIN, GRAYED
+		MENUITEM "Zoom &out\t-", IDM_ZOOMOUT, GRAYED
 		MENUITEM SEPARATOR
-		MENUITEM "&Invert black and white\tI", IDM_INVERT
+		MENUITEM "&Invert black and white\tI", IDM_INVERT, GRAYED
 		MENUITEM SEPARATOR
 		MENUITEM "Show file &path", IDM_SHOWPATH
 		MENUITEM "&Status bar", IDM_STATUSBAR, CHECKED
