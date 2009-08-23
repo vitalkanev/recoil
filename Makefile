@@ -1,3 +1,5 @@
+PREFIX = /usr/local
+
 all: fail2png
 
 fail2png: fail2png.c pngsave.c fail.c pngsave.h fail.h palette.h
@@ -12,5 +14,13 @@ README.html: README
 
 clean:
 	rm -f fail2png palette.h
+
+install: fail2png
+	mkdir -p $(PREFIX)/bin
+	cp -f fail2png $(PREFIX)/bin
+	chmod 755 $(PREFIX)/bin/fail2png
+
+uninstall:
+	rm -f $(PREFIX)/bin/fail2png
 
 .DELETE_ON_ERROR:
