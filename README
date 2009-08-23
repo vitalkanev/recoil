@@ -4,6 +4,12 @@ FAIL - First Atari Image Library
 // This file is in AsciiDoc format. It is the source for README.html.
 :Compact-Option:
 
+ifdef::failwww[]
+http://sourceforge.net/projects/fail/files/fail/[Download] |
+http://fail.svn.sourceforge.net/viewvc/fail/trunk/[Browse source code (SVN)] |
+http://sourceforge.net/projects/fail/[SourceForge project page]
+endif::failwww[]
+
 FAIL is a portable viewer of several
 http://en.wikipedia.org/wiki/Atari_8-bit_family[8-bit Atari] image formats.
 
@@ -12,6 +18,10 @@ Currently the project consists of:
 - fail2png - portable command-line converter to PNG files
 - FAILWin - viewer for Windows
 - plugin for http://www.xnview.com[XnView]
+
+ifdef::failwww[]
+image::failwin.png["FAILWin"]
+endif::failwww[]
 
 Supported file formats
 ----------------------
@@ -38,6 +48,10 @@ RIP:: "Rocky Interlace Picture", up to 160x239.
 SXS:: 16x16 font, mono.
 TIP:: "Taquart Interlace Picture", up to 160x119.
 
+ifdef::failsrc[]
+include::INSTALL[]
+endif::failsrc[]
+
 ifdef::failwin[]
 include::win32/USAGE[]
 endif::failwin[]
@@ -45,11 +59,15 @@ endif::failwin[]
 Authors
 -------
 
-Piotr Fusik <fox@scene.pl>::
+Piotr Fusik {failwww!<fox@scene.pl>}::
 Idea, FAILWin programming.
 
-Adrian Matoga <epi@atari8.info>::
+Adrian Matoga {failwww!<epi@atari8.info>}::
 Programming.
 
 Pawel Szewczyk::
 FAILWin icon, testing.
+
+ifdef::failwww[]
+image::http://sflogo.sourceforge.net/sflogo.php?group_id=258474&type=13["Get FAIL at SourceForge.net. Fast, secure and Free Open Source software downloads",width=120,height=30,link="http://sourceforge.net/projects/fail/"]
+endif::failwww[]

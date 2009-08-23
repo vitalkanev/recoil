@@ -1,8 +1,21 @@
 How to install and use
 ----------------------
 
+fail2png::
+Extract `fail2png.exe` to a directory of your choice
+(for convenience, this directory should be included in your `Path` environment variable).
++
+Run the program from command line to see the syntax.
+Unless you specify the `-o`/`--output` option, the output filename will be
+constructed from the input filename with the extension changed to `png`.
+
+FAILWin::
+Extract `failwin.exe` to a directory of your choice.
++
+Usage instructions are needless, it's a typical Windows application.
+
 XnView plugin::
-For versions <1.80, extract `Xfail.dll` to the `PluginsEx` directory of your XnView
-installation.
-For versions >=1.80, extract `Xfail.dll` to the `Plugins` directory of your XnView
-installation, then change its name `Xfail.usr`.
+For versions <1.80, extract `Xfail.dll` to the `PluginsEx` directory
+of your XnView installation.
+For versions >=1.80, extract `Xfail.dll` to the `Plugins` directory
+of your XnView installation, then rename it to `Xfail.usr`.

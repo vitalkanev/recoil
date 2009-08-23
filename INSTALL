@@ -1,0 +1,79 @@
+// This file is in AsciiDoc format. It is converted to README.html.
+
+Compilation instructions
+------------------------
+
+
+Required tools
+~~~~~~~~~~~~~~
+
+For all builds you will need:
+
+C compiler and Make utility::
+On Windows download http://www.mingw.org/[MinGW]
+and install binutils, core compiler, w32api and MinGW Make.
+
+Perl::
+On Windows install either http://www.activestate.com/activeperl[ActivePerl]
+or http://cygwin.com/[Cygwin]'s Perl.
+
+Make sure these tools are on your `PATH`.
+
+
+Getting officially released source code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to compile an official release of FAIL, download source distribution
+(`fail-*.tar.gz`) and uncompress it to a directory of your choice.
+
+On Unix-like systems:
+--------------------------------------------------------------------------------
+tar zxf fail-*.tar.gz
+--------------------------------------------------------------------------------
+
+On Windows you may use http://7-zip.org[7-Zip].
+
+
+Getting latest source code
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Alternatively you may get the latest version from the SVN repository.
+To do this using a command-line SVN client:
+--------------------------------------------------------------------------------
+svn co https://fail.svn.sourceforge.net/svnroot/fail/trunk fail-trunk
+--------------------------------------------------------------------------------
+
+This will fetch the latest code to a new directory called `fail-trunk`.
+
+
+Building fail2png on Unix-like systems
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+From your shell prompt navigate to the directory which contains `fail.c`.
+
+Review the contents of `Makefile` and run:
+--------------------------------------------------------------------------------
+make
+--------------------------------------------------------------------------------
+
+To install under `PREFIX`, run:
+--------------------------------------------------------------------------------
+make install
+--------------------------------------------------------------------------------
+
+
+Using fail2png
+~~~~~~~~~~~~~~
+
+Run the program from command line to see the syntax.
+Unless you specify the `-o`/`--output` option, the output filename will be
+constructed from the input filename with the extension changed to `png`.
+
+
+Building fail2png, XnView plugin and FAILWin on Windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+From the command prompt navigate to the `win32` directory and run:
+--------------------------------------------------------------------------------
+mingw32-make
+--------------------------------------------------------------------------------

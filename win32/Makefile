@@ -8,6 +8,7 @@ RM = rm -f
 UNIX2DOS = unix2dos
 ASCIIDOC = python C:/bin/asciidoc/asciidoc.py -o $@ -a doctime
 ASCIIDOC_POSTPROCESS = $(PERL) -pi.bak -e "s/527bbd;/800080;/;END{unlink '$@.bak'}" $@
+SEVENZIP = 7z a -mx=9
 
 all: fail2png.exe Xfail.dll failwin.exe
 
@@ -29,11 +30,11 @@ failwin/failwin-res.o: failwin/failwin.rc failwin/failwin.h faileye.ico
 COPYING.txt: ../COPYING
 	$(UNIX2DOS) <$< >$@
 
-../README.html: ../README
+../README.html: ../README ../INSTALL
 	$(ASCIIDOC) -a failsrc ../README
 	$(ASCIIDOC_POSTPROCESS)
 
-README_Windows.html: ../README
+README_Windows.html: ../README USAGE
 	$(ASCIIDOC) -a failwin ../README
 	$(ASCIIDOC_POSTPROCESS)
 
@@ -45,16 +46,22 @@ srcdist: ../README.html
 		win32/failwin/failwin.c win32/failwin/failwin.h win32/failwin/failwin.rc \
 		win32/xnview/Xfail.c \
 		Makefile win32/Makefile \
-		COPYING README README.html \
+		COPYING README INSTALL README.html win32/USAGE \
 		-s maketar.pl raw2c.pl \
 		-b jakub.act win32/faileye.ico \
-		| 7z a -tgzip -si -mx=9 ../../fail-$(VERSION).tar.gz
+		| $(SEVENZIP) -tgzip -si ../../fail-$(VERSION).tar.gz
 
 dist: srcdist all COPYING.txt README_Windows.html
 	$(RM) ../../fail-$(VERSION)-win32.zip
-	7z a -tzip -mx=9 ../../fail-$(VERSION)-win32.zip \
+	$(SEVENZIP) -tzip ../../fail-$(VERSION)-win32.zip \
 		COPYING.txt README_Windows.html \
 		fail2png.exe Xfail.dll failwin.exe
+
+www: ../../www/index.html
+
+../../www/index.html: ../README
+	$(ASCIIDOC) -a failwww ../README
+	$(ASCIIDOC_POSTPROCESS)
 
 clean:
 	$(RM) fail2png.exe Xfail.dll failwin.exe failwin/failwin-res.o ../palette.h COPYING.txt ../README.html README_Windows.html
