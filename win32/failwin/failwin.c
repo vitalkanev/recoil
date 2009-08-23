@@ -44,6 +44,7 @@ static HMENU hMenu;
 static HWND hStatus;
 
 static byte atari_palette[FAIL_PALETTE_MAX + 1];
+static BOOL atari_palette_loaded = FALSE;
 static BOOL use_atari_palette = FALSE;
 static BOOL fullscreen = FALSE;
 static int zoom = 100;
@@ -459,6 +460,28 @@ static void SelectAndSaveImage(void)
 		ShowError("Error writing file");
 }
 
+static BOOL OpenPalette(const char *filename)
+{
+	int atari_palette_len = sizeof(atari_palette);
+	if (!LoadFile(filename, atari_palette, &atari_palette_len)) {
+		ShowError("Cannot open file");
+		return FALSE;
+	}
+	if (atari_palette_len != FAIL_PALETTE_MAX) {
+		ShowError("Invalid file length - must be 768 bytes");
+		return FALSE;
+	}
+	return TRUE;
+}
+
+static void UseExternalPalette(BOOL act)
+{
+	use_atari_palette = act;
+	SetMenuCheck(IDM_USEPALETTE, act);
+	if (image_loaded)
+		OpenImage(TRUE);
+}
+
 static void SelectAndOpenPalette(void)
 {
 	static char act_filename[MAX_PATH] = "";
@@ -488,19 +511,9 @@ static void SelectAndOpenPalette(void)
 	};
 	ofn.hwndOwner = hWnd;
 	if (GetOpenFileName(&ofn)) {
-		int palette_len = sizeof(atari_palette);
-		use_atari_palette = FALSE;
-		if (!LoadFile(act_filename, atari_palette, &palette_len)) {
-			ShowError("Cannot open file");
-			return;
-		}
-		if (palette_len != FAIL_PALETTE_MAX) {
-			ShowError("Invalid file length - must be 768 bytes");
-			return;
-		}
-		use_atari_palette = TRUE;
-		if (image_loaded)
-			OpenImage(TRUE);
+		atari_palette_loaded = OpenPalette(act_filename);
+		SetMenuEnabled(IDM_USEPALETTE, atari_palette_loaded);
+		UseExternalPalette(atari_palette_loaded);
 	}
 }
 
@@ -557,6 +570,9 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			break;
 		case IDM_LOADPALETTE:
 			SelectAndOpenPalette();
+			break;
+		case IDM_USEPALETTE:
+			UseExternalPalette(!use_atari_palette);
 			break;
 		case IDM_EXIT:
 			PostQuitMessage(0);
