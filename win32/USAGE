@@ -15,7 +15,10 @@ Extract `failwin.exe` to a directory of your choice.
 Usage instructions are needless, it's a typical Windows application.
 
 XnView plugin::
-For versions <1.80, extract `Xfail.dll` to the `PluginsEx` directory
-of your XnView installation.
-For versions >=1.80, extract `Xfail.dll` to the `Plugins` directory
-of your XnView installation, then rename it to `Xfail.usr`.
+For versions >=1.80, extract `Xfail1.usr` and `Xfail2.usr` to the `Plugins`
+directory of your XnView installation.
++
+For older versions, extract `Xfail1.usr` and `Xfail2.usr` to the `PluginsEx`
+directory of your XnView installation, then rename them to `Xfail1.dll` and
+`Xfail2.dll`, respectively.
+If XnView crashes, try cleaning `Filetypes` section in `xnview.ini`.

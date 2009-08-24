@@ -11,14 +11,15 @@ ASCIIDOC_POSTPROCESS = $(PERL) -pi.bak -e "s/527bbd;/800080;/;END{unlink '$@.bak
 ASCIIDOC_VALIDATE = xmllint --noout --nonet --dtdvalid c:/Tools/bin/xhtml11-flat.dtd $@
 SEVENZIP = 7z a -mx=9
 
-all: fail2png.exe Xfail.dll failwin.exe
+all: fail2png.exe Xfail1.usr Xfail2.usr failwin.exe
 
 fail2png.exe: ../fail2png.c ../pngsave.c ../fail.c ../pngsave.h ../fail.h ../palette.h
 	$(FAIL_CC) ../fail2png.c ../pngsave.c ../fail.c -lpng -lz
 
-Xfail.dll: xnview/Xfail.c ../fail.c ../fail.h ../palette.h
-	$(FAIL_CC_DLL) ../fail.c xnview/Xfail.c
-
+Xfail1.usr Xfail2.usr: xnview/Xfail.c ../fail.c ../fail.h ../palette.h
+	$(FAIL_CC_DLL) ../fail.c xnview/Xfail.c \
+		-DXNVIEW_FAIL_EXT=$(if $(findstring 1,$@),\"rip;gr8;mic;hip;tip;int;inp;apc;ap3;hr\",\"pic;cpr;cin;cci;fnt;sxs;gr9;plm;ilc\")
+	
 failwin.exe: failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c failwin/failwin.h ../pngsave.h ../fail.h ../palette.h
 	$(FAIL_CC) -Wl,-subsystem,windows failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c -lcomctl32 -lcomdlg32 -lgdi32 -lpng -lz
 
@@ -58,7 +59,7 @@ dist: srcdist all COPYING.txt README_Windows.html
 	$(RM) ../../fail-$(VERSION)-win32.zip
 	$(SEVENZIP) -tzip ../../fail-$(VERSION)-win32.zip \
 		COPYING.txt README_Windows.html \
-		fail2png.exe Xfail.dll failwin.exe
+		fail2png.exe Xfail1.usr Xfail2.usr failwin.exe
 
 www: ../../www/index.html
 
@@ -68,6 +69,6 @@ www: ../../www/index.html
 	$(ASCIIDOC_VALIDATE)
 
 clean:
-	$(RM) fail2png.exe Xfail.dll failwin.exe failwin/failwin-res.o ../palette.h COPYING.txt ../README.html README_Windows.html
+	$(RM) fail2png.exe Xfail1.usr Xfail2.usr failwin.exe failwin/failwin-res.o ../palette.h COPYING.txt ../README.html README_Windows.html
 
 .DELETE_ON_ERROR:
