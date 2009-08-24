@@ -6,9 +6,9 @@ WINDRES = windres -o $@
 PERL = perl
 RM = rm -f
 UNIX2DOS = unix2dos
-ASCIIDOC = python C:/bin/asciidoc/asciidoc.py -o $@ -a doctime
+ASCIIDOC = python C:/Tools/asciidoc/asciidoc.py -o $@ -a doctime
 ASCIIDOC_POSTPROCESS = $(PERL) -pi.bak -e "s/527bbd;/800080;/;END{unlink '$@.bak'}" $@
-ASCIIDOC_VALIDATE = xmllint --noout --nonet --dtdvalid c:/bin/xhtml11-flat.dtd $@
+ASCIIDOC_VALIDATE = xmllint --noout --nonet --dtdvalid c:/Tools/bin/xhtml11-flat.dtd $@
 SEVENZIP = 7z a -mx=9
 
 all: fail2png.exe Xfail.dll failwin.exe
