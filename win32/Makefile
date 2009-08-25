@@ -6,9 +6,9 @@ WINDRES = windres -o $@
 PERL = perl
 RM = rm -f
 UNIX2DOS = unix2dos
-ASCIIDOC = python C:/Tools/asciidoc/asciidoc.py -o $@ -a doctime
+ASCIIDOC = asciidoc -o $@ -a doctime
 ASCIIDOC_POSTPROCESS = $(PERL) -pi.bak -e "s/527bbd;/800080;/;END{unlink '$@.bak'}" $@
-ASCIIDOC_VALIDATE = xmllint --noout --nonet --dtdvalid c:/Tools/bin/xhtml11-flat.dtd $@
+ASCIIDOC_VALIDATE = xmllint --noout --nonet --dtdvalid c:/Tools/xhtml11-flat.dtd $@
 SEVENZIP = 7z a -mx=9
 
 all: fail2png.exe Xfail1.usr Xfail2.usr failwin.exe
@@ -17,8 +17,8 @@ fail2png.exe: ../fail2png.c ../pngsave.c ../fail.c ../pngsave.h ../fail.h ../pal
 	$(FAIL_CC) ../fail2png.c ../pngsave.c ../fail.c -lpng -lz
 
 Xfail1.usr Xfail2.usr: xnview/Xfail.c ../fail.c ../fail.h ../palette.h
-	$(FAIL_CC_DLL) ../fail.c xnview/Xfail.c \
-		-DXNVIEW_FAIL_EXT=$(if $(findstring 1,$@),\"rip;gr8;mic;hip;tip;int;inp;apc;ap3;hr\",\"pic;cpr;cin;cci;fnt;sxs;gr9;plm;ilc\")
+	$(FAIL_CC_DLL) "-DXNVIEW_FAIL_EXT=$(if $(findstring 1,$@),\"rip;gr8;mic;hip;tip;int;inp;apc;ap3;hr\",\"pic;cpr;cin;cci;fnt;sxs;gr9;plm;ilc\")" \
+		../fail.c xnview/Xfail.c
 	
 failwin.exe: failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c failwin/failwin.h ../pngsave.h ../fail.h ../palette.h
 	$(FAIL_CC) -Wl,-subsystem,windows failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c -lcomctl32 -lcomdlg32 -lgdi32 -lpng -lz
