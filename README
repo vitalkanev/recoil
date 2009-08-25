@@ -5,7 +5,7 @@ FAIL - First Atari Image Library
 :Compact-Option:
 
 ifdef::failwww[]
-http://sourceforge.net/projects/fail/files/fail/[Download] |
+http://sourceforge.net/projects/fail/files/[Download] |
 http://fail.svn.sourceforge.net/viewvc/fail/trunk/[Browse source code (SVN)] |
 http://sourceforge.net/projects/fail/[SourceForge project page]
 endif::failwww[]
