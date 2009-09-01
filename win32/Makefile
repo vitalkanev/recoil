@@ -14,14 +14,14 @@ SEVENZIP = 7z a -mx=9
 all: fail2png.exe Xfail1.usr Xfail2.usr failwin.exe
 
 fail2png.exe: ../fail2png.c ../pngsave.c ../fail.c ../pngsave.h ../fail.h ../palette.h
-	$(FAIL_CC) ../fail2png.c ../pngsave.c ../fail.c -lpng -lz
+	$(FAIL_CC) ../fail2png.c ../pngsave.c ../fail.c -static -lpng12 -lz
 
 Xfail1.usr Xfail2.usr: xnview/Xfail.c ../fail.c ../fail.h ../palette.h
 	$(FAIL_CC_DLL) "-DXNVIEW_FAIL_EXT=$(if $(findstring 1,$@),\"rip;gr8;mic;hip;tip;int;inp;apc;ap3;hr\",\"pic;cpr;cin;cci;fnt;sxs;gr9;plm;ilc\")" \
 		../fail.c xnview/Xfail.c
 	
 failwin.exe: failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c failwin/failwin.h ../pngsave.h ../fail.h ../palette.h
-	$(FAIL_CC) -Wl,-subsystem,windows failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c -lcomctl32 -lcomdlg32 -lgdi32 -lpng -lz
+	$(FAIL_CC) -Wl,-subsystem,windows failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng12 -lz
 
 failwin/failwin-res.o: failwin/failwin.rc failwin/failwin.h faileye.ico
 	$(WINDRES) failwin/failwin.rc
