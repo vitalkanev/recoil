@@ -22,3 +22,35 @@ For older versions, extract `Xfail1.usr` and `Xfail2.usr` to the `PluginsEx`
 directory of your XnView installation, then rename them to `Xfail1.dll` and
 `Xfail2.dll`, respectively.
 If XnView crashes, try cleaning `Filetypes` section in `xnview.ini`.
+
+ImageMagick coder::
+Extract `IM_MOD_RL_fail_.dll` to the `modules\coders` directory of your
+ImageMagick installation.
+Insert the following lines right below `<coders>` tag in file `config\coder.xml`:
+--------------------------------------------------------------------------------
+  <coder magick="GR8" name="FAIL"/>
+  <coder magick="HIP" name="FAIL"/>
+  <coder magick="MIC" name="FAIL"/>
+  <coder magick="TIP" name="FAIL"/>
+  <coder magick="INT" name="FAIL"/>
+  <coder magick="INP" name="FAIL"/>
+  <coder magick="HR" name="FAIL"/>
+  <coder magick="GR9" name="FAIL"/>
+  <coder magick="PIC" name="FAIL"/>
+  <coder magick="CPR" name="FAIL"/>
+  <coder magick="CIN" name="FAIL"/>
+  <coder magick="CCI" name="FAIL"/>
+  <coder magick="APC" name="FAIL"/>
+  <coder magick="PLM" name="FAIL"/>
+  <coder magick="AP3" name="FAIL"/>
+  <coder magick="ILC" name="FAIL"/>
+  <coder magick="RIP" name="FAIL"/>
+  <coder magick="FNT" name="FAIL"/>
+  <coder magick="SXS" name="FAIL"/>
+--------------------------------------------------------------------------------
+
+Note: ImageMagick coder is built for `Q16 dll` version of ImageMagick
+(the one that is recommended by its authors). If you have installed another
+version, you will need to download and install the right build of ImageMagick,
+or to build FAIL coder from source using configuration of your ImageMagick
+installation.

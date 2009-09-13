@@ -46,8 +46,8 @@ svn co https://fail.svn.sourceforge.net/svnroot/fail/trunk fail-trunk
 This will fetch the latest code to a new directory called `fail-trunk`.
 
 
-Building fail2png on Unix-like systems
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Building fail2png and ImageMagick coder on Unix-like systems
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 From your shell prompt navigate to the directory which contains `fail.c`.
 
@@ -56,9 +56,19 @@ Review the contents of `Makefile` and run:
 make
 --------------------------------------------------------------------------------
 
-To install under `PREFIX`, run:
+To install fail2png under `PREFIX`, run:
 --------------------------------------------------------------------------------
 make install
+--------------------------------------------------------------------------------
+
+To install ImageMagick coder, run:
+--------------------------------------------------------------------------------
+make install-magick
+--------------------------------------------------------------------------------
+
+To verify installation, run:
+--------------------------------------------------------------------------------
+identify -list format | grep 'FAIL'
 --------------------------------------------------------------------------------
 
 
@@ -70,8 +80,8 @@ Unless you specify the `-o`/`--output` option, the output filename will be
 constructed from the input filename with the extension changed to `png`.
 
 
-Building fail2png, XnView plugin and FAILWin on Windows
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Building fail2png, XnView plugin, ImageMagick coder and FAILWin on Windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 From the command prompt navigate to the `win32` directory and run:
 --------------------------------------------------------------------------------
