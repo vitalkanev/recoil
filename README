@@ -18,6 +18,7 @@ Currently the project consists of:
 - fail2png - portable command-line converter to PNG files
 - FAILWin - viewer for Windows
 - plugin for http://www.xnview.com[XnView]
+- (de)coder for http://www.imagemagick.org/[ImageMagick]
 
 ifdef::failwww[]
 image::failwin.png["FAILWin"]
@@ -55,6 +56,17 @@ endif::failsrc[]
 ifdef::failwin[]
 include::win32/USAGE[]
 endif::failwin[]
+
+Feedback
+--------
+
+If you are interested in the FAIL project, please subscribe its
+https://lists.sourceforge.net/lists/listinfo/fail-users[mailing list].
+This list is for users and developers.
+Once you subscribe, you can post comments, ideas and questions about FAIL.
+
+Use http://sourceforge.net/tracker/?group_id=258474[tracker]
+to submit bug reports, feature requests and small code patches.
 
 Authors
 -------
