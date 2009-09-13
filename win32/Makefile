@@ -10,12 +10,16 @@ ASCIIDOC = asciidoc -o $@ -a doctime
 ASCIIDOC_POSTPROCESS = $(PERL) -pi.bak -e "s/527bbd;/800080;/;END{unlink '$@.bak'}" $@
 ASCIIDOC_VALIDATE = xmllint --noout --nonet --dtdvalid c:/Tools/xhtml11-flat.dtd $@
 SEVENZIP = 7z a -mx=9
+IMAGEMAGICK_DIR = c:/ImageMagick-6.5.4
 
-all: fail2png.exe Xfail1.usr Xfail2.usr failwin.exe
+all: fail2png.exe IM_MOD_DB_fail_.dll Xfail1.usr Xfail2.usr failwin.exe
 
 fail2png.exe: ../fail2png.c ../pngsave.c ../fail.c ../pngsave.h ../fail.h ../palette.h
 	$(FAIL_CC) ../fail2png.c ../pngsave.c ../fail.c -static -lpng12 -lz
 
+IM_MOD_DB_fail_.dll: ../fail.c ../fail.h ../palette.h ../failmagick.c
+	$(FAIL_CC_DLL) ../fail.c ../failmagick.c -lCORE_DB_magick_
+ 
 Xfail1.usr Xfail2.usr: xnview/Xfail.c ../fail.c ../fail.h ../palette.h
 	$(FAIL_CC_DLL) "-DXNVIEW_FAIL_EXT=$(if $(findstring 1,$@),\"rip;gr8;mic;hip;tip;int;inp;apc;ap3;hr\",\"pic;cpr;cin;cci;fnt;sxs;gr9;plm;ilc\")" \
 		../fail.c xnview/Xfail.c
