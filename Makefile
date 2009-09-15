@@ -31,7 +31,7 @@ README.html: README
 
 clean:
 	rm -f fail2png palette.h
-	rm -f fail.lo fail.la failmagick.lo
+	rm -f failmagick.o fail.o failmagick.lo fail.lo fail.la
 	rm -r -f .libs
 
 install: fail2png
