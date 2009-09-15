@@ -52,6 +52,7 @@ srcdist: ../README.html
 		fail2png.c pngsave.c pngsave.h \
 		win32/failwin/failwin.c win32/failwin/failwin.h win32/failwin/failwin.rc \
 		win32/xnview/Xfail.c \
+		failmagick.c \
 		Makefile win32/Makefile \
 		COPYING README INSTALL README.html win32/USAGE \
 		-s maketar.pl raw2c.pl \
@@ -62,7 +63,8 @@ dist: srcdist all COPYING.txt README_Windows.html
 	$(RM) ../../fail-$(VERSION)-win32.zip
 	$(SEVENZIP) -tzip ../../fail-$(VERSION)-win32.zip \
 		COPYING.txt README_Windows.html \
-		fail2png.exe Xfail1.usr Xfail2.usr failwin.exe
+		fail2png.exe Xfail1.usr Xfail2.usr failwin.exe \
+		IM_MOD_RL_fail_.dll
 
 www: ../../www/index.html
 
@@ -72,6 +74,6 @@ www: ../../www/index.html
 	$(ASCIIDOC_VALIDATE)
 
 clean:
-	$(RM) fail2png.exe Xfail1.usr Xfail2.usr failwin.exe failwin/failwin-res.o ../palette.h COPYING.txt ../README.html README_Windows.html
+	$(RM) fail2png.exe Xfail1.usr Xfail2.usr IM_MOD_RL_fail_.dll failwin.exe failwin/failwin-res.o ../palette.h COPYING.txt ../README.html README_Windows.html
 
 .DELETE_ON_ERROR:

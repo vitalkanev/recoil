@@ -3,7 +3,6 @@ MAGICK_CFLAGS = `MagickCore-config --cflags --cppflags`
 MAGICK_LDFLAGS = `MagickCore-config --ldflags`
 MAGICK_LIBS = `MagickCore-config --libs`
 MAGICK_CODER_PATH = `MagickCore-config --coder-path`
-MAGICK_PREFIX = `MagickCore-config --prefix`
 
 INSTALL = /usr/bin/install -c
 
@@ -13,10 +12,10 @@ fail2png: fail2png.c pngsave.c fail.c pngsave.h fail.h palette.h
 	gcc -s -O2 -Wall -o $@ fail2png.c pngsave.c fail.c -lpng -lz -lm
 
 fail.lo: fail.c fail.h palette.h
-	libtool --tag=CC --mode=compile gcc $(MAGICK_CFLAGS) -c $< -o $@
+	libtool --tag=CC --mode=compile gcc -O2 -Wall $(MAGICK_CFLAGS) -c $< -o $@
 
 failmagick.lo: failmagick.c fail.h
-	libtool --tag=CC --mode=compile gcc $(MAGICK_CFLAGS) -c $< -o $@
+	libtool --tag=CC --mode=compile gcc -O2 -Wall $(MAGICK_CFLAGS) -c $< -o $@
 
 fail.la: fail.lo failmagick.lo
 	libtool --tag=CC --mode=link gcc -s -O2 -Wall $(MAGICK_CFLAGS) \
@@ -32,7 +31,7 @@ README.html: README
 
 clean:
 	rm -f fail2png palette.h
-	rm -f fail.lo fail.la
+	rm -f fail.lo fail.la failmagick.lo
 	rm -r -f .libs
 
 install: fail2png
