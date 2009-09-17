@@ -4,23 +4,26 @@ MAGICK_LDFLAGS = `MagickCore-config --ldflags`
 MAGICK_LIBS = `MagickCore-config --libs`
 MAGICK_CODER_PATH = `MagickCore-config --coder-path`
 
-INSTALL = /usr/bin/install -c
+CC = gcc -s -O2 -Wall -o $@
+INSTALL = install
+INSTALL_PROGRAM = $(INSTALL)
+INSTALL_DATA = $(INSTALL) -m 644
 
 all: fail2png fail.la
 
 fail2png: fail2png.c pngsave.c fail.c pngsave.h fail.h palette.h
-	gcc -s -O2 -Wall -o $@ fail2png.c pngsave.c fail.c -lpng -lz -lm
+	$(CC) fail2png.c pngsave.c fail.c -lpng -lz -lm
 
 fail.lo: fail.c fail.h palette.h
-	libtool --tag=CC --mode=compile gcc -O2 -Wall $(MAGICK_CFLAGS) -c $< -o $@
+	libtool --tag=CC --mode=compile $(CC) $(MAGICK_CFLAGS) -c $<
 
 failmagick.lo: failmagick.c fail.h
-	libtool --tag=CC --mode=compile gcc -O2 -Wall $(MAGICK_CFLAGS) -c $< -o $@
+	libtool --tag=CC --mode=compile $(CC) $(MAGICK_CFLAGS) -c $<
 
 fail.la: fail.lo failmagick.lo
-	libtool --tag=CC --mode=link gcc -s -O2 -Wall $(MAGICK_CFLAGS) \
-	-o $@ -no-undefined -module -avoid-version $(MAGICK_LDFLAGS) \
-	-rpath "$(MAGICK_CODER_PATH)" fail.lo failmagick.lo -ldl $(MAGICK_LIBS)
+	libtool --tag=CC --mode=link $(CC) $(MAGICK_CFLAGS) \
+		-no-undefined -module -avoid-version $(MAGICK_LDFLAGS) \
+		-rpath "$(MAGICK_CODER_PATH)" fail.lo failmagick.lo -ldl $(MAGICK_LIBS)
 
 palette.h: raw2c.pl jakub.act
 	perl raw2c.pl jakub.act >$@
@@ -36,8 +39,7 @@ clean:
 
 install: fail2png
 	mkdir -p $(PREFIX)/bin
-	cp -f fail2png $(PREFIX)/bin
-	chmod 755 $(PREFIX)/bin/fail2png
+	$(INSTALL_PROGRAM) fail2png $(PREFIX)/bin/fail2png
 
 uninstall:
 	rm -f $(PREFIX)/bin/fail2png
