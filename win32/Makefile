@@ -8,7 +8,7 @@ RM = rm -f
 UNIX2DOS = unix2dos
 ASCIIDOC = asciidoc -o $@ -a doctime
 ASCIIDOC_POSTPROCESS = $(PERL) -pi.bak -e "s/527bbd;/800080;/;END{unlink '$@.bak'}" $@
-ASCIIDOC_VALIDATE = xmllint --noout --nonet --dtdvalid c:/Tools/xhtml11-flat.dtd $@
+ASCIIDOC_VALIDATE = xmllint --valid --noout --nonet $@
 SEVENZIP = 7z a -mx=9
 
 all: fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr failwin.exe
