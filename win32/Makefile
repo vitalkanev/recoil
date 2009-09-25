@@ -6,7 +6,7 @@ WINDRES = windres -o $@
 PERL = perl
 RM = rm -f
 UNIX2DOS = unix2dos
-ASCIIDOC = asciidoc -o $@ -a doctime
+ASCIIDOC = asciidoc -o $@ -a localtime -a doctime
 ASCIIDOC_POSTPROCESS = $(PERL) -pi.bak -e "s/527bbd;/800080;/;END{unlink '$@.bak'}" $@
 ASCIIDOC_VALIDATE = xmllint --valid --noout --nonet $@
 SEVENZIP = 7z a -mx=9
