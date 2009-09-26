@@ -591,7 +591,7 @@ static abool decode_gr8_gr9(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[],
+	byte pixels[],
 	int dest_mode, const byte color_regs[])
 {
 	int offset = 0;
@@ -617,8 +617,6 @@ static abool decode_gr8_gr9(
 
 	frame_to_rgb(frame, image_info->height * 320, atari_palette, pixels);
 
-	rgb_to_palette(pixels, image_info->height * 320, palette, &image_info->colors);
-
 	return TRUE;
 }
 
@@ -626,33 +624,33 @@ static abool decode_gr8(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	image_info->original_width = 320;
 	return decode_gr8_gr9(
 		image, image_len, atari_palette,
 		image_info,
-		pixels, palette, 8, gr8_color_regs);
+		pixels, 8, gr8_color_regs);
 }
 
 static abool decode_gr9(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	image_info->original_width = 80;
 	return decode_gr8_gr9(
 		image, image_len, atari_palette,
 		image_info,
-		pixels, palette, 9, gr8_color_regs);
+		pixels, 9, gr8_color_regs);
 }
 
 static abool decode_hr(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	byte frame1[256 * 239];
 	byte frame2[256 * 239];
@@ -661,8 +659,8 @@ static abool decode_hr(
 		return FALSE;
 
 	image_info->width = 256;
-	image_info->original_width = 256;
 	image_info->height = 239;
+	image_info->original_width = 256;
 	image_info->original_height = 239;
 	
 	decode_video_memory(
@@ -677,8 +675,6 @@ static abool decode_hr(
 
 	frames_to_rgb(frame1, frame2, 256 * 239, atari_palette, pixels);
 
-	rgb_to_palette(pixels, 256 * 239, palette, &image_info->colors);
-
 	return TRUE;
 }
 
@@ -688,7 +684,7 @@ static abool decode_hip(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	int offset1 = 0;
 	int offset2 = 0;
@@ -720,9 +716,9 @@ static abool decode_hip(
 		return FALSE;
 
 	image_info->width = 320;
-	image_info->original_width = 160;
 	if (image_info->height > FAIL_HEIGHT_MAX)
 		return FALSE;
+	image_info->original_width = 160;
 	image_info->original_height = image_info->height;
 
 	decode_video_memory(
@@ -737,8 +733,6 @@ static abool decode_hip(
 
 	frames_to_rgb(frame1, frame2, image_info->height * 320, atari_palette, pixels);
 
-	rgb_to_palette(pixels, image_info->height * 320, palette, &image_info->colors);
-	
 	return TRUE;
 }
 
@@ -748,7 +742,7 @@ static abool decode_mic(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	abool has_palette;
 	byte frame[320 * 192];
@@ -763,10 +757,11 @@ static abool decode_mic(
 	else
 		return FALSE;
 
-	image_info->width = image_info->original_width = 320;
+	image_info->width = 320;
 	image_info->height = image_len / 40;
 	if (image_info->height > FAIL_HEIGHT_MAX)
 		return FALSE;
+	image_info->original_width = 320;
 	image_info->original_height = image_info->height;
 
 	decode_video_memory(
@@ -776,8 +771,6 @@ static abool decode_mic(
 
 	frame_to_rgb(frame, image_info->height * 320, atari_palette, pixels);
 
-	rgb_to_palette(pixels, image_info->height * 320, palette, &image_info->colors);
-
 	return TRUE;
 }
 
@@ -785,15 +778,14 @@ static abool decode_pic(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	/* some images with .pic extension are
 	   in micropainter format */
 	if (image_len == 7684 || image_len == 7680)
 		return decode_mic(
-			image, image_len,
-			atari_palette, image_info,
-			pixels, palette);
+			image, image_len, atari_palette,
+			image_info, pixels);
 
 	else {
 		byte unpacked_image[7680 + 4];
@@ -819,9 +811,8 @@ static abool decode_pic(
 		unpacked_image[7683] = image[15];
 		
 		return decode_mic(
-			unpacked_image, 7684,
-			atari_palette, image_info,
-			pixels, palette);
+			unpacked_image, 7684, atari_palette,
+			image_info, pixels);
 	}
 }
 
@@ -829,7 +820,7 @@ static abool decode_cpr(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	byte unpacked_image[7680];
 
@@ -839,16 +830,15 @@ static abool decode_cpr(
 		return FALSE;
 
 	return decode_gr8(
-		unpacked_image, 7680,
-		atari_palette, image_info,
-		pixels, palette);
+		unpacked_image, 7680, atari_palette,
+		image_info, pixels);
 }
 
 static abool decode_int(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	byte frame1[320 * FAIL_HEIGHT_MAX];
 	byte frame2[320 * FAIL_HEIGHT_MAX];
@@ -862,8 +852,8 @@ static abool decode_int(
 		return FALSE;
 
 	image_info->width = image[6] * 8;
-	image_info->original_width = image[6] * 4;
 	image_info->height = image[7];
+	image_info->original_width = image[6] * 4;
 	image_info->original_height = image[7];
 
 	decode_video_memory(
@@ -878,8 +868,6 @@ static abool decode_int(
 
 	frames_to_rgb(frame1, frame2, image_info->height * 320, atari_palette, pixels);
 
-	rgb_to_palette(pixels, image_info->height * 320, palette, &image_info->colors);
-	
 	return TRUE;
 }
 
@@ -887,7 +875,7 @@ static abool decode_inp(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	byte frame1[320 * 200];
 	byte frame2[320 * 200];
@@ -896,8 +884,8 @@ static abool decode_inp(
 		return FALSE;
 
 	image_info->width = 320;
-	image_info->original_width = 160;
 	image_info->height = 200;
+	image_info->original_width = 160;
 	image_info->original_height = 200;
 
 	decode_video_memory(
@@ -912,8 +900,6 @@ static abool decode_inp(
 
 	frames_to_rgb(frame1, frame2, image_info->height * 320, atari_palette, pixels);
 
-	rgb_to_palette(pixels, image_info->height * 320, palette, &image_info->colors);
-	
 	return TRUE;
 }
 
@@ -921,7 +907,7 @@ static abool decode_cin(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	byte frame1[320 * 192];
 	byte frame2[320 * 192];
@@ -930,8 +916,8 @@ static abool decode_cin(
 		return FALSE;
 	
 	image_info->width = 320;
-	image_info->original_width = 160;
 	image_info->height = 192;
+	image_info->original_width = 160;
 	image_info->original_height = 192;
 
 	decode_video_memory(
@@ -956,8 +942,6 @@ static abool decode_cin(
 
 	frames_to_rgb(frame1, frame2, 320 * 192, atari_palette, pixels);
 
-	rgb_to_palette(pixels, 320 * 192, palette, &image_info->colors);
-	
 	return TRUE;
 }
 
@@ -965,7 +949,7 @@ static abool decode_cci(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	const byte *data;
 	int data_len;
@@ -1004,16 +988,15 @@ static abool decode_cci(
 		return FALSE;
 
 	return decode_cin(
-		unpacked_image, 16384,
-		atari_palette, image_info,
-		pixels, palette);
+		unpacked_image, 16384, atari_palette,
+		image_info, pixels);
 }
 
 static abool decode_tip(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	int frame_len;
 	int line_len;
@@ -1027,10 +1010,10 @@ static abool decode_tip(
 	 || 9 + (frame_len = image[7] | (image[8] << 8)) * 3 != image_len)
 		return FALSE;
 	
-	image_info->original_width = image[5];
 	image_info->width = image[5] * 2;
-	image_info->original_height = image[6];
 	image_info->height = image[6] * 2;
+	image_info->original_width = image[5];
+	image_info->original_height = image[6];
 
 	line_len = (image_info->original_width + 3) / 4;
 	/* even frame, gr11 + gr9 */
@@ -1058,9 +1041,6 @@ static abool decode_tip(
 	frames_to_rgb(frame1, frame2,
 		image_info->height * image_info->width, atari_palette, pixels);
 
-	rgb_to_palette(pixels, image_info->height * image_info->width,
-		palette, &image_info->colors);
-	
 	return TRUE;
 }
 
@@ -1069,7 +1049,7 @@ static abool decode_apc(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	byte frame[320 * 192];
 	
@@ -1077,8 +1057,8 @@ static abool decode_apc(
 		return FALSE;
 	
 	image_info->width = 320;
-	image_info->original_width = 80;
 	image_info->height = 192;
+	image_info->original_width = 80;
 	image_info->original_height = 96;
 
 	decode_video_memory(
@@ -1094,9 +1074,6 @@ static abool decode_apc(
 	frame_to_rgb(frame, image_info->height * image_info->width,
 		atari_palette, pixels);
 
-	rgb_to_palette(pixels, image_info->height * image_info->width,
-		palette, &image_info->colors);
-	
 	return TRUE;
 }
 
@@ -1105,7 +1082,7 @@ static abool decode_ap3(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	byte frame1[320 * 192];
 	byte frame2[320 * 192];
@@ -1114,8 +1091,8 @@ static abool decode_ap3(
 		return FALSE;
 
 	image_info->width = 320;
-	image_info->original_width = 80;
 	image_info->height = 192;
+	image_info->original_width = 80;
 	image_info->original_height = 192;
 
 	decode_video_memory(
@@ -1141,9 +1118,6 @@ static abool decode_ap3(
 	frames_to_rgb(frame1, frame2,
 		image_info->height * image_info->width, atari_palette, pixels);
 
-	rgb_to_palette(pixels, image_info->height * image_info->width,
-		palette, &image_info->colors);
-	
 	return TRUE;
 }
 
@@ -1151,7 +1125,7 @@ static abool decode_rip(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	byte unpacked_image[24576];
 	byte frame1[FAIL_WIDTH_MAX * FAIL_HEIGHT_MAX];
@@ -1184,8 +1158,8 @@ static abool decode_rip(
 	}
 
 	image_info->width = image[13] * 4;
-	image_info->original_width = image[13] * 2;
 	image_info->height = image[15];
+	image_info->original_width = image[13] * 2;
 	image_info->original_height = image[15];
 
 	line_len = image[13] / 2;
@@ -1231,9 +1205,6 @@ static abool decode_rip(
 	frames_to_rgb(frame1, frame2,
 		image_info->height * image_info->width, atari_palette, pixels);
 
-	rgb_to_palette(pixels, image_info->height * image_info->width,
-		palette, &image_info->colors);
-
 	return TRUE;
 }
 
@@ -1241,13 +1212,13 @@ static abool decode_fonts(
 	const byte ordered_bytes[],
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	byte frame[256 * 32];
 
 	image_info->width = 256;
-	image_info->original_width = 256;
 	image_info->height = 32;
+	image_info->original_width = 256;
 	image_info->original_height = 32;
 
 	decode_video_memory(
@@ -1256,8 +1227,6 @@ static abool decode_fonts(
 	
 	frame_to_rgb(frame, 256 * 32, atari_palette, pixels);
 
-	rgb_to_palette(pixels, 256 * 32, palette, &image_info->colors);
-
 	return TRUE;
 }
 
@@ -1265,7 +1234,7 @@ static abool decode_fnt(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	byte ordered_bytes[1024];
 	int i;
@@ -1288,14 +1257,14 @@ static abool decode_fnt(
 	}
 
 	return decode_fonts(ordered_bytes, atari_palette,
-		image_info, pixels, palette);
+		image_info, pixels);
 }
 
 static abool decode_sxs(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	byte ordered_bytes[1024];
 	int i;
@@ -1315,7 +1284,7 @@ static abool decode_sxs(
 	}
 
 	return decode_fonts(ordered_bytes, atari_palette,
-		image_info, pixels, palette);
+		image_info, pixels);
 }
 
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
@@ -1380,7 +1349,7 @@ abool FAIL_DecodeImage(const char *filename,
 		int ext;
 		int (*func)(
 			const byte[], int, const byte[],
-			FAIL_ImageInfo*, byte[], byte[]);
+			FAIL_ImageInfo*, byte[]);
 	} handlers[] = {
 		{ FAIL_EXT('G', 'R', '8'), decode_gr8 },
 		{ FAIL_EXT('H', 'I', 'P'), decode_hip },
@@ -1407,10 +1376,16 @@ abool FAIL_DecodeImage(const char *filename,
 		atari_palette = jakub_act;
 	ext = get_packed_ext(filename);
 	for (ph = handlers; ph < handlers + sizeof(handlers) / sizeof(handlers[0]); ph++) {
-		if (ph->ext == ext)
-			return ph->func(
+		if (ph->ext == ext) {
+			abool result = ph->func(
 				image, image_len, atari_palette,
-				image_info, pixels, palette);
+				image_info, pixels);
+			if (!result)
+				return FALSE;
+			rgb_to_palette(pixels, image_info->height * image_info->width,
+				palette, &image_info->colors);
+			return TRUE;
+		}
 	}
 	return FALSE;
 }
