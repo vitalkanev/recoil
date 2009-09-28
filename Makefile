@@ -10,21 +10,14 @@ INSTALL = install
 INSTALL_PROGRAM = $(INSTALL)
 INSTALL_DATA = $(INSTALL) -m 644
 
-all: fail2png fail.la
+all: fail2png fail.so
 
 fail2png: fail2png.c pngsave.c fail.c pngsave.h fail.h palette.h
 	$(CC) $(CCFLAGS) fail2png.c pngsave.c fail.c -lpng -lz -lm
 
-fail.lo: fail.c fail.h palette.h
-	libtool --tag=CC --mode=compile $(CC) $(CCFLAGS) $(MAGICK_CFLAGS) -c $<
-
-failmagick.lo: failmagick.c fail.h
-	libtool --tag=CC --mode=compile $(CC) $(CCFLAGS) $(MAGICK_CFLAGS) -c $<
-
-fail.la: fail.lo failmagick.lo
-	libtool --tag=CC --mode=link $(CC) $(CCFLAGS) $(MAGICK_CFLAGS) \
-		-no-undefined -module -avoid-version $(MAGICK_LDFLAGS) \
-		-rpath "$(MAGICK_CODER_PATH)" fail.lo failmagick.lo -ldl $(MAGICK_LIBS)
+fail.so: fail.c failmagick.c fail.h palette.h
+	$(CC) $(CCFLAGS) $(MAGICK_CFLAGS) fail.c failmagick.c \
+		-shared $(MAGICK_LDFLAGS) -ldl $(MAGICK_LIBS)
 
 palette.h: raw2c.pl jakub.act
 	perl raw2c.pl jakub.act >$@
@@ -34,9 +27,7 @@ README.html: README
 	perl -pi -e 's/527bbd;/800080;/' $@
 
 clean:
-	rm -f fail2png palette.h
-	rm -f failmagick.o fail.o failmagick.lo fail.lo fail.la
-	rm -r -f .libs
+	rm -f fail2png palette.h fail.so
 
 install: fail2png
 	mkdir -p $(PREFIX)/bin
@@ -45,11 +36,14 @@ install: fail2png
 uninstall:
 	rm -f $(PREFIX)/bin/fail2png
 
-install-magick: fail.la
-	test -z "$(MAGICK_CODER_PATH)" || mkdir -p "$(MAGICK_CODER_PATH)"
-	libtool --mode=install $(INSTALL) fail.la "$(MAGICK_CODER_PATH)/fail.la"
+install-magick: fail.so
+	if [ -n "$(MAGICK_CODER_PATH)" ]; then \
+		mkdir -p "$(MAGICK_CODER_PATH)"; \
+		$(INSTALL) fail.so "$(MAGICK_CODER_PATH)/fail.so"; \
+		echo "dlname='fail.so'" >"$(MAGICK_CODER_PATH)/fail.la"; \
+	fi
 
 uninstall-magick:
-	libtool --mode=uninstall rm -f "$(MAGICK_CODER_PATH)/fail.la"
+	rm -f "$(MAGICK_CODER_PATH)/fail.la" "$(MAGICK_CODER_PATH)/fail.so"
 
 .DELETE_ON_ERROR:
