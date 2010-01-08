@@ -1,4 +1,4 @@
-VERSION = 1.0.0
+VERSION = 1.0.1
 
 FAIL_CC = mingw32-gcc -s -O2 -Wall -o $@ -I..
 FAIL_CC_DLL = $(FAIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
@@ -10,6 +10,8 @@ ASCIIDOC = asciidoc -o $@ -a localtime -a doctime
 ASCIIDOC_POSTPROCESS = $(PERL) -pi.bak -e "s/527bbd;/800080;/;END{unlink '$@.bak'}" $@
 ASCIIDOC_VALIDATE = xmllint --valid --noout --nonet $@
 SEVENZIP = 7z a -mx=9
+CANDLE = candle -nologo -o $@
+LIGHT = light -nologo -o $@
 
 all: fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr failwin.exe
 
@@ -45,6 +47,19 @@ README_Windows.html: ../README USAGE
 	$(ASCIIDOC_POSTPROCESS)
 	$(ASCIIDOC_VALIDATE)
 
+README_WindowsSetup.html: ../README USAGE
+	$(ASCIIDOC) ../README
+	$(ASCIIDOC_POSTPROCESS)
+	$(ASCIIDOC_VALIDATE)
+
+setup: ../../fail-$(VERSION)-win32.msi
+
+../../fail-$(VERSION)-win32.msi: setup/fail.wixobj faileye.ico setup/license.rtf setup/Website.url all README_WindowsSetup.html
+	$(LIGHT) -ext WixUIExtension -sice:ICE69 $<
+
+setup/fail.wixobj: setup/fail.wxs
+	$(CANDLE) -dVERSION=$(VERSION) $<
+
 srcdist: ../README.html
 	$(RM) ../../fail-$(VERSION).tar.gz
 	$(PERL) -x.. ../maketar.pl -d fail-$(VERSION) \
@@ -59,7 +74,7 @@ srcdist: ../README.html
 		-b jakub.act win32/faileye.ico \
 		| $(SEVENZIP) -tgzip -si ../../fail-$(VERSION).tar.gz
 
-dist: srcdist all COPYING.txt README_Windows.html
+dist: srcdist all COPYING.txt README_Windows.html setup
 	$(RM) ../../fail-$(VERSION)-win32.zip
 	$(SEVENZIP) -tzip ../../fail-$(VERSION)-win32.zip \
 		COPYING.txt README_Windows.html \
@@ -74,6 +89,6 @@ www: ../../www/index.html
 	$(ASCIIDOC_VALIDATE)
 
 clean:
-	$(RM) fail2png.exe Xfail1.usr Xfail2.usr IM_MOD_RL_fail_.dll failwin.exe failwin/failwin-res.o ../palette.h COPYING.txt ../README.html README_Windows.html
+	$(RM) fail2png.exe Xfail1.usr Xfail2.usr IM_MOD_RL_fail_.dll failwin.exe failwin/failwin-res.o ../palette.h COPYING.txt ../README.html README_Windows.html README_WindowsSetup.html setup/fail.wixobj
 
 .DELETE_ON_ERROR:
