@@ -67,6 +67,7 @@ srcdist: ../README.html
 		fail2png.c pngsave.c pngsave.h \
 		win32/failwin/failwin.c win32/failwin/failwin.h win32/failwin/failwin.rc \
 		win32/xnview/Xfail.c \
+		win32/setup/fail.wxs win32/setup/license.rtf win32/setup/Website.url \
 		failmagick.c \
 		Makefile win32/Makefile \
 		COPYING README INSTALL README.html win32/USAGE \
