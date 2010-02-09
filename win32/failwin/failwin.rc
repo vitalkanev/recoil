@@ -1,7 +1,7 @@
 /*
  * failwin.rc - FAILWin GUI definition
  *
- * Copyright (C) 2009  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2010  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -23,6 +23,7 @@
 
 #include <windows.h>
 
+#include "fail.h"
 #include "failwin.h"
 
 IDI_APP ICON "faileye.ico"
@@ -97,17 +98,42 @@ IDR_ACCELERATORS ACCELERATORS
 
 1 24
 {
-	"<?xml version=\0421.0\042?>"
-	"<assembly xmlns=\042urn:schemas-microsoft-com:asm.v1\042 "
-		"manifestVersion=\0421.0\042>"
-	"<assemblyIdentity version=\0421.0.0.0\042 "
-		"processorArchitecture=\042X86\042 "
-		"name=\042FAILWin\042 type=\042win32\042 />"
+	"<?xml version=""1.0""?>"
+	"<assembly xmlns=""urn:schemas-microsoft-com:asm.v1"" manifestVersion=""1.0"">"
+	"<assemblyIdentity version=""" FAIL_VERSION ".0"" "
+		"processorArchitecture=""X86"" name=""FAILWin"" type=""win32"" />"
 	"<dependency><dependentAssembly>"
-	"<assemblyIdentity type=\042win32\042 "
-		"name=\042Microsoft.Windows.Common-Controls\042 "
-		"version=\0426.0.0.0\042 processorArchitecture=\042X86\042 "
-		"publicKeyToken=\0426595b64144ccf1df\042 language=\042*\042 />"
+	"<assemblyIdentity type=""win32"" name=""Microsoft.Windows.Common-Controls"" "
+		"version=""6.0.0.0"" processorArchitecture=""X86"" publicKeyToken=""6595b64144ccf1df"" language=""*"" />"
 	"</dependentAssembly></dependency>"
 	"</assembly>"
+}
+
+1 VERSIONINFO
+	FILEVERSION FAIL_VERSION_MAJOR, FAIL_VERSION_MINOR, FAIL_VERSION_MICRO, 0
+	PRODUCTVERSION FAIL_VERSION_MAJOR, FAIL_VERSION_MINOR, FAIL_VERSION_MICRO, 0
+	FILEFLAGSMASK 0x3fL
+	FILEFLAGS 0x0L
+	FILEOS 0x40004L
+	FILETYPE 1
+	FILESUBTYPE 0x0L
+{
+	BLOCK "StringFileInfo"
+	{
+		BLOCK "040904b0"
+		{
+			VALUE "CompanyName", "Piotr Fusik and Adrian Matoga\0"
+			VALUE "FileDescription", "FAILWin\0"
+			VALUE "FileVersion", FAIL_VERSION "\0"
+			VALUE "InternalName", "failwin\0"
+			VALUE "LegalCopyright", "Copyleft " FAIL_YEARS "\0"
+			VALUE "OriginalFilename", "failwin.exe\0"
+			VALUE "ProductName", "FAIL\0"
+			VALUE "ProductVersion", FAIL_VERSION "\0"
+		}
+	}
+	BLOCK "VarFileInfo"
+	{
+		VALUE "Translation", 0x409, 1200
+	}
 }

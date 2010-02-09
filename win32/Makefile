@@ -28,8 +28,8 @@ Xfail1.usr Xfail2.usr: xnview/Xfail.c ../fail.c ../fail.h ../palette.h
 failwin.exe: failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c failwin/failwin.h ../pngsave.h ../fail.h ../palette.h
 	$(FAIL_CC) -Wl,-subsystem,windows failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng12 -lz
 
-failwin/failwin-res.o: failwin/failwin.rc failwin/failwin.h faileye.ico
-	$(WINDRES) failwin/failwin.rc
+failwin/failwin-res.o: failwin/failwin.rc failwin/failwin.h faileye.ico ../fail.h
+	$(WINDRES) -I .. failwin/failwin.rc
 
 ../palette.h: ../raw2c.pl ../jakub.act
 	$(PERL) ../raw2c.pl ../jakub.act >$@
