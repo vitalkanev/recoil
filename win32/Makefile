@@ -6,9 +6,8 @@ WINDRES = windres -o $@
 PERL = perl
 RM = rm -f
 UNIX2DOS = unix2dos
-ASCIIDOC = asciidoc -o $@ -a localtime -a doctime
-ASCIIDOC_POSTPROCESS = $(PERL) -pi.bak -e "s/527bbd;/800080;/;END{unlink '$@.bak'}" $@
-ASCIIDOC_VALIDATE = xmllint --valid --noout --nonet $@
+ASCIIDOC_START = asciidoc -o - -a localtime -a doctime
+ASCIIDOC_END = | sed -e "s/527bbd;/800080;/" | xmllint --valid --nonet -o $@ -
 SEVENZIP = 7z a -mx=9
 CANDLE = candle -nologo -o $@
 LIGHT = light -nologo -o $@
@@ -38,19 +37,13 @@ COPYING.txt: ../COPYING
 	$(UNIX2DOS) <$< >$@
 
 ../README.html: ../README ../INSTALL
-	$(ASCIIDOC) -a failsrc ../README
-	$(ASCIIDOC_POSTPROCESS)
-	$(ASCIIDOC_VALIDATE)
+	$(ASCIIDOC_START) -a failsrc ../README $(ASCIIDOC_END)
 
 README_Windows.html: ../README USAGE
-	$(ASCIIDOC) -a failwin ../README
-	$(ASCIIDOC_POSTPROCESS)
-	$(ASCIIDOC_VALIDATE)
+	$(ASCIIDOC_START) -a failwin ../README $(ASCIIDOC_END)
 
 README_WindowsSetup.html: ../README USAGE
-	$(ASCIIDOC) ../README
-	$(ASCIIDOC_POSTPROCESS)
-	$(ASCIIDOC_VALIDATE)
+	$(ASCIIDOC_START) ../README $(ASCIIDOC_END)
 
 setup: ../../fail-$(VERSION)-win32.msi
 
@@ -85,9 +78,7 @@ dist: srcdist all COPYING.txt README_Windows.html setup
 www: ../../www/index.html
 
 ../../www/index.html: ../README
-	$(ASCIIDOC) -a failwww ../README
-	$(ASCIIDOC_POSTPROCESS)
-	$(ASCIIDOC_VALIDATE)
+	$(ASCIIDOC_START) -a failwww ../README $(ASCIIDOC_END)
 
 clean:
 	$(RM) fail2png.exe Xfail1.usr Xfail2.usr IM_MOD_RL_fail_.dll failwin.exe failwin/failwin-res.o ../palette.h COPYING.txt ../README.html README_Windows.html README_WindowsSetup.html setup/fail.wixobj
