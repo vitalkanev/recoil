@@ -1,7 +1,7 @@
 /*
  * fail.c - FAIL library functions
  *
- * Copyright (C) 2009  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2010  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -736,7 +736,7 @@ static abool decode_hip(
 	return TRUE;
 }
 
-static const byte mic_color_regs[] = {0, 4, 8, 12};
+static const byte mic_color_regs[] = { 0, 4, 8, 12 };
 
 static abool decode_mic(
 	const byte image[], int image_len,
@@ -1287,6 +1287,53 @@ static abool decode_sxs(
 		image_info, pixels);
 }
 
+static abool decode_mcp(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte frame1[320 * 200];
+	byte frame2[320 * 200];
+
+	if (image_len != 16008)
+		return FALSE;
+
+	{
+		byte colors1[4] = { image[16003], image[16000], image[16001], image[16002] };
+		byte colors2[4] = { image[16007], image[16004], image[16005], image[16006] };
+
+		image_info->width = 320;
+		image_info->height = 200;
+		image_info->original_width = 160;
+		image_info->original_height = 200;
+
+		decode_video_memory(
+			image, colors1,
+			0, 80, 0, 2, 0, 40, 100, 15,
+			frame1);
+
+		decode_video_memory(
+			image, colors2,
+			40, 80, 1, 2, 0, 40, 100, 15,
+			frame1);
+
+		decode_video_memory(
+			image, colors2,
+			8000, 80, 0, 2, 0, 40, 100, 15,
+			frame2);
+
+		decode_video_memory(
+			image, colors1,
+			8040, 80, 1, 2, 0, 40, 100, 15,
+			frame2);
+	}
+
+	frames_to_rgb(frame1, frame2, 320 * 200, atari_palette, pixels);
+
+	return TRUE;
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -1326,6 +1373,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('R', 'I', 'P'):
 	case FAIL_EXT('F', 'N', 'T'):
 	case FAIL_EXT('S', 'X', 'S'):
+	case FAIL_EXT('M', 'C', 'P'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -1369,7 +1417,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('I', 'L', 'C'), decode_ap3 },
 		{ FAIL_EXT('R', 'I', 'P'), decode_rip },
 		{ FAIL_EXT('F', 'N', 'T'), decode_fnt },
-		{ FAIL_EXT('S', 'X', 'S'), decode_sxs }
+		{ FAIL_EXT('S', 'X', 'S'), decode_sxs },
+		{ FAIL_EXT('M', 'C', 'P'), decode_mcp }
 	}, *ph;
 
 	if (atari_palette == NULL)
