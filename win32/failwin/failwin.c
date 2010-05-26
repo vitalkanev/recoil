@@ -257,7 +257,7 @@ static BOOL LoadFile(const char *filename, byte *buffer, int *len)
 {
 	HANDLE fh;
 	BOOL ok;
-	fh = CreateFile(filename, GENERIC_READ, 0, NULL, OPEN_EXISTING,
+	fh = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 	if (fh == INVALID_HANDLE_VALUE)
 		return FALSE;
