@@ -70,6 +70,18 @@ Once you subscribe, you can post comments, ideas and questions about FAIL.
 Use http://sourceforge.net/tracker/?group_id=258474[tracker]
 to submit bug reports, feature requests and small code patches.
 
+History
+-------
+
+FAIL 1.0.1 (2010-08-??)::
+
+Windows setup has been created. A coder for ImageMagick has been created.
+MCP and GHG formats are supported. Build process has been improved.
+
+FAIL 1.0.0 (2009-08-25)::
+
+Initial release.
+
 Authors
 -------
 
