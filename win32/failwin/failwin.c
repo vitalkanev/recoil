@@ -353,8 +353,8 @@ static void SelectAndOpenImage(void)
 		sizeof(OPENFILENAME),
 		NULL,
 		0,
-		"All supported\0*.ap3;*.apc;*.cci;*.cin;*.cpr;*.fnt;*.gr8;*.gr9;*.hip;*.hr;*.ilc;*.inp;*.int;*.mic;*.mcp;*.pic;*.plm;*.rip;*.sxs;*.tip\0"
-		"Non-interlaced (*.cpr;*.gr8;*.gr9;*.mic;*.pic)\0*.cpr;*.gr8;*.gr9;*.mic;*.pic\0"
+		"All supported\0*.ap3;*.apc;*.cci;*.cin;*.cpr;*.fnt;*.ghg;*.gr8;*.gr9;*.hip;*.hr;*.ilc;*.inp;*.int;*.mic;*.mcp;*.pic;*.plm;*.rip;*.sxs;*.tip\0"
+		"Non-interlaced (*.cpr;*.ghg;*.gr8;*.gr9;*.mic;*.pic)\0*.cpr;*.ghg;*.gr8;*.gr9;*.mic;*.pic\0"
 		"Interlaced (*.cci;*.cin;*.hr;*.inp;*.int;*.mcp)\0*.cci;*.cin;*.hr;*.inp;*.int;*.mcp\0"
 		"APAC-like (*.ap3;*.apc;*.ilc;*.plm)\0*.ap3;*.apc;*.ilc;*.plm\0"
 		"HIP/RIP/TIP (*.hip;*.rip;*.tip)\0*.hip;*.rip;*.tip\0"

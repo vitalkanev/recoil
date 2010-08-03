@@ -1334,6 +1334,33 @@ static abool decode_mcp(
 	return TRUE;
 }
 
+static abool decode_ghg(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	static const byte ghg_color_regs[] = { 0x0C, 0x02 };
+	byte frame[320 * 200];
+	if (image_len < 4)
+		return FALSE;
+	// round up to 8 pixels
+	image_info->original_width = image_info->width = (image[0] + image[1] * 256 + 7) & ~7;
+	image_info->original_height = image_info->height = image[2];
+	if (image_info->width == 0 || image_info->width > 320
+	 || image_info->height == 0 || image_info->height > 200)
+		return FALSE;
+
+	decode_video_memory(
+		image, ghg_color_regs,
+		3, image_info->width >> 3, 0, 1, 0, image_info->width >> 3, image_info->height, 8,
+		frame);
+
+	frame_to_rgb(frame, image_info->width * image_info->height, atari_palette, pixels);
+
+	return TRUE;
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -1374,6 +1401,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('F', 'N', 'T'):
 	case FAIL_EXT('S', 'X', 'S'):
 	case FAIL_EXT('M', 'C', 'P'):
+	case FAIL_EXT('G', 'H', 'G'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -1418,7 +1446,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('R', 'I', 'P'), decode_rip },
 		{ FAIL_EXT('F', 'N', 'T'), decode_fnt },
 		{ FAIL_EXT('S', 'X', 'S'), decode_sxs },
-		{ FAIL_EXT('M', 'C', 'P'), decode_mcp }
+		{ FAIL_EXT('M', 'C', 'P'), decode_mcp },
+		{ FAIL_EXT('G', 'H', 'G'), decode_ghg }
 	}, *ph;
 
 	if (atari_palette == NULL)

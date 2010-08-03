@@ -34,6 +34,7 @@ CCI:: "Champions' Interlace", 160x192, compressed.
 CIN:: "Champions' Interlace", 160x192.
 CPR:: "Trzmiel", 320x192, mono, compressed.
 FNT:: Standard 8x8 font, mono.
+GHG:: "Gephard Hires Graphics", up to 320x200, mono.
 GR8:: Standard 320x192, mono.
 GR9:: Standard 80x192, grayscale.
 HIP:: "Hard Interlace Picture", 160x200, grayscale.
