@@ -126,6 +126,13 @@
 		</UI>
 		<UIRef Id="WixUI_Common" />
 
+		<Property Id="XNVIEW.DIR">
+			<RegistrySearch Id="xnview.installdir" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\XnView_is1" Name="InstallLocation" Type="directory" />
+		</Property>
+		<Property Id="IMCODERS.DIR">
+			<RegistrySearch Id="imcoders.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="CoderModulesPath" Type="directory" />
+		</Property>
+
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="ProgramFilesFolder">
 				<Directory Id="FAIL.DIR" Name="FAIL">
@@ -153,6 +160,21 @@
 					</Component>
 					<Component Id="README_WindowsSetup.html" Guid="*">
 						<File Id="README_WindowsSetup.html" Name="README_WindowsSetup.html" Source="README_WindowsSetup.html" KeyPath="yes" />
+					</Component>
+				</Directory>
+				<Directory Id="XNVIEW.DIR" Name="XnView">
+					<Directory Id="XNVIEWPLUG.DIR" Name="Plugins">
+						<Component Id="Xfail1.usr" Guid="*">
+							<File Id="Xfail1.usr" Name="Xfail1.usr" Source="Xfail1.usr" Checksum="yes" KeyPath="yes" />
+						</Component>
+						<Component Id="Xfail2.usr" Guid="*">
+							<File Id="Xfail2.usr" Name="Xfail2.usr" Source="Xfail2.usr" Checksum="yes" KeyPath="yes" />
+						</Component>
+					</Directory>
+				</Directory>
+				<Directory Id="IMCODERS.DIR" Name="ImageMagick-FAIL"><!-- fake Name -->
+					<Component Id="IM_MOD_RL_fail_.dll" Guid="*">
+						<File Id="IM_MOD_RL_fail_.dll" Name="IM_MOD_RL_fail_.dll" Source="IM_MOD_RL_fail_.dll" Checksum="yes" KeyPath="yes" />
 					</Component>
 				</Directory>
 			</Directory>
@@ -202,6 +224,14 @@
 			<Feature Id="path" Title="Add to Path" Level="1" Description="Add the directory to the Path environment variable so that you don't have to type the location of fail2png at the command prompt." AllowAdvertise="no">
 				<ComponentRef Id="path" />
 			</Feature>
+		</Feature>
+		<Feature Id="xnview" Title="XnView plugin" Level="1" ConfigurableDirectory="XNVIEWPLUG.DIR" Description="Plugin for XnView." AllowAdvertise="no">
+			<ComponentRef Id="Xfail1.usr" />
+			<ComponentRef Id="Xfail2.usr" />
+		</Feature>
+		<Feature Id="imagemagick" Title="ImageMagick coder" Level="9" ConfigurableDirectory="IMCODERS.DIR" Description="Image coder for ImageMagick." AllowAdvertise="no">
+			<Condition Level="1">IMCODERS.DIR</Condition>
+			<ComponentRef Id="IM_MOD_RL_fail_.dll" />
 		</Feature>
 		<Feature Id="docs" Title="Documentation" Level="1" ConfigurableDirectory="FAIL.DIR" Description="Documentation file." AllowAdvertise="no">
 			<ComponentRef Id="README_WindowsSetup.html" />
