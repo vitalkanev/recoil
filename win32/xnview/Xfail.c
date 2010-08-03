@@ -1,7 +1,7 @@
 /*
  * Xfail.c - FAIL plugin for XnView http://www.xnview.com
  *
- * Copyright (C) 2009  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2010  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -73,7 +73,7 @@ DLL_EXPORT void API gfpSavePictureExit(void * ptr);
 #endif
 
 #ifndef XNVIEW_FAIL_EXT
-#define XNVIEW_FAIL_EXT "rip;gr8;mic;hip;tip;int;inp;apc;ap3;gr9;pic;cpr;cin;cci;fnt;sxs;hr;plm;ilc;mcp;ghg"
+#define XNVIEW_FAIL_EXT "rip;gr8;mic;hip;tip;int;inp;apc;ap3;gr9;pic;cpr;cin;cci;fnt;sxs;hr;plm;ilc;mcp;ghg;hr2"
 #endif
 
 static size_t strlcpy(char *dst, const char *src, size_t size)

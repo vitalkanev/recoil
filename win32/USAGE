@@ -49,6 +49,7 @@ Insert the following lines right below `<coders>` tag in file `config\coder.xml`
   <coder magick="SXS" name="FAIL"/>
   <coder magick="MCP" name="FAIL"/>
   <coder magick="GHG" name="FAIL"/>
+  <coder magick="HR2" name="FAIL"/>
 --------------------------------------------------------------------------------
 
 Note: ImageMagick coder is built for `Q16 dll` version of ImageMagick

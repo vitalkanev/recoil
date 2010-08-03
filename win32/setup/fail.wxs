@@ -14,8 +14,8 @@
 		<Media Id="1" Cabinet="fail.cab" EmbedCab="yes" CompressionLevel="high" />
 
 		<?define FIRST_EXT=gr8?>
-		<?define OTHER_EXTS=hip;mic;int;tip;inp;hr;gr9;pic;cpr;cin;cci;apc;plm;ap3;ilc;rip;fnt;sxs;mcp;ghg?>
-		<?define DOUBLECLICK=Double-click GR8, HIP, MIC, INT, TIP, INP, HR, GR9, PIC, CPR, CIN, CCI, APC, PLM, AP3, ILC, RIP, FNT, SXS, MCP or GHG file in Windows Explorer to display it in ?>
+		<?define OTHER_EXTS=hip;mic;int;tip;inp;hr;gr9;pic;cpr;cin;cci;apc;plm;ap3;ilc;rip;fnt;sxs;mcp;ghg;hr2?>
+		<?define DOUBLECLICK=Double-click Atari image file in Windows Explorer to display it in ?>
 
 		<Icon Id="faileye.ico" SourceFile="faileye.ico" />
 		<Property Id="ARPHELPLINK" Value="http://fail.sourceforge.net/" />
