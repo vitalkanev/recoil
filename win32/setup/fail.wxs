@@ -225,11 +225,12 @@
 				<ComponentRef Id="path" />
 			</Feature>
 		</Feature>
-		<Feature Id="xnview" Title="XnView plugin" Level="1" ConfigurableDirectory="XNVIEWPLUG.DIR" Description="Plugin for XnView." AllowAdvertise="no">
+		<Feature Id="xnview" Title="XnView plugin" Level="9" ConfigurableDirectory="XNVIEWPLUG.DIR" Description="Plugin for XnView." AllowAdvertise="no">
+			<Condition Level="1">XNVIEWPLUG.DIR</Condition>
 			<ComponentRef Id="Xfail1.usr" />
 			<ComponentRef Id="Xfail2.usr" />
 		</Feature>
-		<Feature Id="imagemagick" Title="ImageMagick coder" Level="9" ConfigurableDirectory="IMCODERS.DIR" Description="Image coder for ImageMagick." AllowAdvertise="no">
+		<Feature Id="imagemagick" Title="ImageMagick coder" Level="0" ConfigurableDirectory="IMCODERS.DIR" Description="Image coder for ImageMagick." AllowAdvertise="no">
 			<Condition Level="1">IMCODERS.DIR</Condition>
 			<ComponentRef Id="IM_MOD_RL_fail_.dll" />
 		</Feature>
