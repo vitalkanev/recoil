@@ -163,7 +163,7 @@
 					</Component>
 				</Directory>
 				<Directory Id="XNVIEW.DIR" Name="XnView">
-					<Directory Id="XNVIEWPLUG.DIR" Name="Plugins">
+					<Directory Id="XNVIEWPLUG.DIR" Name="PlugIns">
 						<Component Id="Xfail1.usr" Guid="*">
 							<File Id="Xfail1.usr" Name="Xfail1.usr" Source="Xfail1.usr" Checksum="yes" KeyPath="yes" />
 						</Component>
@@ -226,7 +226,7 @@
 			</Feature>
 		</Feature>
 		<Feature Id="xnview" Title="XnView plugin" Level="9" ConfigurableDirectory="XNVIEWPLUG.DIR" Description="Plugin for XnView." AllowAdvertise="no">
-			<Condition Level="1">XNVIEWPLUG.DIR</Condition>
+			<Condition Level="1">XNVIEW.DIR</Condition>
 			<ComponentRef Id="Xfail1.usr" />
 			<ComponentRef Id="Xfail2.usr" />
 		</Feature>
