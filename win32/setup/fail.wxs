@@ -260,7 +260,7 @@
 			<Condition Level="1">XNVIEW.DIR</Condition>
 			<ComponentRef Id="Xfail1.usr" />
 			<ComponentRef Id="Xfail2.usr" />
-			<Feature Id="xnview_fail.ext" Title="Associate file types" Level="9" Description="$(var.DOUBLECLICK) XnView." AllowAdvertise="no">
+			<Feature Id="xnview_fail.ext" Title="Associate file types" Level="0" Description="$(var.DOUBLECLICK) XnView." AllowAdvertise="no">
 				<Condition Level="9">XNVIEW.EXE</Condition>
 				<ComponentRef Id="xnview_fail.ext" />
 			</Feature>
