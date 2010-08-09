@@ -123,11 +123,30 @@
 					<Condition Action="hide">Installed</Condition>
 				</Control>
 			</Dialog>
+			
+			<!-- handle mutually exclusive file associations, conditions generated with wix_mutex.pl -->
+			<?foreach MUTEXCOND in (($failwin.ext=3 OR ($failwin.ext=-1 AND ?failwin.ext=3)) AND ($xnview_fail.ext=3 OR ($xnview_fail.ext=-1 AND ?xnview_fail.ext=3)))?>
+			<Publish Dialog="MyCustomizeDlg" Control="Next" Event="SpawnDialog" Value="MyManyAssociationsDlg" Order="3">
+				$(var.MUTEXCOND)
+			</Publish>
+			<?endforeach?>
+			<Dialog Id="MyManyAssociationsDlg" Width="270" Height="85" Title="!(loc.ErrorDlg_Title)">
+				<Control Id="ErrorText" Type="Text" X="48" Y="15" Width="205" Height="60" TabSkip="no" Text="You have selected &quot;Associate file types&quot; for many viewers. You may associate files with only one viewer." />
+				<Control Id="ErrorIcon" Type="Icon" X="15" Y="15" Width="24" Height="24" ToolTip="!(loc.ErrorDlgErrorIconTooltip)" FixedSize="yes" IconSize="32" Text="!(loc.ErrorDlgErrorIcon)" />
+				<Control Id="O" Type="PushButton" X="100" Y="60" Width="56" Height="17" TabSkip="yes" Text="!(loc.WixUIOK)">
+					<Publish Event="EndDialog" Value="Return">1</Publish>
+				</Control>
+			</Dialog>
 		</UI>
 		<UIRef Id="WixUI_Common" />
 
 		<Property Id="XNVIEW.DIR">
 			<RegistrySearch Id="xnview.installdir" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\XnView_is1" Name="InstallLocation" Type="directory" />
+		</Property>
+		<Property Id="XNVIEW.EXE">
+			<RegistrySearch Id="xnview.exe" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\XnView_is1" Name="InstallLocation" Type="directory">
+				<FileSearch Name="xnview.exe" />
+			</RegistrySearch>
 		</Property>
 		<Property Id="IMCODERS.DIR">
 			<RegistrySearch Id="imcoders.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="CoderModulesPath" Type="directory" />
@@ -171,6 +190,18 @@
 							<File Id="Xfail2.usr" Name="Xfail2.usr" Source="Xfail2.usr" Checksum="yes" KeyPath="yes" />
 						</Component>
 					</Directory>
+					<Component Id="xnview_fail.ext" Guid="*">
+						<RegistryValue Root="HKCR" Key="fail.file" Name="XnView.FAIL" Type="integer" Value="1" KeyPath="yes" />
+						<ProgId Id="XnView.FAIL">
+							<Extension Id="$(var.FIRST_EXT)">
+								<!-- Verb needs to be defined only once per ProgId -->
+								<Verb Id="open" TargetProperty="XNVIEW.EXE" Argument='"%1"' />
+							</Extension>
+							<?foreach EXT in $(var.OTHER_EXTS)?>
+								<Extension Id="$(var.EXT)" />
+							<?endforeach?>
+						</ProgId>
+					</Component>
 				</Directory>
 				<Directory Id="IMCODERS.DIR" Name="ImageMagick-FAIL"><!-- fake Name -->
 					<Component Id="IM_MOD_RL_fail_.dll" Guid="*">
@@ -229,6 +260,10 @@
 			<Condition Level="1">XNVIEW.DIR</Condition>
 			<ComponentRef Id="Xfail1.usr" />
 			<ComponentRef Id="Xfail2.usr" />
+			<Feature Id="xnview_fail.ext" Title="Associate file types" Level="9" Description="$(var.DOUBLECLICK) XnView." AllowAdvertise="no">
+				<Condition Level="9">XNVIEW.EXE</Condition>
+				<ComponentRef Id="xnview_fail.ext" />
+			</Feature>
 		</Feature>
 		<Feature Id="imagemagick" Title="ImageMagick coder" Level="0" ConfigurableDirectory="IMCODERS.DIR" Description="Image coder for ImageMagick." AllowAdvertise="no">
 			<Condition Level="1">IMCODERS.DIR</Condition>
