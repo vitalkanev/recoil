@@ -191,8 +191,8 @@
 						</Component>
 					</Directory>
 					<Component Id="xnview_fail.ext" Guid="*">
-						<RegistryValue Root="HKCR" Key="fail.file" Name="XnView.FAIL" Type="integer" Value="1" KeyPath="yes" />
-						<ProgId Id="XnView.FAIL">
+						<RegistryValue Root="HKCR" Key="fail.file" Name="XnView.Image" Type="integer" Value="1" KeyPath="yes" />
+						<ProgId Id="XnView.Image">
 							<Extension Id="$(var.FIRST_EXT)">
 								<!-- Verb needs to be defined only once per ProgId -->
 								<Verb Id="open" TargetProperty="XNVIEW.EXE" Argument='"%1"' />
