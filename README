@@ -74,7 +74,7 @@ to submit bug reports, feature requests and small code patches.
 History
 -------
 
-FAIL 1.0.1 (2010-08-??)::
+FAIL 1.0.1 (2010-08-25)::
 
 Windows setup has been created. A coder for ImageMagick has been created.
 MCP, GHG and HR2 formats are supported. Build process has been improved.
