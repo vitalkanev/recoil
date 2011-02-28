@@ -1,7 +1,7 @@
 /*
  * fail.c - FAIL library functions
  *
- * Copyright (C) 2009-2010  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2011  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -1097,22 +1097,22 @@ static abool decode_ap3(
 
 	decode_video_memory(
 		image, hip_color_regs, 
-		40, 40, 1, 2, 0, 40, 96, 9,
+		40, 80, 1, 2, 0, 40, 96, 9,
 		frame1);
 
 	decode_video_memory(
 		image, gr8_color_regs,
-		image_len == 15360 ? 7680 : 8192, 40, 0, 2, 0, 40, 96, 11,
+		image_len == 15360 ? 7680 : 8192, 80, 0, 2, 0, 40, 96, 11,
 		frame1);
 
 	decode_video_memory(
 		image, hip_color_regs,
-		0, 40, 0, 2, 0, 40, 96, 9,
+		0, 80, 0, 2, 0, 40, 96, 9,
 		frame2);
 
 	decode_video_memory(
 		image, gr8_color_regs,
-		image_len == 15360 ? 7720 : 8232, 40, 1, 2, 0, 40, 96, 11,
+		image_len == 15360 ? 7720 : 8232, 80, 1, 2, 0, 40, 96, 11,
 		frame2);
 
 	frames_to_rgb(frame1, frame2,
