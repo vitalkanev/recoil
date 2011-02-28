@@ -1,7 +1,7 @@
 /*
  * pngsave.c - save PNG file
  *
- * Copyright (C) 2009  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2011  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -55,11 +55,11 @@ abool PNG_Save(const char *filename,
 	info_ptr = png_create_info_struct(png_ptr);
 	if (info_ptr == NULL) {
 		fclose(fp);
-		png_destroy_write_struct(&png_ptr, png_infopp_NULL);
+		png_destroy_write_struct(&png_ptr, NULL);
 		return FALSE;
 	}
 
-   /* Set error handling. */
+	/* Set error handling. */
 	if (setjmp(png_jmpbuf(png_ptr))) {
 		/* If we get here, we had a problem writing the file */
 		fclose(fp);

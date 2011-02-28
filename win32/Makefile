@@ -15,7 +15,7 @@ LIGHT = light -nologo -o $@
 all: fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr failwin.exe
 
 fail2png.exe: ../fail2png.c ../pngsave.c ../fail.c ../pngsave.h ../fail.h ../palette.h
-	$(FAIL_CC) ../fail2png.c ../pngsave.c ../fail.c -static -lpng12 -lz
+	$(FAIL_CC) ../fail2png.c ../pngsave.c ../fail.c -static -lpng -lz
 
 IM_MOD_RL_fail_.dll: ../fail.c ../fail.h ../palette.h ../failmagick.c
 	$(FAIL_CC_DLL) ../fail.c ../failmagick.c -lCORE_RL_magick_
@@ -25,7 +25,7 @@ Xfail1.usr Xfail2.usr: xnview/Xfail.c ../fail.c ../fail.h ../palette.h
 		../fail.c xnview/Xfail.c
 	
 failwin.exe: failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c failwin/failwin.h ../pngsave.h ../fail.h ../palette.h
-	$(FAIL_CC) -Wl,-subsystem,windows failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng12 -lz
+	$(FAIL_CC) -Wl,-subsystem,windows failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng -lz
 
 failwin/failwin-res.o: failwin/failwin.rc failwin/failwin.h faileye.ico ../fail.h
 	$(WINDRES) -I .. failwin/failwin.rc
