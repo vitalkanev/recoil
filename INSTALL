@@ -37,13 +37,13 @@ On Windows you may use http://7-zip.org[7-Zip].
 Getting latest source code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Alternatively you may get the latest version from the SVN repository.
-To do this using a command-line SVN client:
+Alternatively you may get the latest version from the Git repository.
+To do this using a command-line Git client:
 --------------------------------------------------------------------------------
-svn co https://fail.svn.sourceforge.net/svnroot/fail/trunk fail-trunk
+git clone git://fail.git.sourceforge.net/gitroot/fail/fail
 --------------------------------------------------------------------------------
 
-This will fetch the latest code to a new directory called `fail-trunk`.
+This will fetch the latest code to a new directory called `fail`.
 
 
 Building fail2png and ImageMagick coder on Unix-like systems

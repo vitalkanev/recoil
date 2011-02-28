@@ -1,0 +1,7 @@
+*.dll
+*.exe
+*.o
+*.usr
+COPYING.txt
+README_Windows.html
+README_WindowsSetup.html

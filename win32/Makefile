@@ -1,4 +1,4 @@
-VERSION = 1.0.1
+VERSION = 1.0.2
 
 FAIL_CC = mingw32-gcc -s -O2 -Wall -o $@ -I..
 FAIL_CC_DLL = $(FAIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
@@ -8,6 +8,8 @@ RM = rm -f
 UNIX2DOS = unix2dos
 ASCIIDOC_START = asciidoc -o - -a localtime -a doctime
 ASCIIDOC_END = | sed -e "s/527bbd;/800080;/" | xmllint --valid --nonet -o $@ -
+GIT = git
+TAR = tar
 SEVENZIP = 7z a -mx=9
 CANDLE = candle -nologo -o $@
 LIGHT = light -nologo -o $@
@@ -53,20 +55,15 @@ setup: ../../fail-$(VERSION)-win32.msi
 setup/fail.wixobj: setup/fail.wxs
 	$(CANDLE) -dVERSION=$(VERSION) $<
 
-srcdist: ../README.html
+../MANIFEST:
+	if test -e ../.git; then \
+		($(GIT) ls-tree -r --name-only --full-tree master | grep -vF .gitignore \
+			&& echo MANIFEST && echo README.html) | sort >$@; \
+	fi
+
+srcdist: ../MANIFEST ../README.html
 	$(RM) ../../fail-$(VERSION).tar.gz
-	$(PERL) -x.. ../maketar.pl -d fail-$(VERSION) \
-		-t fail.c fail.h \
-		fail2png.c pngsave.c pngsave.h \
-		win32/failwin/failwin.c win32/failwin/failwin.h win32/failwin/failwin.rc \
-		win32/xnview/Xfail.c \
-		win32/setup/fail.wxs win32/setup/license.rtf win32/setup/Website.url win32/setup/wix_mutex.pl \
-		failmagick.c \
-		Makefile win32/Makefile \
-		COPYING README INSTALL README.html win32/USAGE \
-		-s maketar.pl raw2c.pl \
-		-b jakub.act win32/faileye.ico \
-		| $(SEVENZIP) -tgzip -si ../../fail-$(VERSION).tar.gz
+	cd .. && $(TAR) -c --numeric-owner --owner=0 --group=0 --mode=644 -T MANIFEST --transform=s,,fail-$(VERSION)/, | $(SEVENZIP) -tgzip -si ../fail-$(VERSION).tar.gz
 
 dist: srcdist all COPYING.txt README_Windows.html setup
 	$(RM) ../../fail-$(VERSION)-win32.zip
@@ -82,5 +79,7 @@ www: ../../www/index.html
 
 clean:
 	$(RM) fail2png.exe Xfail1.usr Xfail2.usr IM_MOD_RL_fail_.dll failwin.exe failwin/failwin-res.o ../palette.h COPYING.txt ../README.html README_Windows.html README_WindowsSetup.html setup/fail.wixobj
+
+.PHONY: all clean setup ../MANIFEST srcdist dist www
 
 .DELETE_ON_ERROR:

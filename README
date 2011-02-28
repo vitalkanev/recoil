@@ -6,7 +6,8 @@ FAIL - First Atari Image Library
 
 ifdef::failwww[]
 http://sourceforge.net/projects/fail/files/[Download] |
-http://fail.svn.sourceforge.net/viewvc/fail/trunk/[Browse source code (SVN)] |
+http://fail.git.sourceforge.net/git/gitweb.cgi?p=fail/fail;a=summary[Browse source code (Git)] |
+http://sourceforge.net/scm/?type=git&group_id=258474[Get latest source code (Git)] |
 http://sourceforge.net/projects/fail/[SourceForge project page]
 endif::failwww[]
 
