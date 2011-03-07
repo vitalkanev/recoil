@@ -1,7 +1,7 @@
 /*
  * fail.h - FAIL library interface
  *
- * Copyright (C) 2009-2010  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2011  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -31,13 +31,13 @@ extern "C" {
 /* Version. */
 #define FAIL_VERSION_MAJOR   1
 #define FAIL_VERSION_MINOR   0
-#define FAIL_VERSION_MICRO   1
-#define FAIL_VERSION         "1.0.1"
+#define FAIL_VERSION_MICRO   2
+#define FAIL_VERSION         "1.0.2"
 
 /* Credits and copyright. */
-#define FAIL_YEARS           "2009-2010"
+#define FAIL_YEARS           "2009-2011"
 #define FAIL_CREDITS \
-	"First Atari Image Library (C) 2009-2010 Piotr Fusik and Adrian Matoga\n"
+	"First Atari Image Library (C) 2009-2011 Piotr Fusik and Adrian Matoga\n"
 #define FAIL_COPYRIGHT \
 	"This program is free software; you can redistribute it and/or modify\n" \
 	"it under the terms of the GNU General Public License as published\n" \
@@ -56,7 +56,7 @@ typedef unsigned char byte;
 
 /* Limits. */
 #define FAIL_IMAGE_MAX    30000
-#define FAIL_WIDTH_MAX    320
+#define FAIL_WIDTH_MAX    384
 #define FAIL_HEIGHT_MAX   240
 #define FAIL_PALETTE_MAX  768
 #define FAIL_PIXELS_MAX   (FAIL_WIDTH_MAX * FAIL_HEIGHT_MAX * 3)

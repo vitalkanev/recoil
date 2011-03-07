@@ -45,8 +45,9 @@ HR2:: 320x200, 5 colors, interlaced.
 ILC:: 80x192, 256 colors, interlaced.
 INP:: 160x200, 7 colors, interlaced.
 INT:: "INT95a", up to 160x239, 16 colors, interlaced.
-MIC:: Standard 160x192, 4 colors.
+MCH:: Up to 192x240, 128 colors.
 MCP:: "McPainter", 160x200, 16 colors, interlaced.
+MIC:: Standard 160x192, 4 colors.
 PIC:: "Koala MicroIllustrator", 160x192, 4 colors, compressed.
 PLM:: "Plama 256", 80x96, 256 colors.
 RIP:: "Rocky Interlace Picture", up to 160x239.
@@ -74,6 +75,12 @@ to submit bug reports, feature requests and small code patches.
 
 History
 -------
+
+FAIL 1.0.2 (2011-??-??)::
+
+Fixed ILC and AP3 - were shown as the stretched upper half.
+Added support for the MCH format. Fixed compilation errors with the new libpng.
+Moved source code from SVN to Git.
 
 FAIL 1.0.1 (2010-08-25)::
 

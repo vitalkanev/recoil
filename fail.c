@@ -1388,6 +1388,48 @@ static abool decode_hr2(
 	return TRUE;
 }
 
+static abool decode_mch(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	int chars_per_line;
+	byte frame[384 * 240];
+	int y;
+	switch (image_len) {
+	case 30 * 32 * 9 + 240 * 5:
+		chars_per_line = 32;
+		break;
+	case 30 * 40 * 9 + 240 * 5:
+		chars_per_line = 40;
+		break;
+	case 30 * 48 * 9 + 240 * 5:
+		chars_per_line = 48;
+		break;
+	default:
+		return FALSE;
+	}
+	image_info->width = 8 * chars_per_line;
+	image_info->height = 240;
+	image_info->original_width = 4 * chars_per_line;
+	image_info->original_height = 240;
+	for (y = 0; y < 240; y++) {
+		const byte *colors = image + image_len - 240 * 5 + y;
+		int x;
+		for (x = 0; x < chars_per_line * 4; x++) {
+			const byte *p = image + ((y >> 3) * chars_per_line + (x >> 2)) * 9;
+			int color = (p[1 + (y & 7)] >> (2 * (~x & 3))) & 3;
+			if (color == 3 && (p[0] & 0x80) != 0)
+				color = 4;
+			frame[y * image_info->width + 2 * x + 1] =
+				frame[y * image_info->width + 2 * x] = colors[color * 240] & 0xfe;
+		}
+	}
+	frame_to_rgb(frame, image_info->width * 240, atari_palette, pixels);
+	return TRUE;
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -1430,6 +1472,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('M', 'C', 'P'):
 	case FAIL_EXT('G', 'H', 'G'):
 	case FAIL_EXT('H', 'R', '2'):
+	case FAIL_EXT('M', 'C', 'H'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -1476,7 +1519,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('S', 'X', 'S'), decode_sxs },
 		{ FAIL_EXT('M', 'C', 'P'), decode_mcp },
 		{ FAIL_EXT('G', 'H', 'G'), decode_ghg },
-		{ FAIL_EXT('H', 'R', '2'), decode_hr2 }
+		{ FAIL_EXT('H', 'R', '2'), decode_hr2 },
+		{ FAIL_EXT('M', 'C', 'H'), decode_mch }
 	}, *ph;
 
 	if (atari_palette == NULL)
