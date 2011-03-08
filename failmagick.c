@@ -1,7 +1,7 @@
 /*
  * failmagick.c - FAIL coder for ImageMagick
  *
- * Copyright (C) 2009-2010  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2011  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -124,8 +124,9 @@ static const struct Format {
 	{ "ILC", "80x192, 256 colors, interlaced" },
 	{ "INP", "160x200, 7 colors, interlaced" },
 	{ "INT", "INT95a; up to 160x239, 16 colors, interlaced" },
-	{ "MIC", "Standard 160x192, 4 colors" },
+	{ "MCH", "Up to 192x240, 128 colors" },
 	{ "MCP", "McPainter; 160x200, 16 colors, interlaced" },
+	{ "MIC", "Standard 160x192, 4 colors" },
 	{ "PIC", "Koala MicroIllustrator; 160x192, 4 colors, compressed" },
 	{ "PLM", "Plama 256; 80x96, 256 colors" },
 	{ "RIP", "Rocky Interlace Picture; up to 160x239" },

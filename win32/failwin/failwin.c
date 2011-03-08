@@ -1,7 +1,7 @@
 /*
  * failwin.c - Windows API port of FAIL
  *
- * Copyright (C) 2009-2010  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2011  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -353,8 +353,8 @@ static void SelectAndOpenImage(void)
 		sizeof(OPENFILENAME),
 		NULL,
 		0,
-		"All supported\0*.ap3;*.apc;*.cci;*.cin;*.cpr;*.fnt;*.ghg;*.gr8;*.gr9;*.hip;*.hr;*.hr2;*.ilc;*.inp;*.int;*.mic;*.mcp;*.pic;*.plm;*.rip;*.sxs;*.tip\0"
-		"Non-interlaced (*.cpr;*.ghg;*.gr8;*.gr9;*.mic;*.pic)\0*.cpr;*.ghg;*.gr8;*.gr9;*.mic;*.pic\0"
+		"All supported\0*.ap3;*.apc;*.cci;*.cin;*.cpr;*.fnt;*.ghg;*.gr8;*.gr9;*.hip;*.hr;*.hr2;*.ilc;*.inp;*.int;*.mch;*.mcp;*.mic;*.pic;*.plm;*.rip;*.sxs;*.tip\0"
+		"Non-interlaced (*.cpr;*.ghg;*.gr8;*.gr9;*.mch;*.mic;*.pic)\0*.cpr;*.ghg;*.gr8;*.gr9;*.mch;*.mic;*.pic\0"
 		"Interlaced (*.cci;*.cin;*.hr;*.hr2;*.inp;*.int;*.mcp)\0*.cci;*.cin;*.hr;*.hr2;*.inp;*.int;*.mcp\0"
 		"APAC-like (*.ap3;*.apc;*.ilc;*.plm)\0*.ap3;*.apc;*.ilc;*.plm\0"
 		"HIP/RIP/TIP (*.hip;*.rip;*.tip)\0*.hip;*.rip;*.tip\0"
