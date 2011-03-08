@@ -14,10 +14,24 @@ On Windows download http://www.mingw.org/[MinGW]
 and install binutils, core compiler, w32api and MinGW Make.
 
 Perl::
-On Windows install either http://www.activestate.com/activeperl[ActivePerl]
-or http://cygwin.com/[Cygwin]'s Perl.
+On Windows install either http://www.activestate.com/activeperl[ActivePerl],
+http://strawberryperl.com/[Strawberry Perl] or
+http://cygwin.com/[Cygwin]'s Perl.
 
 Make sure these tools are on your `PATH`.
+
+
+Required libraries
+~~~~~~~~~~~~~~~~~~
+
+For all builds you will need development files for libpng >=1.2.5
+and zlib >=1.2.3.
+In some systems they are installed by default or included in software
+repositories.
+For other systems, including Windows, you will need to build
+and install these libraries from sources. See
+http://www.libpng.org/pub/png/libpng.html[libpng website] for downloads
+and build instructions.
 
 
 Getting officially released source code
