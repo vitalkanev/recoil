@@ -56,10 +56,10 @@ setup/fail.wixobj: setup/fail.wxs
 	$(CANDLE) -dVERSION=$(VERSION) $<
 
 ../MANIFEST:
-	if test -e ../.git; then \
+	test -e ../.git && ( \
 		($(GIT) ls-tree -r --name-only --full-tree master | grep -vF .gitignore \
 			&& echo MANIFEST && echo README.html) | sort >$@; \
-	fi
+	)
 
 srcdist: ../MANIFEST ../README.html
 	$(RM) ../../fail-$(VERSION).tar.gz
