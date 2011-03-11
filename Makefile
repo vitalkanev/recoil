@@ -23,7 +23,7 @@ palette.h: raw2c.pl jakub.act
 	perl raw2c.pl jakub.act >$@
 
 README.html: README
-	asciidoc -o $@ -a doctime -a failsrc README
+	asciidoc -o $@ -a failsrc README
 	perl -pi -e 's/527bbd;/800080;/' $@
 
 clean:
