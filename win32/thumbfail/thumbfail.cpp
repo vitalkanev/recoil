@@ -24,6 +24,12 @@
 #include <windows.h>
 #include <malloc.h>
 
+#ifdef _MSC_VER
+
+#include <thumbcache.h>
+
+#else // MinGW
+
 #undef INTERFACE
 
 static const IID IID_IInitializeWithStream =
@@ -34,7 +40,7 @@ DECLARE_INTERFACE_(IInitializeWithStream,IUnknown)
 	STDMETHOD(QueryInterface)(THIS_ REFIID,PVOID*) PURE;
 	STDMETHOD_(ULONG,AddRef)(THIS) PURE;
 	STDMETHOD_(ULONG,Release)(THIS) PURE;
-	STDMETHOD(Initialize)(THIS_ IStream *pstream, DWORD grfMode) PURE;
+	STDMETHOD(Initialize)(THIS_ IStream *pstream,DWORD grfMode) PURE;
 };
 #undef INTERFACE
 
@@ -50,9 +56,14 @@ static const IID IID_IThumbnailProvider =
 #define INTERFACE IThumbnailProvider
 DECLARE_INTERFACE_(IThumbnailProvider, IUnknown)
 {
-	STDMETHOD(GetThumbnail)(THIS_ UINT cx, HBITMAP *phbmp, WTS_ALPHATYPE *pdwAlpha) PURE;
+	STDMETHOD(QueryInterface)(THIS_ REFIID,PVOID*) PURE;
+	STDMETHOD_(ULONG,AddRef)(THIS) PURE;
+	STDMETHOD_(ULONG,Release)(THIS) PURE;
+	STDMETHOD(GetThumbnail)(THIS_ UINT cx,HBITMAP *phbmp,WTS_ALPHATYPE *pdwAlpha) PURE;
 };
 #undef INTERFACE
+
+#endif
 
 #include "fail.h"
 
@@ -339,5 +350,5 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv)
 
 STDAPI DllCanUnloadNow(void)
 {
-    return g_cRef == 0 ? S_OK : S_FALSE;
+	return g_cRef == 0 ? S_OK : S_FALSE;
 }
