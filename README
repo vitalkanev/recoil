@@ -18,6 +18,7 @@ Currently the project consists of:
 
 - fail2png - portable command-line converter to PNG files
 - FAILWin - viewer for Windows
+- thumbnail provider for Windows Explorer (Vista and newer)
 - plugin for http://www.xnview.com[XnView]
 - (de)coder for http://www.imagemagick.org/[ImageMagick]
 
@@ -79,7 +80,9 @@ History
 FAIL 1.0.2 (2011-??-??)::
 
 Fixed ILC and AP3 - were shown as the stretched upper half.
-Added support for the MCH format. Fixed compilation errors with the new libpng.
+Added support for the MCH format.
+Added Windows thumbnail provider.
+Fixed compilation errors with the new libpng.
 Moved source code from SVN to Git.
 
 FAIL 1.0.1 (2010-08-25)::

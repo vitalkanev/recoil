@@ -1,12 +1,27 @@
 <?xml version="1.0"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="*" Name="FAIL - First Atari Image Library $(var.VERSION)" Language="1033"
-		Version="$(var.VERSION)" Manufacturer="Piotr Fusik and Adrian Matoga"
-		UpgradeCode="19995735-0DC9-4C92-848E-AEFF0407139C">
+	<?if $(sys.BUILDARCH) = x86?>
+		<?define WIN64=no?>
+		<?define PLATFORM_SUFFIX=""?>
+		<?define UPGRADE_GUID=19995735-0DC9-4C92-848E-AEFF0407139C?>
+		<?define PROGRAM_FILES_FOLDER=ProgramFilesFolder?>
+		<?define SRC_DIR=""?>
+		<?define SHELL_EX_LEVEL=9?>
+	<?elseif $(sys.BUILDARCH) = x64?>
+		<?define WIN64=yes?>
+		<?define PLATFORM_SUFFIX=" (64-bit)"?>
+		<?define UPGRADE_GUID=2FF8D81E-4C6A-4A2A-B5EF-2021E6620CDF?>
+		<?define PROGRAM_FILES_FOLDER=ProgramFiles64Folder?>
+		<?define SRC_DIR=x64\?>
+		<?define SHELL_EX_LEVEL=1?>
+	<?endif?>
 
-		<Package Description="FAIL - First Atari Image Library"
-			Manufacturer="Piotr Fusik and Adrian Matoga" InstallerVersion="200" Compressed="yes" />
-		<Upgrade Id="19995735-0DC9-4C92-848E-AEFF0407139C">
+	<Product Id="*" Name="FAIL - First Atari Image Library $(var.VERSION)$(var.PLATFORM_SUFFIX)" Language="1033"
+		Version="$(var.VERSION)" Manufacturer="Piotr Fusik and Adrian Matoga" UpgradeCode="$(var.UPGRADE_GUID)">
+
+		<Package Description="FAIL - First Atari Image Library" Manufacturer="Piotr Fusik and Adrian Matoga"
+			InstallerVersion="200" Platform="$(sys.BUILDARCH)" Compressed="yes" />
+		<Upgrade Id="$(var.UPGRADE_GUID)">
 			<UpgradeVersion Property="NEWERVERSIONDETECTED" Minimum="$(var.VERSION)" OnlyDetect="yes" />
 			<UpgradeVersion Property="PREVIOUSVERSIONSINSTALLED" Maximum="$(var.VERSION)" IncludeMaximum="no" MigrateFeatures="yes" />
 		</Upgrade>
@@ -15,6 +30,7 @@
 
 		<?define FIRST_EXT=gr8?>
 		<?define OTHER_EXTS=hip;mic;int;tip;inp;hr;gr9;pic;cpr;cin;cci;apc;plm;ap3;ilc;rip;fnt;sxs;mcp;ghg;hr2;mch?>
+		<?define FAIL_EXTS=gr8;$(var.OTHER_EXTS)?>
 		<?define DOUBLECLICK=Double-click Atari image file in Windows Explorer to display it in ?>
 
 		<Icon Id="faileye.ico" SourceFile="faileye.ico" />
@@ -124,6 +140,7 @@
 				</Control>
 			</Dialog>
 			
+			<?if $(sys.BUILDARCH) = x86?>
 			<!-- handle mutually exclusive file associations, conditions generated with wix_mutex.pl -->
 			<?foreach MUTEXCOND in (($failwin.ext=3 OR ($failwin.ext=-1 AND ?failwin.ext=3)) AND ($xnview_fail.ext=3 OR ($xnview_fail.ext=-1 AND ?xnview_fail.ext=3)))?>
 			<Publish Dialog="MyCustomizeDlg" Control="Next" Event="SpawnDialog" Value="MyManyAssociationsDlg" Order="3">
@@ -137,9 +154,11 @@
 					<Publish Event="EndDialog" Value="Return">1</Publish>
 				</Control>
 			</Dialog>
+			<?endif?>
 		</UI>
 		<UIRef Id="WixUI_Common" />
 
+		<?if $(sys.BUILDARCH) = x86?>
 		<Property Id="XNVIEW.DIR">
 			<RegistrySearch Id="xnview.installdir" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\XnView_is1" Name="InstallLocation" Type="directory" />
 		</Property>
@@ -151,10 +170,12 @@
 		<Property Id="IMCODERS.DIR">
 			<RegistrySearch Id="imcoders.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="CoderModulesPath" Type="directory" />
 		</Property>
+		<?endif?>
 
 		<Directory Id="TARGETDIR" Name="SourceDir">
-			<Directory Id="ProgramFilesFolder">
+			<Directory Id="$(var.PROGRAM_FILES_FOLDER)">
 				<Directory Id="FAIL.DIR" Name="FAIL">
+					<?if $(sys.BUILDARCH) = x86?>
 					<Component Id="failwin.exe" Guid="*">
 						<File Id="failwin.exe" Name="failwin.exe" Source="failwin.exe" Checksum="yes" KeyPath="yes" />
 					</Component>
@@ -180,7 +201,18 @@
 					<Component Id="README_WindowsSetup.html" Guid="*">
 						<File Id="README_WindowsSetup.html" Name="README_WindowsSetup.html" Source="README_WindowsSetup.html" KeyPath="yes" />
 					</Component>
+					<?endif?>
+					<Component Id="thumbfail.dll" Guid="*" Win64="$(var.WIN64)">
+						<File Id="thumbfail.dll" Name="thumbfail.dll" Source="$(var.SRC_DIR)thumbfail.dll" Checksum="yes" KeyPath="yes">
+							<Class Id="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Context="InprocServer32" Description="FAIL Thumbnail Handler" ThreadingModel="both" />
+						</File>
+						<RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Approved" Name="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Value="FAIL Thumbnail Handler" Type="string" Action="write" />
+						<?foreach EXT in $(var.FAIL_EXTS)?>
+							<RegistryValue Root="HKCR" Key=".$(var.EXT)\ShellEx\{e357fccd-a995-4576-b01f-234630154e96}" Value="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Type="string" Action="write" />
+						<?endforeach?>
+					</Component>
 				</Directory>
+				<?if $(sys.BUILDARCH) = x86?>
 				<Directory Id="XNVIEW.DIR" Name="XnView">
 					<Directory Id="XNVIEWPLUG.DIR" Name="PlugIns">
 						<Component Id="Xfail1.usr" Guid="*">
@@ -208,7 +240,10 @@
 						<File Id="IM_MOD_RL_fail_.dll" Name="IM_MOD_RL_fail_.dll" Source="IM_MOD_RL_fail_.dll" Checksum="yes" KeyPath="yes" />
 					</Component>
 				</Directory>
+				<?endif?>
 			</Directory>
+
+			<?if $(sys.BUILDARCH) = x86?>
 			<Directory Id="ProgramMenuFolder" Name="Programs">
 				<Directory Id="menu.dir" Name="FAIL">
 					<Component Id="FAILWin.lnk" Guid="*">
@@ -236,8 +271,10 @@
 					<Shortcut Id="FAILWin.desktop" Name="FAILWin" Target="[#failwin.exe]" />
 				</Component>
 			</Directory>
+			<?endif?>
 		</Directory>
 
+		<?if $(sys.BUILDARCH) = x86?>
 		<Feature Id="failwin" Title="FAILWin" Level="1" ConfigurableDirectory="FAIL.DIR" Description="Simple viewer." AllowAdvertise="no">
 			<ComponentRef Id="failwin.exe" />
 			<Feature Id="failwin.lnk" Title="Start menu shortcut" Level="1" Description="Adds FAILWin to the Programs menu." AllowAdvertise="no">
@@ -269,6 +306,13 @@
 			<Condition Level="1">IMCODERS.DIR</Condition>
 			<ComponentRef Id="IM_MOD_RL_fail_.dll" />
 		</Feature>
+		<?endif?>
+
+		<Feature Id="thumbfail" Title="Windows thumbnail provider" Level="$(var.SHELL_EX_LEVEL)" ConfigurableDirectory="FAIL.DIR" Description="Shows thumbnails in Windows Explorer." AllowAdvertise="no">
+			<ComponentRef Id="thumbfail.dll" />
+		</Feature>
+
+		<?if $(sys.BUILDARCH) = x86?>
 		<Feature Id="docs" Title="Documentation" Level="1" ConfigurableDirectory="FAIL.DIR" Description="Documentation file." AllowAdvertise="no">
 			<ComponentRef Id="README_WindowsSetup.html" />
 			<Feature Id="docs.lnk" Title="Start menu shortcuts" Level="1" Description="Adds documentation and website links to the Programs menu." AllowAdvertise="no">
@@ -279,6 +323,7 @@
 		<Feature Id="uninstall" Title="Uninstall shortcut" Level="1" Description="Adds uninstall link to the Programs menu (in addition to the Control Panel which is always available)." AllowAdvertise="no">
 			<ComponentRef Id="uninstall.lnk" />
 		</Feature>
+		<?endif?>
 
 		<InstallExecuteSequence>
 			<RemoveExistingProducts After="InstallFinalize" />

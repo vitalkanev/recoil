@@ -2,7 +2,10 @@ VERSION = 1.0.2
 
 FAIL_CC = mingw32-gcc -s -O2 -Wall -o $@ -I..
 FAIL_CC_DLL = $(FAIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
+FAIL_GPP = mingw32-g++ -static -s -O2 -Wall -o $@ -I..
 WINDRES = windres -o $@
+X64_FAIL_GPP = x86_64-w64-mingw32-g++ -static -s -O2 -Wall -o $@ -I..
+X64_WINDRES = x86_64-w64-mingw32-windres -o $@
 PERL = perl
 RM = rm -f
 UNIX2DOS = unix2dos
@@ -14,7 +17,7 @@ SEVENZIP = 7z a -mx=9
 CANDLE = candle -nologo -o $@
 LIGHT = light -nologo -o $@
 
-all: fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr failwin.exe
+all: fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr failwin.exe thumbfail.dll
 
 fail2png.exe: ../fail2png.c ../pngsave.c ../fail.c ../pngsave.h ../fail.h ../palette.h
 	$(FAIL_CC) ../fail2png.c ../pngsave.c ../fail.c -static -lpng -lz
@@ -31,6 +34,15 @@ failwin.exe: failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c fail
 
 failwin/failwin-res.o: failwin/failwin.rc failwin/failwin.h faileye.ico ../fail.h
 	$(WINDRES) -I .. failwin/failwin.rc
+
+thumbfail.dll: thumbfail/thumbfail.cpp ../fail.c ../fail.h ../palette.h x64
+	$(FAIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbfail/thumbfail.cpp ../fail.c -lgdi32 -lole32 -luuid
+
+x64/thumbfail.dll: thumbfail/thumbfail.cpp ../fail.c ../fail.h ../palette.h x64
+	$(X64_FAIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbfail/thumbfail.cpp ../fail.c -lgdi32 -lole32 -luuid
+
+x64:
+	mkdir -p x64
 
 ../palette.h: ../raw2c.pl ../jakub.act
 	$(PERL) ../raw2c.pl ../jakub.act >$@
@@ -55,6 +67,14 @@ setup: ../../fail-$(VERSION)-win32.msi
 setup/fail.wixobj: setup/fail.wxs
 	$(CANDLE) -dVERSION=$(VERSION) $<
 
+x64-setup: ../../fail-$(VERSION)-win64.msi
+
+../../fail-$(VERSION)-win64.msi: x64/fail.wixobj faileye.ico setup/license.rtf x64/thumbfail.dll
+	$(LIGHT) -ext WixUIExtension -sice:ICE69 -b setup $<
+
+x64/fail.wixobj: setup/fail.wxs
+	$(CANDLE) -arch x64 -dVERSION=$(VERSION) $<
+
 ../MANIFEST:
 	test -e ../.git && ( \
 		($(GIT) ls-tree -r --name-only --full-tree master | grep -vF .gitignore \
@@ -65,7 +85,7 @@ srcdist: ../MANIFEST ../README.html
 	$(RM) ../../fail-$(VERSION).tar.gz
 	cd .. && $(TAR) -c --numeric-owner --owner=0 --group=0 --mode=644 -T MANIFEST --transform=s,,fail-$(VERSION)/, | $(SEVENZIP) -tgzip -si ../fail-$(VERSION).tar.gz
 
-dist: srcdist all COPYING.txt README_Windows.html setup
+dist: srcdist all COPYING.txt README_Windows.html setup x64-setup
 	$(RM) ../../fail-$(VERSION)-win32.zip
 	$(SEVENZIP) -tzip ../../fail-$(VERSION)-win32.zip \
 		COPYING.txt README_Windows.html \
