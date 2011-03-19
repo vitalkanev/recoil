@@ -686,50 +686,50 @@ static abool decode_hip(
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
-	int offset1 = 0;
-	int offset2 = 0;
 	int frame1_len;
 	int frame2_len;
-	abool has_palette = FALSE;
 	byte frame1[320 * FAIL_HEIGHT_MAX];
 	byte frame2[320 * FAIL_HEIGHT_MAX];
 
-	/* hip image with binary file headers */
 	if (parse_binary_header(image, &frame1_len)
 	 && frame1_len > 0
 	 && frame1_len * 2 + 12 == image_len
 	 && frame1_len % 40 == 0
 	 && parse_binary_header(image + frame1_len + 6, &frame2_len)
 	 && frame2_len == frame1_len) {
-		offset1 = 6;
-		offset2 = frame1_len + 12;
+		/* hip image with binary file headers */
 		image_info->height = frame1_len / 40;
+		if (image_info->height > FAIL_HEIGHT_MAX)
+			return FALSE;
+		decode_video_memory(
+			image, hip_color_regs,
+			12 + frame1_len, 40, 0, 1, -1, 40, image_info->height, 9,
+			frame2);
+		decode_video_memory(
+			image, hip_color_regs,
+			6, 40, 0, 1, +1, 40, image_info->height, 10,
+			frame1);
 	}
-	/* hip image with gr10 palette */
 	else if ((image_len - 9) % 80 == 0) {
-		offset1 = 0;
-		offset2 = (image_len - 9) / 2;
+		/* hip image with gr10 palette */
 		image_info->height = (image_len - 9) / 80;
-		has_palette = TRUE;
+		if (image_info->height > FAIL_HEIGHT_MAX)
+			return FALSE;
+		decode_video_memory(
+			image, hip_color_regs,
+			0, 40, 0, 1, -1, 40, image_info->height, 9,
+			frame1);
+		decode_video_memory(
+			image, image + image_len - 9,
+			(image_len - 9) / 2, 40, 0, 1, +1, 40, image_info->height, 10,
+			frame2);
 	}
 	else
 		return FALSE;
 
 	image_info->width = 320;
-	if (image_info->height > FAIL_HEIGHT_MAX)
-		return FALSE;
 	image_info->original_width = 160;
 	image_info->original_height = image_info->height;
-
-	decode_video_memory(
-		image, hip_color_regs,
-		offset1, 40, 0, 1, -1, 40, image_info->height, has_palette ? 9 : 10,
-		frame1);
-
-	decode_video_memory(
-		image, has_palette ? image + image_len - 9 : hip_color_regs,
-		offset2, 40, 0, 1, +1, 40, image_info->height, has_palette ? 10 : 9,
-		frame2);
 
 	frames_to_rgb(frame1, frame2, image_info->height * 320, atari_palette, pixels);
 
