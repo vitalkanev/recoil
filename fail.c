@@ -1170,11 +1170,11 @@ static abool decode_rip(
 		/* hip, rip */
 		decode_video_memory(
 			unpacked_image, image + 24 + txt_len,
-			0, line_len, 0, 1, -1, line_len, image_info->height,
+			0, line_len, 0, 1, +1, line_len, image_info->height,
 			10, frame1);
 		decode_video_memory(
 			unpacked_image, hip_color_regs,
-			frame_len, line_len, 0, 1, +1, line_len, image_info->height,
+			frame_len, line_len, 0, 1, -1, line_len, image_info->height,
 			9, frame2);
 		break;
 	case 0x30:
@@ -1191,11 +1191,11 @@ static abool decode_rip(
 		}
 		decode_video_memory(
 			unpacked_image, unpacked_image + 2 * frame_len,
-			0, line_len, 0, 1, -1, line_len, image_info->height,
+			0, line_len, 0, 1, +1, line_len, image_info->height,
 			FAIL_MODE_MULTIRIP, frame1);
 		decode_video_memory(
 			unpacked_image, hip_color_regs,
-			frame_len, line_len, 0, 1, +1, line_len, image_info->height,
+			frame_len, line_len, 0, 1, -1, line_len, image_info->height,
 			9, frame2);
 		break;
 	default:
