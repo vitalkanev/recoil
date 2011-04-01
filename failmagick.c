@@ -21,6 +21,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+/*
+include <math.h> is a workaround for conflicting declarations:
+C:\Program Files (x86)\ImageMagick-6.6.9-Q16\include\magick\magick-config.h:
+	#define nearbyint(x)  ((ssize_t) ((x)+0.5))
+C:\bin\MinGW\include\math.h:
+	extern double __cdecl nearbyint ( double);
+*/
+#include <math.h>
+
 #include "fail.h"
 
 #include "magick/studio.h"
