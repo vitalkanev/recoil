@@ -342,234 +342,111 @@ static abool unpack_cci(const byte data[], int data_len, int step, int count, by
 		return FALSE;
 }
 
-/* unpack_rip* are directly translated from Visage 2.7 assembly source.
-   TODO: may need to be rewritten in more understandable way */
+typedef struct {
+	int count[16]; /* count[n] == number of codes of bit length n */
+	byte values[256]; /* values sorted by code length */
+} FanoTree;
 
-static void unpack_rip_cnibl(const byte data[], int size, byte output[])
+static void unpack_rip_create_fano_tree(const byte *src, int n, FanoTree *tree)
 {
-	int x = 0;
-	int y = 0;
-	while (y < size) {
-		byte a = data[x++];
-		output[y++] = a >> 4;
-		output[y++] = a & 0x0f;
+	int i;
+	int pos = 0;
+	int positions[16];
+	for (i = 0; i < 16; i++)
+		tree->count[i] = 0;
+	for (i = 0; i < n; i++) {
+		int bits = src[i >> 1];
+		bits = (i & 1) == 0 ? bits >> 4 : bits & 0xf;
+		tree->count[bits]++;
+	}
+	for (i = 0; i < 16; i++) {
+		positions[i] = pos;
+		pos += tree->count[i];
+	}
+	for (i = 0; i < n; i++) {
+		int bits = src[i >> 1];
+		bits = (i & 1) == 0 ? bits >> 4 : bits & 0xf;
+		tree->values[positions[bits]++] = (byte) i;
 	}
 }
 
-static void unpack_rip_sort(const byte data[], int size, byte tre01[], byte tre02[])
+typedef struct {
+	byte bits; /* sliding left with a trailing 1 */
+	const byte *bytes;
+	int length;
+	int offset;
+} BitStream;
+
+static int unpack_rip_get_bit(BitStream *s)
 {
-	byte pom[16];
-	int y;
-	int x;
-	int md_ = 0;
-	int md = 0;
-
-	unpack_rip_cnibl(data, size, tre02);
-	memset(pom, 0, sizeof(pom));
-	for (y = 0; y < size; y++)
-		pom[tre02[y]]++;
-
-	x = 0;
-	do {
-		y = 0;
-		do {
-			if (x == tre02[y])
-				tre01[md_++] = y;
-			y++;
-		} while (y < size);
-		x++;
-	} while (x < 16);
-	
-	x = 0;
-	do {
-		y = pom[x];
-		while (y) {
-			tre02[md++] = x;
-			y--;
-		}
-		x++;
-	} while (x < 16);
+	int bits = s->bits;
+	if (bits == 0x80) {
+		if (s->offset >= s->length)
+			bits = 1; /* simulate trailing zero bytes for malformed RIP files */
+		else
+			bits = s->bytes[s->offset++] * 2 + 1;
+	}
+	else
+		bits <<= 1;
+	s->bits = (byte) bits;
+	return bits >> 8;
 }
 
-static void unpack_rip_fano(const byte data[], int size, byte tre01[], byte tre02[], byte l0[], byte h0[], byte l1[], byte h1[])
+static int unpack_rip_get_code(BitStream *s, const FanoTree *tree)
 {
-	int p;
-	int err;
-	int l;
-	int nxt;
-	int y;
-
-	unpack_rip_sort(data, size, tre01, tre02);
-
-	memset(l0, 0, size);
-	memset(l1, 0, size);
-	memset(h0, 0, size);
-	memset(h1, 0, size);
-
-	p = 0;
-	err = 0;
-	l = 0;
-	nxt = 0;
-	y = 0;
-	do {
-		if (tre02[y]) {
-			int x;
-			int tmp;
-			int val;
-			int a;
-			p += err;
-			x = tre02[y];
-			if (x != l) {
-				l = x;
-				err = 0x10000 >> x;
-			}
-			tmp = p;
-			val = tre01[y];
-			x = tre02[y];
-			a = 0;
-			for (;;) {
-				int z = a;
-				x--;
-				tmp <<= 1;
-				if (tmp < 0x10000) {
-					if (x == 0) {
-						a = val;
-						l0[z] = a;
-						break;
-					}
-					a = h0[z];
-					if (a == 0) {
-						a = ++nxt;
-						h0[z] = a;
-					}
-				}
-				else {
-					tmp &= 0xFFFF;
-					if (x == 0) {
-						a = val;
-						l1[z] = a;
-						break;
-					}
-					a = h1[z];
-					if (a == 0) {
-						a = ++nxt;
-						h1[z] = a;
-					}
-				}
-			}
-		}
-		y++;
-	} while (y < size);
+	int p = tree->count[0];
+	int i = 0;
+	int bits;
+	for (bits = 1; bits < 16; bits++) {
+		int n = tree->count[bits];
+		i = i * 2 + unpack_rip_get_bit(s);
+		if (i < n)
+			return tree->values[p + i];
+		p += n;
+		i -= n;
+	}
+	return 0; /* FIXME: should be an error */
 }
 
 static abool unpack_rip(const byte data[], int data_len, byte unpacked_data[])
 {
-	byte adl0[576];
-	byte adh0[576];
-	byte adl1[576];
-	byte adh1[576];
-	
-	byte tre01[256];
-	byte tre02[256];
-
 	int unpacked_len;
-	int sx;
-	int dx;
-	int cx;
-	byte csh = 0;
-	byte c;
-	int lic;
+	FanoTree length_tree;
+	FanoTree distance_tree;
+	FanoTree literal_tree;
+	BitStream stream = { 0x80, data, data_len, 16 + 288 };
+	int unpacked_offset;
 
-	/* "PCK" header (16 bytes) + 288 bytes shannon-fano */
+	/* "PCK" header (16 bytes) */
 	if (data_len < 304 || data[0] != 'P' || data[1] != 'C' || data[2] != 'K')
 		return FALSE;
-
-	unpacked_len = data[4] + 256 * data[5] - 33;
+	unpacked_len = data[4] + 256 * data[5];
 	if (unpacked_len > 0x5EFE)
 		return FALSE;
 
-	unpack_rip_fano(data + 16, 64, tre01, tre02, adl0, adh0, adl1, adh1);
-	unpack_rip_fano(data + 16 + 32, 256, tre01, tre02, adl0 + 64, adh0 + 64, adl1 + 64, adh1 + 64);
-	unpack_rip_fano(data + 16 + 160, 256, tre01, tre02, adl0 + 320, adh0 + 320, adl1 + 320, adh1 + 320);
+	/* 288 bytes Shannon-Fano bit lengths */
+	unpack_rip_create_fano_tree(data + 16, 64, &length_tree);
+	unpack_rip_create_fano_tree(data + 16 + 32, 256, &distance_tree);
+	unpack_rip_create_fano_tree(data + 16 + 32 + 128, 256, &literal_tree);
 
-	sx = 16 + 288;
-	dx = 0;
-	lic = -1;
-
-#define GBIT \
-	do { \
-		if (--lic < 0) { \
-			if (sx >= data_len) \
-				return FALSE; \
-			csh = data[sx++]; \
-			lic = 7; \
-		} \
-		c = csh & (1 << lic); \
-	} while (FALSE)
-
-	do {
-		GBIT;
-		if (!c) {
-			int a = 0;
-			for (;;) {
-				int y = a;
-				GBIT;
-				if (!c) {
-					if ((a = adh0[320 + y]) == 0) {
-						unpacked_data[dx] = adl0[320 + y];
-						break;
-					}
-				}
-				else {
-					if ((a = adh1[320 + y]) == 0) {
-						unpacked_data[dx] = adl1[320 + y];
-						break;
-					}
-				}
-			}
-			++dx;
+	/* LZ77 */
+	for (unpacked_offset = 0; unpacked_offset < unpacked_len; ) {
+		if (unpack_rip_get_bit(&stream) == 0) {
+			unpacked_data[unpacked_offset++] = (byte) unpack_rip_get_code(&stream, &literal_tree);
 		}
- 		else {
-			int a = 0;
-			for (;;) {
-				int y = a;
-				GBIT;
-				if (!c) {
-					if ((a = adh0[64 + y]) == 0) {
-						a = adl0[64 + y];
-						break;
-					}
-				}
-				else {
-					if ((a = adh1[64 + y]) == 0) {
-						a = adl1[64 + y];
-						break;
-					}
-				}
-			}
-			cx = dx - (a + 2);
-			a = 0;
-			for (;;) {
-				int y = a;
-				GBIT;
-				if (!c) {
-					if ((a = adh0[y]) == 0) {
-						a = adl0[y];
-						break;
-					}
-				}
-				else {
-					if ((a = adh1[y]) == 0) {
-						a = adl1[y];
-						break;
-					}
-				}
-			}
-			memcpy(unpacked_data + dx, unpacked_data + cx, a + 2);
-			dx += a + 2;
+		else {
+			int distance = unpack_rip_get_code(&stream, &distance_tree) + 2;
+			int len;
+			if (distance > unpacked_offset)
+				return FALSE;
+			len = unpack_rip_get_code(&stream, &length_tree) + 2;
+			do {
+				unpacked_data[unpacked_offset] = unpacked_data[unpacked_offset - distance];
+				unpacked_offset++;
+			} while (--len > 0);
 		}
-	} while (dx < unpacked_len);
- 
+	}
+
 	return TRUE;
 }
 
