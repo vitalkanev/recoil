@@ -6,14 +6,12 @@
 		<?define UPGRADE_GUID=19995735-0DC9-4C92-848E-AEFF0407139C?>
 		<?define PROGRAM_FILES_FOLDER=ProgramFilesFolder?>
 		<?define SRC_DIR=""?>
-		<?define SHELL_EX_LEVEL=9?>
 	<?elseif $(sys.BUILDARCH) = x64?>
 		<?define WIN64=yes?>
 		<?define PLATFORM_SUFFIX=" (64-bit)"?>
 		<?define UPGRADE_GUID=2FF8D81E-4C6A-4A2A-B5EF-2021E6620CDF?>
 		<?define PROGRAM_FILES_FOLDER=ProgramFiles64Folder?>
 		<?define SRC_DIR=x64\?>
-		<?define SHELL_EX_LEVEL=1?>
 	<?endif?>
 
 	<Product Id="*" Name="FAIL - First Atari Image Library $(var.VERSION)$(var.PLATFORM_SUFFIX)" Language="1033"
@@ -26,6 +24,9 @@
 			<UpgradeVersion Property="PREVIOUSVERSIONSINSTALLED" Maximum="$(var.VERSION)" IncludeMaximum="no" MigrateFeatures="yes" />
 		</Upgrade>
 		<Condition Message="Newer version of FAIL is already installed!">NOT NEWERVERSIONDETECTED</Condition>
+		<?if $(sys.BUILDARCH) = x64?>
+			<Condition Message="This Windows thumbnail provider requires 64-bit Windows Vista, Windows Server 2008, or higher.">Installed OR (VersionNT64 &gt;= 600)</Condition>
+		<?endif?>
 		<Media Id="1" Cabinet="fail.cab" EmbedCab="yes" CompressionLevel="high" />
 
 		<?define FIRST_EXT=gr8?>
@@ -308,7 +309,12 @@
 		</Feature>
 		<?endif?>
 
-		<Feature Id="thumbfail" Title="Windows thumbnail provider" Level="$(var.SHELL_EX_LEVEL)" ConfigurableDirectory="FAIL.DIR" Description="Shows thumbnails in Windows Explorer." AllowAdvertise="no">
+		<Feature Id="thumbfail" Title="Windows thumbnail provider" Level="0" ConfigurableDirectory="FAIL.DIR" Description="Shows thumbnails in Windows Explorer." AllowAdvertise="no">
+			<?if $(sys.BUILDARCH) = x86?>
+				<Condition Level="9">VersionNT &gt;= 600 AND NOT VersionNT64</Condition><!-- optional on 32-bit Vista+ -->
+			<?elseif $(sys.BUILDARCH) = x64?>
+				<Condition Level="1">VersionNT64 &gt;= 600</Condition><!-- selected on 64-bit Vista+ -->
+			<?endif?>
 			<ComponentRef Id="thumbfail.dll" />
 		</Feature>
 
