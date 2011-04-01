@@ -17,7 +17,7 @@ SEVENZIP = 7z a -mx=9
 CANDLE = candle -nologo -o $@
 LIGHT = light -nologo -o $@
 
-all: fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr failwin.exe thumbfail.dll
+all: fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr Xfail3.usr failwin.exe thumbfail.dll
 
 fail2png.exe: ../fail2png.c ../pngsave.c ../fail.c ../pngsave.h ../fail.h ../palette.h
 	$(FAIL_CC) ../fail2png.c ../pngsave.c ../fail.c -static -lpng -lz
@@ -25,8 +25,8 @@ fail2png.exe: ../fail2png.c ../pngsave.c ../fail.c ../pngsave.h ../fail.h ../pal
 IM_MOD_RL_fail_.dll: ../fail.c ../fail.h ../palette.h ../failmagick.c
 	$(FAIL_CC_DLL) ../fail.c ../failmagick.c -lCORE_RL_magick_
  
-Xfail1.usr Xfail2.usr: xnview/Xfail.c ../fail.c ../fail.h ../palette.h
-	$(FAIL_CC_DLL) "-DXNVIEW_FAIL_EXT=$(if $(findstring 1,$@),\"rip;gr8;mic;hip;tip;int;inp;apc;ap3;hr;hr2\",\"pic;cpr;cin;cci;fnt;sxs;gr9;plm;ilc;mcp;ghg\")" \
+Xfail1.usr Xfail2.usr Xfail3.usr: xnview/Xfail.c ../fail.c ../fail.h ../palette.h
+	$(FAIL_CC_DLL) "-DXNVIEW_FAIL_EXT=$(if $(findstring 1,$@),\"rip;gr8;mic;hip;tip;int;inp;apc;ap3;hr;hr2\",$(if $(findstring 2,$@),\"pic;cpr;cin;cci;fnt;sxs;gr9;plm;ilc;mcp;ghg\",\"mch\"))" \
 		../fail.c xnview/Xfail.c
 	
 failwin.exe: failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c failwin/failwin.h ../pngsave.h ../fail.h ../palette.h
@@ -89,7 +89,7 @@ dist: srcdist all COPYING.txt README_Windows.html setup x64-setup
 	$(RM) ../../fail-$(VERSION)-win32.zip
 	$(SEVENZIP) -tzip ../../fail-$(VERSION)-win32.zip \
 		COPYING.txt README_Windows.html \
-		fail2png.exe Xfail1.usr Xfail2.usr failwin.exe \
+		fail2png.exe Xfail1.usr Xfail2.usr Xfail3.usr failwin.exe \
 		IM_MOD_RL_fail_.dll
 
 www: ../../www/index.html
@@ -98,7 +98,7 @@ www: ../../www/index.html
 	$(ASCIIDOC_START) -a failwww ../README $(ASCIIDOC_END)
 
 clean:
-	$(RM) fail2png.exe Xfail1.usr Xfail2.usr IM_MOD_RL_fail_.dll failwin.exe failwin/failwin-res.o ../palette.h COPYING.txt ../README.html README_Windows.html README_WindowsSetup.html setup/fail.wixobj
+	$(RM) fail2png.exe Xfail1.usr Xfail2.usr Xfail3.usr IM_MOD_RL_fail_.dll failwin.exe failwin/failwin-res.o ../palette.h COPYING.txt ../README.html README_Windows.html README_WindowsSetup.html setup/fail.wixobj
 
 .PHONY: all clean setup ../MANIFEST srcdist dist www
 

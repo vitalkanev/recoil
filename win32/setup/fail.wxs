@@ -222,6 +222,9 @@
 						<Component Id="Xfail2.usr" Guid="*">
 							<File Id="Xfail2.usr" Name="Xfail2.usr" Source="Xfail2.usr" Checksum="yes" KeyPath="yes" />
 						</Component>
+						<Component Id="Xfail3.usr" Guid="*">
+							<File Id="Xfail3.usr" Name="Xfail3.usr" Source="Xfail3.usr" Checksum="yes" KeyPath="yes" />
+						</Component>
 					</Directory>
 					<Component Id="xnview_fail.ext" Guid="*">
 						<RegistryValue Root="HKCR" Key="fail.file" Name="XnView.Image" Type="integer" Value="1" KeyPath="yes" />
@@ -298,6 +301,7 @@
 			<Condition Level="1">XNVIEW.DIR</Condition>
 			<ComponentRef Id="Xfail1.usr" />
 			<ComponentRef Id="Xfail2.usr" />
+			<ComponentRef Id="Xfail3.usr" />
 			<Feature Id="xnview_fail.ext" Title="Associate file types" Level="0" Description="$(var.DOUBLECLICK) XnView." AllowAdvertise="no">
 				<Condition Level="9">XNVIEW.EXE</Condition>
 				<ComponentRef Id="xnview_fail.ext" />
