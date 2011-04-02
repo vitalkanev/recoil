@@ -94,7 +94,7 @@ static void decode_video_memory(
 				break;
 			case FAIL_MODE_MULTIRIP:
 				col = b >> (~i & 4) & 0x0F;
-				frame[dest_pos + x] = col == 0 ? 0 : color_regs[col + (y / 2) * 8 - 1] & 0xFE;
+				frame[dest_pos + x] = col == 0 ? 0 : color_regs[gr10_to_reg[col] + (y / 2) * 8 - 1] & 0xFE;
 				break;
 			}
 		}
