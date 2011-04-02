@@ -77,9 +77,9 @@ to submit bug reports, feature requests and small code patches.
 History
 -------
 
-FAIL 1.0.2 (2011-??-??)::
+FAIL 1.0.2 (2011-04-??)::
 
-Fixed ILC and AP3 - were shown as the stretched upper half.
+Fixed decoding of ILC, AP3, RIP and 16012-byte HIP.
 Added support for the MCH format.
 Added Windows thumbnail provider.
 Fixed compilation errors with the new libpng.
@@ -105,6 +105,12 @@ Programming.
 
 Pawel Szewczyk {failwww!<ripek@op.pl>}::
 FAILWin icon, testing.
+
+Peter Dell {failwww!<jac@wudsn.com>}::
+Testing.
+
+Slawomir Sledz {failwww!<slaves@scene.pl>}::
+Testing.
 
 ifdef::failwww[]
 image::http://sflogo.sourceforge.net/sflogo.php?group_id=258474&amp;type=13["Get FAIL at SourceForge.net. Fast, secure and Free Open Source software downloads",width=120,height=30,link="http://sourceforge.net/projects/fail/"]

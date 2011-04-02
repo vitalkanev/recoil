@@ -378,8 +378,12 @@ static void SelectAndOpenImage(void)
 		NULL
 	};
 	ofn.hwndOwner = hWnd;
+	if (fullscreen)
+		ShowCursor(TRUE);
 	if (GetOpenFileName(&ofn))
 		OpenImage(TRUE);
+	if (fullscreen)
+		ShowCursor(FALSE);
 }
 
 static BOOL GetSiblingFile(char *filename, int dir)
@@ -458,10 +462,14 @@ static void SelectAndSaveImage(void)
 		NULL
 	};
 	ofn.hwndOwner = hWnd;
-	if (!GetSaveFileName(&ofn))
-		return;
-	if (!PNG_Save(png_filename, image_info.width, image_info.height, image_info.colors, pixels, palette))
-		ShowError("Error writing file");
+	if (fullscreen)
+		ShowCursor(TRUE);
+	if (GetSaveFileName(&ofn)) {
+		if (!PNG_Save(png_filename, image_info.width, image_info.height, image_info.colors, pixels, palette))
+			ShowError("Error writing file");
+	}
+	if (fullscreen)
+		ShowCursor(FALSE);
 }
 
 static BOOL OpenPalette(const char *filename)
@@ -514,11 +522,15 @@ static void SelectAndOpenPalette(void)
 		NULL
 	};
 	ofn.hwndOwner = hWnd;
+	if (fullscreen)
+		ShowCursor(TRUE);
 	if (GetOpenFileName(&ofn)) {
 		atari_palette_loaded = OpenPalette(act_filename);
 		SetMenuEnabled(IDM_USEPALETTE, atari_palette_loaded);
 		UseExternalPalette(atari_palette_loaded);
 	}
+	if (fullscreen)
+		ShowCursor(FALSE);
 }
 
 static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
