@@ -382,9 +382,8 @@ static int unpack_rip_get_bit(BitStream *s)
 	int bits = s->bits;
 	if (bits == 0x80) {
 		if (s->offset >= s->length)
-			bits = 1; /* simulate trailing zero bytes for malformed RIP files */
-		else
-			bits = s->bytes[s->offset++] * 2 + 1;
+			return -1;
+		bits = s->bytes[s->offset++] * 2 + 1;
 	}
 	else
 		bits <<= 1;
@@ -399,18 +398,20 @@ static int unpack_rip_get_code(BitStream *s, const FanoTree *tree)
 	int bits;
 	for (bits = 1; bits < 16; bits++) {
 		int n = tree->count[bits];
-		i = i * 2 + unpack_rip_get_bit(s);
+		int bit = unpack_rip_get_bit(s);
+		if (bit == -1)
+			return -1;
+		i = i * 2 + bit;
 		if (i < n)
 			return tree->values[p + i];
 		p += n;
 		i -= n;
 	}
-	return 0; /* FIXME: should be an error */
+	return -1;
 }
 
-static abool unpack_rip(const byte data[], int data_len, byte unpacked_data[])
+static abool unpack_rip(const byte data[], int data_len, byte unpacked_data[], int unpacked_len)
 {
-	int unpacked_len;
 	FanoTree length_tree;
 	FanoTree distance_tree;
 	FanoTree literal_tree;
@@ -420,9 +421,6 @@ static abool unpack_rip(const byte data[], int data_len, byte unpacked_data[])
 	/* "PCK" header (16 bytes) */
 	if (data_len < 304 || data[0] != 'P' || data[1] != 'C' || data[2] != 'K')
 		return FALSE;
-	unpacked_len = data[4] + 256 * data[5];
-	if (unpacked_len > 0x5EFE)
-		return FALSE;
 
 	/* 288 bytes Shannon-Fano bit lengths */
 	unpack_rip_create_fano_tree(data + 16, 64, &length_tree);
@@ -431,19 +429,25 @@ static abool unpack_rip(const byte data[], int data_len, byte unpacked_data[])
 
 	/* LZ77 */
 	for (unpacked_offset = 0; unpacked_offset < unpacked_len; ) {
-		if (unpack_rip_get_bit(&stream) == 0) {
+		switch (unpack_rip_get_bit(&stream)) {
+		case -1:
+			return FALSE;
+		case 0:
 			unpacked_data[unpacked_offset++] = (byte) unpack_rip_get_code(&stream, &literal_tree);
-		}
-		else {
-			int distance = unpack_rip_get_code(&stream, &distance_tree) + 2;
-			int len;
-			if (distance > unpacked_offset)
-				return FALSE;
-			len = unpack_rip_get_code(&stream, &length_tree) + 2;
-			do {
-				unpacked_data[unpacked_offset] = unpacked_data[unpacked_offset - distance];
-				unpacked_offset++;
-			} while (--len > 0);
+			break;
+		case 1:
+			{
+				int distance = unpack_rip_get_code(&stream, &distance_tree) + 2;
+				int len;
+				if (distance > unpacked_offset)
+					return FALSE;
+				len = unpack_rip_get_code(&stream, &length_tree) + 2;
+				do {
+					unpacked_data[unpacked_offset] = unpacked_data[unpacked_offset - distance];
+					unpacked_offset++;
+				} while (--len > 0);
+				break;
+			}
 		}
 	}
 
@@ -1028,7 +1032,10 @@ static abool decode_rip(
 		memcpy(unpacked_image, image + hdr_len, data_len);
 		break;
 	case 1:
-		if (unpack_rip(image + hdr_len, data_len, unpacked_image))
+		line_len = image[13];
+		if (image[7] == 0x30)
+			line_len += 4; /* multi rip: 8 bytes of palette per two lines */
+		if (unpack_rip(image + hdr_len, data_len, unpacked_image, line_len * image[15]))
 			break;
 	default:
 		return FALSE;
