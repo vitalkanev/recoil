@@ -1063,18 +1063,6 @@ static abool decode_rip(
 		break;
 	case 0x30:
 		/* multi rip */
-		/* WTF? currupts BEETHOVE.RIP
-		{
-			int x, y;
-			for (y = 0; y < 119; y++) {
-				for (x = 0; x < 8; x++) {
-					int ix = 2 * frame_len + y * 8 + x;
-					if (y > 0 && unpacked_image[ix] == 0)
-						unpacked_image[ix] = unpacked_image[ix - 8];
-				}
-			}
-		}
-		*/
 		decode_video_memory(
 			unpacked_image, unpacked_image + 2 * frame_len,
 			0, line_len, 0, 1, +1, line_len, image_info->height,
@@ -1230,7 +1218,7 @@ static abool decode_ghg(
 	byte frame[320 * 200];
 	if (image_len < 4)
 		return FALSE;
-	// round up to 8 pixels
+	/* round up to 8 pixels */
 	image_info->original_width = image_info->width = (image[0] + image[1] * 256 + 7) & ~7;
 	image_info->original_height = image_info->height = image[2];
 	if (image_info->width == 0 || image_info->width > 320
