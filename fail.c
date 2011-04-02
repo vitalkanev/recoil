@@ -1056,6 +1056,7 @@ static abool decode_rip(
 		break;
 	case 0x30:
 		/* multi rip */
+		/* WTF? currupts BEETHOVE.RIP
 		{
 			int x, y;
 			for (y = 0; y < 119; y++) {
@@ -1066,6 +1067,7 @@ static abool decode_rip(
 				}
 			}
 		}
+		*/
 		decode_video_memory(
 			unpacked_image, unpacked_image + 2 * frame_len,
 			0, line_len, 0, 1, +1, line_len, image_info->height,
