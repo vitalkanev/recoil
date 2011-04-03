@@ -658,40 +658,39 @@ static abool decode_pic(
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
-	/* some images with .pic extension are
-	   in micropainter format */
-	if (image_len == 7684 || image_len == 7680)
-		return decode_mic(
-			image, image_len, atari_palette,
-			image_info, pixels);
+	byte unpacked_image[7680 + 4];
 
-	else {
-		byte unpacked_image[7680 + 4];
-
-		if (image[0] != 0xff || image[1] != 0x80
-		 || image[2] != 0xc9 || image[3] != 0xc7
-		 || image[4] < 0x1a || image[4] >= image_len
-		 || image[5] != 0
-		 || image[6] != 1 || image[8] != 0x0e
-		 || image[9] != 0 || image[10] != 40
-		 || image[11] != 0 || image[12] != 192
-		 || image[20] != 0 || image[21] != 0)
-			return FALSE;
-		
-		if (!unpack_koala(
-			image + image[4] + 1, image_len - image[4] - 1,
-			image[7], unpacked_image))
-			return FALSE;
-
-		unpacked_image[7680] = image[17];
-		unpacked_image[7681] = image[13];
-		unpacked_image[7682] = image[14];
-		unpacked_image[7683] = image[15];
-		
-		return decode_mic(
-			unpacked_image, 7684, atari_palette,
-			image_info, pixels);
+	if (image[0] != 0xff || image[1] != 0x80
+	 || image[2] != 0xc9 || image[3] != 0xc7
+	 || image[4] < 0x1a || image[4] >= image_len
+	 || image[5] != 0
+	 || image[6] != 1 || image[8] != 0x0e
+	 || image[9] != 0 || image[10] != 40
+	 || image[11] != 0 || image[12] != 192
+	 || image[20] != 0 || image[21] != 0) {
+		/* some images with .pic extension are
+		   in micropainter format */
+		if (image_len == 7684 || image_len == 7680) {
+			return decode_mic(
+				image, image_len, atari_palette,
+				image_info, pixels);
+		}
+		return FALSE;
 	}
+	
+	if (!unpack_koala(
+		image + image[4] + 1, image_len - image[4] - 1,
+		image[7], unpacked_image))
+		return FALSE;
+
+	unpacked_image[7680] = image[17];
+	unpacked_image[7681] = image[13];
+	unpacked_image[7682] = image[14];
+	unpacked_image[7683] = image[15];
+	
+	return decode_mic(
+		unpacked_image, 7684, atari_palette,
+		image_info, pixels);
 }
 
 static abool decode_cpr(
