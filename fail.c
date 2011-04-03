@@ -626,11 +626,8 @@ static abool decode_mic(
 	byte pixels[])
 {
 	abool has_palette;
-	byte frame[320 * 192];
-	byte color_regs[9];
+	byte frame[320 * FAIL_HEIGHT_MAX];
 	
-	memset(color_regs, 0, sizeof(color_regs));
-
 	if (image_len % 40 == 4)
 		has_palette = TRUE;
 	else if (image_len % 40 == 0)
