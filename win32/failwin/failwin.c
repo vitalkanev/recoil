@@ -172,12 +172,11 @@ static void CalculateWindowSize(void)
 static void ResizeWindow(void)
 {
 	RECT rect;
-	if (!GetWindowRect(hWnd, &rect))
-		return;
-	MoveWindow(hWnd,
-		(rect.left + rect.right - window_width) >> 1,
-		(rect.top + rect.bottom - window_height) >> 1,
-		window_width, window_height, TRUE);
+	if (GetWindowRect(hWnd, &rect)) {
+		int x = (rect.left + rect.right - window_width) >> 1;
+		int y = (rect.top + rect.bottom - window_height) >> 1;
+		MoveWindow(hWnd, x >= 0 ? x : 0, y >= 0 ? y : 0, window_width, window_height, TRUE);
+	}
 }
 
 static BOOL Repaint(BOOL fit_to_desktop)
