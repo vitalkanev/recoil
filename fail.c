@@ -711,43 +711,6 @@ static abool decode_cpr(
 		image_info, pixels);
 }
 
-static abool decode_int(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	FAIL_ImageInfo* image_info,
-	byte pixels[])
-{
-	byte frame1[320 * FAIL_HEIGHT_MAX];
-	byte frame2[320 * FAIL_HEIGHT_MAX];
-
-	if (image[0] != 'I' || image[1] != 'N' || image[2] != 'T'
-	 || image[3] != '9' || image[4] != '5' || image[5] != 'a'
-	 || image[6] == 0 || image[6] > 40
-	 || image[7] == 0 || image[7] > 239
-	 || image[8] != 0x0f || image[9] != 0x2b
-	 || 18 + image[6] * image[7] * 2 != image_len)
-		return FALSE;
-
-	image_info->width = image[6] * 8;
-	image_info->height = image[7];
-	image_info->original_width = image[6] * 4;
-	image_info->original_height = image[7];
-
-	decode_video_memory(
-		image + 18, image + 10,
-		0, 40, 0, 1, 0, 40, image_info->height, 15,
-		frame1);
-
-	decode_video_memory(
-		image + 18 + image[6] * image_info->height, image + 14,
-		0, 40, 0, 1, 0, 40, image_info->height, 15,
-		frame2);
-
-	frames_to_rgb(frame1, frame2, image_info->height * 320, atari_palette, pixels);
-
-	return TRUE;
-}
-
 static abool decode_inp(
 	const byte image[], int image_len,
 	const byte atari_palette[],
@@ -772,6 +735,44 @@ static abool decode_inp(
 
 	decode_video_memory(
 		image + 8000, image + 16000,
+		0, 40, 0, 1, 0, 40, image_info->height, 15,
+		frame2);
+
+	frames_to_rgb(frame1, frame2, image_info->height * 320, atari_palette, pixels);
+
+	return TRUE;
+}
+
+static abool decode_int(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte frame1[320 * FAIL_HEIGHT_MAX];
+	byte frame2[320 * FAIL_HEIGHT_MAX];
+
+	if (image[0] != 'I' || image[1] != 'N' || image[2] != 'T'
+	 || image[3] != '9' || image[4] != '5' || image[5] != 'a'
+	 || image[6] == 0 || image[6] > 40
+	 || image[7] == 0 || image[7] > 239
+	 || image[8] != 0x0f || image[9] != 0x2b
+	 || 18 + image[6] * image[7] * 2 != image_len)
+		return decode_inp(image, image_len,
+			atari_palette, image_info, pixels);
+
+	image_info->width = image[6] * 8;
+	image_info->height = image[7];
+	image_info->original_width = image[6] * 4;
+	image_info->original_height = image[7];
+
+	decode_video_memory(
+		image + 18, image + 10,
+		0, 40, 0, 1, 0, 40, image_info->height, 15,
+		frame1);
+
+	decode_video_memory(
+		image + 18 + image[6] * image_info->height, image + 14,
 		0, 40, 0, 1, 0, 40, image_info->height, 15,
 		frame2);
 
