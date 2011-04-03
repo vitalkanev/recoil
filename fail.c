@@ -466,8 +466,6 @@ static abool parse_binary_header(const byte image[], int *len)
 		return FALSE;
 }
 
-static const byte gr8_color_regs[] = { 0x00, 0x0F };
-
 static abool decode_gr8_gr9(
 	const byte image[], int image_len,
 	const byte atari_palette[],
@@ -487,8 +485,8 @@ static abool decode_gr8_gr9(
 	image_info->width = 320;
 	image_info->height = (image_len - offset) / 40;
 	image_info->original_height = image_info->height;
-		
-	if ((image_len - offset) % 40 != 0 || image_info->height > FAIL_HEIGHT_MAX)
+	
+	if (/*(image_len - offset) % 40 != 0 || */image_info->height > FAIL_HEIGHT_MAX)
 		return FALSE;
 	
 	decode_video_memory(
@@ -500,6 +498,8 @@ static abool decode_gr8_gr9(
 
 	return TRUE;
 }
+
+static const byte gr8_color_regs[] = { 0x0F, 0x00 };
 
 static abool decode_gr8(
 	const byte image[], int image_len,
@@ -514,6 +514,8 @@ static abool decode_gr8(
 		pixels, 8, gr8_color_regs);
 }
 
+static const byte gr9_color_regs[] = { 0x00 };
+
 static abool decode_gr9(
 	const byte image[], int image_len,
 	const byte atari_palette[],
@@ -524,7 +526,7 @@ static abool decode_gr9(
 	return decode_gr8_gr9(
 		image, image_len, atari_palette,
 		image_info,
-		pixels, 9, gr8_color_regs);
+		pixels, 9, gr9_color_regs);
 }
 
 static abool decode_hr(
