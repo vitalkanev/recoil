@@ -30,6 +30,7 @@ Supported file formats
 ----------------------
 
 [horizontal]
+256:: 80x96, 256 colors.
 AP3:: 80x192, 256 colors, interlaced.
 APC:: "Any Point, Any Color", 80x96, 256 colors, interlaced.
 CCI:: "Champions' Interlace", 160x192, compressed.
@@ -80,8 +81,8 @@ History
 
 FAIL 1.0.2 (2011-04-??)::
 
-Fixed decoding of ILC, AP3, RIP, PIC and 16012-byte HIP.
-Added support for the MCH and IGE formats.
+Fixed decoding of ILC, AP3, RIP, PIC, CPR and 16012-byte HIP.
+Added support for the MCH, 256 and IGE formats.
 Added Windows thumbnail provider.
 Fixed compilation errors with the new libpng.
 Moved source code from SVN to Git.

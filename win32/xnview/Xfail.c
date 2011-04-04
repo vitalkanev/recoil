@@ -73,7 +73,7 @@ DLL_EXPORT void API gfpSavePictureExit(void * ptr);
 #endif
 
 #ifndef XNVIEW_FAIL_EXT
-#define XNVIEW_FAIL_EXT "rip;gr8;mic;hip;tip;int;inp;apc;ap3;gr9;pic;cpr;cin;cci;fnt;sxs;hr;plm;ilc;mcp;ghg;hr2;mch;ige"
+#define XNVIEW_FAIL_EXT "rip;gr8;mic;hip;tip;int;inp;apc;ap3;gr9;pic;cpr;cin;cci;fnt;sxs;hr;plm;ilc;mcp;ghg;hr2;mch;ige;256"
 #endif
 
 static size_t strlcpy(char *dst, const char *src, size_t size)
