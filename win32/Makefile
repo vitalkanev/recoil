@@ -14,8 +14,8 @@ ASCIIDOC_END = | sed -e "s/527bbd;/800080;/" | xmllint --valid --nonet -o $@ -
 GIT = git
 TAR = tar
 SEVENZIP = 7z a -mx=9
-CANDLE = candle -nologo -o $@
-LIGHT = light -nologo -o $@
+CANDLE = candle -ext WixUtilExtension -nologo -o $@
+LIGHT = light -ext WixUtilExtension -nologo -o $@
 
 all: fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr Xfail3.usr failwin.exe thumbfail.dll
 
