@@ -42,7 +42,7 @@ x64/thumbfail.dll: thumbfail/thumbfail.cpp ../fail.c ../fail.h ../palette.h x64
 	$(X64_FAIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbfail/thumbfail.cpp ../fail.c -lgdi32 -lole32 -luuid
 
 x64:
-	mkdir -p x64
+	test -d x64 || mkdir x64
 
 ../palette.h: ../raw2c.pl ../jakub.act
 	$(PERL) ../raw2c.pl ../jakub.act >$@
