@@ -1049,6 +1049,30 @@ static abool decode_rip(
 	frame_len = line_len * image_info->height;
 
 	switch (image[7]) {
+	case 0x0e:
+		/* gr. 15 */
+		{
+			byte colors[4] = { image[32 + txt_len], image[28 + txt_len], image[29 + txt_len], image[30 + txt_len] };
+			decode_video_memory(
+				unpacked_image, colors,
+				frame_len, line_len, 0, 1, 0, line_len, image_info->height,
+				15, frame1);
+		}
+		frame_to_rgb(frame1, image_info->height * image_info->width,
+			atari_palette, pixels);
+		return TRUE;
+	case 0x0f:
+		/* gr. 8 */
+		{
+			byte colors[2] = { image[29 + txt_len], image[28 + txt_len] };
+			decode_video_memory(
+				unpacked_image, colors,
+				frame_len, line_len, 0, 1, 0, line_len, image_info->height,
+				8, frame1);
+		}
+		frame_to_rgb(frame1, image_info->height * image_info->width,
+			atari_palette, pixels);
+		return TRUE;
 	case 0x10:
 		/* interlaced gr. 15 */
 		decode_video_memory(
