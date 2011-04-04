@@ -4,6 +4,8 @@ FAIL_CC = mingw32-gcc -s -O2 -Wall -o $@ -I..
 FAIL_CC_DLL = $(FAIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
 FAIL_GPP = mingw32-g++ -static -s -O2 -Wall -o $@ -I..
 WINDRES = windres -o $@
+X64_FAIL_CC = x86_64-w64-mingw32-gcc -s -O2 -Wall -o $@ -I..
+X64_FAIL_CC_DLL = $(X64_FAIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
 X64_FAIL_GPP = x86_64-w64-mingw32-g++ -static -s -O2 -Wall -o $@ -I..
 X64_WINDRES = x86_64-w64-mingw32-windres -o $@
 PERL = perl
@@ -16,6 +18,7 @@ TAR = tar
 SEVENZIP = 7z a -mx=9
 CANDLE = candle -ext WixUtilExtension -nologo -o $@
 LIGHT = light -ext WixUtilExtension -nologo -o $@
+IMAGEMAGICK_X64_INST_DIR = c:\Program Files\ImageMagick-6.6.9-Q16
 
 all: fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr Xfail3.usr failwin.exe thumbfail.dll
 
@@ -40,6 +43,9 @@ thumbfail.dll: thumbfail/thumbfail.cpp ../fail.c ../fail.h ../palette.h x64
 
 x64/thumbfail.dll: thumbfail/thumbfail.cpp ../fail.c ../fail.h ../palette.h x64
 	$(X64_FAIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbfail/thumbfail.cpp ../fail.c -lgdi32 -lole32 -luuid
+
+x64/IM_MOD_RL_fail_.dll: ../fail.c ../fail.h ../palette.h ../failmagick.c x64
+	$(X64_FAIL_CC_DLL) ../fail.c ../failmagick.c -I"$(IMAGEMAGICK_X64_INST_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_X64_INST_DIR)"
 
 x64:
 	test -d x64 || mkdir x64
@@ -69,7 +75,7 @@ setup/fail.wixobj: setup/fail.wxs
 
 x64-setup: ../../fail-$(VERSION)-win64.msi
 
-../../fail-$(VERSION)-win64.msi: x64/fail.wixobj faileye.ico setup/license.rtf x64/thumbfail.dll
+../../fail-$(VERSION)-win64.msi: x64/fail.wixobj faileye.ico setup/license.rtf x64/thumbfail.dll x64/IM_MOD_RL_fail_.dll
 	$(LIGHT) -ext WixUIExtension -sice:ICE69 -b setup $<
 
 x64/fail.wixobj: setup/fail.wxs
