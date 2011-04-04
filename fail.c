@@ -1073,6 +1073,25 @@ static abool decode_rip(
 		frame_to_rgb(frame1, image_info->height * image_info->width,
 			atari_palette, pixels);
 		return TRUE;
+	case 0x4f:
+		/* gr. 9 */
+		decode_video_memory(
+			unpacked_image, image + 32 + txt_len,
+			frame_len, line_len, 0, 1, 0, line_len, image_info->height,
+			9, frame1);
+		frame_to_rgb(frame1, image_info->height * image_info->width,
+			atari_palette, pixels);
+		return TRUE;
+	case 0x8f:
+		/* gr. 10 */
+		decode_video_memory(
+			unpacked_image, image + 24 + txt_len,
+			frame_len, line_len, 0, 1, 0, line_len, image_info->height,
+			10, frame1);
+		frame_to_rgb(frame1, image_info->height * image_info->width,
+			atari_palette, pixels);
+		return TRUE;
+	/* TODO: 0xcf == gr. 11 */
 	case 0x10:
 		/* interlaced gr. 15 */
 		decode_video_memory(
