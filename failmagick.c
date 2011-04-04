@@ -136,6 +136,7 @@ static const struct Format {
 	{ "ILC", "80x192, 256 colors, interlaced" },
 	{ "INP", "160x200, 7 colors, interlaced" },
 	{ "INT", "INT95a; up to 160x239, 16 colors, interlaced" },
+	{ "JGP", "Jet Graphics Planner; 8x16 tiles, 4 colors" },
 	{ "MCH", "Up to 192x240, 128 colors" },
 	{ "MCP", "McPainter; 160x200, 16 colors, interlaced" },
 	{ "MIC", "Standard 160x192, 4 colors" },

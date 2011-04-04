@@ -49,6 +49,7 @@ IGE:: "Interlace Graphics Editor", 128x96, 16 colors, interlaced.
 ILC:: 80x192, 256 colors, interlaced.
 INP:: 160x200, 7 colors, interlaced.
 INT:: "INT95a", up to 160x239, 16 colors, interlaced.
+JGP:: "Jet Graphics Planner", 8x16 tiles, 4 colors.
 MCH:: Up to 192x240, 128 colors.
 MCP:: "McPainter", 160x200, 16 colors, interlaced.
 MIC:: Standard 160x192, 4 colors.
@@ -83,7 +84,7 @@ History
 FAIL 1.0.2 (2011-04-??)::
 
 Fixed decoding of ILC, AP3, RIP, PIC, CPR and 16012-byte HIP.
-Added support for the MCH, 256, AP2 and IGE formats.
+Added support for the MCH, IGE, 256, AP2 and JGP formats.
 Added Windows thumbnail provider.
 Fixed compilation errors with the new libpng.
 Moved source code from SVN to Git.
