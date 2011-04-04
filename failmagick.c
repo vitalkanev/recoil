@@ -119,6 +119,7 @@ static const struct Format {
 	const char *description;
 } formats[] = {
 	{ "256", "80x96, 256 colors" },
+	{ "AP2", "80x96, 256 colors" },
 	{ "AP3", "80x192, 256 colors, interlaced" },
 	{ "APC", "Any Point, Any Color; 80x96, 256 colors, interlaced" },
 	{ "CCI", "Champions' Interlace; 160x192, compressed" },

@@ -1388,6 +1388,7 @@ static abool decode_ige(
 	return TRUE;
 }
 
+/* serves both 256 and AP2 formats */
 static abool decode_256(
 	const byte image[], int image_len,
 	const byte atari_palette[],
@@ -1465,6 +1466,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('M', 'C', 'H'):
 	case FAIL_EXT('I', 'G', 'E'):
 	case FAIL_EXT('2', '5', '6'):
+	case FAIL_EXT('A', 'P', '2'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -1514,7 +1516,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('H', 'R', '2'), decode_hr2 },
 		{ FAIL_EXT('M', 'C', 'H'), decode_mch },
 		{ FAIL_EXT('I', 'G', 'E'), decode_ige },
-		{ FAIL_EXT('2', '5', '6'), decode_256 }
+		{ FAIL_EXT('2', '5', '6'), decode_256 },
+		{ FAIL_EXT('A', 'P', '2'), decode_256 }
 	}, *ph;
 
 	if (atari_palette == NULL)
