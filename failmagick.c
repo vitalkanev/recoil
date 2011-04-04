@@ -130,6 +130,7 @@ static const struct Format {
 	{ "HIP", "Hard Interlace Picture; 160x200, grayscale" },
 	{ "HR", "256x239, 3 colors, interlaced" },
 	{ "HR2", "320x200, 5 colors, interlaced" },
+	{ "IGE", "Interlace Graphics Editor; 128x96, 16 colors, interlaced" },
 	{ "ILC", "80x192, 256 colors, interlaced" },
 	{ "INP", "160x200, 7 colors, interlaced" },
 	{ "INT", "INT95a; up to 160x239, 16 colors, interlaced" },
