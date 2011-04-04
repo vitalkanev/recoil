@@ -499,7 +499,7 @@ static abool decode_gr8_gr9(
 	return TRUE;
 }
 
-static const byte gr8_color_regs[] = { 0x0F, 0x00 };
+static const byte gr8_color_regs[] = { 0x00, 0x0e };
 
 static abool decode_gr8(
 	const byte image[], int image_len,
@@ -701,6 +701,7 @@ static abool decode_cpr(
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
+	static const byte cpr_color_regs[] = { 0x0c, 0x00 };
 	byte unpacked_image[7680];
 
 	if (!unpack_koala(
@@ -708,9 +709,11 @@ static abool decode_cpr(
 		image[0], unpacked_image))
 		return FALSE;
 
-	return decode_gr8(
+	image_info->original_width = 320;
+	return decode_gr8_gr9(
 		unpacked_image, 7680, atari_palette,
-		image_info, pixels);
+		image_info,
+		pixels, 8, cpr_color_regs);
 }
 
 static abool decode_inp(
@@ -806,7 +809,7 @@ static abool decode_cin(
 		frame1);
 
 	decode_video_memory(
-		image, gr8_color_regs,
+		image, NULL,
 		7680, 80, 0, 2, 0, 40, 96, 11,
 		frame1);
 
@@ -816,7 +819,7 @@ static abool decode_cin(
 		frame2);
 
 	decode_video_memory(
-		image, gr8_color_regs,
+		image, NULL,
 		7720, 80, 1, 2, 0, 40, 96, 11,
 		frame2);
 
@@ -903,7 +906,7 @@ static abool decode_tip(
 		frame1);
 
 	decode_video_memory(
-		image, gr8_color_regs,
+		image, NULL,
 		9 + 2 * frame_len, line_len, 0, 2, -1, line_len, image[6], 11,
 		frame1);
 
@@ -914,7 +917,7 @@ static abool decode_tip(
 		frame2);
 
 	decode_video_memory(
-		image, gr8_color_regs,
+		image, NULL,
 		9 + 2 * frame_len, line_len, 0, 2, -1, line_len, image[6], 11,
 		frame2);
 
@@ -947,7 +950,7 @@ static abool decode_apc(
 		frame);
 
 	decode_video_memory(
-		image, gr8_color_regs,
+		image, NULL,
 		0, 80, 0, 2, 0, 40, 96, 11,
 		frame);
 
@@ -981,7 +984,7 @@ static abool decode_ap3(
 		frame1);
 
 	decode_video_memory(
-		image, gr8_color_regs,
+		image, NULL,
 		image_len == 15360 ? 7680 : 8192, 80, 0, 2, 0, 40, 96, 11,
 		frame1);
 
@@ -991,7 +994,7 @@ static abool decode_ap3(
 		frame2);
 
 	decode_video_memory(
-		image, gr8_color_regs,
+		image, NULL,
 		image_len == 15360 ? 7720 : 8232, 80, 1, 2, 0, 40, 96, 11,
 		frame2);
 
