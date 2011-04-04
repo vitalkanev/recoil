@@ -1049,6 +1049,17 @@ static abool decode_rip(
 	frame_len = line_len * image_info->height;
 
 	switch (image[7]) {
+	case 0x10:
+		/* interlaced gr. 15 */
+		decode_video_memory(
+			unpacked_image, image + 24 + txt_len,
+			0, line_len, 0, 1, 0, line_len, image_info->height,
+			15, frame1);
+		decode_video_memory(
+			unpacked_image, image + 28 + txt_len,
+			frame_len, line_len, 0, 1, 0, line_len, image_info->height,
+			15, frame2);
+		break;
 	case 0x20:
 		/* hip, rip */
 		decode_video_memory(
