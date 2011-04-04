@@ -88,11 +88,9 @@ static Image *ReadFAILImage(const ImageInfo *image_info, ExceptionInfo *exceptio
 		ThrowReaderException(CorruptImageError, "FileDecodingError");
 	}
 
-    image->columns = fail_image_info.width;
-    image->rows = fail_image_info.height;
     image->depth = 8;
 
-	if (SetImageExtent(image, 0, 0) == MagickFalse) {
+	if (SetImageExtent(image, fail_image_info.width, fail_image_info.height) == MagickFalse) {
 		InheritException(exception, &image->exception);
         return DestroyImageList(image);
 	}
