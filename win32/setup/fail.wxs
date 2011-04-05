@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+    xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 	<?if $(sys.BUILDARCH) = x86?>
 		<?define WIN64=no?>
 		<?define PLATFORM_SUFFIX=""?>
@@ -171,6 +172,14 @@
 		<Property Id="IMCODERS.DIR">
 			<RegistrySearch Id="imcoders.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="CoderModulesPath" Type="directory" />
 		</Property>
+		<Property Id="IMCONFIG.DIR">
+			<RegistrySearch Id="imconfig.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="ConfigurePath" Type="directory" />
+		</Property>
+		<Property Id="CODER.XML">
+			<DirectorySearch Id="coder.xml" Path="[IMCONFIG.DIR]" Depth="1">
+				<FileSearch Name="coder.xml" />
+			</DirectorySearch>
+		</Property>
 		<?endif?>
 
 		<Directory Id="TARGETDIR" Name="SourceDir">
@@ -239,9 +248,21 @@
 						</ProgId>
 					</Component>
 				</Directory>
-				<Directory Id="IMCODERS.DIR" Name="ImageMagick-FAIL"><!-- fake Name -->
+				<Directory Id="IMCODERS.DIR" Name="ImageMagick-FAIL-Coder"><!-- fake Name -->
 					<Component Id="IM_MOD_RL_fail_.dll" Guid="*">
 						<File Id="IM_MOD_RL_fail_.dll" Name="IM_MOD_RL_fail_.dll" Source="IM_MOD_RL_fail_.dll" Checksum="yes" KeyPath="yes" />
+					</Component>
+					<Component Id="coder.xml" Guid="626b4f0d-7226-4ff7-a91e-2f975ef5d366">
+						<?foreach FORMAT in RIP;GR8;MIC;HIP;TIP;INT;INP;APC;AP3;HR;HR2;PIC;CPR;CIN;CCI;FNT;SXS;GR9;PLM;ILC;MCP;GHG;MCH;IGE;256;AP2;JGP?>
+							<util:XmlConfig Id="coder.xml_$(var.FORMAT)_Element_create" On="install" Action="create" Node="element" ElementPath="/codermap" Name="coder" File="[CODER.XML]" />
+							<util:XmlConfig Id="coder.xml_$(var.FORMAT)_Magick_create" ElementPath="coder.xml_$(var.FORMAT)_Element_create" Name="magick" Value="$(var.FORMAT)" File="[CODER.XML]" />
+							<util:XmlConfig Id="coder.xml_$(var.FORMAT)_Name_create" ElementPath="coder.xml_$(var.FORMAT)_Element_create" Name="name" Value="FAIL" File="[CODER.XML]" />
+							<util:XmlConfig Id="coder.xml_$(var.FORMAT)_Element_delete" On="uninstall" Action="delete" Node="element" VerifyPath="/codermap/coder[\[]@name='FAIL'[\]]" ElementPath="/codermap" Name="coder" File="[CODER.XML]" />
+ 						<?endforeach?>
+						<!-- FIXME: This doesn't seem to be a pretty way to get rid of light complaint
+						     "error LGHT0204 : ICE18: KeyPath for Component: 'coder.xml' is Directory: 'IMCODERS.DIR'.
+							  The Directory/Component pair must be listed in the CreateFolders table.", but it works. -->
+						<CreateFolder />
 					</Component>
 				</Directory>
 				<?endif?>
@@ -308,8 +329,9 @@
 			</Feature>
 		</Feature>
 		<Feature Id="imagemagick" Title="ImageMagick coder" Level="0" ConfigurableDirectory="IMCODERS.DIR" Description="Image coder for ImageMagick." AllowAdvertise="no">
-			<Condition Level="1">IMCODERS.DIR</Condition>
+			<Condition Level="1">IMCODERS.DIR AND CODER.XML</Condition>
 			<ComponentRef Id="IM_MOD_RL_fail_.dll" />
+			<ComponentRef Id="coder.xml" />
 		</Feature>
 		<?endif?>
 
