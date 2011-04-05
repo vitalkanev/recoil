@@ -104,7 +104,8 @@ www: ../../www/index.html
 	$(ASCIIDOC_START) -a failwww ../README $(ASCIIDOC_END)
 
 clean:
-	$(RM) fail2png.exe Xfail1.usr Xfail2.usr Xfail3.usr IM_MOD_RL_fail_.dll failwin.exe failwin/failwin-res.o ../palette.h COPYING.txt ../README.html README_Windows.html README_WindowsSetup.html setup/fail.wixobj
+	$(RM) fail2png.exe Xfail1.usr Xfail2.usr Xfail3.usr IM_MOD_RL_fail_.dll failwin.exe failwin/failwin-res.o ../palette.h COPYING.txt \
+		../README.html README_Windows.html README_WindowsSetup.html setup/fail.wixobj thumbfail.dll x64/fail.wixobj x64/IM_MOD_RL_fail_.dll x64/thumbfail.dll
 
 .PHONY: all clean setup ../MANIFEST srcdist dist www
 
