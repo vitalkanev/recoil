@@ -68,8 +68,8 @@ DECLARE_INTERFACE_(IThumbnailProvider, IUnknown)
 #include "fail.h"
 
 static const char extensions[][5] =
-	{ ".ap3", ".apc", ".cci", ".cin", ".cpr", ".fnt", ".ghg", ".gr8", ".gr9", ".hip", ".hr", ".hr2", ".ilc", ".inp", ".int", ".mch",
-	".mcp", ".mic", ".pic", ".plm", ".rip", ".sxs", ".tip" };
+	{ ".ap3", ".apc", ".cci", ".cin", ".cpr", ".dgp", ".esc", ".fnt", ".ghg", ".gr8", ".gr9", ".hip", ".hr", ".hr2", ".ilc", ".inp", ".int", ".mch",
+	".mcp", ".mic", ".pic", ".pzm", ".plm", ".rip", ".sxs", ".tip" };
 #define N_EXTS (int) (sizeof(extensions) / sizeof(extensions[0]))
 
 static HINSTANCE g_hDll;
