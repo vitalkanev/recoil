@@ -21,15 +21,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/*
-include <math.h> is a workaround for conflicting declarations:
-C:\Program Files (x86)\ImageMagick-6.6.9-Q16\include\magick\magick-config.h:
-	#define nearbyint(x)  ((ssize_t) ((x)+0.5))
-C:\bin\MinGW\include\math.h:
-	extern double __cdecl nearbyint ( double);
-*/
-#include <math.h>
-
 #include "fail.h"
 
 #include "magick/studio.h"
@@ -52,7 +43,7 @@ C:\bin\MinGW\include\math.h:
 
 static MagickBooleanType IsFAIL(const unsigned char *magick, const size_t length)
 {
-	// TODO: Should we really perform checks, having only seven bytes of file?
+	/* TODO: Should we really perform checks, having only seven bytes of file? */
 	return MagickTrue;
 }
 
@@ -71,8 +62,7 @@ static Image *ReadFAILImage(const ImageInfo *image_info, ExceptionInfo *exceptio
 	assert(image_info != (const ImageInfo*) NULL);
 	assert(image_info->signature == MagickSignature);
 	if (image_info->debug != MagickFalse)
-		LogMagickEvent(TraceEvent, GetMagickModule(), "%s",
-			image_info->filename);
+		LogMagickEvent(TraceEvent, GetMagickModule(), "%s", image_info->filename);
 	assert(exception != (ExceptionInfo*) NULL);
 	assert(exception->signature == MagickSignature);
 	image = AcquireImage(image_info);
@@ -80,7 +70,7 @@ static Image *ReadFAILImage(const ImageInfo *image_info, ExceptionInfo *exceptio
 	if (status == MagickFalse) {
 		image = DestroyImageList(image);
 		return (Image*) NULL;
-    }
+	}
 
 	fail_image_len = ReadBlob(image, FAIL_IMAGE_MAX, fail_image);
 	if (!FAIL_DecodeImage(image_info->filename, fail_image, fail_image_len,
@@ -88,11 +78,11 @@ static Image *ReadFAILImage(const ImageInfo *image_info, ExceptionInfo *exceptio
 		ThrowReaderException(CorruptImageError, "FileDecodingError");
 	}
 
-    image->depth = 8;
+	image->depth = 8;
 
 	if (SetImageExtent(image, fail_image_info.width, fail_image_info.height) == MagickFalse) {
 		InheritException(exception, &image->exception);
-        return DestroyImageList(image);
+		return DestroyImageList(image);
 	}
 
 	q = QueueAuthenticPixels(image, 0, 0, image->columns, image->rows, NULL);
@@ -123,8 +113,8 @@ static const struct Format {
 	{ "CCI", "Champions' Interlace; 160x192, compressed" },
 	{ "CIN", "Champions' Interlace; 160x192" },
 	{ "CPR", "Trzmiel; 320x192, mono, compressed" },
-	{ "DGP", "DigiPaint; 80x192, 256 colors, interlaced." },
-	{ "ESC", "EscalPaint; 80x192, 256 colors, interlaced." },
+	{ "DGP", "DigiPaint; 80x192, 256 colors, interlaced" },
+	{ "ESC", "EscalPaint; 80x192, 256 colors, interlaced" },
 	{ "FNT", "Standard 8x8 font, mono" },
 	{ "GHG", "Gephard Hires Graphics; up to 320x200, mono" },
 	{ "GR8", "Standard 320x192, mono" },
@@ -142,7 +132,7 @@ static const struct Format {
 	{ "MIC", "Standard 160x192, 4 colors" },
 	{ "PIC", "Koala MicroIllustrator; 160x192, 4 colors, compressed" },
 	{ "PLM", "Plama 256; 80x96, 256 colors" },
-	{ "PZM", "EscalPaint; 80x192, 256 colors, interlaced." },
+	{ "PZM", "EscalPaint; 80x192, 256 colors, interlaced" },
 	{ "RIP", "Rocky Interlace Picture; up to 160x239" },
 	{ "SXS", "16x16 font, mono" },
 	{ "TIP", "Taquart Interlace Picture; up to 160x119" }
