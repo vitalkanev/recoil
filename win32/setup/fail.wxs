@@ -169,18 +169,18 @@
 				<FileSearch Name="xnview.exe" />
 			</RegistrySearch>
 		</Property>
+		<?endif?>
 		<Property Id="IMCODERS.DIR">
-			<RegistrySearch Id="imcoders.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="CoderModulesPath" Type="directory" />
+			<RegistrySearch Id="imcoders.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="CoderModulesPath" Type="directory" Win64="$(var.WIN64)" />
 		</Property>
 		<Property Id="IMCONFIG.DIR">
-			<RegistrySearch Id="imconfig.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="ConfigurePath" Type="directory" />
+			<RegistrySearch Id="imconfig.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="ConfigurePath" Type="directory" Win64="$(var.WIN64)" />
 		</Property>
 		<Property Id="CODER.XML">
 			<DirectorySearch Id="coder.xml" Path="[IMCONFIG.DIR]" Depth="1">
 				<FileSearch Name="coder.xml" />
 			</DirectorySearch>
 		</Property>
-		<?endif?>
 
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="$(var.PROGRAM_FILES_FOLDER)">
@@ -248,9 +248,14 @@
 						</ProgId>
 					</Component>
 				</Directory>
+				<?endif?>
 				<Directory Id="IMCODERS.DIR" Name="ImageMagick-FAIL"><!-- fake Name -->
-					<Component Id="IM_MOD_RL_fail_.dll" Guid="*">
+					<Component Id="IM_MOD_RL_fail_.dll" Guid="*" Win64="$(var.WIN64)">
+						<?if $(sys.BUILDARCH) = x86?>
 						<File Id="IM_MOD_RL_fail_.dll" Name="IM_MOD_RL_fail_.dll" Source="IM_MOD_RL_fail_.dll" Checksum="yes" KeyPath="yes" />
+						<?elseif $(sys.BUILDARCH) = x64?>
+						<File Id="IM_MOD_RL_fail_.dll" Name="IM_MOD_RL_fail_.dll" Source="x64\IM_MOD_RL_fail_.dll" Checksum="yes" KeyPath="yes" />
+						<?endif?>
 						<?foreach FORMAT in $(var.FAIL_EXTS)?>
 							<util:XmlConfig Id="coder.xml_$(var.FORMAT)_Element_create" On="install" Action="create" Node="element" ElementPath="/codermap" Name="coder" File="[CODER.XML]" />
 							<util:XmlConfig Id="coder.xml_$(var.FORMAT)_Magick_create" ElementPath="coder.xml_$(var.FORMAT)_Element_create" Name="magick" Value="$(var.FORMAT)" File="[CODER.XML]" />
@@ -259,7 +264,6 @@
  						<?endforeach?>
 					</Component>
 				</Directory>
-				<?endif?>
 			</Directory>
 
 			<?if $(sys.BUILDARCH) = x86?>
@@ -322,12 +326,12 @@
 				<ComponentRef Id="xnview_fail.ext" />
 			</Feature>
 		</Feature>
+		<?endif?>
+
 		<Feature Id="imagemagick" Title="ImageMagick coder" Level="0" ConfigurableDirectory="IMCODERS.DIR" Description="Image coder for ImageMagick." AllowAdvertise="no">
 			<Condition Level="1">IMCODERS.DIR AND CODER.XML</Condition>
 			<ComponentRef Id="IM_MOD_RL_fail_.dll" />
 		</Feature>
-		<?endif?>
-
 		<Feature Id="thumbfail" Title="Windows thumbnail provider" Level="0" ConfigurableDirectory="FAIL.DIR" Description="Shows thumbnails in Windows Explorer." AllowAdvertise="no">
 			<?if $(sys.BUILDARCH) = x86?>
 				<Condition Level="9">VersionNT &gt;= 600 AND NOT VersionNT64</Condition><!-- optional on 32-bit Vista+ -->
