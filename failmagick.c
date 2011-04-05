@@ -123,6 +123,8 @@ static const struct Format {
 	{ "CCI", "Champions' Interlace; 160x192, compressed" },
 	{ "CIN", "Champions' Interlace; 160x192" },
 	{ "CPR", "Trzmiel; 320x192, mono, compressed" },
+	{ "DGP", "DigiPaint; 80x192, 256 colors, interlaced." },
+	{ "ESC", "EscalPaint; 80x192, 256 colors, interlaced." },
 	{ "FNT", "Standard 8x8 font, mono" },
 	{ "GHG", "Gephard Hires Graphics; up to 320x200, mono" },
 	{ "GR8", "Standard 320x192, mono" },
@@ -140,6 +142,7 @@ static const struct Format {
 	{ "MIC", "Standard 160x192, 4 colors" },
 	{ "PIC", "Koala MicroIllustrator; 160x192, 4 colors, compressed" },
 	{ "PLM", "Plama 256; 80x96, 256 colors" },
+	{ "PZM", "EscalPaint; 80x192, 256 colors, interlaced." },
 	{ "RIP", "Rocky Interlace Picture; up to 160x239" },
 	{ "SXS", "16x16 font, mono" },
 	{ "TIP", "Taquart Interlace Picture; up to 160x119" }

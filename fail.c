@@ -1458,6 +1458,19 @@ static abool decode_jgp(
 	return TRUE;
 }
 
+static abool decode_pzm(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	if (image_len == 15360 || image_len == 15362)
+		return decode_ap3(image, 15360,
+			atari_palette, image_info, pixels);
+		
+	return FALSE;
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -1505,6 +1518,9 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('2', '5', '6'):
 	case FAIL_EXT('A', 'P', '2'):
 	case FAIL_EXT('J', 'G', 'P'):
+	case FAIL_EXT('D', 'G', 'P'):
+	case FAIL_EXT('E', 'S', 'C'):
+	case FAIL_EXT('P', 'Z', 'M'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -1556,7 +1572,10 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('I', 'G', 'E'), decode_ige },
 		{ FAIL_EXT('2', '5', '6'), decode_256 },
 		{ FAIL_EXT('A', 'P', '2'), decode_256 },
-		{ FAIL_EXT('J', 'G', 'P'), decode_jgp }
+		{ FAIL_EXT('J', 'G', 'P'), decode_jgp },
+		{ FAIL_EXT('D', 'G', 'P'), decode_pzm },
+		{ FAIL_EXT('E', 'S', 'C'), decode_pzm },
+		{ FAIL_EXT('P', 'Z', 'M'), decode_pzm },
 	}, *ph;
 
 	if (atari_palette == NULL)
