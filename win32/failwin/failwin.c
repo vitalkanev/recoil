@@ -214,16 +214,16 @@ static void ToggleFullscreen(void)
 {
 	if (fullscreen) {
 		ShowCursor(TRUE);
+		ShowStatusBar(status_bar);
 		SetWindowLong(hWnd, GWL_STYLE, WS_VISIBLE | WS_CAPTION | WS_SYSMENU);
 		SetMenu(hWnd, hMenu);
-		ShowStatusBar(status_bar);
 		fullscreen = FALSE;
 	}
 	else {
 		ShowCursor(FALSE);
+		ShowStatusBar(FALSE);
 		SetWindowLong(hWnd, GWL_STYLE, WS_VISIBLE | WS_POPUP);
 		SetMenu(hWnd, NULL);
-		ShowStatusBar(FALSE);
 		MoveWindow(hWnd, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), TRUE);
 		fullscreen = TRUE;
 	}
