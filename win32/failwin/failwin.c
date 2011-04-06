@@ -353,12 +353,15 @@ static void SelectAndOpenImage(void)
 		NULL,
 		0,
 		"All supported\0*.256;*.ap2;*.ap3;*.apc;*.cci;*.cin;*.cpr;*.dgp;*.esc;*.fnt;*.ghg;*.gr8;*.gr9;*.hip;*.hr;*.hr2;*.ige;*.ilc;*.inp;*.int;*.jgp;*.mch;*.mcp;*.mic;*.pic;*.plm;*.pzm;*.rip;*.sxs;*.tip\0"
-		"Hi-res (*.cpr;*.ghg;*.gr8)\0*.cpr;*.ghg;*.gr8\0"
-		"Other non-interlaced (*.gr9;*.mch;*.mic;*.pic)\0*.gr9;*.mch;*.mic;*.pic\0"
-		"Interlaced (*.cci;*.cin;*.hr;*.hr2;*.ige;*.inp;*.int;*.mcp)\0*.cci;*.cin;*.hr;*.hr2;*.ige;*.inp;*.int;*.mcp\0"
-		"APAC-like (*.256;*.ap2;*.ap3;*.apc;*.dgp;*.esc;*.ilc;*.plm;*.pzm)\0*.256;*.ap2;*.ap3;*.apc;*.dgp;*.esc;*.ilc;*.plm;*.pzm\0"
-		"HIP/RIP/TIP (*.hip;*.rip;*.tip)\0*.hip;*.rip;*.tip\0"
-		"Fonts (*.fnt;*.jgp;*.sxs)\0*.fnt;*.jgp;*.sxs\0"
+#define FAIL_FILTER(description, masks) description " (" masks ")\0" masks "\0"
+		FAIL_FILTER("Hi-res", "*.cpr;*.ghg;*.gr8")
+		FAIL_FILTER("Other non-interlaced", "*.gr9;*.mch;*.mic;*.pic")
+		FAIL_FILTER("80x96x256", "*.256;*.ap2;*.apc;*.plm")
+		FAIL_FILTER("80x192x256", "*.ap3;*.dgp;*.esc;*.ilc;*.pzm")
+		FAIL_FILTER("CIN", "*.cci;*.cin")
+		FAIL_FILTER("HIP/RIP/TIP", "*.hip;*.rip;*.tip")
+		FAIL_FILTER("Other interlaced", "*.hr;*.hr2;*.ige;*.inp;*.int;*.mcp")
+		FAIL_FILTER("Fonts", "*.fnt;*.jgp;*.sxs")
 		"\0",
 		NULL,
 		0,
