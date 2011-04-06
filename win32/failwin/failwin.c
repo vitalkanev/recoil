@@ -265,6 +265,16 @@ static BOOL LoadFile(const char *filename, byte *buffer, int *len)
 	return ok;
 }
 
+static void CopyPaletteToBitmap(void)
+{
+	int i;
+	for (i = 0; i < image_info.colors; i++) {
+		bitmap.bmiColors[i].rgbRed = palette[3 * i];
+		bitmap.bmiColors[i].rgbGreen = palette[3 * i + 1];
+		bitmap.bmiColors[i].rgbBlue = palette[3 * i + 2];
+	}
+}
+
 static BOOL OpenImage(BOOL show_error)
 {
 	byte image[FAIL_IMAGE_MAX];
@@ -307,17 +317,12 @@ static BOOL OpenImage(BOOL show_error)
 	bitmap.bmiHeader.biXPelsPerMeter = 1000;
 	bitmap.bmiHeader.biYPelsPerMeter = 1000;
 	if (image_info.colors <= 256) {
-		int i;
 		int y;
 		bitmap.bmiHeader.biSizeImage =
 			sizeof(BITMAPINFOHEADER) + image_info.colors * sizeof(RGBQUAD) + image_info.width * image_info.height;
 		bitmap.bmiHeader.biClrUsed = image_info.colors;
 		bitmap.bmiHeader.biClrImportant = image_info.colors;
-		for (i = 0; i < image_info.colors; i++) {
-			bitmap.bmiColors[i].rgbRed = palette[3 * i];
-			bitmap.bmiColors[i].rgbGreen = palette[3 * i + 1];
-			bitmap.bmiColors[i].rgbBlue = palette[3 * i + 2];
-		}
+		CopyPaletteToBitmap();
 		bitmap_pixels = (byte *) (bitmap.bmiColors + image_info.colors);
 		for (y = 0; y < image_info.height; y++)
 			memcpy(bitmap_pixels + (image_info.height - 1 - y) * image_info.width,
@@ -618,9 +623,13 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			break;
 		case IDM_INVERT:
 			if (image_info.colors == 2) {
-				RGBQUAD tmp = bitmap.bmiColors[0];
-				bitmap.bmiColors[0] = bitmap.bmiColors[1];
-				bitmap.bmiColors[1] = tmp;
+				int i;
+				for (i = 0; i < 3; i++) {
+					byte t = palette[i];
+					palette[i] = palette[3 + i];
+					palette[3 + i] = t;
+				}
+				CopyPaletteToBitmap();
 				Repaint(TRUE);
 			}
 			break;
