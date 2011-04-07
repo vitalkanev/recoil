@@ -25,9 +25,6 @@
 			<UpgradeVersion Property="PREVIOUSVERSIONSINSTALLED" Maximum="$(var.VERSION)" IncludeMaximum="no" MigrateFeatures="yes" />
 		</Upgrade>
 		<Condition Message="Newer version of FAIL is already installed!">NOT NEWERVERSIONDETECTED</Condition>
-		<?if $(sys.BUILDARCH) = x64?>
-			<Condition Message="This Windows thumbnail provider requires 64-bit Windows Vista, Windows Server 2008, or higher.">Installed OR (VersionNT64 &gt;= 600)</Condition>
-		<?endif?>
 		<Media Id="1" Cabinet="fail.cab" EmbedCab="yes" CompressionLevel="high" />
 
 		<?define FIRST_EXT=gr8?>
@@ -251,16 +248,12 @@
 				<?endif?>
 				<Directory Id="IMCODERS.DIR" Name="ImageMagick-FAIL"><!-- fake Name -->
 					<Component Id="IM_MOD_RL_fail_.dll" Guid="*" Win64="$(var.WIN64)">
-						<?if $(sys.BUILDARCH) = x86?>
-						<File Id="IM_MOD_RL_fail_.dll" Name="IM_MOD_RL_fail_.dll" Source="IM_MOD_RL_fail_.dll" Checksum="yes" KeyPath="yes" />
-						<?elseif $(sys.BUILDARCH) = x64?>
-						<File Id="IM_MOD_RL_fail_.dll" Name="IM_MOD_RL_fail_.dll" Source="x64\IM_MOD_RL_fail_.dll" Checksum="yes" KeyPath="yes" />
-						<?endif?>
-						<?foreach FORMAT in $(var.FAIL_EXTS)?>
-							<util:XmlConfig Id="coder.xml_$(var.FORMAT)_Element_create" On="install" Action="create" Node="element" ElementPath="/codermap" Name="coder" File="[CODER.XML]" />
-							<util:XmlConfig Id="coder.xml_$(var.FORMAT)_Magick_create" ElementPath="coder.xml_$(var.FORMAT)_Element_create" Name="magick" Value="$(var.FORMAT)" File="[CODER.XML]" />
-							<util:XmlConfig Id="coder.xml_$(var.FORMAT)_Name_create" ElementPath="coder.xml_$(var.FORMAT)_Element_create" Name="name" Value="FAIL" File="[CODER.XML]" />
-							<util:XmlConfig Id="coder.xml_$(var.FORMAT)_Element_delete" On="uninstall" Action="delete" Node="element" VerifyPath="/codermap/coder[\[]@magick='$(var.FORMAT)' and @name='FAIL'[\]]" ElementPath="/codermap" Name="coder" File="[CODER.XML]" />
+						<File Id="IM_MOD_RL_fail_.dll" Name="IM_MOD_RL_fail_.dll" Source="$(var.SRC_DIR)IM_MOD_RL_fail_.dll" Checksum="yes" KeyPath="yes" />
+						<?foreach EXT in $(var.FAIL_EXTS)?>
+							<util:XmlConfig Id="coder.xml_$(var.EXT)_Element_create" On="install" Action="create" Node="element" ElementPath="/codermap" Name="coder" File="[CODER.XML]" />
+							<util:XmlConfig Id="coder.xml_$(var.EXT)_Magick_create" ElementPath="coder.xml_$(var.EXT)_Element_create" Name="magick" Value="$(var.EXT)" File="[CODER.XML]" />
+							<util:XmlConfig Id="coder.xml_$(var.EXT)_Name_create" ElementPath="coder.xml_$(var.EXT)_Element_create" Name="name" Value="FAIL" File="[CODER.XML]" />
+							<util:XmlConfig Id="coder.xml_$(var.EXT)_Element_delete" On="uninstall" Action="delete" Node="element" VerifyPath="/codermap/coder[\[]@magick='$(var.EXT)' and @name='FAIL'[\]]" ElementPath="/codermap" Name="coder" File="[CODER.XML]" />
  						<?endforeach?>
 					</Component>
 				</Directory>
