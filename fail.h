@@ -30,9 +30,9 @@ extern "C" {
 
 /* Version. */
 #define FAIL_VERSION_MAJOR   1
-#define FAIL_VERSION_MINOR   0
-#define FAIL_VERSION_MICRO   2
-#define FAIL_VERSION         "1.0.2"
+#define FAIL_VERSION_MINOR   1
+#define FAIL_VERSION_MICRO   0
+#define FAIL_VERSION         "1.1.0"
 
 /* Credits and copyright. */
 #define FAIL_YEARS           "2009-2011"

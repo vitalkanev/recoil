@@ -1,4 +1,4 @@
-VERSION = 1.0.2
+VERSION = 1.1.0
 
 FAIL_CC = mingw32-gcc -s -O2 -Wall -o $@ -I..
 FAIL_CC_DLL = $(FAIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
@@ -38,7 +38,7 @@ failwin.exe: failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c fail
 failwin/failwin-res.o: failwin/failwin.rc failwin/failwin.h faileye.ico ../fail.h
 	$(WINDRES) -I .. failwin/failwin.rc
 
-thumbfail.dll: thumbfail/thumbfail.cpp ../fail.c ../fail.h ../palette.h x64
+thumbfail.dll: thumbfail/thumbfail.cpp ../fail.c ../fail.h ../palette.h
 	$(FAIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbfail/thumbfail.cpp ../fail.c -lgdi32 -lole32 -luuid
 
 x64/thumbfail.dll: thumbfail/thumbfail.cpp ../fail.c ../fail.h ../palette.h x64

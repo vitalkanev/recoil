@@ -22,6 +22,12 @@ Currently the project consists of:
 - plugin for http://www.xnview.com[XnView]
 - (de)coder for http://www.imagemagick.org/[ImageMagick]
 
+Note: the `win64` setup package only contains 64-bit versions
+of the thumbnail provider (for use in x64 Windows)
+and the ImageMagick coder (for use with x64 ImageMagick).
+Other programs should be installed from the `win32` package.
+That is, on 64-bit Windows you may install both packages.
+
 ifdef::failwww[]
 image::failwin.png["FAILWin"]
 endif::failwww[]
@@ -84,11 +90,12 @@ to submit bug reports, feature requests and small code patches.
 History
 -------
 
-FAIL 1.0.2 (2011-04-??)::
+FAIL 1.1.0 (2011-04-??)::
 
 Fixed decoding of ILC, AP3, RIP, PIC, CPR and 16012-byte HIP.
 Added support for the MCH, IGE, 256, AP2, JGP, DGP, ESC and PZM formats.
-Added Windows thumbnail provider.
+Created Windows thumbnail provider.
+Fixed user interface issues in FAILWin.
 Fixed compilation errors with the new libpng.
 Moved source code from SVN to Git.
 
