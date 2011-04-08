@@ -20,7 +20,9 @@ CANDLE = candle -ext WixUtilExtension -nologo -o $@
 LIGHT = light -ext WixUtilExtension -nologo -o $@
 IMAGEMAGICK_X64_INST_DIR = c:\Program Files\ImageMagick-6.6.9-Q16
 
-all: fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr Xfail3.usr failwin.exe thumbfail.dll
+WIN32_BIN = fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr Xfail3.usr failwin.exe thumbfail.dll
+
+all: $(WIN32_BIN)
 
 fail2png.exe: ../fail2png.c ../pngsave.c ../fail.c ../pngsave.h ../fail.h ../palette.h
 	$(FAIL_CC) ../fail2png.c ../pngsave.c ../fail.c -static -lpng -lz
@@ -41,14 +43,13 @@ failwin/failwin-res.o: failwin/failwin.rc failwin/failwin.h faileye.ico ../fail.
 thumbfail.dll: thumbfail/thumbfail.cpp ../fail.c ../fail.h ../palette.h
 	$(FAIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbfail/thumbfail.cpp ../fail.c -lgdi32 -lole32 -luuid
 
-x64/thumbfail.dll: thumbfail/thumbfail.cpp ../fail.c ../fail.h ../palette.h x64
+x64/thumbfail.dll: thumbfail/thumbfail.cpp ../fail.c ../fail.h ../palette.h
+	test -d x64 || mkdir x64
 	$(X64_FAIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbfail/thumbfail.cpp ../fail.c -lgdi32 -lole32 -luuid
 
-x64/IM_MOD_RL_fail_.dll: ../fail.c ../fail.h ../palette.h ../failmagick.c x64
-	$(X64_FAIL_CC_DLL) ../fail.c ../failmagick.c -I"$(IMAGEMAGICK_X64_INST_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_X64_INST_DIR)"
-
-x64:
+x64/IM_MOD_RL_fail_.dll: ../fail.c ../fail.h ../palette.h ../failmagick.c
 	test -d x64 || mkdir x64
+	$(X64_FAIL_CC_DLL) ../fail.c ../failmagick.c -I"$(IMAGEMAGICK_X64_INST_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_X64_INST_DIR)"
 
 ../palette.h: ../raw2c.pl ../jakub.act
 	$(PERL) ../raw2c.pl ../jakub.act >$@
@@ -67,7 +68,7 @@ README_WindowsSetup.html: ../README USAGE
 
 setup: ../../fail-$(VERSION)-win32.msi
 
-../../fail-$(VERSION)-win32.msi: setup/fail.wixobj faileye.ico setup/license.rtf setup/Website.url all README_WindowsSetup.html
+../../fail-$(VERSION)-win32.msi: setup/fail.wixobj faileye.ico setup/license.rtf setup/Website.url $(WIN32_BIN) README_WindowsSetup.html
 	$(LIGHT) -ext WixUIExtension -sice:ICE69 $<
 
 setup/fail.wixobj: setup/fail.wxs
@@ -79,6 +80,7 @@ x64-setup: ../../fail-$(VERSION)-win64.msi
 	$(LIGHT) -ext WixUIExtension -sice:ICE69 -b setup $<
 
 x64/fail.wixobj: setup/fail.wxs
+	test -d x64 || mkdir x64
 	$(CANDLE) -arch x64 -dVERSION=$(VERSION) $<
 
 ../MANIFEST:
@@ -91,7 +93,9 @@ srcdist: ../MANIFEST ../README.html
 	$(RM) ../../fail-$(VERSION).tar.gz
 	cd .. && $(TAR) -c --numeric-owner --owner=0 --group=0 --mode=644 -T MANIFEST --transform=s,,fail-$(VERSION)/, | $(SEVENZIP) -tgzip -si ../fail-$(VERSION).tar.gz
 
-dist: srcdist all COPYING.txt README_Windows.html setup x64-setup
+dist: srcdist ../../fail-$(VERSION)-win32.zip setup x64-setup
+
+../../fail-$(VERSION)-win32.zip: COPYING.txt README_Windows.html $(WIN32_BIN)
 	$(RM) ../../fail-$(VERSION)-win32.zip
 	$(SEVENZIP) -tzip ../../fail-$(VERSION)-win32.zip \
 		COPYING.txt README_Windows.html \
@@ -104,9 +108,9 @@ www: ../../www/index.html
 	$(ASCIIDOC_START) -a failwww ../README $(ASCIIDOC_END)
 
 clean:
-	$(RM) fail2png.exe Xfail1.usr Xfail2.usr Xfail3.usr IM_MOD_RL_fail_.dll failwin.exe failwin/failwin-res.o ../palette.h COPYING.txt \
-		../README.html README_Windows.html README_WindowsSetup.html setup/fail.wixobj thumbfail.dll x64/fail.wixobj x64/IM_MOD_RL_fail_.dll x64/thumbfail.dll
+	$(RM) $(WIN32_BIN) failwin/failwin-res.o ../palette.h COPYING.txt \
+		../README.html README_Windows.html README_WindowsSetup.html setup/fail.wixobj x64/fail.wixobj x64/IM_MOD_RL_fail_.dll x64/thumbfail.dll
 
-.PHONY: all clean setup ../MANIFEST srcdist dist www
+.PHONY: all clean setup x64-setup ../MANIFEST srcdist dist www
 
 .DELETE_ON_ERROR:
