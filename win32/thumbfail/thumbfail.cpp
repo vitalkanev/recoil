@@ -180,10 +180,14 @@ public:
 			return hr;
 
 		// decode
+		byte *pixels = (byte *) malloc(FAIL_PIXELS_MAX);
+		if (pixels == NULL)
+			return E_OUTOFMEMORY;
 		FAIL_ImageInfo image_info;
-		byte pixels[FAIL_PIXELS_MAX];
-		if (!FAIL_DecodeImage(filename, image, image_len, NULL, &image_info, pixels, NULL))
+		if (!FAIL_DecodeImage(filename, image, image_len, NULL, &image_info, pixels, NULL)) {
+			free(pixels);
 			return E_FAIL;
+		}
 
 		// convert to bitmap
 		BITMAPINFO bmi = {};
@@ -195,8 +199,10 @@ public:
 		bmi.bmiHeader.biCompression = BI_RGB;
 		BYTE *pBits;
 		HBITMAP hbmp = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, reinterpret_cast<void **>(&pBits), NULL, 0);
-		if (hbmp == NULL)
+		if (hbmp == NULL) {
+			free(pixels);
 			return E_OUTOFMEMORY;
+		}
 		int n = image_info.width * image_info.height;
 		for (int i = 0; i < n; i++) {
 			pBits[4 * i] = pixels[3 * i + 2];
@@ -204,6 +210,7 @@ public:
 			pBits[4 * i + 2] = pixels[3 * i];
 			pBits[4 * i + 3] = 0xff;
 		}
+		free(pixels);
 		*phbmp = hbmp;
 		*pdwAlpha = WTSAT_RGB;
 		return S_OK;
