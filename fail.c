@@ -601,22 +601,20 @@ static abool decode_hip(
 			6, 40, 0, 1, +1, 40, image_info->height, 10,
 			frame1);
 	}
-	else if ((image_len - 9) % 80 == 0) {
+	else {
 		/* hip image with gr10 palette */
-		image_info->height = (image_len - 9) / 80;
-		if (image_info->height > FAIL_HEIGHT_MAX)
+		image_info->height = image_len / 80;
+		if (image_info->height == 0 || image_info->height > FAIL_HEIGHT_MAX)
 			return FALSE;
 		decode_video_memory(
 			image, hip_color_regs,
 			0, 40, 0, 1, -1, 40, image_info->height, 9,
 			frame1);
 		decode_video_memory(
-			image, image + image_len - 9,
-			(image_len - 9) / 2, 40, 0, 1, +1, 40, image_info->height, 10,
+			image, image_len % 80 == 9 ? image + image_len - 9 : hip_color_regs,
+			40 * image_info->height, 40, 0, 1, +1, 40, image_info->height, 10,
 			frame2);
 	}
-	else
-		return FALSE;
 
 	image_info->width = 320;
 	image_info->original_width = 160;
