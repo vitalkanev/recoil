@@ -1,4 +1,5 @@
 PREFIX = /usr/local
+MAGICK_VERSION = `MagickCore-config --version`
 MAGICK_CFLAGS = `MagickCore-config --cflags --cppflags`
 MAGICK_LDFLAGS = `MagickCore-config --ldflags`
 MAGICK_LIBS = `MagickCore-config --libs`
@@ -20,10 +21,18 @@ fail2png: fail2png.c pngsave.c fail.c pngsave.h fail.h palette.h
 	$(CC) $(CFLAGS) fail2png.c pngsave.c fail.c -lpng -lz -lm -o $@
 
 fail.so: fail.c failmagick.c fail.h palette.h
-	if [ $(TEST_MAGICK) -a -n "$(MAGICK_INCLUDE_PATH)" ]; then \
-		$(CC) $(CFLAGS) $(MAGICK_CFLAGS) -I"$(MAGICK_INCLUDE_PATH)" fail.c failmagick.c \
-			-shared $(MAGICK_LDFLAGS) -ldl $(MAGICK_LIBS) -o $@; \
-	fi
+	@if [ $(TEST_MAGICK) ]; then \
+		if [ -z "$(MAGICK_INCLUDE_PATH)" ]; then \
+			echo "\nDetected ImageMagick version $(MAGICK_VERSION) on your system."; \
+			echo "To build FAIL coder for ImageMagick,\nspecify path to ImageMagick sources, e.g.:"; \
+			echo "$ make MAGICK_INCLUDE_PATH=/path/to/im/source\n"; \
+		else \
+			echo $(CC) $(CFLAGS) $(MAGICK_CFLAGS) -I"$(MAGICK_INCLUDE_PATH)" fail.c failmagick.c \
+				-shared $(MAGICK_LDFLAGS) -ldl $(MAGICK_LIBS) -o $@; \
+			$(CC) $(CFLAGS) $(MAGICK_CFLAGS) -I"$(MAGICK_INCLUDE_PATH)" fail.c failmagick.c \
+				-shared $(MAGICK_LDFLAGS) -ldl $(MAGICK_LIBS) -o $@; \
+		fi; \
+	fi;
 
 palette.h: raw2c.pl jakub.act
 	perl raw2c.pl jakub.act >$@
