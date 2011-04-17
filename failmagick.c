@@ -126,6 +126,7 @@ static const struct Format {
 	{ "ILC", "80x192, 256 colors, interlaced" },
 	{ "INP", "160x200, 7 colors, interlaced" },
 	{ "INT", "INT95a; up to 160x239, 16 colors, interlaced" },
+	{ "IST", "Interlace Studio; 160x200, interlaced" },
 	{ "JGP", "Jet Graphics Planner; 8x16 tiles, 4 colors" },
 	{ "MCH", "Up to 192x240, 128 colors" },
 	{ "MCP", "McPainter; 160x200, 16 colors, interlaced" },
@@ -133,6 +134,7 @@ static const struct Format {
 	{ "PIC", "Koala MicroIllustrator; 160x192, 4 colors, compressed" },
 	{ "PLM", "Plama 256; 80x96, 256 colors" },
 	{ "PZM", "EscalPaint; 80x192, 256 colors, interlaced" },
+	{ "RAW", "XL-Paint MAX; 160x192, 16 colors, interlaced" },
 	{ "RIP", "Rocky Interlace Picture; up to 160x239" },
 	{ "SXS", "16x16 font, mono" },
 	{ "TIP", "Taquart Interlace Picture; up to 160x119" }

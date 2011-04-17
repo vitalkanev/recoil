@@ -1486,6 +1486,83 @@ static abool decode_pzm(
 	return FALSE;
 }
 
+static abool decode_ist(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	int y;
+	byte frame1[320 * 200];
+	byte frame2[320 * 200];
+
+	if (image_len != 17184)
+		return FALSE;
+
+	image_info->width = 320;
+	image_info->height = 200;
+	image_info->original_width = 160;
+	image_info->original_height = 200;
+
+	for (y = 0; y < 200; y++) {
+		byte color_regs[4] = { image[0x4000 + y], image[0x40c8 + y], image[0x4190 + y], image[0x4258 + y] };
+		decode_video_memory(
+			image, color_regs,
+			16 + 40 * y, 40, y, 1, 0, 40, 1, 15,
+			frame1);
+
+		decode_video_memory(
+			image, color_regs,
+			0x2010 + 40 * y, 40, y, 1, 0, 40, 1, 15,
+			frame2);
+	}
+
+	frames_to_rgb(frame1, frame2, image_info->height * 320, atari_palette, pixels);
+
+	return TRUE;
+}
+
+static abool decode_raw(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte color_regs[4];
+	byte frame1[320 * 192];
+	byte frame2[320 * 192];
+
+	if (image_len != 15372 || image[0] != 'X' || image[1] != 'L' || image[2] != 'P' || image[3] != 'B')
+		return FALSE;
+
+	image_info->width = 320;
+	image_info->height = 192;
+	image_info->original_width = 160;
+	image_info->original_height = 192;
+
+	color_regs[0] = image[0x3c07];
+	color_regs[1] = image[0x3c04];
+	color_regs[2] = image[0x3c05];
+	color_regs[3] = image[0x3c06];
+	decode_video_memory(
+		image, color_regs,
+		4, 40, 0, 1, 0, 40, 192, 15,
+		frame1);
+
+	color_regs[0] = image[0x3c0b];
+	color_regs[1] = image[0x3c08];
+	color_regs[2] = image[0x3c09];
+	color_regs[3] = image[0x3c0a];
+	decode_video_memory(
+		image, color_regs,
+		0x1e04, 40, 0, 1, 0, 40, 192, 15,
+		frame2);
+
+	frames_to_rgb(frame1, frame2, 320 * 192, atari_palette, pixels);
+
+	return TRUE;
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -1536,6 +1613,8 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('D', 'G', 'P'):
 	case FAIL_EXT('E', 'S', 'C'):
 	case FAIL_EXT('P', 'Z', 'M'):
+	case FAIL_EXT('I', 'S', 'T'):
+	case FAIL_EXT('R', 'A', 'W'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -1590,7 +1669,9 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('J', 'G', 'P'), decode_jgp },
 		{ FAIL_EXT('D', 'G', 'P'), decode_pzm },
 		{ FAIL_EXT('E', 'S', 'C'), decode_pzm },
-		{ FAIL_EXT('P', 'Z', 'M'), decode_pzm }
+		{ FAIL_EXT('P', 'Z', 'M'), decode_pzm },
+		{ FAIL_EXT('I', 'S', 'T'), decode_ist },
+		{ FAIL_EXT('R', 'A', 'W'), decode_raw }
 	}, *ph;
 
 	if (atari_palette == NULL)

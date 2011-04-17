@@ -12,7 +12,7 @@ INSTALL = install
 INSTALL_PROGRAM = $(INSTALL)
 INSTALL_DATA = $(INSTALL) -m 644
 
-FORMATS = HIP MIC INT TIP INP HR GR9 PIC CPR CIN CCI APC PLM AP3 ILC RIP FNT SXS MCP GHG HR2 MCH IGE 256 AP2 JGP DGP ESC PZM
+FORMATS = HIP MIC INT TIP INP HR GR9 PIC CPR CIN CCI APC PLM AP3 ILC RIP FNT SXS MCP GHG HR2 MCH IGE 256 AP2 JGP DGP ESC PZM IST RAW
 
 all: fail2png fail.so
 
@@ -44,8 +44,7 @@ uninstall: uninstall-magick
 
 install-magick: fail.so
 	if [ $(TEST_MAGICK) -a -n "$(MAGICK_CODER_PATH)" -a -n "$(MAGICK_CONFIG_PATH)" ]; then \
-		perl addcoders.pl HIP MIC INT TIP INP HR GR9 PIC CPR CIN CCI APC PLM AP3 ILC RIP FNT SXS MCP GHG HR2 MCH IGE 256 AP2 JGP DGP ESC PZM \
-			<$(MAGICK_CONFIG_PATH)/coder.xml >coder.xml.new; \
+		perl addcoders.pl $(FORMATS) <$(MAGICK_CONFIG_PATH)/coder.xml >coder.xml.new; \
 		mkdir -p "$(MAGICK_CODER_PATH)"; \
 		$(INSTALL) fail.so "$(MAGICK_CODER_PATH)/fail.so"; \
 		echo "dlname='fail.so'" >"$(MAGICK_CODER_PATH)/fail.la"; \

@@ -56,6 +56,7 @@ IGE:: "Interlace Graphics Editor", 128x96, 16 colors, interlaced.
 ILC:: 80x192, 256 colors, interlaced.
 INP:: 160x200, 7 colors, interlaced.
 INT:: "INT95a", up to 160x239, 16 colors, interlaced.
+IST:: "Interlace Studio", 160x200, interlaced.
 JGP:: "Jet Graphics Planner", 8x16 tiles, 4 colors.
 MCH:: Up to 192x240, 128 colors.
 MCP:: "McPainter", 160x200, 16 colors, interlaced.
@@ -63,6 +64,7 @@ MIC:: Standard 160x192, 4 colors.
 PIC:: "Koala MicroIllustrator", 160x192, 4 colors, compressed.
 PLM:: "Plama 256", 80x96, 256 colors.
 PZM:: "EscalPaint", 80x192, 256 colors, interlaced.
+RAW:: "XL-Paint MAX", 160x192, 16 colors, interlaced.
 RIP:: "Rocky Interlace Picture", up to 160x239.
 SXS:: 16x16 font, mono.
 TIP:: "Taquart Interlace Picture", up to 160x119.
@@ -92,7 +94,7 @@ History
 FAIL 1.1.0 (2011-04-??)::
 
 Fixed decoding of ILC, AP3, RIP, PIC, CPR and HIP.
-Added support for the MCH, IGE, 256, AP2, JGP, DGP, ESC and PZM formats.
+Added support for the MCH, IGE, 256, AP2, JGP, DGP, ESC, PZM, IST and RAW formats.
 Created Windows thumbnail provider.
 Fixed user interface issues in FAILWin.
 Fixed compilation errors with the new libpng.
