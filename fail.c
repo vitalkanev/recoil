@@ -798,10 +798,19 @@ static abool decode_cin(
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
+	const byte *color_regs;
+	int mode;
 	byte frame1[320 * 192];
 	byte frame2[320 * 192];
-
-	if (image_len != 16384)
+	if (image_len == 15360) {
+		color_regs = mic_color_regs;
+		mode = 15;
+	}
+	else if (image_len == 16384) {
+		color_regs = image + 0x3c00;
+		mode = FAIL_MODE_CIN15;
+	}
+	else
 		return FALSE;
 
 	image_info->width = 320;
@@ -810,8 +819,8 @@ static abool decode_cin(
 	image_info->original_height = 192;
 
 	decode_video_memory(
-		image, image + 0x3C00,
-		40, 80, 1, 2, 0, 40, 96, FAIL_MODE_CIN15,
+		image, color_regs,
+		40, 80, 1, 2, 0, 40, 96, mode,
 		frame1);
 
 	decode_video_memory(
@@ -820,8 +829,8 @@ static abool decode_cin(
 		frame1);
 
 	decode_video_memory(
-		image, image + 0x3C00,
-		0, 80, 0, 2, 0, 40, 96, FAIL_MODE_CIN15,
+		image, color_regs,
+		0, 80, 0, 2, 0, 40, 96, mode,
 		frame2);
 
 	decode_video_memory(
