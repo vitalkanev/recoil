@@ -7,7 +7,7 @@ MAGICK_CONFIG_PATH = `MagickCore-config --exec-prefix`/etc/ImageMagick
 TEST_MAGICK = -x "`which MagickCore-config`"
 
 CC = gcc 
-CCFLAGS = -s -O2 -Wall -o $@
+CFLAGS = -s -O2 -Wall
 INSTALL = install
 INSTALL_PROGRAM = $(INSTALL)
 INSTALL_DATA = $(INSTALL) -m 644
@@ -17,18 +17,18 @@ FORMATS = HIP MIC INT TIP INP HR GR9 PIC CPR CIN CCI APC PLM AP3 ILC RIP FNT SXS
 all: fail2png fail.so
 
 fail2png: fail2png.c pngsave.c fail.c pngsave.h fail.h palette.h
-	$(CC) $(CCFLAGS) fail2png.c pngsave.c fail.c -lpng -lz -lm
+	$(CC) $(CFLAGS) fail2png.c pngsave.c fail.c -lpng -lz -lm -o $@
 
 fail.so: fail.c failmagick.c fail.h palette.h
-	if [ $(TEST_MAGICK) ]; then \
-		$(CC) $(CCFLAGS) $(MAGICK_CFLAGS) fail.c failmagick.c \
-			-shared $(MAGICK_LDFLAGS) -ldl $(MAGICK_LIBS); \
+	if [ $(TEST_MAGICK) -a -n "$(MAGICK_INCLUDE_PATH)" ]; then \
+		$(CC) $(CFLAGS) $(MAGICK_CFLAGS) -I"$(MAGICK_INCLUDE_PATH)" fail.c failmagick.c \
+			-shared $(MAGICK_LDFLAGS) -ldl $(MAGICK_LIBS) -o $@; \
 	fi
 
 palette.h: raw2c.pl jakub.act
 	perl raw2c.pl jakub.act >$@
 
-README.html: README
+README.html: README INSTALL
 	asciidoc -o $@ -a failsrc README
 	perl -pi -e 's/527bbd;/800080;/' $@
 

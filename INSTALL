@@ -75,14 +75,21 @@ To install fail2png under `PREFIX`, run:
 make install
 --------------------------------------------------------------------------------
 
-To install ImageMagick coder, run:
+Installation of ImageMagick coder requires that you have complete source
+distribution of ImageMagick. Run +make+ specifying path to the sources:
 --------------------------------------------------------------------------------
-make install-magick
+make install-magick MAGICK_INCLUDE_PATH=/path/to/im/sources
 --------------------------------------------------------------------------------
 
-To verify installation, run:
+To verify installation, try to open some
+http://fail.sourceforge.net/examples.zip[example files]:
 --------------------------------------------------------------------------------
-identify -list format | grep 'FAIL'
+display COYOTE.RIP
+--------------------------------------------------------------------------------
+
+You can also install both components at the same time, for example:
+--------------------------------------------------------------------------------
+make install PREFIX=/opt/fail MAGICK_INCLUDE_PATH=/src/ImageMagick-6.6.9-5
 --------------------------------------------------------------------------------
 
 
