@@ -2,7 +2,8 @@
 
 use XML::DOM;
 
-my $doc = (new XML::DOM::Parser)->parse(join("", <STDIN>));
+local $/;
+my $doc = (new XML::DOM::Parser)->parse(<STDIN>);
 my $codermap = $doc->getDocumentElement("codermap");
 foreach (@ARGV) {
 	my $coder = $doc->createElement("coder");

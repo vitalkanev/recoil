@@ -2,7 +2,8 @@
 
 use XML::DOM;
 
-my $doc = (new XML::DOM::Parser)->parse(join("", <STDIN>));
+local $/;
+my $doc = (new XML::DOM::Parser)->parse(<STDIN>);
 my $codermap = $doc->getDocumentElement("codermap");
 for my $coder ($codermap->getChildNodes()) {
 	if ($coder->getNodeType == ELEMENT_NODE && $coder->getTagName eq "coder" && $coder->getAttribute("name") eq "FAIL") {
