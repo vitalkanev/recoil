@@ -91,7 +91,7 @@ to submit bug reports, feature requests and small code patches.
 History
 -------
 
-FAIL 1.1.0 (2011-04-??)::
+FAIL 1.1.0 (2011-04-18)::
 
 Fixed decoding of ILC, AP3, RIP, PIC, CPR, HIP and CIN.
 Added support for MCH, IGE, 256, AP2, JGP, DGP, ESC, PZM, IST and RAW.
