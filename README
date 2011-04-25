@@ -30,6 +30,7 @@ That is, on 64-bit Windows you may install both packages.
 
 ifdef::failwww[]
 image::failwin.png["FAILWin"]
+image::thumbfail.png["Thumbnails in Windows Explorer"]
 endif::failwww[]
 
 Supported file formats
@@ -68,6 +69,8 @@ RAW:: "XL-Paint MAX", 160x192, 16 colors, interlaced.
 RIP:: "Rocky Interlace Picture", up to 160x239.
 SXS:: 16x16 font, mono.
 TIP:: "Taquart Interlace Picture", up to 160x119.
+
+You can find some example files in http://fail.sourceforge.net/examples.zip[examples.zip].
 
 ifdef::failsrc[]
 include::INSTALL[]
