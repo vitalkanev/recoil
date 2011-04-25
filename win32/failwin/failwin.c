@@ -357,7 +357,7 @@ static void SelectAndOpenImage(void)
 		sizeof(OPENFILENAME),
 		NULL,
 		0,
-		"All supported\0*.256;*.ap2;*.ap3;*.apc;*.cci;*.cin;*.cpr;*.dgp;*.esc;*.fnt;*.ghg;*.gr8;*.gr9;*.hip;*.hr;*.hr2;*.ige;*.ilc;*.inp;*.int;*.ist;*.jgp;*.mch;*.mcp;*.mic;*.pic;*.plm;*.pzm;*.raw;*.rip;*.sxs;*.tip\0"
+		"All supported\0*.256;*.ap2;*.ap3;*.apc;*.cci;*.cin;*.cpr;*.dgp;*.esc;*.fnt;*.ghg;*.gr8;*.gr9;*.hip;*.hr;*.hr2;*.ige;*.ilc;*.inp;*.int;*.ist;*.jgp;*.mch;*.mcp;*.mic;*.pic;*.plm;*.pzm;*.raw;*.rgb;*.rip;*.sxs;*.tip\0"
 #define FAIL_FILTER(description, masks) description " (" masks ")\0" masks "\0"
 		FAIL_FILTER("Hi-res", "*.cpr;*.ghg;*.gr8")
 		FAIL_FILTER("Other non-interlaced", "*.gr9;*.mch;*.mic;*.pic")
@@ -365,7 +365,7 @@ static void SelectAndOpenImage(void)
 		FAIL_FILTER("80x192x256", "*.ap3;*.dgp;*.esc;*.ilc;*.pzm")
 		FAIL_FILTER("CIN", "*.cci;*.cin")
 		FAIL_FILTER("HIP/RIP/TIP", "*.hip;*.rip;*.tip")
-		FAIL_FILTER("Other interlaced", "*.hr;*.hr2;*.ige;*.inp;*.int;*.ist;*.mcp;*.raw")
+		FAIL_FILTER("Other interlaced", "*.hr;*.hr2;*.ige;*.inp;*.int;*.ist;*.mcp;*.raw;*.rgb")
 		FAIL_FILTER("Fonts", "*.fnt;*.jgp;*.sxs")
 		"\0",
 		NULL,

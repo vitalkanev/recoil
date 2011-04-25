@@ -28,7 +28,7 @@
 		<Media Id="1" Cabinet="fail.cab" EmbedCab="yes" CompressionLevel="high" />
 
 		<?define FIRST_EXT=gr8?>
-		<?define OTHER_EXTS=hip;mic;int;tip;inp;hr;gr9;pic;cpr;cin;cci;apc;plm;ap3;ilc;rip;fnt;sxs;mcp;ghg;hr2;mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw?>
+		<?define OTHER_EXTS=hip;mic;int;tip;inp;hr;gr9;pic;cpr;cin;cci;apc;plm;ap3;ilc;rip;fnt;sxs;mcp;ghg;hr2;mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb?>
 		<?define FAIL_EXTS=gr8;$(var.OTHER_EXTS)?>
 		<?define DOUBLECLICK=Double-click Atari image file in Windows Explorer to display it in ?>
 

@@ -141,12 +141,13 @@ static void frames_to_rgb(
 }
 
 /* mix 3 interlaced frames (for "RGB" atari images) */
-/*static void frames_to_rgb_3(
-	const byte frame1[], const byte frame2[],
-	const byte frame3[],
+static void frames_to_rgb_3(
+	const byte frame1[], const byte frame2[], const byte frame3[],
+	int frame_size,
 	const byte atari_palette[],
-	int frame_size, byte pixels[])
+	byte pixels[])
 {
+	int i;
 	for (i = 0; i < frame_size; i++) {
 		pixels[i * 3] =
 			( atari_palette[frame1[i] * 3]
@@ -161,7 +162,7 @@ static void frames_to_rgb(
 			+ atari_palette[frame2[i] * 3 + 2]
 			+ atari_palette[frame3[i] * 3 + 2]) / 3;
 	}
-}*/
+}
 
 static int rgb_to_int(const byte *rgb)
 {
@@ -1563,6 +1564,126 @@ static abool decode_raw(
 	return TRUE;
 }
 
+static abool decode_rgb(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	int title_len;
+	int width;
+	int bytes_per_line;
+	int image_offset;
+	abool hi_nibble;
+	int x;
+	int count;
+	abool literal = FALSE;
+	int r = 0;
+	int g = 0;
+	int b = 0;
+	byte screens[3][40 * 192];
+	int i;
+	byte frames[3][320 * 192];
+	if (image_len < 9 || image[0] != 'R' || image[1] != 'G' || image[2] != 'B' || image[3] != '1')
+		return FALSE;
+	title_len = image[4];
+	width = image[6 + title_len];
+	image_info->original_height = image_info->height = image[7 + title_len];
+	if (width == 0 || width > 80 || image_info->height == 0 || image_info->height > 192 || image[8 + title_len] != 1)
+		return FALSE;
+	bytes_per_line = (width + 1) >> 1;
+	image_info->width = bytes_per_line << 3;
+
+	image_offset = 9 + title_len;
+	hi_nibble = TRUE;
+	count = 1;
+	for (x = 0; x < width; x++) {
+		int y;
+		for (y = 0; y < image_info->height; y++) {
+			int screen_offset = y * bytes_per_line + (x >> 1);
+#define GET_NIBBLE(dest) \
+			if (hi_nibble) { \
+				if (image_offset >= image_len) \
+					return FALSE; \
+				dest = image[image_offset] >> 4; \
+				hi_nibble = FALSE; \
+			} \
+			else { \
+				dest = image[image_offset++] & 0xf; \
+				hi_nibble = TRUE; \
+			}
+
+			if (--count == 0) {
+				GET_NIBBLE(count);
+				if (count >= 8) {
+					literal = TRUE;
+					count &= 7;
+				}
+				else
+					literal = FALSE;
+				if (count == 0) {
+					GET_NIBBLE(count);
+					count += 7;
+				}
+				if (!literal) {
+					GET_NIBBLE(r);
+					GET_NIBBLE(g);
+					GET_NIBBLE(b);
+					count++;
+				}
+			}
+			if (literal) {
+				GET_NIBBLE(r);
+				GET_NIBBLE(g);
+				GET_NIBBLE(b);
+			}
+#undef GET_NIBBLE
+
+			if ((x & 1) == 0) {
+				screens[0][screen_offset] = r << 4;
+				screens[1][screen_offset] = g << 4;
+				screens[2][screen_offset] = b << 4;
+			}
+			else {
+				screens[0][screen_offset] |= r;
+				screens[1][screen_offset] |= g;
+				screens[2][screen_offset] |= b;
+			}
+		}
+	}
+
+	switch (image[5 + title_len]) {
+	case 9:
+		image_info->original_width = bytes_per_line << 1;
+		for (i = 0; i < 3; i++) {
+			static const byte gr9_colors[3] = { 0x30, 0xc0, 0x70 };
+			decode_video_memory(
+				screens[i], gr9_colors + i,
+				0, bytes_per_line, 0, 1, 0, bytes_per_line, image_info->height, 9,
+				frames[i]);
+		}
+		break;
+	case 15:
+		image_info->original_width = bytes_per_line << 2;
+		for (i = 0; i < 3; i++) {
+			static const byte gr15_colors[3][4] = {
+				{ 0x00, 0x34, 0x3a, 0x3e },
+				{ 0x00, 0xc4, 0xca, 0xce },
+				{ 0x00, 0x74, 0x7a, 0x7e } };
+			decode_video_memory(
+				screens[i], gr15_colors[i],
+				0, bytes_per_line, 0, 1, 0, bytes_per_line, image_info->height, 15,
+				frames[i]);
+		}
+		break;
+	default:
+		return FALSE;
+	}
+
+	frames_to_rgb_3(frames[0], frames[1], frames[2], image_info->width * image_info->height, atari_palette, pixels);
+	return TRUE;
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -1615,6 +1736,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('P', 'Z', 'M'):
 	case FAIL_EXT('I', 'S', 'T'):
 	case FAIL_EXT('R', 'A', 'W'):
+	case FAIL_EXT('R', 'G', 'B'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -1671,7 +1793,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('E', 'S', 'C'), decode_pzm },
 		{ FAIL_EXT('P', 'Z', 'M'), decode_pzm },
 		{ FAIL_EXT('I', 'S', 'T'), decode_ist },
-		{ FAIL_EXT('R', 'A', 'W'), decode_raw }
+		{ FAIL_EXT('R', 'A', 'W'), decode_raw },
+		{ FAIL_EXT('R', 'G', 'B'), decode_rgb }
 	}, *ph;
 
 	if (atari_palette == NULL)
