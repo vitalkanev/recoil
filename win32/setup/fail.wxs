@@ -20,11 +20,7 @@
 
 		<Package Description="FAIL - First Atari Image Library" Manufacturer="Piotr Fusik and Adrian Matoga"
 			InstallerVersion="200" Platform="$(sys.BUILDARCH)" Compressed="yes" />
-		<Upgrade Id="$(var.UPGRADE_GUID)">
-			<UpgradeVersion Property="NEWERVERSIONDETECTED" Minimum="$(var.VERSION)" OnlyDetect="yes" />
-			<UpgradeVersion Property="PREVIOUSVERSIONSINSTALLED" Maximum="$(var.VERSION)" IncludeMaximum="no" MigrateFeatures="yes" />
-		</Upgrade>
-		<Condition Message="Newer version of FAIL is already installed!">NOT NEWERVERSIONDETECTED</Condition>
+		<MajorUpgrade DowngradeErrorMessage="Newer version of FAIL is already installed!" MigrateFeatures="yes" />
 		<Media Id="1" Cabinet="fail.cab" EmbedCab="yes" CompressionLevel="high" />
 
 		<?define FIRST_EXT=gr8?>
@@ -79,7 +75,7 @@
 			<Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg">1</Publish>
 
 			<Dialog Id="MyLicenseAgreementDlg" Width="370" Height="270" Title="!(loc.LicenseAgreementDlg_Title)">
-				<!-- removed checkbox and replaced Next button with I Accept -->
+				<!-- removed the checkbox and replaced the "Next" button with "I Accept" -->
 				<Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="I &amp;Accept">
 					<Publish Event="SpawnWaitDialog" Value="WaitForCostingDlg">CostingComplete = 1</Publish>
 				</Control>
@@ -92,7 +88,7 @@
 				<Control Id="LicenseText" Type="ScrollableText" X="20" Y="60" Width="330" Height="155" Sunken="yes" TabSkip="no">
 					<Text SourceFile="!(wix.WixUILicenseRtf)" />
 				</Control>
-				<!-- removed Print button -->
+				<!-- removed the "Print" button -->
 				<Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
 				<Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
 				<Control Id="Description" Type="Text" X="25" Y="23" Width="340" Height="15" Transparent="yes" NoPrefix="yes" Text="!(loc.LicenseAgreementDlgDescription)" />
@@ -107,7 +103,7 @@
 					<Condition Action="hide">Installed</Condition>
 					<Condition Action="disable">Installed</Condition>
 				</Control>
-				<!-- removed Reset and Disk Cost buttons, moved Back and Next buttons to their position in other dialogs -->
+				<!-- removed the "Reset" and "Disk Cost" buttons, moved the "Back" and "Next" buttons to their position in other dialogs -->
 				<Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
 				<Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)">
 					<Subscribe Event="SelectionNoItems" Attribute="Enabled" />
@@ -350,10 +346,6 @@
 		</Feature>
 		-->
 		<?endif?>
-
-		<InstallExecuteSequence>
-			<RemoveExistingProducts After="InstallFinalize" />
-		</InstallExecuteSequence>
 
 	</Product>
 </Wix>
