@@ -663,6 +663,15 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			}
 		}
 		break;
+	case WM_DROPFILES:
+		{
+			HDROP hDrop = (HDROP) wParam;
+			/* when dragging many files, get just the first filename */
+			DragQueryFile(hDrop, 0, image_filename, MAX_PATH);
+			DragFinish(hDrop);
+			OpenImage(TRUE);
+		}
+		return 0;
 	default:
 		return DefWindowProc(hWnd, msg, wParam, lParam);
 	}
@@ -749,6 +758,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	);
 
 	hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATORS));
+
+	DragAcceptFiles(hWnd, TRUE);
 
 	if (*pb != '\0') {
 		memcpy(image_filename, pb, pe + 1 - pb);
