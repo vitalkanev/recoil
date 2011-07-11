@@ -13,7 +13,8 @@ INSTALL = install
 INSTALL_PROGRAM = $(INSTALL)
 INSTALL_DATA = $(INSTALL) -m 644
 
-FORMATS = HIP MIC INT TIP INP HR GR9 PIC CPR CIN CCI APC PLM AP3 ILC RIP FNT SXS MCP GHG HR2 MCH IGE 256 AP2 JGP DGP ESC PZM IST RAW RGB
+FORMATS    = HIP MIC INT TIP INP HR GR9 PIC CPR CIN CCI APC PLM AP3 ILC RIP FNT SXS MCP GHG HR2 MCH IGE 256 AP2 JGP DGP ESC PZM IST RAW RGB
+FORMATS_LC = hip mic int tip inp hr gr9 pic cpr cin cci apc plm ap3 ilc rip fnt sxs mcp ghg hr2 mch ige 256 ap2 jgp dgp esc pzm ist raw rgb
 
 all: fail2png fail.so
 
@@ -42,13 +43,17 @@ README.html: README INSTALL
 	perl -pi -e 's/527bbd;/800080;/' $@
 
 clean:
-	rm -f fail2png palette.h fail.so coder.xml.new
+	rm -f fail2png palette.h fail.so coder.xml.new fail-mime.xml
 
-install: fail2png install-magick
+install: install-thumbnailer install-magick
+
+uninstall: uninstall-thumbnailer uninstall-magick
+
+install-fail2png: fail2png
 	mkdir -p $(PREFIX)/bin
 	$(INSTALL_PROGRAM) fail2png $(PREFIX)/bin/fail2png
 
-uninstall: uninstall-magick
+uninstall-fail2png:
 	rm -f $(PREFIX)/bin/fail2png
 
 install-magick: fail.so
@@ -67,7 +72,25 @@ uninstall-magick:
 		mv coder.xml.new "$(MAGICK_CONFIG_PATH)"/coder.xml; \
 	fi
 
-.PHONY: all clean install uninstall install-magick uninstall-magick
+fail-mime.xml: fail-types.xsl fail-types.xml
+	xsltproc -o $@ fail-types.xsl fail-types.xml
+
+install-thumbnailer: fail-mime.xml install-fail2png
+	mkdir -p $(PREFIX)/share/mime/packages
+	$(INSTALL_DATA) fail-mime.xml $(PREFIX)/share/mime/packages/fail-mime.xml
+	update-mime-database $(PREFIX)/share/mime
+	for ext in $(FORMATS_LC); do \
+		gconftool-2 --config-source xml:readwrite:/etc/gconf/gconf.xml.defaults -s /desktop/gnome/thumbnailers/image@x-$$ext/command -t string "fail2png -o %o %i"; \
+		gconftool-2 --config-source xml:readwrite:/etc/gconf/gconf.xml.defaults -s /desktop/gnome/thumbnailers/image@x-$$ext/enable -t boolean true; \
+	done
+
+uninstall-thumbnailer:
+	rm -f $(PREFIX)/share/mime/packages/fail-mime.xml
+	update-mime-database $(PREFIX)/share/mime
+	for ext in $(FORMATS_LC); do \
+		gconftool-2 -u "/desktop/gnome/thumbnailers/image@x-$$ext/command" "/desktop/gnome/thumbnailers/image@x-$$ext/enable" ; \
+	done
+
+.PHONY: all clean install uninstall install-fail2png uninstall-fail2png install-magick uninstall-magick install-thumbnailer uninstall-thumbnailer
 
 .DELETE_ON_ERROR:
-

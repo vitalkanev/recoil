@@ -1,0 +1,35 @@
+<fail-types>
+	<type ext="256" />
+	<type ext="ap2" />
+	<type ext="ap3" />
+	<type ext="apc" acronym="Any Point, Any Color" />
+	<type ext="cci" acronym="Compressed Champions' Interlace" />
+	<type ext="cin" acronym="Champions' INterlace" />
+	<type ext="cpr" />
+	<type ext="dgp" acronym="DiGiPaint" />
+	<type ext="esc" acronym="ESCalpaint" />
+	<type ext="fnt" />
+	<type ext="ghg" acronym="Gephard Hires Graphics" />
+	<type ext="gr8" />
+	<type ext="gr9" />
+	<type ext="hip" acronym="Hard Interlace Picture" />
+	<type ext="hr" />
+	<type ext="hr2" />
+	<type ext="ige" acronym="Interlace Graphics Editor" />
+	<type ext="ilc" />
+	<type ext="inp" />
+	<type ext="int" />
+	<type ext="ist" acronym="Interlace STudio" />
+	<type ext="jgp" acronym="Jet Graphics Planner" />
+	<type ext="mch" />
+	<type ext="mcp" acronym="MCPainter" />
+	<type ext="mic" />
+	<type ext="pic" />
+	<type ext="plm" acronym="PLaMa 256" />
+	<type ext="pzm" />
+	<type ext="raw" />
+	<type ext="rgb" />
+	<type ext="rip" acronym="Rocky Interlace Picture" />
+	<type ext="sxs" />
+	<type ext="tip" acronym="Taquart Interlace Picture" />
+</fail-types>
