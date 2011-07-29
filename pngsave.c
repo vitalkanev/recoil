@@ -79,7 +79,7 @@ abool PNG_Save(const char *filename,
 		else if (colors <= 16)
 			bit_depth = 4;
 	}
-	
+
 	png_set_IHDR(png_ptr, info_ptr, width, height, bit_depth,
 				 palette != NULL && colors <= 256 ?
 					PNG_COLOR_TYPE_PALETTE : PNG_COLOR_TYPE_RGB,

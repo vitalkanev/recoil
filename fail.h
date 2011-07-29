@@ -80,29 +80,29 @@ typedef struct {
 abool FAIL_IsOurFile(const char *filename);
 
 /* Decodes Atari image data to bitmap data with an optional palette.
-    * filename (in) - name of file to decode (only extension is processed,
+	* filename (in) - name of file to decode (only extension is processed,
 	                  in order to determine the image format)
-    * image (in) - binary data to decode (file contents)
-    * image_len (in) - number of binary data bytes
-    * atari_palette (in, optional) - 768-byte array containing triplets
+	* image (in) - binary data to decode (file contents)
+	* image_len (in) - number of binary data bytes
+	* atari_palette (in, optional) - 768-byte array containing triplets
 	                                 of bytes (R, G, B) for Atari palette colors
 	                                 (NULL for built-in palette jakub.act)
-    * image_info (out):
-        * width - converted image width
-        * height - converted image height
-        * colors - exact number of colors in converted image (determines format
-                   of pixels and palette)
+	* image_info (out):
+		* width - converted image width
+		* height - converted image height
+		* colors - exact number of colors in converted image (determines format
+		           of pixels and palette)
 		* original_width - original image width (informational)
 		* original_height - original image height (informational)
-    * pixels (out, optional) - width*height pixels, top-down, left-to-right
-    * palette (out, optional) - if colors <= 256, this array is filled
+	* pixels (out, optional) - width*height pixels, top-down, left-to-right
+	* palette (out, optional) - if colors <= 256, this array is filled
 	                            with 256 triplets of bytes (R, G, B)
    Returns TRUE if conversion successful, FALSE otherwise.
    After successful execution, arrays pixels and palette are formatted as follows:
     * If palette is not NULL and colors <= 256: pixels contains one byte per pixel
-	  and palette has 256 entries (768 bytes) padded with blacks if necessary.
+      and palette has 256 entries (768 bytes) padded with blacks if necessary.
     * Otherwise pixels contains triplets of bytes (R, G, B) for consecutive pixels
-	  and palette is not set. 
+      and palette is not set.
    After unsuccessful execution, the contents of 'out' parameters is undefined. */
 abool FAIL_DecodeImage(const char *filename,
 	const byte image[], int image_len,

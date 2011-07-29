@@ -82,7 +82,7 @@ static size_t strlcpy(char *dst, const char *src, size_t size)
 	for (i = 0; i < size - 1 && src[i] != '\0'; i++)
 		dst[i] = src[i];
 	dst[i] = '\0';
-	while  (src[i] != '\0')
+	while (src[i] != '\0')
 		i++;
 	return i;
 }
@@ -106,11 +106,11 @@ DLL_EXPORT void * API gfpLoadPictureInit(LPCSTR filename)
 {
 	FailData *fail;
 	FILE *fp;
-	
+
 	fp = fopen(filename, "rb");
 	if (fp == NULL)
 		return NULL;
-	
+
 	fail = malloc(sizeof(FailData));
 	if (fail != NULL) {
 		fail->image_len = fread(fail->image, 1, sizeof(fail->image), fp);
@@ -139,7 +139,7 @@ DLL_EXPORT BOOL API gfpLoadPictureGetInfo(
 	*height = fail->image_info.height;
 	*dpi = 68;
 	*bits_per_pixel = 24; // fail->colors <= 256 ? 8 : 24;
-	fail->bytes_per_line = *bytes_per_line = 
+	fail->bytes_per_line = *bytes_per_line =
 		*bits_per_pixel/8 * *width;
 	*has_colormap = FALSE; // fail->colors <= 256 ? TRUE : FALSE;
 

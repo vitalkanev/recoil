@@ -487,7 +487,7 @@ static abool decode_gr8_gr9(
 	byte frame[320 * FAIL_HEIGHT_MAX];
 
 	/* optional binary file header */
-	if (parse_binary_header(image, &frame_len) 
+	if (parse_binary_header(image, &frame_len)
 	 && frame_len == image_len - 6)
 		offset = 6;
 
@@ -917,7 +917,7 @@ static abool decode_tip(
 	line_len = (image_info->original_width + 3) / 4;
 	/* even frame, gr11 + gr9 */
 	decode_video_memory(
-		image, hip_color_regs, 
+		image, hip_color_regs,
 		9, line_len, 1, 2, -1, line_len, image[6], 9,
 		frame1);
 
@@ -961,7 +961,7 @@ static abool decode_apc(
 	image_info->original_height = 96;
 
 	decode_video_memory(
-		image, hip_color_regs, 
+		image, hip_color_regs,
 		40, 80, 1, 2, 0, 40, 96, 9,
 		frame);
 
@@ -995,7 +995,7 @@ static abool decode_ap3(
 	image_info->original_height = 192;
 
 	decode_video_memory(
-		image, hip_color_regs, 
+		image, hip_color_regs,
 		40, 80, 1, 2, 0, 40, 96, 9,
 		frame1);
 
@@ -1427,7 +1427,7 @@ static abool decode_256(
 	image_info->original_height = 192;
 
 	decode_video_memory(
-		image, hip_color_regs, 
+		image, hip_color_regs,
 		3840, 40, 1, 2, 0, 40, 96, 9,
 		frame);
 
@@ -1488,7 +1488,7 @@ static abool decode_pzm(
 	if (image_len == 15360 || image_len == 15362)
 		return decode_ap3(image, 15360,
 			atari_palette, image_info, pixels);
-		
+
 	return FALSE;
 }
 
