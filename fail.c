@@ -1341,30 +1341,35 @@ static abool decode_mch(
 	byte pixels[])
 {
 	int chars_per_line;
-	byte frame[384 * 240];
+	int char_offset;
+	byte frame[352 * 240];
 	int y;
 	switch (image_len) {
 	case 30 * 32 * 9 + 240 * 5:
+		image_info->original_width = 128;
 		chars_per_line = 32;
+		char_offset = 0;
 		break;
 	case 30 * 40 * 9 + 240 * 5:
+		image_info->original_width = 160;
 		chars_per_line = 40;
+		char_offset = 0;
 		break;
 	case 30 * 48 * 9 + 240 * 5:
+		image_info->original_width = 176;
 		chars_per_line = 48;
+		char_offset = 3;
 		break;
 	default:
 		return FALSE;
 	}
-	image_info->width = 8 * chars_per_line;
-	image_info->height = 240;
-	image_info->original_width = 4 * chars_per_line;
-	image_info->original_height = 240;
+	image_info->width = 2 * image_info->original_width;
+	image_info->height = image_info->original_height = 240;
 	for (y = 0; y < 240; y++) {
 		const byte *colors = image + image_len - 240 * 5 + y;
 		int x;
-		for (x = 0; x < chars_per_line * 4; x++) {
-			const byte *p = image + ((y >> 3) * chars_per_line + (x >> 2)) * 9;
+		for (x = 0; x < image_info->original_width; x++) {
+			const byte *p = image + ((y >> 3) * chars_per_line + (x >> 2) + char_offset) * 9;
 			int color = (p[1 + (y & 7)] >> (2 * (~x & 3))) & 3;
 			if (color == 3 && (p[0] & 0x80) != 0)
 				color = 4;

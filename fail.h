@@ -56,7 +56,7 @@ typedef unsigned char byte;
 
 /* Limits. */
 #define FAIL_IMAGE_MAX    30000
-#define FAIL_WIDTH_MAX    384
+#define FAIL_WIDTH_MAX    352
 #define FAIL_HEIGHT_MAX   240
 #define FAIL_PALETTE_MAX  768
 #define FAIL_PIXELS_MAX   (FAIL_WIDTH_MAX * FAIL_HEIGHT_MAX * 3)
