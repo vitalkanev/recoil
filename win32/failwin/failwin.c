@@ -215,7 +215,7 @@ static void ToggleFullscreen(void)
 	if (fullscreen) {
 		ShowCursor(TRUE);
 		ShowStatusBar(status_bar);
-		SetWindowLong(hWnd, GWL_STYLE, WS_VISIBLE | WS_CAPTION | WS_SYSMENU);
+		SetWindowLong(hWnd, GWL_STYLE, WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX);
 		SetMenu(hWnd, hMenu);
 		fullscreen = FALSE;
 	}
@@ -732,7 +732,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	hWnd = CreateWindow(WND_CLASS_NAME,
 		APP_TITLE,
-		WS_VISIBLE | WS_CAPTION | WS_SYSMENU,
+		WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
