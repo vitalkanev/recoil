@@ -24,7 +24,7 @@
 		<Media Id="1" Cabinet="fail.cab" EmbedCab="yes" CompressionLevel="high" />
 
 		<?define FIRST_EXT=gr8?>
-		<?define OTHER_EXTS=hip;mic;int;tip;inp;hr;gr9;pic;cpr;cin;cci;apc;plm;ap3;ilc;rip;fnt;sxs;mcp;ghg;hr2;mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb?>
+		<?define OTHER_EXTS=hip;mic;int;tip;inp;hr;gr9;pic;cpr;cin;cci;apc;plm;ap3;ilc;rip;fnt;sxs;mcp;ghg;hr2;mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb;mgp?>
 		<?define FAIL_EXTS=gr8;$(var.OTHER_EXTS)?>
 		<?define DOUBLECLICK=Double-click Atari image file in Windows Explorer to display it in ?>
 
@@ -229,6 +229,9 @@
 						<Component Id="Xfail3.usr" Guid="*">
 							<File Id="Xfail3.usr" Name="Xfail3.usr" Source="Xfail3.usr" Checksum="yes" KeyPath="yes" />
 						</Component>
+						<Component Id="Xfail4.usr" Guid="*">
+							<File Id="Xfail4.usr" Name="Xfail4.usr" Source="Xfail4.usr" Checksum="yes" KeyPath="yes" />
+						</Component>
 					</Directory>
 					<Component Id="xnview_fail.ext" Guid="*">
 						<RegistryValue Root="HKCR" Key="fail.file" Name="XnView.Image" Type="integer" Value="1" KeyPath="yes" />
@@ -314,6 +317,7 @@
 			<ComponentRef Id="Xfail1.usr" />
 			<ComponentRef Id="Xfail2.usr" />
 			<ComponentRef Id="Xfail3.usr" />
+			<ComponentRef Id="Xfail4.usr" />
 			<Feature Id="xnview_fail.ext" Title="Associate file types" Level="0" Description="$(var.DOUBLECLICK) XnView." AllowAdvertise="no">
 				<Condition Level="9">XNVIEW.EXE</Condition>
 				<ComponentRef Id="xnview_fail.ext" />

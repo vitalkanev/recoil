@@ -1569,6 +1569,50 @@ static abool decode_raw(
 	return TRUE;
 }
 
+static abool decode_mgp(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte color_regs[4];
+	byte frame[320 * 192];
+	int x;
+	int y;
+
+	if (image_len != 3845)
+		return FALSE;
+
+	image_info->width = 320;
+	image_info->height = 192;
+	image_info->original_width = 160;
+	image_info->original_height = 96;
+
+	color_regs[0] = image[4];
+	color_regs[1] = image[0];
+	color_regs[2] = image[1];
+	color_regs[3] = image[2];
+
+	for (y = 0; y < 96; y++) {
+		if (image[5] < 4) {
+			/* Rainbow effect :)
+			The constant 16 is arbitrary here. For correct animation it should decrease every frame. */
+			color_regs[image[5]] = 16 + y;
+		}
+		decode_video_memory(
+			image, color_regs,
+			6 + 40 * y, 0, y * 2, 1, 0, 40, 2, 15,
+			frame);
+	}
+	/* The file is missing the last byte of the graphics.
+	   Let's fill it with background so that at least it's not random. */
+	for (x = 0; x < 8; x++)
+		frame[320 * 190 + 312 + x] = frame[320 * 191 + 312 + x] = color_regs[0] & 0xfe;
+
+	frame_to_rgb(frame, 320 * 192, atari_palette, pixels);
+	return TRUE;
+}
+
 static abool decode_rgb(
 	const byte image[], int image_len,
 	const byte atari_palette[],
@@ -1742,6 +1786,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('I', 'S', 'T'):
 	case FAIL_EXT('R', 'A', 'W'):
 	case FAIL_EXT('R', 'G', 'B'):
+	case FAIL_EXT('M', 'G', 'P'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -1799,7 +1844,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('P', 'Z', 'M'), decode_pzm },
 		{ FAIL_EXT('I', 'S', 'T'), decode_ist },
 		{ FAIL_EXT('R', 'A', 'W'), decode_raw },
-		{ FAIL_EXT('R', 'G', 'B'), decode_rgb }
+		{ FAIL_EXT('R', 'G', 'B'), decode_rgb },
+		{ FAIL_EXT('M', 'G', 'P'), decode_mgp }
 	}, *ph;
 
 	if (atari_palette == NULL)
