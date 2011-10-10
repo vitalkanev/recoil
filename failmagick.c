@@ -111,6 +111,7 @@ static const struct Format {
 	{ "AP3", "80x192, 256 colors, interlaced" },
 	{ "APC", "Any Point, Any Color; 80x96, 256 colors, interlaced" },
 	{ "CCI", "Champions' Interlace; 160x192, compressed" },
+	{ "CHR", "Blazing Paddles font; mono" },
 	{ "CIN", "Champions' Interlace; 160x192" },
 	{ "CPR", "Trzmiel; 320x192, mono, compressed" },
 	{ "DGP", "DigiPaint; 80x192, 256 colors, interlaced" },
@@ -137,8 +138,10 @@ static const struct Format {
 	{ "RAW", "XL-Paint MAX; 160x192, 16 colors, interlaced" },
 	{ "RGB", "ColorViewSquash; three-frame interlace" },
 	{ "RIP", "Rocky Interlace Picture; up to 160x239" },
+	{ "SHP", "Blazing Paddles shape table; mono" },
 	{ "SXS", "16x16 font, mono" },
-	{ "TIP", "Taquart Interlace Picture; up to 160x119" }
+	{ "TIP", "Taquart Interlace Picture; up to 160x119" },
+	{ "WND", "Blazing Paddles window; up to 160x192, 4 colors" }
 };
 
 ModuleExport unsigned long RegisterFAILImage(void)

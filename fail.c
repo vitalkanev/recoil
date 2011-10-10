@@ -1767,6 +1767,190 @@ static abool decode_wnd(
 	return TRUE;
 }
 
+typedef struct {
+	int left;
+	int top;
+	int right;
+	int bottom;
+} BoundingBox;
+
+static abool get_blazing_paddles_vector_bounding_box(
+	const byte image[], int image_len, int index, int start_address,
+	BoundingBox *box)
+{
+	int image_offset;
+	int x;
+	int y;
+	if (index * 2 + 1 >= image_len)
+		return FALSE;
+	image_offset = image[index * 2] + (image[index * 2 + 1] << 8) - start_address;
+	if (image_offset < 0)
+		return FALSE;
+	x = 0;
+	y = 0;
+	box->left = 0;
+	box->top = 0;
+	box->right = 0;
+	box->bottom = 0;
+	while (image_offset < image_len) {
+		int control = image[image_offset++];
+		int len;
+		if (control == 0x08)
+			return TRUE;
+		/* bits 7-4: length-1 */
+		len = (control >> 4) + 1;
+		/* bits 1-0: direction */
+		switch (control & 3) {
+		case 0: /*right */
+			x += len;
+			if (box->right < x)
+				box->right = x;
+			break;
+		case 1: /* left */
+			x -= len;
+			if (box->left > x)
+				box->left = x;
+			break;
+		case 2: /* up */
+			y -= len;
+			if (box->top > y)
+				box->top = y;
+			break;
+		case 3: /* down */
+			y += len;
+			if (box->bottom < y)
+				box->bottom = y;
+			break;
+		}
+	}
+	return FALSE;
+}
+
+static abool draw_blazing_paddles_vector(
+	const byte image[], int image_len, int index, int start_address,
+	byte frame[], int frame_offset, int frame_width)
+{
+	int image_offset = image[index * 2] + (image[index * 2 + 1] << 8) - start_address;
+	while (image_offset < image_len) {
+		int control = image[image_offset++];
+		if (control == 0x08)
+			return TRUE;
+		/* bits 7-4: length-1 */
+		for (; control >= 0; control -= 16) {
+			/* bit 2: pen up */
+			if ((control & 4) == 0) {
+				frame[frame_offset] = 0x0e;
+				frame[frame_offset + 1] = 0x0e;
+			}
+			/* bits 1-0: direction */
+			switch (control & 3) {
+			case 0: /*right */
+				frame_offset += 2;
+				break;
+			case 1: /* left */
+				frame_offset -= 2;
+				break;
+			case 2: /* up */
+				frame_offset -= frame_width;
+				break;
+			case 3: /* down */
+				frame_offset += frame_width;
+				break;
+			}
+		}
+	}
+	return FALSE;
+}
+
+static abool decode_blazing_paddles_vectors(
+	const byte image[], int image_len, int start_address,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte frame[320 * 240];
+	int i;
+	BoundingBox box;
+	int x;
+	int y;
+	int frame_bottom;
+
+	/* compute total dimensions placing shapes in reading order */
+	x = 0;
+	y = 0;
+	image_info->original_width = 0;
+	image_info->original_height = 0;
+	for (i = 0; ; i++) {
+		int width;
+		int bottom;
+		if (!get_blazing_paddles_vector_bounding_box(image, image_len, i, start_address, &box))
+			break;
+		width = box.right - box.left + 1;
+		if (x + width > 160) {
+			/* new line */
+			x = 0;
+			y = image_info->original_height + 1;
+		}
+		/* place this shape at x,y */
+		x += width + 1;
+		if (image_info->original_width < x)
+			image_info->original_width = (x + 3) & ~3; /* round up to 4 pixels */
+		bottom = y + box.bottom - box.top + 1;
+		if (image_info->original_height < bottom)
+			image_info->original_height = bottom;
+	}
+	if (image_info->original_width > 160 || image_info->original_height > 240)
+		return FALSE;
+	image_info->width = image_info->original_width * 2;
+	image_info->height = image_info->original_height;
+	memset(frame, 0, image_info->width * image_info->height);
+
+	/* draw shapes */
+	x = 0;
+	y = 0;
+	frame_bottom = 0;
+	for (i = 0; ; i++) {
+		int width;
+		int bottom;
+		if (!get_blazing_paddles_vector_bounding_box(image, image_len, i, start_address, &box))
+			break;
+		width = box.right - box.left + 1;
+		if (x + width > 160) {
+			/* new line */
+			x = 0;
+			y = frame_bottom + 1;
+		}
+		/* place this shape at x,y */
+		/* TODO: align baseline of lowercase letters */
+		draw_blazing_paddles_vector(image, image_len, i, start_address, frame, (y - box.top) * image_info->width + (x - box.left) * 2, image_info->width);
+		x += width + 1;
+		bottom = y + box.bottom - box.top + 1;
+		if (frame_bottom < bottom)
+			frame_bottom = bottom;
+	}
+
+	frame_to_rgb(frame, image_info->width * image_info->height, atari_palette, pixels);
+	return TRUE;
+}
+
+static abool decode_chr(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	return image_len == 3072 && decode_blazing_paddles_vectors(image, image_len, 0x7000, atari_palette, image_info, pixels);
+}
+
+static abool decode_shp(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	return image_len == 1024 && decode_blazing_paddles_vectors(image, image_len, 0x7c00, atari_palette, image_info, pixels);
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -1822,6 +2006,8 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('R', 'G', 'B'):
 	case FAIL_EXT('M', 'G', 'P'):
 	case FAIL_EXT('W', 'N', 'D'):
+	case FAIL_EXT('C', 'H', 'R'):
+	case FAIL_EXT('S', 'H', 'P'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -1881,7 +2067,9 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('R', 'A', 'W'), decode_raw },
 		{ FAIL_EXT('R', 'G', 'B'), decode_rgb },
 		{ FAIL_EXT('M', 'G', 'P'), decode_mgp },
-		{ FAIL_EXT('W', 'N', 'D'), decode_wnd }
+		{ FAIL_EXT('W', 'N', 'D'), decode_wnd },
+		{ FAIL_EXT('C', 'H', 'R'), decode_chr },
+		{ FAIL_EXT('S', 'H', 'P'), decode_shp }
 	}, *ph;
 
 	if (atari_palette == NULL)

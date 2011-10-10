@@ -4,6 +4,7 @@
 	<type ext="ap3" />
 	<type ext="apc" acronym="Any Point, Any Color" />
 	<type ext="cci" acronym="Compressed Champions' Interlace" />
+	<type ext="chr" />
 	<type ext="cin" acronym="Champions' INterlace" />
 	<type ext="cpr" />
 	<type ext="dgp" acronym="DiGiPaint" />
@@ -31,6 +32,8 @@
 	<type ext="raw" />
 	<type ext="rgb" />
 	<type ext="rip" acronym="Rocky Interlace Picture" />
+	<type ext="shp" />
 	<type ext="sxs" />
 	<type ext="tip" acronym="Taquart Interlace Picture" />
+	<type ext="wnd" />
 </fail-types>
