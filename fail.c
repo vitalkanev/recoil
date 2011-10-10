@@ -1830,7 +1830,12 @@ static abool draw_blazing_paddles_vector(
 	const byte image[], int image_len, int index, int start_address,
 	byte frame[], int frame_offset, int frame_width)
 {
-	int image_offset = image[index * 2] + (image[index * 2 + 1] << 8) - start_address;
+	int image_offset;
+	if (index * 2 + 1 >= image_len)
+		return FALSE;
+	image_offset = image[index * 2] + (image[index * 2 + 1] << 8) - start_address;
+	if (image_offset < 0)
+		return FALSE;
 	while (image_offset < image_len) {
 		int control = image[image_offset++];
 		if (control == 0x08)
@@ -1869,64 +1874,62 @@ static abool decode_blazing_paddles_vectors(
 	byte pixels[])
 {
 	byte frame[320 * 240];
+	int x = 0;
+	int y = 0;
 	int i;
-	BoundingBox box;
-	int x;
-	int y;
-	int frame_bottom;
+	int line_i = 0;
+	int line_top = 0;
+	int line_bottom = 0;
+	int xs[256];
+	int ys[256];
 
-	/* compute total dimensions placing shapes in reading order */
-	x = 0;
-	y = 0;
+	/* The file contains several independent shapes.
+	I layout them in reading order, so that they don't overlap,
+	the baselines are aligned and everything fits in 160x240. */
 	image_info->original_width = 0;
-	image_info->original_height = 0;
 	for (i = 0; ; i++) {
+		BoundingBox box;
 		int width;
-		int bottom;
 		if (!get_blazing_paddles_vector_bounding_box(image, image_len, i, start_address, &box))
 			break;
-		width = box.right - box.left + 1;
+		width = box.right - box.left + 2; /* +1 because box.right is inclusive, +1 for space */
 		if (x + width > 160) {
 			/* new line */
+			y -= line_top;
+			while (line_i < i)
+				ys[line_i++] = y;
+			if (image_info->original_width < x)
+				image_info->original_width = (x + 3) & ~3; /* round up to 4 pixels */
 			x = 0;
-			y = image_info->original_height + 1;
+			y += line_bottom + 2; /* +1 because box.bottom is inclusive, +1 for space */
+			line_i = i;
+			line_top = box.top;
+			line_bottom = box.bottom;
 		}
 		/* place this shape at x,y */
-		x += width + 1;
-		if (image_info->original_width < x)
-			image_info->original_width = (x + 3) & ~3; /* round up to 4 pixels */
-		bottom = y + box.bottom - box.top + 1;
-		if (image_info->original_height < bottom)
-			image_info->original_height = bottom;
+		xs[i] = x - box.left;
+		x += width;
+		if (line_top > box.top)
+			line_top = box.top;
+		if (line_bottom < box.bottom)
+			line_bottom = box.bottom;
 	}
-	if (image_info->original_width > 160 || image_info->original_height > 240)
+	y -= line_top;
+	while (line_i < i)
+		ys[line_i++] = y;
+	if (image_info->original_width < x)
+		image_info->original_width = (x + 3) & ~3; /* round up to 4 pixels */
+	y += line_bottom + 1; /* +1 because box.bottom is inclusive */
+	if (i == 0 || y > 240)
 		return FALSE;
 	image_info->width = image_info->original_width * 2;
-	image_info->height = image_info->original_height;
+	image_info->height = image_info->original_height = y;
 	memset(frame, 0, image_info->width * image_info->height);
 
 	/* draw shapes */
-	x = 0;
-	y = 0;
-	frame_bottom = 0;
 	for (i = 0; ; i++) {
-		int width;
-		int bottom;
-		if (!get_blazing_paddles_vector_bounding_box(image, image_len, i, start_address, &box))
+		if (!draw_blazing_paddles_vector(image, image_len, i, start_address, frame, ys[i] * image_info->width + xs[i] * 2, image_info->width))
 			break;
-		width = box.right - box.left + 1;
-		if (x + width > 160) {
-			/* new line */
-			x = 0;
-			y = frame_bottom + 1;
-		}
-		/* place this shape at x,y */
-		/* TODO: align baseline of lowercase letters */
-		draw_blazing_paddles_vector(image, image_len, i, start_address, frame, (y - box.top) * image_info->width + (x - box.left) * 2, image_info->width);
-		x += width + 1;
-		bottom = y + box.bottom - box.top + 1;
-		if (frame_bottom < bottom)
-			frame_bottom = bottom;
 	}
 
 	frame_to_rgb(frame, image_info->width * image_info->height, atari_palette, pixels);
