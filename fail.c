@@ -1733,6 +1733,40 @@ static abool decode_rgb(
 	return TRUE;
 }
 
+static abool decode_wnd(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	static const byte blazing_paddles_default_color_regs[] = { 0x00, 0x46, 0x88, 0x0e };
+	byte frame[320 * 192];
+	int bytes_per_line;
+	int height;
+
+	if (image_len != 3072)
+		return FALSE;
+
+	/* first byte = width in pixels -1 */
+	bytes_per_line = (image[0] >> 2) + 1;
+	height = image[1];
+	if (bytes_per_line > 40 || height == 0 || height > 192 || bytes_per_line * height > 3070)
+		return FALSE;
+	/* round up to 4 pixels */
+	image_info->width = bytes_per_line * 8;
+	image_info->height = height;
+	image_info->original_width = bytes_per_line * 4;
+	image_info->original_height = height;
+
+	decode_video_memory(
+		image, blazing_paddles_default_color_regs,
+		2, bytes_per_line, 0, 1, 0, bytes_per_line, height, 15,
+		frame);
+
+	frame_to_rgb(frame, image_info->width * height, atari_palette, pixels);
+	return TRUE;
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -1787,6 +1821,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('R', 'A', 'W'):
 	case FAIL_EXT('R', 'G', 'B'):
 	case FAIL_EXT('M', 'G', 'P'):
+	case FAIL_EXT('W', 'N', 'D'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -1845,7 +1880,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('I', 'S', 'T'), decode_ist },
 		{ FAIL_EXT('R', 'A', 'W'), decode_raw },
 		{ FAIL_EXT('R', 'G', 'B'), decode_rgb },
-		{ FAIL_EXT('M', 'G', 'P'), decode_mgp }
+		{ FAIL_EXT('M', 'G', 'P'), decode_mgp },
+		{ FAIL_EXT('W', 'N', 'D'), decode_wnd }
 	}, *ph;
 
 	if (atari_palette == NULL)
