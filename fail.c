@@ -1887,7 +1887,7 @@ static abool decode_blazing_paddles_vectors(
 	I layout them in reading order, so that they don't overlap,
 	the baselines are aligned and everything fits in 160x240. */
 	image_info->original_width = 0;
-	for (i = 0; ; i++) {
+	for (i = 0; i < 256; i++) {
 		BoundingBox box;
 		int width;
 		if (!get_blazing_paddles_vector_bounding_box(image, image_len, i, start_address, &box))
@@ -1902,7 +1902,6 @@ static abool decode_blazing_paddles_vectors(
 				image_info->original_width = (x + 3) & ~3; /* round up to 4 pixels */
 			x = 0;
 			y += line_bottom + 2; /* +1 because box.bottom is inclusive, +1 for space */
-			line_i = i;
 			line_top = box.top;
 			line_bottom = box.bottom;
 		}
@@ -1927,7 +1926,7 @@ static abool decode_blazing_paddles_vectors(
 	memset(frame, 0, image_info->width * image_info->height);
 
 	/* draw shapes */
-	for (i = 0; ; i++) {
+	for (i = 0; i < 256; i++) {
 		if (!draw_blazing_paddles_vector(image, image_len, i, start_address, frame, ys[i] * image_info->width + xs[i] * 2, image_info->width))
 			break;
 	}
