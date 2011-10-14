@@ -1,4 +1,4 @@
-VERSION = 1.1.0
+VERSION = 1.1.1
 
 FAIL_CC = mingw32-gcc -s -O2 -Wall -o $@ -I..
 FAIL_CC_DLL = $(FAIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
@@ -31,7 +31,7 @@ IM_MOD_RL_fail_.dll: ../fail.c ../fail.h ../palette.h ../failmagick.c
 	$(FAIL_CC_DLL) ../fail.c ../failmagick.c -lCORE_RL_magick_
  
 Xfail1.usr Xfail2.usr Xfail3.usr Xfail4.usr: xnview/Xfail.c ../fail.c ../fail.h ../palette.h
-	$(FAIL_CC_DLL) "-DXNVIEW_FAIL_EXT=$(if $(findstring 1,$@),\"rip;gr8;mic;hip;tip;int;inp;apc;ap3;hr;hr2\",$(if $(findstring 2,$@),\"pic;cpr;cin;cci;fnt;sxs;gr9;plm;ilc;mcp;ghg\",$(if $(findstring 3,$@),\"mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb\",\"mgp;wnd;chr;shp\")))" \
+	$(FAIL_CC_DLL) "-DXNVIEW_FAIL_EXT=$(if $(findstring 1,$@),\"rip;gr8;mic;hip;tip;int;inp;apc;ap3;hr;hr2\",$(if $(findstring 2,$@),\"pic;cpr;cin;cci;fnt;sxs;gr9;plm;ilc;mcp;ghg\",$(if $(findstring 3,$@),\"mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb\",\"mgp;wnd;chr;shp;mbg\")))" \
 		../fail.c xnview/Xfail.c
 	
 failwin.exe: failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c failwin/failwin.h ../pngsave.h ../fail.h ../palette.h

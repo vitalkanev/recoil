@@ -31,8 +31,8 @@ extern "C" {
 /* Version. */
 #define FAIL_VERSION_MAJOR   1
 #define FAIL_VERSION_MINOR   1
-#define FAIL_VERSION_MICRO   0
-#define FAIL_VERSION         "1.1.0"
+#define FAIL_VERSION_MICRO   1
+#define FAIL_VERSION         "1.1.1"
 
 /* Credits and copyright. */
 #define FAIL_YEARS           "2009-2011"
@@ -56,8 +56,8 @@ typedef unsigned char byte;
 
 /* Limits. */
 #define FAIL_IMAGE_MAX    30000
-#define FAIL_WIDTH_MAX    352
-#define FAIL_HEIGHT_MAX   240
+#define FAIL_WIDTH_MAX    512
+#define FAIL_HEIGHT_MAX   256
 #define FAIL_PALETTE_MAX  768
 #define FAIL_PIXELS_MAX   (FAIL_WIDTH_MAX * FAIL_HEIGHT_MAX * 3)
 

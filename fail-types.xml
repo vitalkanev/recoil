@@ -22,6 +22,7 @@
 	<type ext="int" />
 	<type ext="ist" acronym="Interlace STudio" />
 	<type ext="jgp" acronym="Jet Graphics Planner" />
+	<type ext="mbg" />
 	<type ext="mch" />
 	<type ext="mcp" acronym="MCPainter" />
 	<type ext="mgp" acronym="Magic Painter" />

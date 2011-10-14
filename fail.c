@@ -484,7 +484,7 @@ static abool decode_gr8_gr9(
 {
 	int offset = 0;
 	int frame_len;
-	byte frame[320 * FAIL_HEIGHT_MAX];
+	byte frame[320 * 240];
 
 	/* optional binary file header */
 	if (parse_binary_header(image, &frame_len)
@@ -495,7 +495,7 @@ static abool decode_gr8_gr9(
 	image_info->height = (image_len - offset) / 40;
 	image_info->original_height = image_info->height;
 
-	if (/*(image_len - offset) % 40 != 0 || */image_info->height > FAIL_HEIGHT_MAX)
+	if (/*(image_len - offset) % 40 != 0 || */image_info->height > 240)
 		return FALSE;
 
 	decode_video_memory(
@@ -580,8 +580,8 @@ static abool decode_hip(
 {
 	int frame1_len;
 	int frame2_len;
-	byte frame1[320 * FAIL_HEIGHT_MAX];
-	byte frame2[320 * FAIL_HEIGHT_MAX];
+	byte frame1[320 * 240];
+	byte frame2[320 * 240];
 
 	if (parse_binary_header(image, &frame1_len)
 	 && frame1_len > 0
@@ -591,7 +591,7 @@ static abool decode_hip(
 	 && frame2_len == frame1_len) {
 		/* hip image with binary file headers */
 		image_info->height = frame1_len / 40;
-		if (image_info->height > FAIL_HEIGHT_MAX)
+		if (image_info->height > 240)
 			return FALSE;
 		decode_video_memory(
 			image, hip_color_regs,
@@ -605,7 +605,7 @@ static abool decode_hip(
 	else {
 		/* hip image with gr10 palette */
 		image_info->height = image_len / 80;
-		if (image_info->height == 0 || image_info->height > FAIL_HEIGHT_MAX)
+		if (image_info->height == 0 || image_info->height > 240)
 			return FALSE;
 		decode_video_memory(
 			image, hip_color_regs,
@@ -635,7 +635,7 @@ static abool decode_mic(
 	byte pixels[])
 {
 	abool has_palette;
-	byte frame[320 * FAIL_HEIGHT_MAX];
+	byte frame[320 * 240];
 
 	if (image_len % 40 == 4)
 		has_palette = TRUE;
@@ -646,7 +646,7 @@ static abool decode_mic(
 
 	image_info->width = 320;
 	image_info->height = image_len / 40;
-	if (image_info->height > FAIL_HEIGHT_MAX)
+	if (image_info->height > 240)
 		return FALSE;
 	image_info->original_width = 320;
 	image_info->original_height = image_info->height;
@@ -761,8 +761,8 @@ static abool decode_int(
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
-	byte frame1[320 * FAIL_HEIGHT_MAX];
-	byte frame2[320 * FAIL_HEIGHT_MAX];
+	byte frame1[320 * 240];
+	byte frame2[320 * 240];
 
 	if (image[0] != 'I' || image[1] != 'N' || image[2] != 'T'
 	 || image[3] != '9' || image[4] != '5' || image[5] != 'a'
@@ -899,8 +899,8 @@ static abool decode_tip(
 {
 	int frame_len;
 	int line_len;
-	byte frame1[320 * FAIL_HEIGHT_MAX];
-	byte frame2[320 * FAIL_HEIGHT_MAX];
+	byte frame1[320 * 240];
+	byte frame2[320 * 240];
 
 	if (image[0] != 'T' || image[1] != 'I' || image[2] != 'P'
 	 || image[3] != 1 || image[4] != 0
@@ -1027,8 +1027,8 @@ static abool decode_rip(
 	byte pixels[])
 {
 	byte unpacked_image[24576];
-	byte frame1[FAIL_WIDTH_MAX * FAIL_HEIGHT_MAX];
-	byte frame2[FAIL_WIDTH_MAX * FAIL_HEIGHT_MAX];
+	byte frame1[320 * 240];
+	byte frame2[320 * 240];
 	int txt_len = image[17];
 	int pal_len = image[20 + txt_len];
 	int hdr_len = image[11] + 256 * image[12];
@@ -1953,6 +1953,29 @@ static abool decode_shp(
 	return image_len == 1024 && decode_blazing_paddles_vectors(image, image_len, 0x7c00, atari_palette, image_info, pixels);
 }
 
+static abool decode_mbg(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte frame[512 * 256];
+	if (image_len != 16384)
+		return FALSE;
+
+	image_info->width = image_info->original_width = 512;
+	image_info->height = image_info->original_height = 256;
+
+	decode_video_memory(
+		image, gr8_color_regs,
+		0, 64, 0, 1, 0, 64, 256, 8,
+		frame);
+
+	frame_to_rgb(frame, 512 * 256, atari_palette, pixels);
+
+	return TRUE;
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -2010,6 +2033,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('W', 'N', 'D'):
 	case FAIL_EXT('C', 'H', 'R'):
 	case FAIL_EXT('S', 'H', 'P'):
+	case FAIL_EXT('M', 'B', 'G'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -2071,7 +2095,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('M', 'G', 'P'), decode_mgp },
 		{ FAIL_EXT('W', 'N', 'D'), decode_wnd },
 		{ FAIL_EXT('C', 'H', 'R'), decode_chr },
-		{ FAIL_EXT('S', 'H', 'P'), decode_shp }
+		{ FAIL_EXT('S', 'H', 'P'), decode_shp },
+		{ FAIL_EXT('M', 'B', 'G'), decode_mbg }
 	}, *ph;
 
 	if (atari_palette == NULL)
