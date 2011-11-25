@@ -29,6 +29,7 @@
 
 #include "palette.h"
 
+#define FAIL_MODE_15PF0FIRST 16
 #define FAIL_MODE_CIN15 31
 #define FAIL_MODE_MULTIRIP 48
 
@@ -89,6 +90,9 @@ static void decode_video_memory(
 				break;
 			case 15: /* 4 regs */
 				frame[dest_pos + x] = color_regs[b >> (~i & 6) & 3] & 0xFE;
+				break;
+			case FAIL_MODE_15PF0FIRST: /* 4 regs, PF0 first */
+				frame[dest_pos + x] = color_regs[((b >> (~i & 6)) - 1) & 3] & 0xFE;
 				break;
 			case FAIL_MODE_CIN15: /* 4 * 256 regs, only first 192 of each 256-byte group are used */
 				frame[dest_pos + x] = color_regs[(b >> (~i & 6) & 3) * 256 + y] & 0xFE;
@@ -635,7 +639,7 @@ static abool decode_mic(
 	byte pixels[])
 {
 	const byte *color_regs;
-	byte atarigraphics_color_regs[4];
+	int mode;
 	byte frame[320 * 240];
 
 	if (image_len == 15872) {
@@ -649,16 +653,17 @@ static abool decode_mic(
 		are filled with a solid color here. Also, the fill map has inverted bits
 		compared to the picture, don't know why. */
 		image_len = 7680;
-		color_regs = atarigraphics_color_regs;
-		atarigraphics_color_regs[0] = image[7683];
-		atarigraphics_color_regs[1] = image[7680];
-		atarigraphics_color_regs[2] = image[7681];
-		atarigraphics_color_regs[3] = image[7682];
+		color_regs = image + 7680;
+		mode = FAIL_MODE_15PF0FIRST;
 	}
-	else if (image_len % 40 == 4)
+	else if (image_len % 40 == 4) {
 		color_regs = image + image_len - 4;
-	else if (image_len % 40 == 0)
+		mode = 15;
+	}
+	else if (image_len % 40 == 0) {
 		color_regs = mic_color_regs;
+		mode = 15;
+	}
 	else
 		return FALSE;
 
@@ -671,7 +676,7 @@ static abool decode_mic(
 
 	decode_video_memory(
 		image, color_regs,
-		0, 40, 0, 1, 0, 40, image_info->height, 15,
+		0, 40, 0, 1, 0, 40, image_info->height, mode,
 		frame);
 
 	frame_to_rgb(frame, image_info->height * 320, atari_palette, pixels);
@@ -1263,35 +1268,30 @@ static abool decode_mcp(
 	if (image_len != 16008)
 		return FALSE;
 
-	{
-		byte colors1[4] = { image[16003], image[16000], image[16001], image[16002] };
-		byte colors2[4] = { image[16007], image[16004], image[16005], image[16006] };
+	image_info->width = 320;
+	image_info->height = 200;
+	image_info->original_width = 160;
+	image_info->original_height = 200;
 
-		image_info->width = 320;
-		image_info->height = 200;
-		image_info->original_width = 160;
-		image_info->original_height = 200;
+	decode_video_memory(
+		image, image + 16000,
+		0, 80, 0, 2, 0, 40, 100, FAIL_MODE_15PF0FIRST,
+		frame1);
 
-		decode_video_memory(
-			image, colors1,
-			0, 80, 0, 2, 0, 40, 100, 15,
-			frame1);
+	decode_video_memory(
+		image, image + 16004,
+		40, 80, 1, 2, 0, 40, 100, FAIL_MODE_15PF0FIRST,
+		frame1);
 
-		decode_video_memory(
-			image, colors2,
-			40, 80, 1, 2, 0, 40, 100, 15,
-			frame1);
+	decode_video_memory(
+		image, image + 16004,
+		8000, 80, 0, 2, 0, 40, 100, FAIL_MODE_15PF0FIRST,
+		frame2);
 
-		decode_video_memory(
-			image, colors2,
-			8000, 80, 0, 2, 0, 40, 100, 15,
-			frame2);
-
-		decode_video_memory(
-			image, colors1,
-			8040, 80, 1, 2, 0, 40, 100, 15,
-			frame2);
-	}
+	decode_video_memory(
+		image, image + 16000,
+		8040, 80, 1, 2, 0, 40, 100, FAIL_MODE_15PF0FIRST,
+		frame2);
 
 	frames_to_rgb(frame1, frame2, 320 * 200, atari_palette, pixels);
 
@@ -1552,7 +1552,6 @@ static abool decode_raw(
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
-	byte color_regs[4];
 	byte frame1[320 * 192];
 	byte frame2[320 * 192];
 
@@ -1564,22 +1563,14 @@ static abool decode_raw(
 	image_info->original_width = 160;
 	image_info->original_height = 192;
 
-	color_regs[0] = image[0x3c07];
-	color_regs[1] = image[0x3c04];
-	color_regs[2] = image[0x3c05];
-	color_regs[3] = image[0x3c06];
 	decode_video_memory(
-		image, color_regs,
-		4, 40, 0, 1, 0, 40, 192, 15,
+		image, image + 0x3c04,
+		4, 40, 0, 1, 0, 40, 192, FAIL_MODE_15PF0FIRST,
 		frame1);
 
-	color_regs[0] = image[0x3c0b];
-	color_regs[1] = image[0x3c08];
-	color_regs[2] = image[0x3c09];
-	color_regs[3] = image[0x3c0a];
 	decode_video_memory(
-		image, color_regs,
-		0x1e04, 40, 0, 1, 0, 40, 192, 15,
+		image, image + 0x3c08,
+		0x1e04, 40, 0, 1, 0, 40, 192, FAIL_MODE_15PF0FIRST,
 		frame2);
 
 	frames_to_rgb(frame1, frame2, 320 * 192, atari_palette, pixels);
