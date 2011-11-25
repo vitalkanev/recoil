@@ -634,13 +634,31 @@ static abool decode_mic(
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
-	abool has_palette;
+	const byte *color_regs;
+	byte atarigraphics_color_regs[4];
 	byte frame[320 * 240];
 
-	if (image_len % 40 == 4)
-		has_palette = TRUE;
+	if (image_len == 15872) {
+		/* AtariGraphics file format.
+		AtariGraphics was included on a cartridge with the Atari Light Pen.
+		Its files have no default extension.
+		The format is: 7680 bytes picture, followed by PF0,PF1,PF2,BAK colors,
+		followed by 508 bytes of padding, followed by 7680 bytes of fill map.
+		The fill map allows flood filling areas previously filled with a pattern.
+		It is a copy of the picture, except that areas filled with a pattern
+		are filled with a solid color here. Also, the fill map has inverted bits
+		compared to the picture, don't know why. */
+		image_len = 7680;
+		color_regs = atarigraphics_color_regs;
+		atarigraphics_color_regs[0] = image[7683];
+		atarigraphics_color_regs[1] = image[7680];
+		atarigraphics_color_regs[2] = image[7681];
+		atarigraphics_color_regs[3] = image[7682];
+	}
+	else if (image_len % 40 == 4)
+		color_regs = image + image_len - 4;
 	else if (image_len % 40 == 0)
-		has_palette = FALSE;
+		color_regs = mic_color_regs;
 	else
 		return FALSE;
 
@@ -652,7 +670,7 @@ static abool decode_mic(
 	image_info->original_height = image_info->height;
 
 	decode_video_memory(
-		image, has_palette ? image + image_len - 4 : mic_color_regs,
+		image, color_regs,
 		0, 40, 0, 1, 0, 40, image_info->height, 15,
 		frame);
 
