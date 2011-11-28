@@ -48,6 +48,7 @@ CPR:: "Trzmiel", 320x192, mono, compressed.
 DGP:: "DigiPaint", 80x192, 256 colors, interlaced.
 ESC:: "EscalPaint", 80x192, 256 colors, interlaced.
 FNT:: Standard 8x8 font, mono.
+FWA:: "Fun with Art", 160x192, 128 colors.
 GHG:: "Gephard Hires Graphics", up to 320x200, mono.
 GR8:: Standard 320x192, mono.
 GR9:: Standard 80x192, grayscale.

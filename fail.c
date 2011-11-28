@@ -1985,6 +1985,100 @@ static abool decode_mbg(
 	return TRUE;
 }
 
+static abool decode_fwa(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte frame[320 * 192];
+	byte color_regs[4];
+	int dl_offset;
+	int dli_offset;
+	int y;
+
+	if (image_len < 0x1f18 || image[0] != 0xfe || image[1] != 0xfe
+	 || image[6] != 0x70 || image[7] != 0x70 || image[8] != 0x70 || image[0xb] != 0x50 || image[0x73] != 0x60 || image[0xcd] != 0x41
+	 || 0x1f18 + image[0x1f16] + (image[0x1f17] << 8) != image_len)
+		return FALSE;
+
+	color_regs[0] = image[2];
+	color_regs[1] = image[3];
+	color_regs[2] = image[4];
+	color_regs[3] = image[5];
+	dl_offset = 9;
+	dli_offset = 0x1f18;
+	for (y = 0; y < 192; y++) {
+		int dl_instr;
+		decode_video_memory(
+			image, color_regs,
+			0x106 + 40 * y + (y >= 102 ? 16 : 0), 40, y, 1, 0, 40, 1, 15,
+			frame);
+		dl_instr = image[dl_offset];
+		if (dl_offset == 9 || dl_offset == 0x71) {
+			if ((dl_instr & 0x7f) != 0x4e || image[dl_offset + 1] != 0)
+				return FALSE;
+			dl_offset += 3;
+		}
+		else {
+			if ((dl_instr & 0x7f) != 0x0e)
+				return FALSE;
+			dl_offset++;
+		}
+		if (dl_instr >= 0x80) {
+			byte a;
+			if (dli_offset + 14 > image_len || image[dli_offset] != 0x48 || image[dli_offset + 1] != 0x8a || image[dli_offset + 2] != 0x48
+			 || image[dli_offset + 3] != 0xa9 || image[dli_offset + 5] != 0x8d || image[dli_offset + 6] != 0x0a || image[dli_offset + 7] != 0xd4)
+				return FALSE;
+			a = image[dli_offset + 4];
+			dli_offset += 8;
+			while (image[dli_offset] != 0x20) {
+				switch (image[dli_offset]) {
+				case 0xa9:
+					a = image[dli_offset + 1];
+					dli_offset += 2;
+					break;
+				case 0x8d:
+					if (image[dli_offset + 2] != 0xd0)
+						return FALSE;
+					switch (image[dli_offset + 1]) {
+					case 0x16:
+						color_regs[1] = a;
+						break;
+					case 0x17:
+						color_regs[2] = a;
+						break;
+					case 0x18:
+						color_regs[3] = a;
+						break;
+					case 0x1a:
+						color_regs[0] = a;
+						break;
+					default:
+						return FALSE;
+					}
+					dli_offset += 3;
+					break;
+				default:
+					return FALSE;
+				}
+				if (dli_offset + 3 > image_len)
+					return FALSE;
+			}
+			if (image[dli_offset + 1] != 0xca || image[dli_offset + 2] != 0x06)
+				return FALSE;
+			dli_offset += 3;
+		}
+	}
+
+	image_info->width = 320;
+	image_info->height = 192;
+	image_info->original_width = 160;
+	image_info->original_height = 192;
+	frame_to_rgb(frame, 320 * 192, atari_palette, pixels);
+	return TRUE;
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -2043,6 +2137,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('C', 'H', 'R'):
 	case FAIL_EXT('S', 'H', 'P'):
 	case FAIL_EXT('M', 'B', 'G'):
+	case FAIL_EXT('F', 'W', 'A'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -2105,7 +2200,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('W', 'N', 'D'), decode_wnd },
 		{ FAIL_EXT('C', 'H', 'R'), decode_chr },
 		{ FAIL_EXT('S', 'H', 'P'), decode_shp },
-		{ FAIL_EXT('M', 'B', 'G'), decode_mbg }
+		{ FAIL_EXT('M', 'B', 'G'), decode_mbg },
+		{ FAIL_EXT('F', 'W', 'A'), decode_fwa }
 	}, *ph;
 
 	if (atari_palette == NULL)

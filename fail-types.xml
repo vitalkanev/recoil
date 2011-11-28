@@ -10,6 +10,7 @@
 	<type ext="dgp" acronym="DiGiPaint" />
 	<type ext="esc" acronym="ESCalpaint" />
 	<type ext="fnt" />
+	<type ext="fwa" acronym="Fun With Art" />
 	<type ext="ghg" acronym="Gephard Hires Graphics" />
 	<type ext="gr8" />
 	<type ext="gr9" />

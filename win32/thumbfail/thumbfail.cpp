@@ -69,9 +69,9 @@ DECLARE_INTERFACE_(IThumbnailProvider, IUnknown)
 
 static const char extensions[][5] =
 	{ ".256", ".ap2", ".ap3", ".apc", ".cci", ".chr", ".cin", ".cpr", ".dgp", ".esc",
-	  ".fnt", ".ghg", ".gr8", ".gr9", ".hip", ".hr",  ".hr2", ".ige", ".ilc", ".inp",
-	  ".int", ".ist", ".jgp", ".mbg", ".mch", ".mcp", ".mgp", ".mic", ".pic", ".plm",
-	  ".pzm", ".raw", ".rgb", ".rip", ".shp", ".sxs", ".tip", ".wnd" };
+	  ".fnt", ".fwa", ".ghg", ".gr8", ".gr9", ".hip", ".hr",  ".hr2", ".ige", ".ilc",
+	  ".inp", ".int", ".ist", ".jgp", ".mbg", ".mch", ".mcp", ".mgp", ".mic", ".pic",
+	  ".plm", ".pzm", ".raw", ".rgb", ".rip", ".shp", ".sxs", ".tip", ".wnd" };
 #define N_EXTS (int) (sizeof(extensions) / sizeof(extensions[0]))
 
 static HINSTANCE g_hDll;
