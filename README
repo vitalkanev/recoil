@@ -74,10 +74,10 @@ RAW:: "XL-Paint MAX", 160x192, 16 colors, interlaced.
 RGB:: "ColorViewSquash", three-frame interlace.
 RIP:: "Rocky Interlace Picture", up to 160x239.
 RM0:: "Rambrandt", 160x96, 99 colors.
-// 99 = 96 changes on a DLI + 3 other colors
+// 99 = 4 colors + 95 DLI changes
 RM1:: "Rambrandt", 80x192, 256 colors.
 RM2:: "Rambrandt", 80x192, 104 colors.
-// 104 = 96 changes on a DLI + 8 other colors
+// 104 = 9 colors + 95 DLI changes
 RM3:: "Rambrandt", 80x192, 128 colors.
 RM4:: "Rambrandt", 160x192, 99 colors.
 SHP:: "Blazing Paddles" shape table, mono.
@@ -108,6 +108,15 @@ to submit bug reports, feature requests and small code patches.
 
 History
 -------
+
+FAIL 1.1.1 (???)::
+
+Added decoding of ColorViewSquash (RGB), Blazing Paddles (CHR, SHP, WND),
+Magic Painter (MGP), Mad Designer (MBG), AtariGraphics (MIC),
+Fun with Art (FWA), Rambrandt (RM0, RM1, RM2, RM3, RM4).
+Created Gnome thumbnailer.
+You may drag&drop files to the FAILWin window.
+GR8 wasn't registered in ImageMagick.
 
 FAIL 1.1.0 (2011-04-18)::
 
