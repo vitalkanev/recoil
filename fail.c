@@ -29,6 +29,7 @@
 
 #include "palette.h"
 
+#define FAIL_MODE_REAL11 27
 #define FAIL_MODE_15PF0FIRST 16
 #define FAIL_MODE_CIN15 31
 #define FAIL_MODE_MULTIRIP 48
@@ -73,6 +74,12 @@ static void decode_video_memory(
 			case 10:
 				/* 16 regs, typically only colors 0-8 are used */
 				frame[dest_pos + x] = color_regs[gr10_to_reg[b >> (~i & 4) & 0x0F]] & 0xFE;
+				break;
+			case FAIL_MODE_REAL11:
+				{
+					int hu = b << (i & 4) & 0xF0;
+					frame[dest_pos + x] = hu == 0 ? color_regs[0] & 0xF0 : (color_regs[0] & 0xFE) | hu;
+				}
 				break;
 			case 11:
 				/* copy hue to the other line so lines 2k and 2k+1 have the same
@@ -251,15 +258,15 @@ static abool rgb_to_palette(
 	return TRUE;
 }
 
-static abool unpack_koala(const byte data[], int data_len, int cprtype, byte unpacked_data[])
+static abool unpack_koala(const byte data[], int data_len, int cprtype, byte unpacked_data[], int unpacked_data_len)
 {
 	int i;
 	int d;
 	switch (cprtype) {
 	case 0:
-		if (data_len != 7680)
+		if (data_len != unpacked_data_len)
 			return FALSE;
-		memcpy(unpacked_data, data, 7680);
+		memcpy(unpacked_data, data, unpacked_data_len);
 		return TRUE;
 	case 1:
 	case 2:
@@ -300,16 +307,16 @@ static abool unpack_koala(const byte data[], int data_len, int cprtype, byte unp
 			}
 			unpacked_data[i] = (byte) b;
 			/* return if last byte written */
-			if (i >= 7679)
+			if (i >= unpacked_data_len - 1)
 				return TRUE;
 			if (cprtype == 2)
 				i++;
 			else {
 				i += 80;
-				if (i >= 7680) {
+				if (i >= unpacked_data_len) {
 					/* if in line 192, back to odd lines in the same column;
 					   if in line 193, go to even lines in the next column */
-					i -= (i < 7720) ? 191 * 40 : 193 * 40 - 1;
+					i -= (i < unpacked_data_len + 40) ? unpacked_data_len - 40 : unpacked_data_len + 39;
 				}
 			}
 		} while (--len > 0);
@@ -684,6 +691,19 @@ static abool decode_mic(
 	return TRUE;
 }
 
+static abool is_koala_header(const byte image[], int image_len)
+{
+	return image_len >= 26
+		&& image[0] == 0xff && image[1] == 0x80
+		&& image[2] == 0xc9 && image[3] == 0xc7
+		&& image[4] >= 26 && image[4] < image_len
+		&& image[5] == 0
+		&& image[6] == 1 && image[8] == 0x0e
+		&& image[9] == 0 && image[10] == 40
+		&& image[11] == 0 && image[12] == 192
+		&& image[20] == 0 && image[21] == 0;
+}
+
 static abool decode_pic(
 	const byte image[], int image_len,
 	const byte atari_palette[],
@@ -692,14 +712,7 @@ static abool decode_pic(
 {
 	byte unpacked_image[7680 + 4];
 
-	if (image[0] != 0xff || image[1] != 0x80
-	 || image[2] != 0xc9 || image[3] != 0xc7
-	 || image[4] < 0x1a || image[4] >= image_len
-	 || image[5] != 0
-	 || image[6] != 1 || image[8] != 0x0e
-	 || image[9] != 0 || image[10] != 40
-	 || image[11] != 0 || image[12] != 192
-	 || image[20] != 0 || image[21] != 0) {
+	if (!is_koala_header(image, image_len)) {
 		/* some images with .pic extension are
 		   in micropainter format */
 		if (image_len == 7684 || image_len == 7680) {
@@ -712,7 +725,7 @@ static abool decode_pic(
 
 	if (!unpack_koala(
 		image + image[4] + 1, image_len - image[4] - 1,
-		image[7], unpacked_image))
+		image[7], unpacked_image, 7680))
 		return FALSE;
 
 	unpacked_image[7680] = image[17];
@@ -736,7 +749,7 @@ static abool decode_cpr(
 
 	if (!unpack_koala(
 		image + 1, image_len - 1,
-		image[0], unpacked_image))
+		image[0], unpacked_image, 7680))
 		return FALSE;
 
 	image_info->original_width = 320;
@@ -2079,6 +2092,198 @@ static abool decode_fwa(
 	return TRUE;
 }
 
+static abool decode_rm(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[], int mode)
+{
+	byte unpacked_image[7680];
+	const byte *raw_image;
+	int colors_offset;
+	int dli_offset;
+	abool dli_present[192];
+	int y;
+	int i;
+	byte color_regs[9];
+	byte frame[320 * 192];
+
+	if (is_koala_header(image, image_len - 464)) {
+		/* File written by a Rambrandt plugin ("DOS module").
+		   Documentation suggests RM0-RM4 extensions. */
+		if (!unpack_koala(
+			image + image[4] + 1, image_len - image[4] - 465,
+			image[7], unpacked_image, mode == 0 ? 3840 : 7680))
+			return FALSE;
+		raw_image = unpacked_image;
+		colors_offset = image_len - 464;
+		dli_offset = image_len - 384;
+	}
+	else if (image_len == 8192) {
+		/* Rambrandt native raw format.
+		   Rambrandt writes directly to disk using its own filesystem:
+		   10 pictures per disk, 32 characters filename (no extension).
+		   We assume RM0-RM4 extensions even though it's a different format. */
+		raw_image = image;
+		colors_offset = 0x1e00;
+		dli_offset = 0x1e80;
+	}
+	else
+		return FALSE;
+
+	memcpy(color_regs, image + colors_offset, 9);
+	if (mode == 1)
+		color_regs[8] &= 0xf0;
+
+	for (y = 0; y < 192; y++)
+		dli_present[y] = FALSE;
+	for (i = 0; i < 128; i++) {
+		int y = image[dli_offset + i];
+		switch (y) {
+		case 0:
+			break;
+		case 1:
+		case 2:
+		case 4:
+		case 5:
+			return FALSE;
+		default:
+			if (y == 3)
+				y = 0;
+			else if (mode == 0) {
+				if (y >= 96 + 5)
+					return FALSE;
+				y -= 5;
+			}
+			else if (y < 100)
+				y -= 5;
+			else {
+				if (y == 100 || y == 101 || y >= 199)
+					return FALSE;
+				y -= 7;
+			}
+			dli_present[y] = TRUE;
+			break;
+		}
+	}
+
+	image_info->width = 320;
+	image_info->height = 192;
+	switch (mode) {
+	case 0:
+		image_info->original_width = 160;
+		image_info->original_height = 96;
+		break;
+	case 1:
+	case 2:
+	case 3:
+		image_info->original_width = 80;
+		image_info->original_height = 192;
+		break;
+	case 4:
+		image_info->original_width = 160;
+		image_info->original_height = 192;
+		break;
+	}
+
+	for (y = 0; y < image_info->original_height; y++) {
+		switch (mode) {
+		case 0:
+			color_regs[3] = color_regs[8];
+			decode_video_memory(
+				raw_image, color_regs + 3,
+				40 * y, 0, y * 2, 1, 0, 40, 2, 15,
+				frame);
+			break;
+		case 1:
+			decode_video_memory(
+				raw_image, color_regs + 8,
+				40 * y, 40, y, 1, 0, 40, 1, 9,
+				frame);
+			break;
+		case 2:
+			decode_video_memory(
+				raw_image, color_regs,
+				40 * y, 40, y, 1, 0, 40, 1, 10,
+				frame);
+			break;
+		case 3:
+			decode_video_memory(
+				raw_image, color_regs + 8,
+				40 * y, 40, y, 1, 0, 40, 1, FAIL_MODE_REAL11,
+				frame);
+			break;
+		case 4:
+			color_regs[3] = color_regs[8];
+			decode_video_memory(
+				raw_image, color_regs + 3,
+				40 * y, 40, y, 1, 0, 40, 1, 15,
+				frame);
+			break;
+		}
+		if (dli_present[y]) {
+			int vcount = y;
+			int reg;
+			if (mode != 0)
+				vcount >>= 1;
+			vcount += 16;
+			reg = image[dli_offset + 128 + vcount];
+			if (reg < 9)
+				color_regs[reg] = image[dli_offset + 256 + vcount];
+			else if (reg != 0x80)
+				return FALSE;
+		}
+	}
+
+	frame_to_rgb(frame, 320 * 192, atari_palette, pixels);
+	return TRUE;
+}
+
+static abool decode_rm0(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	return decode_rm(image, image_len, atari_palette, image_info, pixels, 0);
+}
+
+static abool decode_rm1(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	return decode_rm(image, image_len, atari_palette, image_info, pixels, 1);
+}
+
+static abool decode_rm2(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	return decode_rm(image, image_len, atari_palette, image_info, pixels, 2);
+}
+
+static abool decode_rm3(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	return decode_rm(image, image_len, atari_palette, image_info, pixels, 3);
+}
+
+static abool decode_rm4(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	return decode_rm(image, image_len, atari_palette, image_info, pixels, 4);
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -2138,6 +2343,11 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('S', 'H', 'P'):
 	case FAIL_EXT('M', 'B', 'G'):
 	case FAIL_EXT('F', 'W', 'A'):
+	case FAIL_EXT('R', 'M', '0'):
+	case FAIL_EXT('R', 'M', '1'):
+	case FAIL_EXT('R', 'M', '2'):
+	case FAIL_EXT('R', 'M', '3'):
+	case FAIL_EXT('R', 'M', '4'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -2201,7 +2411,12 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('C', 'H', 'R'), decode_chr },
 		{ FAIL_EXT('S', 'H', 'P'), decode_shp },
 		{ FAIL_EXT('M', 'B', 'G'), decode_mbg },
-		{ FAIL_EXT('F', 'W', 'A'), decode_fwa }
+		{ FAIL_EXT('F', 'W', 'A'), decode_fwa },
+		{ FAIL_EXT('R', 'M', '0'), decode_rm0 },
+		{ FAIL_EXT('R', 'M', '1'), decode_rm1 },
+		{ FAIL_EXT('R', 'M', '2'), decode_rm2 },
+		{ FAIL_EXT('R', 'M', '3'), decode_rm3 },
+		{ FAIL_EXT('R', 'M', '4'), decode_rm4 }
 	}, *ph;
 
 	if (atari_palette == NULL)

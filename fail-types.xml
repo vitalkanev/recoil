@@ -34,6 +34,11 @@
 	<type ext="raw" />
 	<type ext="rgb" />
 	<type ext="rip" acronym="Rocky Interlace Picture" />
+	<type ext="rm0" />
+	<type ext="rm1" />
+	<type ext="rm2" />
+	<type ext="rm3" />
+	<type ext="rm4" />
 	<type ext="shp" />
 	<type ext="sxs" />
 	<type ext="tip" acronym="Taquart Interlace Picture" />
