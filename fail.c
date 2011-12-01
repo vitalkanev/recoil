@@ -1158,12 +1158,20 @@ static abool decode_rip(
 	case 0x10:
 		/* interlaced gr. 15 */
 		decode_video_memory(
-			unpacked_image, image + 24 + txt_len,
-			0, line_len, 0, 1, 0, line_len, image_info->height,
+			unpacked_image, image + 28 + txt_len,
+			0, line_len * 2, 0, 2, 0, line_len, image_info->height / 2,
 			15, frame1);
 		decode_video_memory(
+			unpacked_image, image + 24 + txt_len,
+			40, line_len * 2, 1, 2, 0, line_len, image_info->height / 2,
+			15, frame1);
+		decode_video_memory(
+			unpacked_image, image + 24 + txt_len,
+			frame_len, line_len * 2, 0, 2, 0, line_len, image_info->height / 2,
+			15, frame2);
+		decode_video_memory(
 			unpacked_image, image + 28 + txt_len,
-			frame_len, line_len, 0, 1, 0, line_len, image_info->height,
+			frame_len + 40, line_len * 2, 1, 2, 0, line_len, image_info->height / 2,
 			15, frame2);
 		break;
 	case 0x20:

@@ -116,6 +116,7 @@ FAIL 1.2.0 (???)::
 Added decoding of ColorViewSquash (RGB), Blazing Paddles (CHR, SHP, WND),
 Magic Painter (MGP), Mad Designer (MBG), AtariGraphics (MIC), Fun with Art (FWA),
 Rambrandt (RM0, RM1, RM2, RM3, RM4), XL-Paint (XLP), XL-Paint MAX (MAX).
+Fixed decoding of some RIP files.
 Created Gnome thumbnailer.
 You may drag&drop files to the FAILWin window.
 GR8 wasn't registered in ImageMagick.
