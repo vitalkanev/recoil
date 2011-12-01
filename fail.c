@@ -2348,7 +2348,7 @@ static abool decode_xlp(
 	if (image_len >= 10 && image[0] == 'X' && image[1] == 'L' && image[2] == 'P' && image[3] == 'C') {
 		image += 4;
 		image_len -= 4;
-		/* ignore errors: STAIRS.XLP included with XL-Paint is last two image bytes */
+		/* ignore errors: STAIRS.XLP included with XL-Paint is missing last two image bytes */
 		memset(unpacked_image, 0, 2 * 40 * 192);
 		unpack_xlp(image + 4, image_len - 4, unpacked_image, 2 * 40 * 192);
 		height = 192;
@@ -2376,7 +2376,47 @@ static abool decode_xlp(
 		frame2);
 
 	frames_to_rgb(frame1, frame2, 320 * height, atari_palette, pixels);
+	return TRUE;
+}
 
+static abool decode_max(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte unpacked_image[2 * 7680];
+	byte frame1[320 * 192];
+	byte frame2[320 * 192];
+	int y;
+
+	if (image_len < 4 + 9 * 192 || image[0] != 'X' || image[1] != 'L' || image[2] != 'P' || image[3] != 'M'
+	 || !unpack_xlp(image + 4 + 9 * 192, image_len - (4 + 9 * 192), unpacked_image, 2 * 7680))
+		return FALSE;
+
+	image_info->width = 320;
+	image_info->height = 192;
+	image_info->original_width = 160;
+	image_info->original_height = 192;
+
+	for (y = 0; y < 192; y++) {
+		byte color_regs[4] = { image[4 + y], image[4 + 192 + y], image[4 + 2 * 192 + y], image[4 + 3 * 192 + y] };
+		decode_video_memory(
+			unpacked_image, color_regs,
+			7680 + 40 * y, 40, y, 1, 0, 40, 1, 15,
+			frame1);
+
+		color_regs[0] = image[4 + 4 * 192 + y];
+		color_regs[1] = image[4 + 5 * 192 + y];
+		color_regs[2] = image[4 + 6 * 192 + y];
+		color_regs[3] = image[4 + 7 * 192 + y];
+		decode_video_memory(
+			unpacked_image, color_regs,
+			40 * y, 40, y, 1, 0, 40, 1, 15,
+			frame2);
+	}
+
+	frames_to_rgb(frame1, frame2, 320 * 192, atari_palette, pixels);
 	return TRUE;
 }
 
@@ -2445,6 +2485,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('R', 'M', '3'):
 	case FAIL_EXT('R', 'M', '4'):
 	case FAIL_EXT('X', 'L', 'P'):
+	case FAIL_EXT('M', 'A', 'X'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -2514,7 +2555,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('R', 'M', '2'), decode_rm2 },
 		{ FAIL_EXT('R', 'M', '3'), decode_rm3 },
 		{ FAIL_EXT('R', 'M', '4'), decode_rm4 },
-		{ FAIL_EXT('X', 'L', 'P'), decode_xlp }
+		{ FAIL_EXT('X', 'L', 'P'), decode_xlp },
+		{ FAIL_EXT('M', 'A', 'X'), decode_max }
 	}, *ph;
 
 	if (atari_palette == NULL)
