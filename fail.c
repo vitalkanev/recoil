@@ -2292,6 +2292,94 @@ static abool decode_rm4(
 	return decode_rm(image, image_len, atari_palette, image_info, pixels, 4);
 }
 
+static abool unpack_xlp(const byte data[], int data_len, byte unpacked_data[], int unpacked_data_len)
+{
+	int data_offset = 0;
+	int unpacked_offset = 0;
+	for (;;) {
+		int b;
+		int len;
+		if (data_offset >= data_len)
+			return FALSE;
+		b = data[data_offset++];
+		len = b & 0x7f;
+		if (len >= 0x40) {
+			if (data_offset >= data_len)
+				return FALSE;
+			len = ((len - 0x40) << 8) + data[data_offset++];
+		}
+		if (b < 0x80)
+			b = -1;
+		else {
+			if (data_offset >= data_len)
+				return FALSE;
+			b = data[data_offset++];
+		}
+		while (len > 0) {
+			if (b < 0) {
+				if (data_offset >= data_len)
+					return FALSE;
+				unpacked_data[unpacked_offset] = data[data_offset++];
+			}
+			else
+				unpacked_data[unpacked_offset] = (byte) b;
+			unpacked_offset += 40;
+			if (unpacked_offset >= unpacked_data_len) {
+				unpacked_offset -= unpacked_data_len - 1;
+				if (unpacked_offset >= 40)
+					return TRUE;
+			}
+			len--;
+		}
+	}
+}
+
+static abool decode_xlp(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	int height;
+	byte unpacked_image[2 * 8000];
+	byte frame1[320 * 200];
+	byte frame2[320 * 200];
+
+	if (image_len >= 10 && image[0] == 'X' && image[1] == 'L' && image[2] == 'P' && image[3] == 'C') {
+		image += 4;
+		image_len -= 4;
+		/* ignore errors: STAIRS.XLP included with XL-Paint is last two image bytes */
+		memset(unpacked_image, 0, 2 * 40 * 192);
+		unpack_xlp(image + 4, image_len - 4, unpacked_image, 2 * 40 * 192);
+		height = 192;
+	}
+	else {
+		height = 200;
+		/* no header so better check for errors */
+		if (!unpack_xlp(image + 4, image_len - 4, unpacked_image, 2 * 40 * 200))
+			return FALSE;
+	}
+
+	image_info->width = 320;
+	image_info->height = height;
+	image_info->original_width = 160;
+	image_info->original_height = height;
+
+	decode_video_memory(
+		unpacked_image, image,
+		0, 40, 0, 1, 0, 40, height, FAIL_MODE_15PF0FIRST,
+		frame1);
+
+	decode_video_memory(
+		unpacked_image, image,
+		40 * height, 40, 0, 1, 0, 40, height, FAIL_MODE_15PF0FIRST,
+		frame2);
+
+	frames_to_rgb(frame1, frame2, 320 * height, atari_palette, pixels);
+
+	return TRUE;
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -2356,6 +2444,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('R', 'M', '2'):
 	case FAIL_EXT('R', 'M', '3'):
 	case FAIL_EXT('R', 'M', '4'):
+	case FAIL_EXT('X', 'L', 'P'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -2424,7 +2513,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('R', 'M', '1'), decode_rm1 },
 		{ FAIL_EXT('R', 'M', '2'), decode_rm2 },
 		{ FAIL_EXT('R', 'M', '3'), decode_rm3 },
-		{ FAIL_EXT('R', 'M', '4'), decode_rm4 }
+		{ FAIL_EXT('R', 'M', '4'), decode_rm4 },
+		{ FAIL_EXT('X', 'L', 'P'), decode_xlp }
 	}, *ph;
 
 	if (atari_palette == NULL)

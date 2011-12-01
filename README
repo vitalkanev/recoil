@@ -84,6 +84,7 @@ SHP:: "Blazing Paddles" shape table, mono.
 SXS:: 16x16 font, mono.
 TIP:: "Taquart Interlace Picture", up to 160x119.
 WND:: "Blazing Paddles" window, up to 160x192, 4 colors.
+XLP:: "XL-Paint", 160x192 or 160x200, 7 colors, interlaced, compressed.
 
 You can find some example files in http://fail.sourceforge.net/examples.zip[examples.zip].
 
@@ -109,11 +110,11 @@ to submit bug reports, feature requests and small code patches.
 History
 -------
 
-FAIL 1.1.1 (???)::
+FAIL 1.2.0 (???)::
 
 Added decoding of ColorViewSquash (RGB), Blazing Paddles (CHR, SHP, WND),
 Magic Painter (MGP), Mad Designer (MBG), AtariGraphics (MIC),
-Fun with Art (FWA), Rambrandt (RM0, RM1, RM2, RM3, RM4).
+Fun with Art (FWA), Rambrandt (RM0, RM1, RM2, RM3, RM4), XL-Paint (XLP).
 Created Gnome thumbnailer.
 You may drag&drop files to the FAILWin window.
 GR8 wasn't registered in ImageMagick.

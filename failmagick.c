@@ -148,7 +148,8 @@ static const struct Format {
 	{ "SHP", "Blazing Paddles shape table; mono" },
 	{ "SXS", "16x16 font, mono" },
 	{ "TIP", "Taquart Interlace Picture; up to 160x119" },
-	{ "WND", "Blazing Paddles window; up to 160x192, 4 colors" }
+	{ "WND", "Blazing Paddles window; up to 160x192, 4 colors" },
+	{ "XLP", "XL-Paint; 160x192 or 160x200; 7 colors, interlaced, compressed" }
 };
 
 ModuleExport unsigned long RegisterFAILImage(void)

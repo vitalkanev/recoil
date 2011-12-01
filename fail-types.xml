@@ -43,4 +43,5 @@
 	<type ext="sxs" />
 	<type ext="tip" acronym="Taquart Interlace Picture" />
 	<type ext="wnd" />
+	<type ext="xlp" acronym="XL-Paint" />
 </fail-types>
