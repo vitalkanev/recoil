@@ -260,8 +260,8 @@ static abool rgb_to_palette(
 
 static abool unpack_koala(const byte data[], int data_len, int cprtype, byte unpacked_data[], int unpacked_data_len)
 {
-	int i;
-	int d;
+	int data_offset;
+	int unpacked_offset;
 	switch (cprtype) {
 	case 0:
 		if (data_len != unpacked_data_len)
@@ -274,49 +274,49 @@ static abool unpack_koala(const byte data[], int data_len, int cprtype, byte unp
 	default:
 		return FALSE;
 	}
-	i = 0;
-	d = 0;
+	data_offset = 0;
+	unpacked_offset = 0;
 	for (;;) {
-		int c;
-		int len;
 		int b;
-		c = data[d++];
-		if (d > data_len)
+		int len;
+		if (data_offset >= data_len)
 			return FALSE;
-		len = c & 0x7f;
+		b = data[data_offset++];
+		len = b & 0x7f;
 		if (len == 0) {
-			int h;
-			h = data[d++];
-			if (d > data_len)
+			if (data_offset + 1 >= data_len)
 				return FALSE;
-			len = data[d++];
-			if (d > data_len)
-				return FALSE;
-			len += h << 8;
+			len = (data[data_offset] << 8) + data[data_offset + 1];
 			if (len == 0)
 				return FALSE;
+			data_offset += 2;
 		}
-		b = -1;
+		if (b >= 0x80)
+			b = -1;
+		else {
+			if (data_offset >= data_len)
+				return FALSE;
+			b = data[data_offset++];
+		}
 		do {
-			/* get byte if uncompressed block
-			   or if starting RLE block */
-			if (c >= 0x80 || b < 0) {
-				b = data[d++];
-				if (d > data_len)
+			if (b < 0) {
+				if (data_offset >= data_len)
 					return FALSE;
+				unpacked_data[unpacked_offset] = data[data_offset++];
 			}
-			unpacked_data[i] = (byte) b;
+			else
+				unpacked_data[unpacked_offset] = (byte) b;
 			/* return if last byte written */
-			if (i >= unpacked_data_len - 1)
+			if (unpacked_offset >= unpacked_data_len - 1)
 				return TRUE;
 			if (cprtype == 2)
-				i++;
+				unpacked_offset++;
 			else {
-				i += 80;
-				if (i >= unpacked_data_len) {
+				unpacked_offset += 80;
+				if (unpacked_offset >= unpacked_data_len) {
 					/* if in line 192, back to odd lines in the same column;
 					   if in line 193, go to even lines in the next column */
-					i -= (i < unpacked_data_len + 40) ? unpacked_data_len - 40 : unpacked_data_len + 39;
+					unpacked_offset -= (unpacked_offset < unpacked_data_len + 40) ? unpacked_data_len - 40 : unpacked_data_len + 39;
 				}
 			}
 		} while (--len > 0);
