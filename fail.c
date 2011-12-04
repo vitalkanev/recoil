@@ -2164,19 +2164,24 @@ static abool decode_rm(
 		case 5:
 			return FALSE;
 		default:
-			if (y == 3)
-				y = 0;
-			else if (mode == 0) {
+			if (mode == 0) {
 				if (y >= 96 + 5)
 					return FALSE;
-				y -= 5;
+				if (y == 3)
+					y = 0;
+				else
+					y -= 5;
 			}
-			else if (y < 100)
-				y -= 5;
 			else {
-				if (y == 100 || y == 101 || y >= 199)
+				if (y == 100 || y == 101 || y >= 198)
 					return FALSE;
-				y -= 7;
+				if (y == 3)
+					y = 1;
+				else if (y < 100)
+					y -= 4;
+				else {
+					y -= 6;
+				}
 			}
 			dli_present[y] = TRUE;
 			break;
@@ -2238,12 +2243,8 @@ static abool decode_rm(
 			break;
 		}
 		if (dli_present[y]) {
-			int vcount = y;
-			int reg;
-			if (mode != 0)
-				vcount >>= 1;
-			vcount += 16;
-			reg = image[dli_offset + 128 + vcount];
+			int vcount = mode == 0 ? 16 + y : 16 + ((y - 1) >> 1);
+			int reg = image[dli_offset + 128 + vcount];
 			if (reg < 9)
 				color_regs[reg] = image[dli_offset + 256 + vcount];
 			else if (reg != 0x80)
