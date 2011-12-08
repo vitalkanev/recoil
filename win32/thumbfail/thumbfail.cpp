@@ -72,7 +72,7 @@ static const char extensions[][5] =
 	  ".fnt", ".fwa", ".ghg", ".gr8", ".gr9", ".hip", ".hr",  ".hr2", ".ige", ".ilc",
 	  ".inp", ".int", ".ist", ".jgp", ".max", ".mbg", ".mch", ".mcp", ".mgp", ".mic",
 	  ".pic", ".plm", ".pzm", ".raw", ".rgb", ".rip", ".rm0", ".rm1", ".rm2", ".rm3",
-	  ".rm4", ".shp", ".sxs", ".tip", ".wnd", ".xlp" };
+	  ".rm4", ".shc", ".shp", ".sxs", ".tip", ".wnd", ".xlp" };
 #define N_EXTS (int) (sizeof(extensions) / sizeof(extensions[0]))
 
 static HINSTANCE g_hDll;

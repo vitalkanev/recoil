@@ -61,7 +61,7 @@ INP:: 160x200, 7 colors, interlaced.
 INT:: "INT95a", up to 160x239, 16 colors, interlaced.
 IST:: "Interlace Studio", 160x200, interlaced.
 JGP:: "Jet Graphics Planner", 8x16 tiles, 4 colors.
-MAX:: "XL-Paint MAX", 160x192, 16 colors, interlaced, compressed.
+MAX:: "XL-Paint MAX", 160x192, interlaced, compressed.
 MBG:: "Mad Designer", 512x256, mono.
 MCH:: Up to 176x240, 128 colors.
 MCP:: "McPainter", 160x200, 16 colors, interlaced.
@@ -81,6 +81,7 @@ RM2:: "Rambrandt", 80x192, 104 colors.
 // 104 = 9 colors + 95 DLI changes
 RM3:: "Rambrandt", 80x192, 128 colors.
 RM4:: "Rambrandt", 160x192, 99 colors.
+SHC:: "SAMAR Hi-res Interlace with Map of Colours", 320x192, interlaced.
 SHP:: "Blazing Paddles" shape table, mono.
 SXS:: 16x16 font, mono.
 TIP:: "Taquart Interlace Picture", up to 160x119.
@@ -114,8 +115,9 @@ History
 FAIL 1.2.0 (???)::
 
 Added decoding of ColorViewSquash (RGB), Blazing Paddles (CHR, SHP, WND),
-Magic Painter (MGP), Mad Designer (MBG), AtariGraphics (MIC), Fun with Art (FWA),
-Rambrandt (RM0, RM1, RM2, RM3, RM4), XL-Paint (XLP), XL-Paint MAX (MAX).
+Magic Painter (MGP), Mad Designer (MBG), AtariGraphics (MIC),
+Fun with Art (FWA), Rambrandt (RM0, RM1, RM2, RM3, RM4), XL-Paint (XLP),
+XL-Paint MAX (MAX), SHIMC (SHC).
 Fixed decoding of some RIP files.
 Created Gnome thumbnailer.
 You may drag&drop files to the FAILWin window.

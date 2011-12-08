@@ -2429,6 +2429,58 @@ static abool decode_max(
 	return TRUE;
 }
 
+static abool decode_shc(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte frame1[320 * 192];
+	byte frame2[320 * 192];
+	int col1 = 0x3c00;
+	int col2 = 0x4100;
+	int y;
+
+	if (image_len != 17920)
+		return FALSE;
+
+	for (y = 0; y < 192; y++) {
+		int x;
+		for (x = 0; x < 320; x++) {
+			int i = 320 * y + x;
+			switch (x) {
+			/* widths measured in Atari800Win PLus 4.0 and Altirra 2.0-test47 */
+			case 46+48:
+			case 46+48+48+24:
+			case 46+48+48+24+24+24:
+			case 46+48+48+24+24+24+24+24:
+			case 46+48+48+24+24+24+24+24+24+20:
+				col1++;
+				break;
+			case 46:
+			case 46+48+48:
+			case 46+48+48+24+24:
+			case 46+48+48+24+24+24+24:
+			case 46+48+48+24+24+24+24+24+24:
+				col2++;
+				break;
+			default:
+				break;
+			}
+			/* COLPF1==0 */
+			frame1[i] = image[col1] & ((image[i >> 3] >> (~i & 7) & 1) != 0 ? 0xf0 : 0xfe);
+			frame2[i] = image[col2] & ((image[7680 + (i >> 3)] >> (~i & 7) & 1) != 0 ? 0xf0 : 0xfe);
+		}
+		col1++;
+		col2++;
+	}
+
+	image_info->original_width = image_info->width = 320;
+	image_info->original_height = image_info->height = 192;
+	frames_to_rgb(frame1, frame2, 320 * 192, atari_palette, pixels);
+	return TRUE;
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -2495,6 +2547,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('R', 'M', '4'):
 	case FAIL_EXT('X', 'L', 'P'):
 	case FAIL_EXT('M', 'A', 'X'):
+	case FAIL_EXT('S', 'H', 'C'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -2565,7 +2618,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('R', 'M', '3'), decode_rm3 },
 		{ FAIL_EXT('R', 'M', '4'), decode_rm4 },
 		{ FAIL_EXT('X', 'L', 'P'), decode_xlp },
-		{ FAIL_EXT('M', 'A', 'X'), decode_max }
+		{ FAIL_EXT('M', 'A', 'X'), decode_max },
+		{ FAIL_EXT('S', 'H', 'C'), decode_shc }
 	}, *ph;
 
 	if (atari_palette == NULL)
