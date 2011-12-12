@@ -68,11 +68,11 @@ DECLARE_INTERFACE_(IThumbnailProvider, IUnknown)
 #include "fail.h"
 
 static const char extensions[][5] =
-	{ ".256", ".all", ".ap2", ".ap3", ".apc", ".cci", ".chr", ".cin", ".cpr", ".dgp",
-	  ".esc", ".fnt", ".fwa", ".ghg", ".gr8", ".gr9", ".hip", ".hr",  ".hr2", ".ige",
-	  ".ilc", ".inp", ".int", ".ist", ".jgp", ".max", ".mbg", ".mch", ".mcp", ".mgp",
-	  ".mic", ".pic", ".plm", ".pzm", ".raw", ".rgb", ".rip", ".rm0", ".rm1", ".rm2",
-	  ".rm3", ".rm4", ".shc", ".shp", ".sxs", ".tip", ".wnd", ".xlp" };
+	{ ".256", ".all", ".ap2", ".ap3", ".apc", ".app", ".cci", ".chr", ".cin", ".cpr",
+	  ".dgp", ".esc", ".fnt", ".fwa", ".ghg", ".gr8", ".gr9", ".hip", ".hr",  ".hr2",
+	  ".ige", ".ilc", ".inp", ".int", ".ist", ".jgp", ".max", ".mbg", ".mch", ".mcp",
+	  ".mgp", ".mic", ".pic", ".plm", ".pzm", ".raw", ".rgb", ".rip", ".rm0", ".rm1",
+	  ".rm2", ".rm3", ".rm4", ".shc", ".shp", ".sxs", ".tip", ".wnd", ".xlp" };
 #define N_EXTS (int) (sizeof(extensions) / sizeof(extensions[0]))
 
 static HINSTANCE g_hDll;

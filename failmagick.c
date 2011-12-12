@@ -111,6 +111,7 @@ static const struct Format {
 	{ "AP2", "80x96, 256 colors" },
 	{ "AP3", "80x192, 256 colors, interlaced" },
 	{ "APC", "Any Point, Any Color; 80x96, 256 colors, interlaced" },
+	{ "APP", "80x192, 256 colors, interlaced, compressed" },
 	{ "CCI", "Champions' Interlace; 160x192, compressed" },
 	{ "CHR", "Blazing Paddles font; mono" },
 	{ "CIN", "Champions' Interlace; 160x192" },

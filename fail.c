@@ -2534,6 +2534,64 @@ static abool decode_all(
 	return TRUE;
 }
 
+static abool decode_app(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte unpacked_image[15872];
+	int unpacked_offset;
+	int current;
+	int hi;
+	int image_bits;
+	int image_offset;
+
+	if (image_len < 22 + 15872 / 2 /* two or more compressed bits per uncompressed nibble */
+	 || image[0] != 'S' || image[1] != '1' || image[2] != '0' || image[3] != '1'
+	 || image[4] != 0 || image[5] != 0x3e)
+		return FALSE;
+
+	unpacked_offset = 0;
+	current = image[22] >> 4;
+	hi = -1;
+	image_bits = (image[22] << 4) | 8;
+	image_offset = 23;
+
+	for (;;) {
+		int code;
+		if (hi < 0)
+			hi = current;
+		else {
+			unpacked_image[unpacked_offset++] = (hi << 4) | current;
+			if (unpacked_offset >= 15872)
+				break;
+			hi = -1;
+		}
+		for (code = 0; ; code += 2) {
+#define APP_NEXT_BIT() \
+			if ((image_bits & 0xff) != 0x80) \
+				image_bits <<= 1; \
+			else { \
+				if (image_offset >= image_len) \
+					return FALSE; \
+				image_bits = (image[image_offset++] << 1) | 1; \
+			}
+			APP_NEXT_BIT();
+			if ((image_bits & 0x100) == 0)
+				break;
+			if (code >= 14)
+				return FALSE;
+		}
+		APP_NEXT_BIT();
+		code += (image_bits >> 8) & 1;
+		current = (current - image[6 + (code & 0xff)]) & 0xf;
+#undef APP_NEXT_BIT
+	}
+
+	return decode_ap3(unpacked_image, 15872, atari_palette, image_info, pixels);
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -2602,6 +2660,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('M', 'A', 'X'):
 	case FAIL_EXT('S', 'H', 'C'):
 	case FAIL_EXT('A', 'L', 'L'):
+	case FAIL_EXT('A', 'P', 'P'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -2674,7 +2733,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('X', 'L', 'P'), decode_xlp },
 		{ FAIL_EXT('M', 'A', 'X'), decode_max },
 		{ FAIL_EXT('S', 'H', 'C'), decode_shc },
-		{ FAIL_EXT('A', 'L', 'L'), decode_all }
+		{ FAIL_EXT('A', 'L', 'L'), decode_all },
+		{ FAIL_EXT('A', 'P', 'P'), decode_app }
 	}, *ph;
 
 	if (atari_palette == NULL)

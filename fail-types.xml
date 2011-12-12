@@ -4,6 +4,7 @@
 	<type ext="ap2" />
 	<type ext="ap3" />
 	<type ext="apc" acronym="Any Point, Any Color" />
+	<type ext="app" />
 	<type ext="cci" acronym="Compressed Champions' Interlace" />
 	<type ext="chr" />
 	<type ext="cin" acronym="Champions' INterlace" />
