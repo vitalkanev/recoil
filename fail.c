@@ -2481,6 +2481,59 @@ static abool decode_shc(
 	return TRUE;
 }
 
+static abool decode_all(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	/* "ALL" format of GRAPH.COM by Adam Bienias:
+	24 bytes - font in line (0-7)
+	n*1024 bytes - fonts
+	960 bytes - characters
+	5 bytes - PF0, PF1, PF2, PF3, BAK colors */
+
+	byte frame[320 * 192];
+	int y;
+
+	if ((image_len & 0x3ff) != 24 + 960 + 5)
+		return FALSE;
+
+	for (y = 0; y < 192; y++) {
+		int font_offset = 24 + (image[y >> 3] << 10);
+		int x;
+		if (font_offset >= image_len - 965)
+			return FALSE;
+		for (x = 0; x < 160; x++) {
+			int ch = image[image_len - 965 + 40 * (y >> 3) + (x >> 2)];
+			int color = (image[font_offset + ((ch & 0x7f) << 3) + (y & 7)] >> (2 * (~x & 3))) & 3;
+			switch (color) {
+			case 0:
+				color = 4;
+				break;
+			case 1:
+				color = 0;
+				break;
+			case 2:
+				color = 1;
+				break;
+			case 3:
+				if (ch < 0x80)
+					color = 2;
+				break;
+			}
+			frame[320 * y + 2 * x + 1] = frame[320 * y + 2 * x] = image[image_len - 5 + color] & 0xfe;
+		}
+	}
+
+	image_info->width = 320;
+	image_info->height = 192;
+	image_info->original_width = 160;
+	image_info->original_height = 192;
+	frame_to_rgb(frame, 320 * 192, atari_palette, pixels);
+	return TRUE;
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -2548,6 +2601,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('X', 'L', 'P'):
 	case FAIL_EXT('M', 'A', 'X'):
 	case FAIL_EXT('S', 'H', 'C'):
+	case FAIL_EXT('A', 'L', 'L'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -2619,7 +2673,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('R', 'M', '4'), decode_rm4 },
 		{ FAIL_EXT('X', 'L', 'P'), decode_xlp },
 		{ FAIL_EXT('M', 'A', 'X'), decode_max },
-		{ FAIL_EXT('S', 'H', 'C'), decode_shc }
+		{ FAIL_EXT('S', 'H', 'C'), decode_shc },
+		{ FAIL_EXT('A', 'L', 'L'), decode_all }
 	}, *ph;
 
 	if (atari_palette == NULL)

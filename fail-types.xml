@@ -1,5 +1,6 @@
 <fail-types>
 	<type ext="256" />
+	<type ext="all" />
 	<type ext="ap2" />
 	<type ext="ap3" />
 	<type ext="apc" acronym="Any Point, Any Color" />

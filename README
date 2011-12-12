@@ -38,6 +38,7 @@ Supported file formats
 
 [horizontal]
 256:: 80x96, 256 colors.
+ALL: "Graph", 160x192, 5 colors.
 AP2:: 80x96, 256 colors.
 AP3:: 80x192, 256 colors, interlaced.
 APC:: "Any Point, Any Color", 80x96, 256 colors, interlaced.
@@ -117,7 +118,7 @@ FAIL 1.2.0 (???)::
 Added decoding of ColorViewSquash (RGB), Blazing Paddles (CHR, SHP, WND),
 Magic Painter (MGP), Mad Designer (MBG), AtariGraphics (MIC),
 Fun with Art (FWA), Rambrandt (RM0, RM1, RM2, RM3, RM4), XL-Paint (XLP),
-XL-Paint MAX (MAX), SHIMC (SHC).
+XL-Paint MAX (MAX), SHIMC (SHC), Graph (ALL).
 Fixed decoding of some RIP files.
 Created Gnome thumbnailer.
 You may drag&drop files to the FAILWin window.
