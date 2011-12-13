@@ -2418,9 +2418,12 @@ static abool decode_xlp(
 		height = 192;
 	}
 	else {
-		height = 200;
 		/* no header so better check for errors */
-		if (!unpack_xlp(image + 4, image_len - 4, unpacked_image, 2 * 40 * 200))
+		if (unpack_xlp(image + 4, image_len - 4, unpacked_image, 2 * 40 * 200))
+			height = 200;
+		else if (unpack_xlp(image + 4, image_len - 4, unpacked_image, 2 * 40 * 192))
+			height = 192;
+		else
 			return FALSE;
 	}
 
