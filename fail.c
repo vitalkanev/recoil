@@ -2777,6 +2777,50 @@ static abool decode_sge(
 	return decode_gr8(gr8, 7680, atari_palette, image_info, pixels);
 }
 
+static abool decode_dlm(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	int y;
+	byte gr8[11 * 128];
+	byte frame[88 * 128];
+
+	if (image_len != 256)
+		return FALSE;
+
+	for (y = 0; y < 128; y++) {
+		int x;
+		for (x = 0; x < 11; x++) {
+			int ch = image[(y & 0x78) * 2 + 5 + x];
+			/* ATASCII -> screen code */
+			switch (ch & 0x60) {
+			case 0x00:
+				ch += 0x40;
+				break;
+			case 0x20:
+			case 0x40:
+				ch -= 0x20;
+				break;
+			default:
+				break;
+			}
+			gr8[11 * y + x] = atari_font[((ch & 0x7f) << 3) + (y & 7)] ^ (ch >= 0x80 ? 0xff : 0);
+		}
+	}
+
+	image_info->original_width = image_info->width = 88;
+	image_info->original_height = image_info->height = 128;
+	decode_video_memory(
+		gr8, gr8_color_regs,
+		0, 11, 0, 1, 0, 11, 128, 8,
+		frame);
+
+	frame_to_rgb(frame, 88 * 128, atari_palette, pixels);
+	return TRUE;
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -2847,6 +2891,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('A', 'L', 'L'):
 	case FAIL_EXT('A', 'P', 'P'):
 	case FAIL_EXT('S', 'G', 'E'):
+	case FAIL_EXT('D', 'L', 'M'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -2921,7 +2966,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('S', 'H', 'C'), decode_shc },
 		{ FAIL_EXT('A', 'L', 'L'), decode_all },
 		{ FAIL_EXT('A', 'P', 'P'), decode_app },
-		{ FAIL_EXT('S', 'G', 'E'), decode_sge }
+		{ FAIL_EXT('S', 'G', 'E'), decode_sge },
+		{ FAIL_EXT('D', 'L', 'M'), decode_dlm }
 	}, *ph;
 
 	if (atari_palette == NULL)

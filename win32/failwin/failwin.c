@@ -357,9 +357,9 @@ static void SelectAndOpenImage(void)
 		sizeof(OPENFILENAME),
 		NULL,
 		0,
-		"All supported\0*.256;*.all;*.ap2;*.ap3;*.apc;*.app;*.cci;*.chr;*.cin;*.cpr;*.dgp;*.esc;*.fnt;*.fwa;*.ghg;*.gr8;*.gr9;*.hip;*.hr;*.hr2;*.ige;*.ilc;*.inp;*.int;*.ist;*.jgp;*.max;*.mbg;*.mch;*.mcp;*.mgp;*.mic;*.pic;*.plm;*.pzm;*.raw;*.rgb;*.rip;*.rm0;*.rm1;*.rm2;*.rm3;*.rm4;*.sge;*.shc;*.shp;*.sxs;*.tip;*.wnd;*.xlp\0"
+		"All supported\0*.256;*.all;*.ap2;*.ap3;*.apc;*.app;*.cci;*.chr;*.cin;*.cpr;*.dgp;*.dlm;*.esc;*.fnt;*.fwa;*.ghg;*.gr8;*.gr9;*.hip;*.hr;*.hr2;*.ige;*.ilc;*.inp;*.int;*.ist;*.jgp;*.max;*.mbg;*.mch;*.mcp;*.mgp;*.mic;*.pic;*.plm;*.pzm;*.raw;*.rgb;*.rip;*.rm0;*.rm1;*.rm2;*.rm3;*.rm4;*.sge;*.shc;*.shp;*.sxs;*.tip;*.wnd;*.xlp\0"
 #define FAIL_FILTER(description, masks) description " (" masks ")\0" masks "\0"
-		FAIL_FILTER("Hi-res", "*.cpr;*.ghg;*.gr8;*.mbg;*.sge")
+		FAIL_FILTER("Hi-res", "*.cpr;*.dlm;*.ghg;*.gr8;*.mbg;*.sge")
 		FAIL_FILTER("Using DLI", "*.fwa;*.mch;*.mgp;*.rm0;*.rm1;*.rm2;*.rm3;*.rm4")
 		FAIL_FILTER("Other non-interlaced", "*.all;*.gr9;*.mic;*.pic;*.shp;*.wnd")
 		FAIL_FILTER("Interlaced GR. 15", "*.ige;*.inp;*.int;*.ist;*.max;*.mcp;*.raw;*.xlp")
