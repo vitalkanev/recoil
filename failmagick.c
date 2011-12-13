@@ -148,6 +148,7 @@ static const struct Format {
 	{ "RM2", "Rambrandt; 80x192, 104 colors" },
 	{ "RM3", "Rambrandt; 80x192, 128 colors" },
 	{ "RM4", "Rambrandt; 160x192, 99 colors" },
+	{ "SGE", "Semi-Graphic logos Editor; 320x192, mono" },
 	{ "SHC", "SAMAR Hi-res Interlace with Map of Colours; 320x192, interlaced" },
 	{ "SHP", "Blazing Paddles shape table; mono" },
 	{ "SXS", "16x16 font, mono" },

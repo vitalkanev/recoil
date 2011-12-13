@@ -83,6 +83,7 @@ RM2:: "Rambrandt", 80x192, 104 colors.
 // 104 = 9 colors + 95 DLI changes
 RM3:: "Rambrandt", 80x192, 128 colors.
 RM4:: "Rambrandt", 160x192, 99 colors.
+SGE:: "Semi-Graphic logos Editor", 320x192, mono.
 SHC:: "SAMAR Hi-res Interlace with Map of Colours", 320x192, interlaced.
 SHP:: "Blazing Paddles" shape table, mono.
 SXS:: 16x16 font, mono.
@@ -114,12 +115,13 @@ to submit bug reports, feature requests and small code patches.
 History
 -------
 
-FAIL 1.2.0 (???)::
+FAIL 1.2.0 (2011-12-??)::
 
 Added decoding of ColorViewSquash (RGB), Blazing Paddles (CHR, SHP, WND),
 Magic Painter (MGP), Mad Designer (MBG), AtariGraphics (MIC),
 Fun with Art (FWA), Rambrandt (RM0, RM1, RM2, RM3, RM4), XL-Paint (XLP),
-XL-Paint MAX (MAX), SHIMC (SHC), Graph (ALL), APP.
+XL-Paint MAX (MAX), SHIMC (SHC), Graph (ALL), APP,
+Semi-Graphic logos Editor (SGE).
 Fixed decoding of some RIP files.
 Created Gnome thumbnailer.
 You may drag&drop files to the FAILWin window.
