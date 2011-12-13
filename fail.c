@@ -2006,7 +2006,34 @@ static abool decode_shp(
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
-	return image_len == 1024 && decode_blazing_paddles_vectors(image, image_len, 0x7c00, atari_palette, image_info, pixels);
+	byte frame[320 * 192];
+
+	switch (image_len) {
+	case 1024:
+		return decode_blazing_paddles_vectors(image, image_len, 0x7c00, atari_palette, image_info, pixels);
+	case 4384:
+		break;
+	default:
+		return FALSE;
+	}
+
+	image_info->width = 320;
+	image_info->height = 192;
+	image_info->original_width = 160;
+	image_info->original_height = 96;
+
+	decode_video_memory(
+		image, image + 0x1110,
+		0x210, 40, 0, 2, 0, 40, 96, 15,
+		frame);
+	decode_video_memory(
+		image, image + 0x1110,
+		0x210, 40, 1, 2, 0, 40, 96, 15,
+		frame);
+
+	frame_to_rgb(frame, 320 * 192, atari_palette, pixels);
+
+	return TRUE;
 }
 
 static abool decode_mbg(

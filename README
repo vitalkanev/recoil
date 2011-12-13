@@ -87,6 +87,7 @@ RM4:: "Rambrandt", 160x192, 99 colors.
 SGE:: "Semi-Graphic logos Editor", 320x192, mono.
 SHC:: "SAMAR Hi-res Interlace with Map of Colours", 320x192, interlaced.
 SHP:: "Blazing Paddles" shape table, mono.
+SHP:: "Movie Maker" shapes, 160x96, 4 colors.
 SXS:: 16x16 font, mono.
 TIP:: "Taquart Interlace Picture", up to 160x119.
 WND:: "Blazing Paddles" window, up to 160x192, 4 colors.
@@ -122,7 +123,7 @@ Added decoding of ColorViewSquash (RGB), Blazing Paddles (CHR, SHP, WND),
 Magic Painter (MGP), Mad Designer (MBG), AtariGraphics (MIC),
 Fun with Art (FWA), Rambrandt (RM0, RM1, RM2, RM3, RM4), XL-Paint (XLP),
 XL-Paint MAX (MAX), SHIMC (SHC), Graph (ALL), APP View (APP),
-Semi-Graphic logos Editor (SGE), Dir Logo Maker (DLM).
+Semi-Graphic logos Editor (SGE), Dir Logo Maker (DLM), Movie Maker (SHP).
 Fixed decoding of some RIP files.
 Created Gnome thumbnailer.
 You may drag&drop files to the FAILWin window.
