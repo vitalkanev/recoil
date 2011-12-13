@@ -652,7 +652,7 @@ static abool decode_mic(
 	if (image_len == 15872) {
 		/* AtariGraphics file format.
 		AtariGraphics was included on a cartridge with the Atari Light Pen.
-		Its files have no default extension.
+		Its files have no default extension. I chose MIC, because it's similar.
 		The format is: 7680 bytes picture, followed by PF0,PF1,PF2,BAK colors,
 		followed by 508 bytes of padding, followed by 7680 bytes of fill map.
 		The fill map allows flood filling areas previously filled with a pattern.
@@ -663,16 +663,28 @@ static abool decode_mic(
 		color_regs = image + 7680;
 		mode = FAIL_MODE_15PF0FIRST;
 	}
-	else if (image_len % 40 == 4) {
-		color_regs = image + image_len - 4;
-		mode = 15;
+	else {
+		switch (image_len % 40) {
+		case 0:
+		case 3: /* I've found 7683-byte PIC files with three zero bytes at the end. */
+			color_regs = mic_color_regs;
+			mode = 15;
+			break;
+		case 4:
+			color_regs = image + image_len - 4;
+			mode = 15;
+			break;
+		case 5:
+			/* Probably the last byte should be taken for COLBAK, not the previous one,
+			but I can't check that since the 7685-byte PIC files I found
+			have two zero bytes at the end. */
+			color_regs = image + image_len - 5;
+			mode = FAIL_MODE_15PF0FIRST;
+			break;
+		default:
+			return FALSE;
+		}
 	}
-	else if (image_len % 40 == 0) {
-		color_regs = mic_color_regs;
-		mode = 15;
-	}
-	else
-		return FALSE;
 
 	image_info->width = 320;
 	image_info->height = image_len / 40;
@@ -713,9 +725,8 @@ static abool decode_pic(
 	byte unpacked_image[7680 + 4];
 
 	if (!is_koala_header(image, image_len)) {
-		/* some images with .pic extension are
-		   in micropainter format */
-		if (image_len == 7684 || image_len == 7680) {
+		/* some images with .pic extension are in micropainter format */
+		if (image_len >= 7680 && image_len <= 7685) {
 			return decode_mic(
 				image, image_len, atari_palette,
 				image_info, pixels);
