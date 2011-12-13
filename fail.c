@@ -1236,15 +1236,22 @@ static abool decode_fnt(
 {
 	byte ordered_bytes[1024];
 	int i;
-	int len;
 	const byte *s;
 
-	if (image_len == 1024)
+	switch (image_len) {
+	case 1024:
+	case 1025:
+	case 1026:
 		s = image;
-	else if (image_len == 1030 && parse_binary_header(image, &len) && len == 1024)
+		break;
+	case 1030:
+		if (!parse_binary_header(image, &image_len) || image_len != 1024)
+			return FALSE;
 		s = image + 6;
-	else
+		break;
+	default:
 		return FALSE;
+	}
 
 	for (i = 0; i < 1024; i++) {
 		ordered_bytes[
