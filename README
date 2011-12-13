@@ -43,6 +43,7 @@ AP2:: 80x96, 256 colors.
 AP3:: 80x192, 256 colors, interlaced.
 APC:: "Any Point, Any Color", 80x96, 256 colors, interlaced.
 APP:: 80x192, 256 colors, interlaced, compressed.
+BKG:: "Movie Maker" background, 160x96, 4 colors.
 CCI:: "Champions' Interlace", 160x192, compressed.
 CHR:: "Blazing Paddles" font, mono.
 CIN:: "Champions' Interlace", 160x192.
@@ -123,8 +124,8 @@ Added decoding of ColorViewSquash (RGB), Blazing Paddles (CHR, SHP, WND),
 Magic Painter (MGP), Mad Designer (MBG), AtariGraphics (MIC),
 Fun with Art (FWA), Rambrandt (RM0, RM1, RM2, RM3, RM4), XL-Paint (XLP),
 XL-Paint MAX (MAX), SHIMC (SHC), Graph (ALL), APP View (APP),
-Semi-Graphic logos Editor (SGE), Dir Logo Maker (DLM), Movie Maker (SHP).
-Fixed decoding of some RIP files.
+Semi-Graphic logos Editor (SGE), Dir Logo Maker (DLM), Movie Maker (BKG, SHP).
+Improved decoding of some RIP, FNT and MIC files.
 Created Gnome thumbnailer.
 You may drag&drop files to the FAILWin window.
 GR8 wasn't registered in ImageMagick.

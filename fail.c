@@ -2000,7 +2000,7 @@ static abool decode_chr(
 	return image_len == 3072 && decode_blazing_paddles_vectors(image, image_len, 0x7000, atari_palette, image_info, pixels);
 }
 
-static abool decode_shp(
+static abool decode_bkg(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
@@ -2008,14 +2008,8 @@ static abool decode_shp(
 {
 	byte frame[320 * 192];
 
-	switch (image_len) {
-	case 1024:
-		return decode_blazing_paddles_vectors(image, image_len, 0x7c00, atari_palette, image_info, pixels);
-	case 4384:
-		break;
-	default:
+	if (image_len != 3856)
 		return FALSE;
-	}
 
 	image_info->width = 320;
 	image_info->height = 192;
@@ -2023,17 +2017,33 @@ static abool decode_shp(
 	image_info->original_height = 96;
 
 	decode_video_memory(
-		image, image + 0x1110,
-		0x210, 40, 0, 2, 0, 40, 96, 15,
+		image, image + 0xf00,
+		0, 40, 0, 2, 0, 40, 96, 15,
 		frame);
 	decode_video_memory(
-		image, image + 0x1110,
-		0x210, 40, 1, 2, 0, 40, 96, 15,
+		image, image + 0xf00,
+		0, 40, 1, 2, 0, 40, 96, 15,
 		frame);
 
 	frame_to_rgb(frame, 320 * 192, atari_palette, pixels);
 
 	return TRUE;
+}
+
+static abool decode_shp(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	switch (image_len) {
+	case 1024:
+		return decode_blazing_paddles_vectors(image, image_len, 0x7c00, atari_palette, image_info, pixels);
+	case 4384:
+		return decode_bkg(image + 0x210, 3856, atari_palette, image_info, pixels);
+	default:
+		return FALSE;
+	}
 }
 
 static abool decode_mbg(
@@ -2937,6 +2947,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('A', 'P', 'P'):
 	case FAIL_EXT('S', 'G', 'E'):
 	case FAIL_EXT('D', 'L', 'M'):
+	case FAIL_EXT('B', 'K', 'G'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -3012,7 +3023,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('A', 'L', 'L'), decode_all },
 		{ FAIL_EXT('A', 'P', 'P'), decode_app },
 		{ FAIL_EXT('S', 'G', 'E'), decode_sge },
-		{ FAIL_EXT('D', 'L', 'M'), decode_dlm }
+		{ FAIL_EXT('D', 'L', 'M'), decode_dlm },
+		{ FAIL_EXT('B', 'K', 'G'), decode_bkg }
 	}, *ph;
 
 	if (atari_palette == NULL)
