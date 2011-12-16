@@ -39,7 +39,7 @@ Supported file formats
 
 [horizontal]
 256, AP2:: 80x96, 256 colors.
-ALL: "Graph", 160x192, 5 colors.
+ALL:: "Graph", 160x192, 5 colors.
 AP3, APV, DGP, ESC, ILC, PZM:: "DigiPaint" / "EscalPaint", 80x192, 256 colors, interlaced.
 APC, PLM:: "Any Point, Any Color" / "Plama 256", 80x96, 256 colors.
 APP:: 80x192, 256 colors, interlaced, compressed.
