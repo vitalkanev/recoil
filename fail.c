@@ -117,62 +117,60 @@ static void decode_video_memory(
 	}
 }
 
-static void frame_to_rgb(
-	const byte frame[], int frame_size,
+static abool frame_to_rgb(
+	const byte frame[],
 	const byte atari_palette[],
+	const FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
+	int frame_size = image_info->width * image_info->height;
 	int i;
 	for (i = 0; i < frame_size; i++) {
-		pixels[i * 3] = atari_palette[frame[i] * 3];
-		pixels[i * 3 + 1] = atari_palette[frame[i] * 3 + 1];
-		pixels[i * 3 + 2] = atari_palette[frame[i] * 3 + 2];
+		int c = frame[i] * 3;
+		pixels[i * 3] = atari_palette[c];
+		pixels[i * 3 + 1] = atari_palette[c + 1];
+		pixels[i * 3 + 2] = atari_palette[c + 2];
 	}
+	return TRUE;
 }
 
 /* mix interlaced frames */
-static void frames_to_rgb(
+static abool frames_to_rgb(
 	const byte frame1[], const byte frame2[],
-	int frame_size,
 	const byte atari_palette[],
+	const FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
+	int frame_size = image_info->width * image_info->height;
 	int i;
 	for (i = 0; i < frame_size; i++) {
-		pixels[i * 3] =
-			( atari_palette[frame1[i] * 3]
-			+ atari_palette[frame2[i] * 3]) / 2;
-		pixels[i * 3 + 1] =
-			( atari_palette[frame1[i] * 3 + 1]
-			+ atari_palette[frame2[i] * 3 + 1]) / 2;
-		pixels[i * 3 + 2] =
-			( atari_palette[frame1[i] * 3 + 2]
-			+ atari_palette[frame2[i] * 3 + 2]) / 2;
+		int c1 = frame1[i] * 3;
+		int c2 = frame2[i] * 3;
+		pixels[i * 3] = (atari_palette[c1] + atari_palette[c2]) / 2;
+		pixels[i * 3 + 1] = (atari_palette[c1 + 1] + atari_palette[c2 + 1]) / 2;
+		pixels[i * 3 + 2] = (atari_palette[c1 + 2] + atari_palette[c2 + 2]) / 2;
 	}
+	return TRUE;
 }
 
 /* mix 3 interlaced frames (for "RGB" atari images) */
-static void frames_to_rgb_3(
+static abool frames_to_rgb_3(
 	const byte frame1[], const byte frame2[], const byte frame3[],
-	int frame_size,
 	const byte atari_palette[],
+	const FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
+	int frame_size = image_info->width * image_info->height;
 	int i;
 	for (i = 0; i < frame_size; i++) {
-		pixels[i * 3] =
-			( atari_palette[frame1[i] * 3]
-			+ atari_palette[frame2[i] * 3]
-			+ atari_palette[frame3[i] * 3]) / 3;
-		pixels[i * 3 + 1] =
-			( atari_palette[frame1[i] * 3 + 1]
-			+ atari_palette[frame2[i] * 3 + 1]
-			+ atari_palette[frame3[i] * 3 + 1]) / 3;
-		pixels[i * 3 + 2] =
-			( atari_palette[frame1[i] * 3 + 2]
-			+ atari_palette[frame2[i] * 3 + 2]
-			+ atari_palette[frame3[i] * 3 + 2]) / 3;
+		int c1 = frame1[i] * 3;
+		int c2 = frame2[i] * 3;
+		int c3 = frame3[i] * 3;
+		pixels[i * 3] = (atari_palette[c1] + atari_palette[c2] + atari_palette[c3]) / 3;
+		pixels[i * 3 + 1] = (atari_palette[c1 + 1] + atari_palette[c2 + 1] + atari_palette[c3 + 1]) / 3;
+		pixels[i * 3 + 2] = (atari_palette[c1 + 2] + atari_palette[c2 + 2] + atari_palette[c3 + 2]) / 3;
 	}
+	return TRUE;
 }
 
 static int rgb_to_int(const byte *rgb)
@@ -514,9 +512,7 @@ static abool decode_gr8_gr9(
 		offset, 40, 0, 1, 0, 40, image_info->height, dest_mode,
 		frame);
 
-	frame_to_rgb(frame, image_info->height * 320, atari_palette, pixels);
-
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 static const byte gr8_color_regs[] = { 0x00, 0x0e };
@@ -576,9 +572,7 @@ static abool decode_hr(
 		0, 32, 0, 1, 0, 32, 239, 8,
 		frame2);
 
-	frames_to_rgb(frame1, frame2, 256 * 239, atari_palette, pixels);
-
-	return TRUE;
+	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
 }
 
 static const byte hip_color_regs[] = { 0x00, 0x00, 0x02, 0x04, 0x06, 0x08, 0x0A, 0x0C, 0x0E };
@@ -632,9 +626,7 @@ static abool decode_hip(
 	image_info->original_width = 160;
 	image_info->original_height = image_info->height;
 
-	frames_to_rgb(frame1, frame2, image_info->height * 320, atari_palette, pixels);
-
-	return TRUE;
+	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
 }
 
 static const byte mic_color_regs[] = { 0, 4, 8, 12 };
@@ -698,9 +690,7 @@ static abool decode_mic(
 		0, 40, 0, 1, 0, 40, image_info->height, mode,
 		frame);
 
-	frame_to_rgb(frame, image_info->height * 320, atari_palette, pixels);
-
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 static abool is_koala_header(const byte image[], int image_len)
@@ -797,9 +787,7 @@ static abool decode_inp(
 		0, 40, 0, 1, 0, 40, image_info->height, 15,
 		frame2);
 
-	frames_to_rgb(frame1, frame2, image_info->height * 320, atari_palette, pixels);
-
-	return TRUE;
+	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
 }
 
 static abool decode_int(
@@ -827,17 +815,15 @@ static abool decode_int(
 
 	decode_video_memory(
 		image + 18, image + 10,
-		0, 40, 0, 1, 0, 40, image_info->height, 15,
+		0, image[6], 0, 1, 0, image[6], image_info->height, 15,
 		frame1);
 
 	decode_video_memory(
 		image + 18 + image[6] * image_info->height, image + 14,
-		0, 40, 0, 1, 0, 40, image_info->height, 15,
+		0, image[6], 0, 1, 0, image[6], image_info->height, 15,
 		frame2);
 
-	frames_to_rgb(frame1, frame2, image_info->height * 320, atari_palette, pixels);
-
-	return TRUE;
+	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
 }
 
 static abool decode_cin(
@@ -886,9 +872,7 @@ static abool decode_cin(
 		7720, 80, 1, 2, 0, 40, 96, 11,
 		frame2);
 
-	frames_to_rgb(frame1, frame2, 320 * 192, atari_palette, pixels);
-
-	return TRUE;
+	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
 }
 
 static abool decode_cci(
@@ -984,10 +968,7 @@ static abool decode_tip(
 		9 + 2 * frame_len, line_len, 0, 2, -1, line_len, image[6], 11,
 		frame2);
 
-	frames_to_rgb(frame1, frame2,
-		image_info->height * image_info->width, atari_palette, pixels);
-
-	return TRUE;
+	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
 }
 
 /* serves both APC and PLM formats */
@@ -1017,10 +998,7 @@ static abool decode_apc(
 		0, 80, 0, 2, 0, 40, 96, 11,
 		frame);
 
-	frame_to_rgb(frame, image_info->height * image_info->width,
-		atari_palette, pixels);
-
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 /* serves AP3, DGP, ESC, ILC, PZM */
@@ -1067,10 +1045,7 @@ static abool decode_ap3(
 		image_len == 15872 ? 8232 : 7720, 80, 1, 2, 0, 40, 96, 11,
 		frame2);
 
-	frames_to_rgb(frame1, frame2,
-		image_info->height * image_info->width, atari_palette, pixels);
-
-	return TRUE;
+	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
 }
 
 static abool decode_rip(
@@ -1130,9 +1105,7 @@ static abool decode_rip(
 				frame_len, line_len, 0, 1, 0, line_len, image_info->height,
 				15, frame1);
 		}
-		frame_to_rgb(frame1, image_info->height * image_info->width,
-			atari_palette, pixels);
-		return TRUE;
+		return frame_to_rgb(frame1, atari_palette, image_info, pixels);
 	case 0x0f:
 		/* gr. 8 */
 		{
@@ -1142,36 +1115,28 @@ static abool decode_rip(
 				frame_len, line_len, 0, 1, 0, line_len, image_info->height,
 				8, frame1);
 		}
-		frame_to_rgb(frame1, image_info->height * image_info->width,
-			atari_palette, pixels);
-		return TRUE;
+		return frame_to_rgb(frame1, atari_palette, image_info, pixels);
 	case 0x4f:
 		/* gr. 9 */
 		decode_video_memory(
 			unpacked_image, image + 32 + txt_len,
 			frame_len, line_len, 0, 1, 0, line_len, image_info->height,
 			9, frame1);
-		frame_to_rgb(frame1, image_info->height * image_info->width,
-			atari_palette, pixels);
-		return TRUE;
+		return frame_to_rgb(frame1, atari_palette, image_info, pixels);
 	case 0x8f:
 		/* gr. 10 */
 		decode_video_memory(
 			unpacked_image, image + 24 + txt_len,
 			frame_len, line_len, 0, 1, 0, line_len, image_info->height,
 			10, frame1);
-		frame_to_rgb(frame1, image_info->height * image_info->width,
-			atari_palette, pixels);
-		return TRUE;
+		return frame_to_rgb(frame1, atari_palette, image_info, pixels);
 	case 0xcf:
 		/* gr. 11 */
 		decode_video_memory(
 			unpacked_image, image + 32 + txt_len,
 			frame_len, line_len, 0, 1, 0, line_len, image_info->height,
 			FAIL_MODE_REAL11, frame1);
-		frame_to_rgb(frame1, image_info->height * image_info->width,
-			atari_palette, pixels);
-		return TRUE;
+		return frame_to_rgb(frame1, atari_palette, image_info, pixels);
 	case 0x10:
 		/* interlaced gr. 15 */
 		decode_video_memory(
@@ -1217,10 +1182,7 @@ static abool decode_rip(
 		return FALSE;
 	}
 
-	frames_to_rgb(frame1, frame2,
-		image_info->height * image_info->width, atari_palette, pixels);
-
-	return TRUE;
+	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
 }
 
 static abool decode_fonts(
@@ -1240,9 +1202,7 @@ static abool decode_fonts(
 		ordered_bytes, gr8_color_regs,
 		0, 32, 0, 1, 0, 32, 32, 8, frame);
 
-	frame_to_rgb(frame, 256 * 32, atari_palette, pixels);
-
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 static abool decode_fnt(
@@ -1346,9 +1306,7 @@ static abool decode_mcp(
 		8040, 80, 1, 2, 0, 40, 100, FAIL_MODE_15PF0FIRST,
 		frame2);
 
-	frames_to_rgb(frame1, frame2, 320 * 200, atari_palette, pixels);
-
-	return TRUE;
+	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
 }
 
 static abool decode_ghg(
@@ -1373,9 +1331,7 @@ static abool decode_ghg(
 		3, image_info->width >> 3, 0, 1, 0, image_info->width >> 3, image_info->height, 8,
 		frame);
 
-	frame_to_rgb(frame, image_info->width * image_info->height, atari_palette, pixels);
-
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 static abool decode_hr2(
@@ -1401,8 +1357,7 @@ static abool decode_hr2(
 		8000, 40, 0, 1, 0, 40, 200, 15,
 		frame2);
 
-	frames_to_rgb(frame1, frame2, 320 * 200, atari_palette, pixels);
-	return TRUE;
+	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
 }
 
 static abool decode_mch(
@@ -1448,8 +1403,7 @@ static abool decode_mch(
 				frame[y * image_info->width + 2 * x] = colors[color * 240] & 0xfe;
 		}
 	}
-	frame_to_rgb(frame, image_info->width * 240, atari_palette, pixels);
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 static abool decode_ige(
@@ -1476,8 +1430,7 @@ static abool decode_ige(
 		image, image + 12,
 		0xc10, 32, 0, 1, 0, 32, 96,
 		15, frame2);
-	frames_to_rgb(frame1, frame2, 256 * 96, atari_palette, pixels);
-	return TRUE;
+	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
 }
 
 /* serves both 256 and AP2 formats */
@@ -1507,10 +1460,7 @@ static abool decode_256(
 		0, 40, 0, 2, 0, 40, 96, 11,
 		frame);
 
-	frame_to_rgb(frame, image_info->height * image_info->width,
-		atari_palette, pixels);
-
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 static abool decode_jgp(
@@ -1545,9 +1495,7 @@ static abool decode_jgp(
 		ordered_bytes, mic_color_regs,
 		0, 32, 0, 1, 0, 32, 64, 15, frame);
 
-	frame_to_rgb(frame, 256 * 64, atari_palette, pixels);
-
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 static abool decode_ist(
@@ -1581,9 +1529,7 @@ static abool decode_ist(
 			frame2);
 	}
 
-	frames_to_rgb(frame1, frame2, image_info->height * 320, atari_palette, pixels);
-
-	return TRUE;
+	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
 }
 
 static abool decode_raw(
@@ -1613,9 +1559,7 @@ static abool decode_raw(
 		0x1e04, 40, 0, 1, 0, 40, 192, FAIL_MODE_15PF0FIRST,
 		frame2);
 
-	frames_to_rgb(frame1, frame2, 320 * 192, atari_palette, pixels);
-
-	return TRUE;
+	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
 }
 
 static abool decode_mgp(
@@ -1658,8 +1602,7 @@ static abool decode_mgp(
 	for (x = 0; x < 8; x++)
 		frame[320 * 190 + 312 + x] = frame[320 * 191 + 312 + x] = color_regs[0] & 0xfe;
 
-	frame_to_rgb(frame, 320 * 192, atari_palette, pixels);
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 static abool decode_rgb(
@@ -1778,8 +1721,7 @@ static abool decode_rgb(
 		return FALSE;
 	}
 
-	frames_to_rgb_3(frames[0], frames[1], frames[2], image_info->width * image_info->height, atari_palette, pixels);
-	return TRUE;
+	return frames_to_rgb_3(frames[0], frames[1], frames[2], atari_palette, image_info, pixels);
 }
 
 static abool decode_wnd(
@@ -1812,8 +1754,7 @@ static abool decode_wnd(
 		2, bytes_per_line, 0, 1, 0, bytes_per_line, height, 15,
 		frame);
 
-	frame_to_rgb(frame, image_info->width * height, atari_palette, pixels);
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 typedef struct {
@@ -1980,8 +1921,7 @@ static abool decode_blazing_paddles_vectors(
 			break;
 	}
 
-	frame_to_rgb(frame, image_info->width * image_info->height, atari_palette, pixels);
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 static abool decode_chr(
@@ -2018,9 +1958,7 @@ static abool decode_bkg(
 		0, 40, 1, 2, 0, 40, 96, 15,
 		frame);
 
-	frame_to_rgb(frame, 320 * 192, atari_palette, pixels);
-
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 static abool decode_shp(
@@ -2057,9 +1995,7 @@ static abool decode_mbg(
 		0, 64, 0, 1, 0, 64, 256, 8,
 		frame);
 
-	frame_to_rgb(frame, 512 * 256, atari_palette, pixels);
-
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 static abool decode_fwa(
@@ -2152,8 +2088,7 @@ static abool decode_fwa(
 	image_info->height = 192;
 	image_info->original_width = 160;
 	image_info->original_height = 192;
-	frame_to_rgb(frame, 320 * 192, atari_palette, pixels);
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 static abool decode_rm(
@@ -2300,8 +2235,7 @@ static abool decode_rm(
 		}
 	}
 
-	frame_to_rgb(frame, 320 * 192, atari_palette, pixels);
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 static abool decode_rm0(
@@ -2435,8 +2369,7 @@ static abool decode_xlp(
 		40 * height, 40, 0, 1, 0, 40, height, FAIL_MODE_15PF0FIRST,
 		frame2);
 
-	frames_to_rgb(frame1, frame2, 320 * height, atari_palette, pixels);
-	return TRUE;
+	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
 }
 
 static abool decode_max(
@@ -2476,8 +2409,7 @@ static abool decode_max(
 			frame2);
 	}
 
-	frames_to_rgb(frame1, frame2, 320 * 192, atari_palette, pixels);
-	return TRUE;
+	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
 }
 
 static abool decode_shc(
@@ -2528,8 +2460,7 @@ static abool decode_shc(
 
 	image_info->original_width = image_info->width = 320;
 	image_info->original_height = image_info->height = 192;
-	frames_to_rgb(frame1, frame2, 320 * 192, atari_palette, pixels);
-	return TRUE;
+	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
 }
 
 static abool decode_all(
@@ -2581,8 +2512,7 @@ static abool decode_all(
 	image_info->height = 192;
 	image_info->original_width = 160;
 	image_info->original_height = 192;
-	frame_to_rgb(frame, 320 * 192, atari_palette, pixels);
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 static abool decode_app(
@@ -2868,8 +2798,7 @@ static abool decode_dlm(
 		0, 11, 0, 1, 0, 11, 128, 8,
 		frame);
 
-	frame_to_rgb(frame, 88 * 128, atari_palette, pixels);
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 static abool decode_g09(
@@ -2902,8 +2831,7 @@ static abool decode_g09(
 		}
 	}
 
-	frame_to_rgb(frame, 640 * 192, atari_palette, pixels);
-	return TRUE;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
