@@ -18,7 +18,7 @@ Currently the project consists of:
 
 - fail2png - portable command-line converter to PNG files
 - FAILWin - viewer for Windows
-- thumbnail provider for Windows Explorer (Vista and newer)
+- thumbnail providers for Windows Explorer (Vista and newer) and GNOME
 - plugin for http://www.xnview.com[XnView]
 - (de)coder for http://www.imagemagick.org/[ImageMagick]
 
@@ -38,7 +38,7 @@ Supported file formats
 
 [horizontal]
 256:: 80x96, 256 colors.
-ALL: "Graph", 160x192, 5 colors.
+ALL:: "Graph", 160x192, 5 colors.
 AP2:: 80x96, 256 colors.
 AP3:: 80x192, 256 colors, interlaced.
 APC:: "Any Point, Any Color", 80x96, 256 colors, interlaced.
@@ -126,7 +126,7 @@ Fun with Art (FWA), Rambrandt (RM0, RM1, RM2, RM3, RM4), XL-Paint (XLP),
 XL-Paint MAX (MAX), SHIMC (SHC), Graph (ALL), APP View (APP),
 Semi-Graphic logos Editor (SGE), Dir Logo Maker (DLM), Movie Maker (BKG, SHP).
 Improved decoding of some RIP, FNT and MIC files.
-Created Gnome thumbnailer.
+Created GNOME thumbnailer.
 You may drag&drop files to the FAILWin window.
 GR8 wasn't registered in ImageMagick.
 
