@@ -122,7 +122,7 @@ Fun with Art (FWA), Rambrandt (RM0, RM1, RM2, RM3, RM4), XL-Paint (XLP),
 XL-Paint MAX (MAX), SHIMC (SHC), Graph (ALL), APP View (APP),
 Semi-Graphic logos Editor (SGE), Dir Logo Maker (DLM), Movie Maker (BKG, SHP),
 BG9, G09.
-Improved decoding of some RIP, FNT and MIC files.
+Improved decoding of all RAW, some RIP, FNT and MIC files.
 Added APV extension for the AP3 format.
 Created Gnome thumbnailer (for Linux file browser Nautilus).
 You may drag&drop files to the FAILWin window.
