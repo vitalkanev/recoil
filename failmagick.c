@@ -112,6 +112,7 @@ static const struct Format {
 	{ "AP3", "80x192, 256 colors, interlaced" },
 	{ "APC", "Any Point, Any Color; 80x96, 256 colors, interlaced" },
 	{ "APP", "80x192, 256 colors, interlaced, compressed" },
+	{ "APV", "80x192, 256 colors, interlaced" },
 	{ "BG9", "160x192, 16-level grayscale" },
 	{ "BKG", "Movie Maker background; 160x96, 4 colors" },
 	{ "CCI", "Champions' Interlace; 160x192, compressed" },

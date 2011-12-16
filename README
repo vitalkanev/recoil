@@ -39,7 +39,7 @@ Supported file formats
 [horizontal]
 256, AP2:: 80x96, 256 colors.
 ALL: "Graph", 160x192, 5 colors.
-AP3, DGP, ESC, ILC, PZM:: "DigiPaint" / "EscalPaint", 80x192, 256 colors, interlaced.
+AP3, APV, DGP, ESC, ILC, PZM:: "DigiPaint" / "EscalPaint", 80x192, 256 colors, interlaced.
 APC, PLM:: "Any Point, Any Color" / "Plama 256", 80x96, 256 colors.
 APP:: 80x192, 256 colors, interlaced, compressed.
 BG9, G09:: 160x192, 16-level grayscale.
@@ -123,6 +123,7 @@ XL-Paint MAX (MAX), SHIMC (SHC), Graph (ALL), APP View (APP),
 Semi-Graphic logos Editor (SGE), Dir Logo Maker (DLM), Movie Maker (BKG, SHP),
 BG9, G09.
 Improved decoding of some RIP, FNT and MIC files.
+Added APV extension for the AP3 format.
 Created Gnome thumbnailer (for Linux file browser Nautilus).
 You may drag&drop files to the FAILWin window.
 GR8 wasn't registered in ImageMagick.
@@ -162,6 +163,9 @@ Peter Dell {failwww!<jac@wudsn.com>}::
 Testing.
 
 Slawomir Sledz {failwww!<slaves@scene.pl>}::
+Testing.
+
+Monika Wesolowska {failwww!<giulio.caesar@gmail.com>}::
 Testing.
 
 ifdef::failwww[]
