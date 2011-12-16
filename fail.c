@@ -2840,6 +2840,317 @@ static abool decode_g09(
 	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
+static void spc_draw_char(byte pixels[], int x1, int y1, int ch)
+{
+	if (ch >= 0x20 && ch <= 0x9f) { /* the original program can print garbage from ROM, we don't have it, so just skip */
+		int y;
+		ch = (ch - 0x20) << 3;
+		for (y = 0; y < 8; y++) {
+			if (y1 + y < 192) {
+				int x;
+				for (x = 0; x < 4; x++) {
+					if (x1 + x < 160)
+						pixels[160 * (y1 + y) + x1 + x] = atari_font[ch + y] >> (6 - 2 * x) & 3;
+				}
+			}
+		}
+	}
+}
+
+static void spc_draw_line(byte pixels[], int x1, int y1, int x2, int y2, int color)
+{
+	int dx = x2 - x1;
+	int dy = y2 - y1;
+	/* FIXME: I do standard Bresenham's algorithm here, but the original program
+	does something strange involving division of dx/dy */
+#if 1
+	/* the original draws right or down, so I try it too */
+	if (dx < 0)
+		dx = -dx;
+	if (dy < 0)
+		dy = -dy;
+	if (dx >= dy) {
+		int e = dx;
+		if (x2 < x1) {
+			/* swap points to draw right */
+			int ty = y1;
+			x1 = x2;
+			x2 += dx;
+			y1 = y2;
+			y2 = ty;
+		}
+		for ( ; x1 <= x2; x1++) {
+			if (x1 < 160 && y1 < 192)
+				pixels[160 * y1 + x1] = color;
+			e -= dy * 2;
+			if (e < 0) {
+				e += dx * 2;
+				y1 += y1 < y2 ? 1 : -1;
+			}
+		}
+	}
+	else {
+		int e = dy;
+		if (y2 < y1) {
+			/* swap points to draw down */
+			int tx = x1;
+			x1 = x2;
+			x2 = tx;
+			y1 = y2;
+			y2 += dy;
+		}
+		for ( ; y1 <= y2; y1++) {
+			if (x1 < 160 && y1 < 192)
+				pixels[160 * y1 + x1] = color;
+			e -= dx * 2;
+			if (e < 0) {
+				e += dy * 2;
+				x1 += x1 < x2 ? 1 : -1;
+			}
+		}
+	}
+#else
+	int sx;
+	int sy;
+	if (dx >= 0)
+		sx = 1;
+	else {
+		sx = -1;
+		dx = -dx;
+	}
+	if (dy >= 0)
+		sy = 1;
+	else {
+		sy = -1;
+		dy = -dy;
+	}
+	if (dx >= dy) {
+		int e = dx;
+		for (; x1 != x2; x1 += sx) {
+			if (x1 < 160 && y1 < 192)
+				pixels[160 * y1 + x1] = color;
+			e -= dy * 2;
+			if (e < 0) {
+				e += dx * 2;
+				y1 += sy;
+			}
+		}
+	}
+	else {
+		int e = dy;
+		for (; y1 != y2; y1 += sy) {
+			if (x1 < 160 && y1 < 192)
+				pixels[160 * y1 + x1] = color;
+			e -= dx * 2;
+			if (e < 0) {
+				e += dy * 2;
+				x1 += sx;
+			}
+		}
+	}
+	if (x1 < 160 && y1 < 192)
+		pixels[160 * y1 + x1] = color;
+#endif
+}
+
+#define SPC_PATTERN(x, y)  (pattern >> ((~(y) & 1) * 8 + (~(x) & 3) * 2) & 3)
+
+static void spc_draw_brush(byte pixels[], int x1, int y1, int brush, int pattern)
+{
+	static const byte spc_brushes[8][16] = {
+		{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
+		{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x30, 0x30, 0x30, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
+		{ 0x00, 0x00, 0x00, 0x00, 0x10, 0x38, 0x38, 0x38, 0x38, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
+		{ 0x00, 0x00, 0x10, 0x38, 0x38, 0x7c, 0x7c, 0x7c, 0x7c, 0x38, 0x38, 0x10, 0x00, 0x00, 0x00, 0x00 },
+		{ 0x00, 0x18, 0x18, 0x3c, 0x3c, 0x7e, 0x7e, 0x7e, 0x7e, 0x3c, 0x3c, 0x18, 0x18, 0x00, 0x00, 0x00 },
+		{ 0x10, 0x38, 0x7c, 0x7c, 0x7c, 0xfe, 0xfe, 0xfe, 0xfe, 0x7c, 0x7c, 0x7c, 0x38, 0x10, 0x00, 0x00 },
+		{ 0x00, 0x00, 0x10, 0x28, 0x28, 0x50, 0x3c, 0x78, 0x14, 0x28, 0x28, 0x10, 0x00, 0x00, 0x00, 0x00 },
+		{ 0x10, 0x28, 0x54, 0x28, 0x54, 0xba, 0x7c, 0x7c, 0xba, 0x54, 0x28, 0x54, 0x28, 0x10, 0x00, 0x00 }
+	};
+	int y;
+	for (y = 0; y < 16; y++) {
+		if (y1 + y < 192) {
+			int x;
+			for (x = 0; x < 8; x++) {
+				if (x1 + x < 160 && (spc_brushes[brush][y] >> (7 - x) & 1) != 0)
+					pixels[160 * y + x] = SPC_PATTERN(x1 + x, y1 + y);
+			}
+		}
+	}
+}
+
+static abool spc_fill(byte pixels[], int x, int y, int pattern)
+{
+	if (x >= 160 || y >= 192)
+		return FALSE;
+	/* this is NOT real flood fill */
+	while (y >= 0 && pixels[160 * y + x] == 0)
+		y--;
+	while (++y < 192 && pixels[160 * y + x] == 0) {
+		int x1;
+		do
+			x--;
+		while (x >= 0 && pixels[160 * y + x] == 0);
+		x1 = x;
+		while (x < 159 && pixels[160 * y + ++x] == 0)
+			pixels[160 * y + x] = SPC_PATTERN(x, y);
+#if 1
+		/* the original program seems to do this, FIXME: probably different if borders reached */
+		x = x1 + ((x - x1 + 1) >> 1);
+#else
+		/* not same I guess */
+		x -= (x - x1) >> 1;
+#endif
+	}
+	return TRUE;
+}
+
+static abool decode_spc(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	static const byte spc_color_regs[] = { 0x00, 0x15, 0x95, 0x36 };
+	static const unsigned short spc_patterns[] = {
+		0x0000, 0x5555, 0xAAAA, 0xFFFF, 0x1144, 0x2288, 0x33CC, 0x6699,
+		0x77DD, 0xBBEE, 0x1551, 0x2AA2, 0x3FF3, 0x4004, 0x6AA6, 0x7FF7,
+		0x8008, 0x9559, 0xBFFB, 0xC00C, 0xD55D, 0xEAAE, 0x5588, 0x22CC,
+		0x3344, 0x4499, 0x44DD, 0x7799, 0x88EE, 0x8866, 0x99EE, 0xCC77,
+		0xCCBB, 0xDDBB, 0x1BB1, 0x1559, 0x155D, 0x955D, 0x4008, 0x400C,
+		0x800C, 0x6AAC, 0x2AAE, 0x6AA2, 0x7FFB, 0x3FFB, 0xBFF7, 0x5584,
+		0x22C4, 0x3348, 0x4491, 0x44D1, 0x7791, 0x88E2, 0x8862, 0x99E1,
+		0xCC73, 0xCCB3, 0xDDB3, 0x558C, 0x22C8, 0x334C, 0x449D, 0x44D9,
+		0x779D, 0x88E6, 0x886E, 0x99E5, 0xCC7B, 0xCCB7, 0xDDB7
+	};
+	const byte *line_colors[96];
+	int x;
+	int y;
+	int text_x;
+	int text_y;
+	int line_color;
+	int line_x;
+	int line_y;
+	int brush;
+	int pattern;
+	int image_offset;
+	byte frame[320 * 192];
+
+	if (image_len < 3 || image_len != image[0] + (image[1] << 8) + 3 || image[image_len - 1] != 0)
+		return FALSE;
+
+	memset(pixels, 0, 160 * 192);
+	for (y = 0; y < 96; y++)
+		line_colors[y] = spc_color_regs;
+	text_x = text_y = line_x = line_y = brush = 0;
+	pattern = 0x2288;
+	line_color = 3;
+
+	for (image_offset = 2; image[image_offset] != 0; ) {
+		switch (image[image_offset]) {
+		case 0x10:
+			if (image_offset + 3 >= image_len)
+				return FALSE;
+			text_x = image[image_offset + 1];
+			text_y = image[image_offset + 2];
+			image_offset += 3;
+			break;
+		case 0x20:
+		case 0x21:
+		case 0x22:
+		case 0x23:
+			if (image_offset + 1 >= image_len)
+				return FALSE;
+			line_color = image[image_offset] & 3;
+			image_offset++;
+			break;
+		case 0x30:
+		case 0x50:
+			if (image_offset + 2 >= image_len)
+				return FALSE;
+			spc_draw_char(pixels, text_x, text_y, image[image_offset + 1]);
+			text_x += 4;
+			image_offset += 2;
+			break;
+		case 0x40:
+		case 0x41:
+		case 0x42:
+		case 0x43:
+		case 0x44:
+		case 0x45:
+		case 0x46:
+		case 0x47:
+			if (image_offset + 1 >= image_len)
+				return FALSE;
+			brush = image[image_offset] & 7;
+			image_offset++;
+			break;
+		case 0x60:
+			if (image_offset + 2 >= image_len)
+				return FALSE;
+			pattern = image[image_offset + 1];
+			if (pattern >= 71)
+				return FALSE;
+			pattern = spc_patterns[pattern];
+			image_offset += 2;
+			break;
+		case 0x70:
+			if (image_offset + 7 >= image_len)
+				return FALSE;
+			for (y = image[image_offset + 1]; y <= image[image_offset + 2]; y++) {
+				if (y >= 96)
+					return FALSE;
+				line_colors[y] = image + image_offset + 3;
+			}
+			image_offset += 7;
+			break;
+		case 0x80:
+			if (image_offset + 3 >= image_len)
+				return FALSE;
+			line_x = image[image_offset + 1];
+			line_y = image[image_offset + 2];
+			image_offset += 3;
+			break;
+		case 0xa0:
+			if (image_offset + 3 >= image_len)
+				return FALSE;
+			x = image[image_offset + 1];
+			y = image[image_offset + 2];
+			spc_draw_line(pixels, line_x, line_y, x, y, line_color);
+			line_x = x;
+			line_y = y;
+			image_offset += 3;
+			break;
+		case 0xc0:
+			if (image_offset + 3 >= image_len)
+				return FALSE;
+			spc_draw_brush(pixels, image[image_offset + 1], image[image_offset + 2], brush, pattern);
+			image_offset += 3;
+			break;
+		case 0xe0:
+			if (image_offset + 3 >= image_len)
+				return FALSE;
+			if (!spc_fill(pixels, image[image_offset + 1], image[image_offset + 2], pattern))
+				return FALSE;
+			image_offset += 3;
+			break;
+		default:
+			return FALSE;
+		}
+	}
+
+	image_info->width = 320;
+	image_info->height = 192;
+	image_info->original_width = 160;
+	image_info->original_height = 192;
+	for (y = 0; y < 192; y++) {
+		int x;
+		for (x = 0; x < 160; x++)
+			frame[320 * y + 2 * x + 1] = frame[320 * y + 2 * x] = line_colors[y >> 1][pixels[160 * y + x]] & 0xfe;
+	}
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -2915,6 +3226,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('G', '0', '9'):
 	case FAIL_EXT('B', 'G', '9'):
 	case FAIL_EXT('A', 'P', 'V'):
+	case FAIL_EXT('S', 'P', 'C'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -2994,7 +3306,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('B', 'K', 'G'), decode_bkg },
 		{ FAIL_EXT('G', '0', '9'), decode_g09 },
 		{ FAIL_EXT('B', 'G', '9'), decode_g09 },
-		{ FAIL_EXT('A', 'P', 'V'), decode_ap3 }
+		{ FAIL_EXT('A', 'P', 'V'), decode_ap3 },
+		{ FAIL_EXT('S', 'P', 'C'), decode_spc }
 	}, *ph;
 
 	if (atari_palette == NULL)

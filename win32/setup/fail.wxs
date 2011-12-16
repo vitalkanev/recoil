@@ -24,7 +24,7 @@
 		<Media Id="1" Cabinet="fail.cab" EmbedCab="yes" CompressionLevel="high" />
 
 		<?define FIRST_EXT=gr8?>
-		<?define OTHER_EXTS=hip;mic;int;tip;inp;hr;gr9;pic;cpr;cin;cci;apc;plm;ap3;ilc;rip;fnt;sxs;mcp;ghg;hr2;mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb;mgp;wnd;chr;shp;mbg;fwa;rm0;rm1;rm2;rm3;rm4;xlp;max;shc;all;app;sge;dlm;bkg;g09;bg9;apv?>
+		<?define OTHER_EXTS=hip;mic;int;tip;inp;hr;gr9;pic;cpr;cin;cci;apc;plm;ap3;ilc;rip;fnt;sxs;mcp;ghg;hr2;mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb;mgp;wnd;chr;shp;mbg;fwa;rm0;rm1;rm2;rm3;rm4;xlp;max;shc;all;app;sge;dlm;bkg;g09;bg9;apv;spc?>
 		<?define FAIL_EXTS=gr8;$(var.OTHER_EXTS)?>
 		<?define DOUBLECLICK=Double-click Atari image file in Windows Explorer to display it in ?>
 
@@ -182,7 +182,7 @@
 				<Directory Id="FAIL.DIR" Name="FAIL">
 					<?if $(sys.BUILDARCH) = x86?>
 					<Component Id="failwin.exe" Guid="*">
-						<File Id="failwin.exe" Name="failwin.exe" Source="failwin.exe" Checksum="yes" KeyPath="yes" />
+						<File Name="failwin.exe" Source="failwin.exe" Checksum="yes" KeyPath="yes" />
 					</Component>
 					<Component Id="failwin.ext" Guid="*">
 						<RegistryValue Root="HKCR" Key="fail.file" Name="failwin" Type="integer" Value="1" KeyPath="yes" />
@@ -197,18 +197,18 @@
 						</ProgId>
 					</Component>
 					<Component Id="fail2png.exe" Guid="*">
-						<File Id="fail2png.exe" Name="fail2png.exe" Source="fail2png.exe" Checksum="yes" KeyPath="yes" />
+						<File Name="fail2png.exe" Source="fail2png.exe" Checksum="yes" KeyPath="yes" />
 					</Component>
 					<Component Id="path" Guid="496125A6-884C-4A43-B075-268A248EF3E5">
 						<Environment Id="path" Action="set" Name="Path" Part="last" Permanent="no" System="yes" Value="[FAIL.DIR]" />
 						<CreateFolder />
 					</Component>
 					<Component Id="README_WindowsSetup.html" Guid="*">
-						<File Id="README_WindowsSetup.html" Name="README_WindowsSetup.html" Source="README_WindowsSetup.html" KeyPath="yes" />
+						<File Name="README_WindowsSetup.html" Source="README_WindowsSetup.html" KeyPath="yes" />
 					</Component>
 					<?endif?>
 					<Component Id="thumbfail.dll" Guid="*" Win64="$(var.WIN64)">
-						<File Id="thumbfail.dll" Name="thumbfail.dll" Source="$(var.SRC_DIR)thumbfail.dll" Checksum="yes" KeyPath="yes">
+						<File Name="thumbfail.dll" Source="$(var.SRC_DIR)thumbfail.dll" Checksum="yes" KeyPath="yes">
 							<Class Id="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Context="InprocServer32" Description="FAIL Thumbnail Handler" ThreadingModel="both" />
 						</File>
 						<RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Approved" Name="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Value="FAIL Thumbnail Handler" Type="string" Action="write" />
@@ -220,21 +220,11 @@
 				<?if $(sys.BUILDARCH) = x86?>
 				<Directory Id="XNVIEW.DIR" Name="XnView">
 					<Directory Id="XNVIEWPLUG.DIR" Name="PlugIns">
-						<Component Id="Xfail1.usr" Guid="*">
-							<File Id="Xfail1.usr" Name="Xfail1.usr" Source="Xfail1.usr" Checksum="yes" KeyPath="yes" />
-						</Component>
-						<Component Id="Xfail2.usr" Guid="*">
-							<File Id="Xfail2.usr" Name="Xfail2.usr" Source="Xfail2.usr" Checksum="yes" KeyPath="yes" />
-						</Component>
-						<Component Id="Xfail3.usr" Guid="*">
-							<File Id="Xfail3.usr" Name="Xfail3.usr" Source="Xfail3.usr" Checksum="yes" KeyPath="yes" />
-						</Component>
-						<Component Id="Xfail4.usr" Guid="*">
-							<File Id="Xfail4.usr" Name="Xfail4.usr" Source="Xfail4.usr" Checksum="yes" KeyPath="yes" />
-						</Component>
-						<Component Id="Xfail5.usr" Guid="*">
-							<File Id="Xfail5.usr" Name="Xfail5.usr" Source="Xfail5.usr" Checksum="yes" KeyPath="yes" />
-						</Component>
+						<?foreach I in 1;2;3;4;5;6?>
+							<Component Id="Xfail$(var.I).usr" Guid="*">
+								<File Name="Xfail$(var.I).usr" Source="Xfail$(var.I).usr" Checksum="yes" KeyPath="yes" />
+							</Component>
+						<?endforeach?>
 					</Directory>
 					<Component Id="xnview_fail.ext" Guid="*">
 						<RegistryValue Root="HKCR" Key="fail.file" Name="XnView.Image" Type="integer" Value="1" KeyPath="yes" />
@@ -252,7 +242,7 @@
 				<?endif?>
 				<Directory Id="IMCODERS.DIR" Name="ImageMagick-FAIL"><!-- fake Name -->
 					<Component Id="IM_MOD_RL_fail_.dll" Guid="*" Win64="$(var.WIN64)">
-						<File Id="IM_MOD_RL_fail_.dll" Name="IM_MOD_RL_fail_.dll" Source="$(var.SRC_DIR)IM_MOD_RL_fail_.dll" Checksum="yes" KeyPath="yes" />
+						<File Name="IM_MOD_RL_fail_.dll" Source="$(var.SRC_DIR)IM_MOD_RL_fail_.dll" Checksum="yes" KeyPath="yes" />
 						<?foreach EXT in $(var.FAIL_EXTS)?>
 							<util:XmlConfig Id="coder.xml_$(var.EXT)_Element_create" On="install" Action="create" Node="element" ElementPath="/codermap" Name="coder" File="[CODER.XML]" />
 							<util:XmlConfig Id="coder.xml_$(var.EXT)_Magick_create" ElementPath="coder.xml_$(var.EXT)_Element_create" Name="magick" Value="$(var.EXT)" File="[CODER.XML]" />
@@ -277,7 +267,7 @@
 					</Component>
 					<Component Id="Website.url" Guid="517E5616-5C8E-428B-834E-5059C00947F2">
 						<RegistryValue Root="HKCU" Key="Software\FAIL" Name="ProgramsMenuWebsite" Type="integer" Value="1" KeyPath="yes" />
-						<File Id="Website.url" Name="Website.url" Source="Website.url" />
+						<File Name="Website.url" Source="Website.url" />
 					</Component>
 					<!--
 					<Component Id="uninstall.lnk" Guid="*">
@@ -322,6 +312,7 @@
 			<ComponentRef Id="Xfail3.usr" />
 			<ComponentRef Id="Xfail4.usr" />
 			<ComponentRef Id="Xfail5.usr" />
+			<ComponentRef Id="Xfail6.usr" />
 			<Feature Id="xnview_fail.ext" Title="Associate file types" Level="0" Description="$(var.DOUBLECLICK) XnView." AllowAdvertise="no">
 				<Condition Level="9">XNVIEW.EXE</Condition>
 				<ComponentRef Id="xnview_fail.ext" />

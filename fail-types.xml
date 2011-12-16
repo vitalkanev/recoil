@@ -50,6 +50,7 @@
 	<type ext="sge" acronym="Semi-Graphic logos Editor" />
 	<type ext="shc" acronym="Samar Hi-res interlace with map of Colours" />
 	<type ext="shp" />
+	<type ext="spc" />
 	<type ext="sxs" />
 	<type ext="tip" acronym="Taquart Interlace Picture" />
 	<type ext="wnd" />

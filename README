@@ -31,6 +31,7 @@ That is, on 64-bit Windows you may install both packages.
 ifdef::failwww[]
 image::failwin.png["FAILWin"]
 image::thumbfail.png["Thumbnails in Windows Explorer"]
+image::nautilus.png["Thumbnails in Nautilus"]
 endif::failwww[]
 
 Supported file formats
@@ -85,6 +86,7 @@ SGE:: "Semi-Graphic logos Editor", 320x192, mono.
 SHC:: "SAMAR Hi-res Interlace with Map of Colours", 320x192, interlaced.
 SHP:: "Blazing Paddles" shape table, mono.
 SHP:: "Movie Maker" shapes, 160x96, 4 colors.
+SPC:: "The Graphics Magician Picture Painter", 160x192, 128 colors.
 SXS:: 16x16 font, mono.
 TIP:: "Taquart Interlace Picture", up to 160x119.
 WND:: "Blazing Paddles" window, up to 160x192, 4 colors.
@@ -121,7 +123,7 @@ Magic Painter (MGP), Mad Designer (MBG), AtariGraphics (MIC),
 Fun with Art (FWA), Rambrandt (RM0, RM1, RM2, RM3, RM4), XL-Paint (XLP),
 XL-Paint MAX (MAX), SHIMC (SHC), Graph (ALL), APP View (APP),
 Semi-Graphic logos Editor (SGE), Dir Logo Maker (DLM), Movie Maker (BKG, SHP),
-BG9, G09.
+BG9, G09, The Graphics Magician Picture Painter (SPC).
 Improved decoding of all RAW, some RIP, FNT and MIC files.
 Added APV extension for the AP3 format.
 Created Gnome thumbnailer (for Linux file browser Nautilus).

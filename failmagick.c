@@ -156,6 +156,7 @@ static const struct Format {
 	{ "SGE", "Semi-Graphic logos Editor; 320x192, mono" },
 	{ "SHC", "SAMAR Hi-res Interlace with Map of Colours; 320x192, interlaced" },
 	{ "SHP", "Blazing Paddles or Movie Maker shapes" },
+	{ "SPC", "The Graphics Magician Picture Painter; 160x192, 128 colors" },
 	{ "SXS", "16x16 font, mono" },
 	{ "TIP", "Taquart Interlace Picture; up to 160x119" },
 	{ "WND", "Blazing Paddles window; up to 160x192, 4 colors" },
