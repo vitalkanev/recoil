@@ -37,47 +37,43 @@ Supported file formats
 ----------------------
 
 [horizontal]
-256:: 80x96, 256 colors.
+256, AP2:: 80x96, 256 colors.
 ALL: "Graph", 160x192, 5 colors.
-AP2:: 80x96, 256 colors.
-AP3:: 80x192, 256 colors, interlaced.
-APC:: "Any Point, Any Color", 80x96, 256 colors, interlaced.
+AP3, DGP, ESC, ILC, PZM:: "DigiPaint" / "EscalPaint", 80x192, 256 colors, interlaced.
+APC, PLM:: "Any Point, Any Color" / "Plama 256", 80x96, 256 colors.
 APP:: 80x192, 256 colors, interlaced, compressed.
+BG9, G09:: 160x192, 16-level grayscale.
 BKG:: "Movie Maker" background, 160x96, 4 colors.
 CCI:: "Champions' Interlace", 160x192, compressed.
 CHR:: "Blazing Paddles" font, mono.
 CIN:: "Champions' Interlace", 160x192.
 CPR:: "Trzmiel", 320x192, mono, compressed.
-DGP:: "DigiPaint", 80x192, 256 colors, interlaced.
 DLM:: "Dir Logo Maker", 88x128, mono.
-ESC:: "EscalPaint", 80x192, 256 colors, interlaced.
 FNT:: Standard 8x8 font, mono.
 FWA:: "Fun with Art", 160x192, 128 colors.
 GHG:: "Gephard Hires Graphics", up to 320x200, mono.
 GR8:: Standard 320x192, mono.
-GR9:: Standard 80x192, grayscale.
+GR9:: Standard 80x192, 16-level grayscale.
+// actually GR8 and GR9 are up to 240 lines
 HIP:: "Hard Interlace Picture", 160x200, grayscale.
 HR:: 256x239, 3 colors, interlaced.
 HR2:: 320x200, 5 colors, interlaced.
 IGE:: "Interlace Graphics Editor", 128x96, 16 colors, interlaced.
-ILC:: 80x192, 256 colors, interlaced.
 INP:: 160x200, 7 colors, interlaced.
 INT:: "INT95a", up to 160x239, 16 colors, interlaced.
 IST:: "Interlace Studio", 160x200, interlaced.
 JGP:: "Jet Graphics Planner", 8x16 tiles, 4 colors.
 MAX:: "XL-Paint MAX", 160x192, interlaced, compressed.
 MBG:: "Mad Designer", 512x256, mono.
-MCH:: Up to 176x240, 128 colors.
+MCH:: "Graph2Font", up to 176x240, 128 colors.
 MCP:: "McPainter", 160x200, 16 colors, interlaced.
 MGP:: "Magic Painter", 160x96, 4 colors with optional rainbow effect.
 MIC:: Standard 160x192, 4 colors.
 // actually MIC is up to 160x240
 PIC:: "Koala MicroIllustrator", 160x192, 4 colors, compressed.
-PLM:: "Plama 256", 80x96, 256 colors.
-PZM:: "EscalPaint", 80x192, 256 colors, interlaced.
 RAW:: "XL-Paint MAX", 160x192, 16 colors, interlaced.
-RGB:: "ColorViewSquash", three-frame interlace.
-RIP:: "Rocky Interlace Picture", up to 160x239.
+RGB:: "ColorViewSquash", up to 160x192, three-frame interlace.
+RIP:: "Rocky Interlace Picture", up to 320x239.
 RM0:: "Rambrandt", 160x96, 99 colors.
 // 99 = 4 colors + 95 DLI changes
 RM1:: "Rambrandt", 80x192, 256 colors.
@@ -118,15 +114,16 @@ to submit bug reports, feature requests and small code patches.
 History
 -------
 
-FAIL 1.2.0 (2011-12-??)::
+FAIL 1.2.0 (2011-12-16)::
 
 Added decoding of ColorViewSquash (RGB), Blazing Paddles (CHR, SHP, WND),
 Magic Painter (MGP), Mad Designer (MBG), AtariGraphics (MIC),
 Fun with Art (FWA), Rambrandt (RM0, RM1, RM2, RM3, RM4), XL-Paint (XLP),
 XL-Paint MAX (MAX), SHIMC (SHC), Graph (ALL), APP View (APP),
-Semi-Graphic logos Editor (SGE), Dir Logo Maker (DLM), Movie Maker (BKG, SHP).
+Semi-Graphic logos Editor (SGE), Dir Logo Maker (DLM), Movie Maker (BKG, SHP),
+BG9, G09.
 Improved decoding of some RIP, FNT and MIC files.
-Created Gnome thumbnailer.
+Created Gnome thumbnailer (for Linux file browser Nautilus).
 You may drag&drop files to the FAILWin window.
 GR8 wasn't registered in ImageMagick.
 

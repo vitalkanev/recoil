@@ -1023,7 +1023,7 @@ static abool decode_apc(
 	return TRUE;
 }
 
-/* serves both AP3 and ILC */
+/* serves AP3, DGP, ESC, ILC, PZM */
 static abool decode_ap3(
 	const byte image[], int image_len,
 	const byte atari_palette[],
@@ -1033,8 +1033,14 @@ static abool decode_ap3(
 	byte frame1[320 * 192];
 	byte frame2[320 * 192];
 
-	if (image_len != 15872 && image_len != 15360)
+	switch (image_len) {
+	case 15360:
+	case 15362:
+	case 15872:
+		break;
+	default:
 		return FALSE;
+	}
 
 	image_info->width = 320;
 	image_info->height = 192;
@@ -1048,7 +1054,7 @@ static abool decode_ap3(
 
 	decode_video_memory(
 		image, NULL,
-		image_len == 15360 ? 7680 : 8192, 80, 0, 2, 0, 40, 96, 11,
+		image_len == 15872 ? 8192 : 7680, 80, 0, 2, 0, 40, 96, 11,
 		frame1);
 
 	decode_video_memory(
@@ -1058,7 +1064,7 @@ static abool decode_ap3(
 
 	decode_video_memory(
 		image, NULL,
-		image_len == 15360 ? 7720 : 8232, 80, 1, 2, 0, 40, 96, 11,
+		image_len == 15872 ? 8232 : 7720, 80, 1, 2, 0, 40, 96, 11,
 		frame2);
 
 	frames_to_rgb(frame1, frame2,
@@ -1542,19 +1548,6 @@ static abool decode_jgp(
 	frame_to_rgb(frame, 256 * 64, atari_palette, pixels);
 
 	return TRUE;
-}
-
-static abool decode_pzm(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	FAIL_ImageInfo* image_info,
-	byte pixels[])
-{
-	if (image_len == 15360 || image_len == 15362)
-		return decode_ap3(image, 15360,
-			atari_palette, image_info, pixels);
-
-	return FALSE;
 }
 
 static abool decode_ist(
@@ -2879,6 +2872,40 @@ static abool decode_dlm(
 	return TRUE;
 }
 
+static abool decode_g09(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte frame[640 * 192];
+	int y;
+
+	switch (image_len) {
+	case 7680:
+		return decode_gr9(image, image_len, atari_palette, image_info, pixels);
+	case 15360:
+		break;
+	default:
+		return FALSE;
+	}
+
+	image_info->width = 640;
+	image_info->original_width = 160;
+	image_info->original_height = image_info->height = 192;
+
+	for (y = 0; y < 192; y++) {
+		int x;
+		for (x = 0; x < 320; x++) {
+			frame[640 * y + x] = image[40 * y + (x >> 3)] >> (~x & 4) & 0x0f;
+			frame[640 * y + 320 + x] = image[7680 + 40 * y + (x >> 3)] >> (~x & 4) & 0x0f;
+		}
+	}
+
+	frame_to_rgb(frame, 640 * 192, atari_palette, pixels);
+	return TRUE;
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -2951,6 +2978,8 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('S', 'G', 'E'):
 	case FAIL_EXT('D', 'L', 'M'):
 	case FAIL_EXT('B', 'K', 'G'):
+	case FAIL_EXT('G', '0', '9'):
+	case FAIL_EXT('B', 'G', '9'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -3003,9 +3032,9 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('2', '5', '6'), decode_256 },
 		{ FAIL_EXT('A', 'P', '2'), decode_256 },
 		{ FAIL_EXT('J', 'G', 'P'), decode_jgp },
-		{ FAIL_EXT('D', 'G', 'P'), decode_pzm },
-		{ FAIL_EXT('E', 'S', 'C'), decode_pzm },
-		{ FAIL_EXT('P', 'Z', 'M'), decode_pzm },
+		{ FAIL_EXT('D', 'G', 'P'), decode_ap3 },
+		{ FAIL_EXT('E', 'S', 'C'), decode_ap3 },
+		{ FAIL_EXT('P', 'Z', 'M'), decode_ap3 },
 		{ FAIL_EXT('I', 'S', 'T'), decode_ist },
 		{ FAIL_EXT('R', 'A', 'W'), decode_raw },
 		{ FAIL_EXT('R', 'G', 'B'), decode_rgb },
@@ -3027,7 +3056,9 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('A', 'P', 'P'), decode_app },
 		{ FAIL_EXT('S', 'G', 'E'), decode_sge },
 		{ FAIL_EXT('D', 'L', 'M'), decode_dlm },
-		{ FAIL_EXT('B', 'K', 'G'), decode_bkg }
+		{ FAIL_EXT('B', 'K', 'G'), decode_bkg },
+		{ FAIL_EXT('G', '0', '9'), decode_g09 },
+		{ FAIL_EXT('B', 'G', '9'), decode_g09 }
 	}, *ph;
 
 	if (atari_palette == NULL)

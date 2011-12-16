@@ -5,6 +5,7 @@
 	<type ext="ap3" />
 	<type ext="apc" acronym="Any Point, Any Color" />
 	<type ext="app" />
+	<type ext="bg9" />
 	<type ext="bkg" />
 	<type ext="cci" acronym="Compressed Champions' Interlace" />
 	<type ext="chr" />
@@ -15,6 +16,7 @@
 	<type ext="esc" acronym="ESCalpaint" />
 	<type ext="fnt" />
 	<type ext="fwa" acronym="Fun With Art" />
+	<type ext="g09" />
 	<type ext="ghg" acronym="Gephard Hires Graphics" />
 	<type ext="gr8" />
 	<type ext="gr9" />
