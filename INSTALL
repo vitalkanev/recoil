@@ -60,8 +60,8 @@ git clone git://fail.git.sourceforge.net/gitroot/fail/fail
 This will fetch the latest code to a new directory called `fail`.
 
 
-Building fail2png and ImageMagick coder on Unix-like systems
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Building fail2png, GNOME thumbnailer and ImageMagick coder on Unix-like systems
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 From your shell prompt navigate to the directory which contains `fail.c`.
 
@@ -75,21 +75,31 @@ To install fail2png under `PREFIX`, run:
 make install
 --------------------------------------------------------------------------------
 
-Installation of ImageMagick coder requires that you have complete source
-distribution of ImageMagick. Run +make+ specifying path to the sources:
+To install GNOME thumbnailer and fail2png, run:
+--------------------------------------------------------------------------------
+make install-thumbnailer
+--------------------------------------------------------------------------------
+
+After you restart your system, Nautilus windows should display thumbnails of Atari images.
+
+Installation of the ImageMagick coder requires that you have complete source
+distribution of ImageMagick. Current version of the ImageMagick coder has been
+tested with version 6.7.4-0 of ImageMagick.
+
+Run +make+ specifying path to the sources:
 --------------------------------------------------------------------------------
 make install-magick MAGICK_INCLUDE_PATH=/path/to/im/sources
 --------------------------------------------------------------------------------
 
-To verify installation, try to open some
+To verify the installation, try to open some
 http://fail.sourceforge.net/examples.zip[example files]:
 --------------------------------------------------------------------------------
 display COYOTE.RIP
 --------------------------------------------------------------------------------
 
-You can also install both components at the same time, for example:
+You can also install all components at the same time, for example:
 --------------------------------------------------------------------------------
-make install PREFIX=/opt/fail MAGICK_INCLUDE_PATH=/src/ImageMagick-6.6.9-5
+make install PREFIX=/opt/fail MAGICK_INCLUDE_PATH=/src/ImageMagick-6.7.4-0
 --------------------------------------------------------------------------------
 
 
