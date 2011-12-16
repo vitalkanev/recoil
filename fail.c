@@ -679,11 +679,10 @@ static abool decode_mic(
 	}
 
 	image_info->width = 320;
-	image_info->height = image_len / 40;
+	image_info->original_width = 160;
+	image_info->original_height = image_info->height = image_len / 40;
 	if (image_info->height > 240)
 		return FALSE;
-	image_info->original_width = 320;
-	image_info->original_height = image_info->height;
 
 	decode_video_memory(
 		image, color_regs,
