@@ -68,12 +68,12 @@ DECLARE_INTERFACE_(IThumbnailProvider, IUnknown)
 #include "fail.h"
 
 static const char extensions[][5] =
-	{ ".256", ".all", ".ap2", ".ap3", ".apc", ".app", ".apv", ".bg9", ".bkg", ".cci",
-	  ".chr", ".cin", ".cpr", ".dgp", ".dlm", ".esc", ".fnt", ".fwa", ".g09", ".ghg",
-	  ".gr8", ".gr9", ".hip", ".hr",  ".hr2", ".ige", ".ilc", ".inp", ".int", ".ist",
-	  ".jgp", ".max", ".mbg", ".mch", ".mcp", ".mgp", ".mic", ".pic", ".plm", ".pzm",
-	  ".raw", ".rgb", ".rip", ".rm0", ".rm1", ".rm2", ".rm3", ".rm4", ".sge", ".shc",
-	  ".shp", ".spc", ".sxs", ".tip", ".wnd", ".xlp" };
+	{ ".256", ".all", ".ap2", ".ap3", ".apc", ".apl", ".app", ".apv", ".bg9", ".bkg",
+	  ".cci", ".chr", ".cin", ".cpr", ".dgp", ".dlm", ".esc", ".fnt", ".fwa", ".g09",
+	  ".ghg", ".gr8", ".gr9", ".hip", ".hr",  ".hr2", ".ige", ".ilc", ".inp", ".int",
+	  ".ist", ".jgp", ".max", ".mbg", ".mch", ".mcp", ".mgp", ".mic", ".pic", ".plm",
+	  ".pzm", ".raw", ".rgb", ".rip", ".rm0", ".rm1", ".rm2", ".rm3", ".rm4", ".sge",
+	  ".shc", ".shp", ".spc", ".sxs", ".tip", ".wnd", ".xlp" };
 #define N_EXTS (int) (sizeof(extensions) / sizeof(extensions[0]))
 
 static HINSTANCE g_hDll;

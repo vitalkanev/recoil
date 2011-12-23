@@ -42,6 +42,7 @@ Supported file formats
 ALL:: "Graph", 160x192, 5 colors.
 AP3, APV, DGP, ESC, ILC, PZM:: "DigiPaint" / "EscalPaint", 80x192, 256 colors, interlaced.
 APC, PLM:: "Any Point, Any Color" / "Plama 256", 80x96, 256 colors.
+APL:: "Atari Player Editor", up to 16 16x48 frames, 4 colors.
 APP:: 80x192, 256 colors, interlaced, compressed.
 BG9, G09:: 160x192, 16-level grayscale.
 BKG:: "Movie Maker" background, 160x96, 4 colors.

@@ -4,6 +4,7 @@
 	<type ext="ap2" />
 	<type ext="ap3" />
 	<type ext="apc" acronym="Any Point, Any Color" />
+	<type ext="apl" acronym="Atari PLayer editor" />
 	<type ext="app" />
 	<type ext="apv" />
 	<type ext="bg9" />

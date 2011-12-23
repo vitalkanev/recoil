@@ -3150,6 +3150,63 @@ static abool decode_spc(
 	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
+static abool decode_apl(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+#define APL_FRAME_GAP 2
+	byte frame[(16 + APL_FRAME_GAP) * 2 * 16 * 48];
+	int frame_width;
+	int i;
+	int y;
+
+	if (image_len != 1677
+	 || image[0] != 0x9a || image[1] != 0xf8 || image[2] != 0x39 || image[3] != 0x21
+	 || image[4] == 0 || image[4] > 16
+	 || image[5] == 0 || image[5] > 48
+	 || image[6] > 8)
+		return FALSE;
+
+	frame_width = 8 + image[6] + APL_FRAME_GAP;
+	image_info->original_width = frame_width * image[4];
+	image_info->width = 2 * image_info->original_width;
+	image_info->original_height = image_info->height = image[5];
+
+	i = 0;
+	for (y = 0; y < image[5]; y++) {
+		int f;
+		for (f = 0; f < image[4]; f++) {
+			int x;
+			for (x = 0; x < frame_width; x++) {
+				int p0 = x < 8 ? image[42 + 48 * f + y] >> (7 - x) & 1 : 0;
+				int x1 = x - image[6];
+				int p1 = x1 >= 0 && x1 < 8 ? image[858 + 48 * f + y] >> (7 - x1) & 1 : 0;
+				int color;
+				switch (p1 * 2 + p0) {
+				case 0:
+					color = image[41];
+					break;
+				case 1:
+					color = image[7 + f];
+					break;
+				case 2:
+					color = image[24 + f];
+					break;
+				case 3:
+					color = image[7 + f] | image[24 + f];
+					break;
+				}
+				frame[i + 1] = frame[i] = color & 0xfe;
+				i += 2;
+			}
+		}
+	}
+
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -3226,6 +3283,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('B', 'G', '9'):
 	case FAIL_EXT('A', 'P', 'V'):
 	case FAIL_EXT('S', 'P', 'C'):
+	case FAIL_EXT('A', 'P', 'L'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -3306,7 +3364,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('G', '0', '9'), decode_g09 },
 		{ FAIL_EXT('B', 'G', '9'), decode_g09 },
 		{ FAIL_EXT('A', 'P', 'V'), decode_ap3 },
-		{ FAIL_EXT('S', 'P', 'C'), decode_spc }
+		{ FAIL_EXT('S', 'P', 'C'), decode_spc },
+		{ FAIL_EXT('A', 'P', 'L'), decode_apl }
 	}, *ph;
 
 	if (atari_palette == NULL)

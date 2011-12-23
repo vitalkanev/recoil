@@ -111,6 +111,7 @@ static const struct Format {
 	{ "AP2", "80x96, 256 colors" },
 	{ "AP3", "80x192, 256 colors, interlaced" },
 	{ "APC", "Any Point, Any Color; 80x96, 256 colors, interlaced" },
+	{ "APL", "Atari Player Editor; up to 16 16x48 frames, 4 colors" },
 	{ "APP", "80x192, 256 colors, interlaced, compressed" },
 	{ "APV", "80x192, 256 colors, interlaced" },
 	{ "BG9", "160x192, 16-level grayscale" },
