@@ -1,7 +1,7 @@
 /*
  * failmagick.c - FAIL coder for ImageMagick
  *
- * Copyright (C) 2009-2011  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2012  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -118,7 +118,7 @@ static const struct Format {
 	{ "BKG", "Movie Maker background; 160x96, 4 colors" },
 	{ "CCI", "Champions' Interlace; 160x192, compressed" },
 	{ "CHR", "Blazing Paddles font; mono" },
-	{ "CIN", "Champions' Interlace; 160x192" },
+	{ "CIN", "Champions' Interlace; 160x192 or 160x200" },
 	{ "CPR", "Trzmiel; 320x192, mono, compressed" },
 	{ "DGP", "DigiPaint; 80x192, 256 colors, interlaced" },
 	{ "DLM", "Dir Logo Maker; 88x128, mono" },

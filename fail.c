@@ -1,7 +1,7 @@
 /*
  * fail.c - FAIL library functions
  *
- * Copyright (C) 2009-2011  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2012  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -831,44 +831,54 @@ static abool decode_cin(
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
+	int height;
 	const byte *color_regs;
 	int mode;
-	byte frame1[320 * 192];
-	byte frame2[320 * 192];
-	if (image_len == 15360) {
+	byte frame1[320 * 200];
+	byte frame2[320 * 200];
+	switch (image_len) {
+	case 15360:
+		height = 192;
 		color_regs = mic_color_regs;
 		mode = 15;
-	}
-	else if (image_len == 16384) {
+		break;
+	case 16004:
+		height = 200;
+		color_regs = image + 16000;
+		mode = 15;
+		break;
+	case 16384:
+		height = 192;
 		color_regs = image + 0x3c00;
 		mode = FAIL_MODE_CIN15;
-	}
-	else
+		break;
+	default:
 		return FALSE;
+	}
 
 	image_info->width = 320;
-	image_info->height = 192;
+	image_info->height = height;
 	image_info->original_width = 160;
-	image_info->original_height = 192;
+	image_info->original_height = height;
 
 	decode_video_memory(
 		image, color_regs,
-		40, 80, 1, 2, 0, 40, 96, mode,
+		40, 80, 1, 2, 0, 40, height >> 1, mode,
 		frame1);
 
 	decode_video_memory(
 		image, NULL,
-		7680, 80, 0, 2, 0, 40, 96, 11,
+		40 * height, 80, 0, 2, 0, 40, height >> 1, 11,
 		frame1);
 
 	decode_video_memory(
 		image, color_regs,
-		0, 80, 0, 2, 0, 40, 96, mode,
+		0, 80, 0, 2, 0, 40, height >> 1, mode,
 		frame2);
 
 	decode_video_memory(
 		image, NULL,
-		7720, 80, 1, 2, 0, 40, 96, 11,
+		40 * height + 40, 80, 1, 2, 0, 40, height >> 1, 11,
 		frame2);
 
 	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
