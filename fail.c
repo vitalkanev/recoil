@@ -321,43 +321,56 @@ static abool unpack_koala(const byte data[], int data_len, int cprtype, byte unp
 	}
 }
 
-static abool unpack_cci(const byte data[], int data_len, int step, int count, byte unpacked_data[])
+static int unpack_cci(const byte image[], int image_offset, int image_len, byte unpacked_data[], int unpacked_step, int unpacked_len)
 {
-	int i = 0;
-	int d = 2;
-	int size = step * count;
-	int block_count = data[0] + (data[1] << 8);
-	while (block_count) {
-		int c;
+	int data_end;
+	int block_count;
+	int unpacked_offset;
+	if (image_offset + 3 >= image_len)
+		return -1;
+	data_end = image_offset + 2 + image[image_offset] + (image[image_offset + 1] << 8);
+	if (data_end > image_len)
+		return -1;
+	block_count = image[image_offset + 2] + (image[image_offset + 3] << 8);
+	image_offset += 4;
+	unpacked_offset = 0;
+	while (--block_count >= 0) {
 		int len;
 		int b;
-		if (d > data_len)
-			return FALSE;
-		c = data[d++];
-		len = (c & 0x7f) + 1;
-		b = -1;
+		if (image_offset >= data_end)
+			return -1;
+		len = image[image_offset++];
+		if (len >= 0x80) {
+			if (image_offset >= data_end)
+				return -1;
+			b = image[image_offset++];
+			len &= 0x7f;
+		}
+		else
+			b = -1;
 		do {
-			/* get byte if uncompressed block
-			   or if starting RLE block */
-			if (c < 0x80 || b < 0) {
-				if (d > data_len)
-					return FALSE;
-				b = data[d++];
+			if (b < 0) {
+				if (image_offset >= data_end)
+					return -1;
+				unpacked_data[unpacked_offset] = image[image_offset++];
 			}
-			unpacked_data[i] = (byte) b;
-			/* return if last byte written */
-			if (i >= size - 1)
-				return TRUE;
-			i += step;
-			if (i >= size)
-				i -= size - 1;
-		} while (--len > 0);
-		block_count--;
+			else
+				unpacked_data[unpacked_offset] = (byte) b;
+			if (unpacked_offset >= unpacked_len - 1) {
+				/* last byte written */
+				if (len > 0 || block_count > 0)
+					return -1;
+			}
+			else {
+				unpacked_offset += unpacked_step;
+				if (unpacked_offset >= unpacked_len)
+					unpacked_offset -= unpacked_len - 1;
+			}
+		} while (--len >= 0);
 	}
-	if (d == data_len)
-		return TRUE;
-	else
-		return FALSE;
+	if (image_offset != data_end)
+		return -1;
+	return image_offset;
 }
 
 typedef struct {
@@ -890,40 +903,33 @@ static abool decode_cci(
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
-	const byte *data;
-	int data_len;
 	byte unpacked_image[16384];
-	memset(unpacked_image, 0, sizeof(unpacked_image));
+	int image_offset;
 
 	if (image[0] != 'C' || image[1] != 'I' || image[2] != 'N' || image[3] != ' '
 	 || image[4] != '1' || image[5] != '.' || image[6] != '2' || image[7] != ' ')
 		return FALSE;
 
+	memset(unpacked_image, 0, sizeof(unpacked_image));
+
 	/* compressed even lines of gr15 frame */
-	data = image + 8;
-	data_len = data[0] + (data[1] << 8);
-	if (!unpack_cci(data + 2, data_len, 80, 96, unpacked_image))
+	image_offset = unpack_cci(image, 8, image_len, unpacked_image, 80, 80 * 96);
+	if (image_offset < 0)
 		return FALSE;
 
 	/* compressed odd lines of gr15 frame */
-	data += 2 + data_len;
-	data_len = data[0] + (data[1] << 8);
-	if (!unpack_cci(data + 2, data_len, 80, 96, unpacked_image + 40))
+	image_offset = unpack_cci(image, image_offset, image_len, unpacked_image + 40, 80, 80 * 96);
+	if (image_offset < 0)
 		return FALSE;
 
 	/* compressed gr11 frame */
-	data += 2 + data_len;
-	data_len = data[0] + (data[1] << 8);
-	if (!unpack_cci(data + 2, data_len, 40, 192, unpacked_image + 7680))
+	image_offset = unpack_cci(image, image_offset, image_len, unpacked_image + 7680, 40, 40 * 192);
+	if (image_offset < 0)
 		return FALSE;
 
 	/* compressed color values for gr15 */
-	data += 2 + data_len;
-	data_len = data[0] + (data[1] << 8);
-	if (!unpack_cci(data + 2, data_len, 1, 0x400, unpacked_image + 0x3C00))
-		return FALSE;
-
-	if (data + 2 + data_len != image + image_len)
+	image_offset = unpack_cci(image, image_offset, image_len, unpacked_image + 0x3C00, 1, 0x400);
+	if (image_offset != image_len)
 		return FALSE;
 
 	return decode_cin(
