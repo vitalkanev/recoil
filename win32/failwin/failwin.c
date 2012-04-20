@@ -1,7 +1,7 @@
 /*
  * failwin.c - Windows API port of FAIL
  *
- * Copyright (C) 2009-2011  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2012  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -357,16 +357,16 @@ static void SelectAndOpenImage(void)
 		sizeof(OPENFILENAME),
 		NULL,
 		0,
-		"All supported\0*.256;*.all;*.ap2;*.ap3;*.apc;*.apl;*.app;*.apv;*.bg9;*.bkg;*.cci;*.chr;*.cin;*.cpr;*.dgp;*.dlm;*.esc;*.fnt;*.fwa;*.g09;*.ghg;*.gr8;*.gr9;*.hip;*.hr;*.hr2;*.ige;*.ilc;*.inp;*.int;*.ist;*.jgp;*.max;*.mbg;*.mch;*.mcp;*.mgp;*.mic;*.pic;*.plm;*.pzm;*.raw;*.rgb;*.rip;*.rm0;*.rm1;*.rm2;*.rm3;*.rm4;*.sge;*.shc;*.shp;*.spc;*.sxs;*.tip;*.wnd;*.xlp\0"
+		"All supported\0*.256;*.all;*.ap2;*.ap3;*.apc;*.apl;*.app;*.apv;*.art;*.bg9;*.bkg;*.cci;*.chr;*.cin;*.cpr;*.dgp;*.dlm;*.esc;*.fnt;*.fwa;*.g09;*.g10;*.g11;*.ghg;*.gr7;*.gr8;*.gr9;*.hip;*.hr;*.hr2;*.ige;*.ilc;*.inp;*.int;*.ist;*.jgp;*.max;*.mbg;*.mch;*.mcp;*.mgp;*.mic;*.pic;*.plm;*.pzm;*.raw;*.rgb;*.rip;*.rm0;*.rm1;*.rm2;*.rm3;*.rm4;*.sge;*.shc;*.shp;*.spc;*.sxs;*.tip;*.wnd;*.xlp\0"
 #define FAIL_FILTER(description, masks) description " (" masks ")\0" masks "\0"
 		FAIL_FILTER("Hi-res", "*.cpr;*.dlm;*.ghg;*.gr8;*.mbg;*.sge")
+		FAIL_FILTER("GTIA mode", "*.bg9;*.g09;*.g10;*.g11;*.gr9")
 		FAIL_FILTER("Using DLI", "*.fwa;*.mch;*.mgp;*.rm0;*.rm1;*.rm2;*.rm3;*.rm4")
-		FAIL_FILTER("Other non-interlaced", "*.all;*.apl;*.bg9;*.bkg;*.g09;*.gr9;*.mic;*.pic;*.shp;*.spc;*.wnd")
+		FAIL_FILTER("Other non-interlaced", "*.all;*.apl;*.art;*.bkg;*.gr7;*.mic;*.pic;*.shp;*.spc;*.wnd")
 		FAIL_FILTER("Interlaced GR. 15", "*.ige;*.inp;*.int;*.ist;*.max;*.mcp;*.raw;*.xlp")
 		FAIL_FILTER("80x96x256", "*.256;*.ap2;*.apc;*.plm")
 		FAIL_FILTER("80x192x256", "*.ap3;*.app;*.apv;*.dgp;*.esc;*.ilc;*.pzm")
-		FAIL_FILTER("CIN", "*.cci;*.cin")
-		FAIL_FILTER("HIP/RIP/TIP", "*.hip;*.rip;*.tip")
+		FAIL_FILTER("CIN/HIP/RIP/TIP", "*.cci;*.cin;*.hip;*.rip;*.tip")
 		FAIL_FILTER("Other interlaced", "*.hr;*.hr2;*.rgb;*.shc")
 		FAIL_FILTER("Fonts", "*.chr;*.fnt;*.jgp;*.sxs")
 		"\0",

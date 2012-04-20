@@ -44,6 +44,7 @@ AP3, APV, DGP, ESC, ILC, PZM:: "DigiPaint" / "EscalPaint", 80x192, 256 colors, i
 APC, PLM:: "Any Point, Any Color" / "Plama 256", 80x96, 256 colors.
 APL:: "Atari Player Editor", up to 16 16x48 frames, 4 colors.
 APP:: 80x192, 256 colors, interlaced, compressed.
+ART:: "Artist" by David Eaton, 160x80, 4 colors.
 BG9, G09:: 160x192, 16-level grayscale.
 BKG:: "Movie Maker" background, 160x96, 4 colors.
 CCI:: "Champions' Interlace", 160x192, compressed.
@@ -53,10 +54,12 @@ CPR:: "Trzmiel", 320x192, mono, compressed.
 DLM:: "Dir Logo Maker", 11x16 characters, mono.
 FNT:: Standard 8x8 font, mono.
 FWA:: "Fun with Art", 160x192, 128 colors.
+G10:: "Graphics 10", up to 80x240, 9 colors.
+G11:: "Graphics 11", up to 80x240, 16 colors.
 GHG:: "Gephard Hires Graphics", up to 320x200, mono.
-GR8:: Standard 320x192, mono.
-GR9:: Standard 80x192, 16-level grayscale.
-// actually GR8 and GR9 are up to 240 lines
+GR7:: "Graphics 7", up to 160x120, 4 colors.
+GR8:: "Graphics 8", up to 320x240, mono.
+GR9:: "Graphics 9", up to 80x240, 16-level grayscale.
 HIP:: "Hard Interlace Picture", 160x200, grayscale.
 HR:: 256x239, 3 colors, interlaced.
 HR2:: 320x200, 5 colors, interlaced.
@@ -70,8 +73,7 @@ MBG:: "Mad Designer", 512x256, mono.
 MCH:: "Graph2Font", up to 176x240, 128 colors.
 MCP:: "McPainter", 160x200, 16 colors, interlaced.
 MGP:: "Magic Painter", 160x96, 4 colors with optional rainbow effect.
-MIC:: Standard 160x192, 4 colors.
-// actually MIC is up to 160x240
+MIC:: "Micro Illustrator" / "Graphics 15", up to 160x240, 4 colors.
 PIC:: "Koala MicroIllustrator", 160x192, 4 colors, compressed.
 RAW:: "XL-Paint MAX", 160x192, 16 colors, interlaced.
 RGB:: "ColorViewSquash", up to 160x192, three-frame interlace.
@@ -93,7 +95,10 @@ TIP:: "Taquart Interlace Picture", up to 160x119.
 WND:: "Blazing Paddles" window, up to 160x192, 4 colors.
 XLP:: "XL-Paint", 160x192 or 160x200, 7 colors, interlaced, compressed.
 
-You can find some example files in http://fail.sourceforge.net/examples.zip[examples.zip].
+// Artist, Magic Painter and Rambrandt have no default extension, I made them up.
+// Documentation for Rambrandt suggests RM0-RM4 for the compressed files.
+
+You can find some sample files in http://fail.sourceforge.net/examples.zip[examples.zip].
 
 ifdef::failsrc[]
 include::INSTALL[]

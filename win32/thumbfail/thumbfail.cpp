@@ -1,7 +1,7 @@
 /*
  * thumbfail.cpp - Windows thumbnail provider for FAIL
  *
- * Copyright (C) 2011  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2011-2012  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -68,12 +68,13 @@ DECLARE_INTERFACE_(IThumbnailProvider, IUnknown)
 #include "fail.h"
 
 static const char extensions[][5] =
-	{ ".256", ".all", ".ap2", ".ap3", ".apc", ".apl", ".app", ".apv", ".bg9", ".bkg",
-	  ".cci", ".chr", ".cin", ".cpr", ".dgp", ".dlm", ".esc", ".fnt", ".fwa", ".g09",
-	  ".ghg", ".gr8", ".gr9", ".hip", ".hr",  ".hr2", ".ige", ".ilc", ".inp", ".int",
-	  ".ist", ".jgp", ".max", ".mbg", ".mch", ".mcp", ".mgp", ".mic", ".pic", ".plm",
-	  ".pzm", ".raw", ".rgb", ".rip", ".rm0", ".rm1", ".rm2", ".rm3", ".rm4", ".sge",
-	  ".shc", ".shp", ".spc", ".sxs", ".tip", ".wnd", ".xlp" };
+	{ ".256", ".all", ".ap2", ".ap3", ".apc", ".apl", ".app", ".apv", ".art", ".bg9",
+	  ".bkg", ".cci", ".chr", ".cin", ".cpr", ".dgp", ".dlm", ".esc", ".fnt", ".fwa",
+	  ".g09", ".g10", ".g11", ".ghg", ".gr7", ".gr8", ".gr9", ".hip", ".hr",  ".hr2",
+	  ".ige", ".ilc", ".inp", ".int", ".ist", ".jgp", ".max", ".mbg", ".mch", ".mcp",
+	  ".mgp", ".mic", ".pic", ".plm", ".pzm", ".raw", ".rgb", ".rip", ".rm0", ".rm1",
+	  ".rm2", ".rm3", ".rm4", ".sge", ".shc", ".shp", ".spc", ".sxs", ".tip", ".wnd",
+	  ".xlp" };
 #define N_EXTS (int) (sizeof(extensions) / sizeof(extensions[0]))
 
 static HINSTANCE g_hDll;
