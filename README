@@ -44,6 +44,8 @@ AP3, APV, DGP, ESC, ILC, PZM:: "DigiPaint" / "EscalPaint", 80x192, 256 colors, i
 APC, PLM:: "Any Point, Any Color" / "Plama 256", 80x96, 256 colors.
 APL:: "Atari Player Editor", up to 16 16x48 frames, 4 colors.
 APP:: 80x192, 256 colors, interlaced, compressed.
+ART:: "Ascii-Art Editor", up to 64x24 characters, mono.
+// I only see up to 40x21 in the editor, but the sample file SIANO.ART is bigger
 ART:: "Artist" by David Eaton, 160x80, 4 colors.
 BG9, G09:: 160x192, 16-level grayscale.
 BKG:: "Movie Maker" background, 160x96, 4 colors.

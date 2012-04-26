@@ -114,7 +114,7 @@ static const struct Format {
 	{ "APL", "Atari Player Editor; up to 16 16x48 frames, 4 colors" },
 	{ "APP", "80x192, 256 colors, interlaced, compressed" },
 	{ "APV", "80x192, 256 colors, interlaced" },
-	{ "ART", "Artist by David Eaton; 160x80, 4 colors" },
+	{ "ART", "Ascii-Art Editor or Artist by David Eaton" },
 	{ "BG9", "160x192, 16-level grayscale" },
 	{ "BKG", "Movie Maker background; 160x96, 4 colors" },
 	{ "CCI", "Champions' Interlace; 160x192, compressed" },
