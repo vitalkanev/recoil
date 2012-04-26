@@ -52,6 +52,7 @@ CHR:: "Blazing Paddles" font, mono.
 CIN:: "Champions' Interlace", 160x192 or 160x200.
 CPR:: "Trzmiel", 320x192, mono, compressed.
 DLM:: "Dir Logo Maker", 11x16 characters, mono.
+DRG:: "Atari CAD", 320x160, mono.
 FNT:: Standard 8x8 font, mono.
 FWA:: "Fun with Art", 160x192, 128 colors.
 G10:: "Graphics 10", up to 80x240, 9 colors.
@@ -73,7 +74,7 @@ MBG:: "Mad Designer", 512x256, mono.
 MCH:: "Graph2Font", up to 176x240, 128 colors.
 MCP:: "McPainter", 160x200, 16 colors, interlaced.
 MGP:: "Magic Painter", 160x96, 4 colors with optional rainbow effect.
-MIC:: "Micro Illustrator" / "Graphics 15", up to 160x240, 4 colors.
+MIC:: "Micro Illustrator" / "Graphics 15" / "AtariGraphics", up to 160x240, 4 colors.
 PIC:: "Koala MicroIllustrator", 160x192, 4 colors, compressed.
 RAW:: "XL-Paint MAX", 160x192, 16 colors, interlaced.
 RGB:: "ColorViewSquash", up to 160x192, three-frame interlace.
@@ -95,10 +96,10 @@ TIP:: "Taquart Interlace Picture", up to 160x119.
 WND:: "Blazing Paddles" window, up to 160x192, 4 colors.
 XLP:: "XL-Paint", 160x192 or 160x200, 7 colors, interlaced, compressed.
 
-// Artist, Magic Painter and Rambrandt have no default extension, I made them up.
-// Documentation for Rambrandt suggests RM0-RM4 for the compressed files.
-
 You can find some sample files in http://fail.sourceforge.net/examples.zip[examples.zip].
+
+Note: Artist, AtariGraphics, Magic Painter and Rambrandt had no default extensions, so I made them up.
+Documentation for Rambrandt suggests RM0-RM4 for the compressed files, I also use them for the raw format.
 
 ifdef::failsrc[]
 include::INSTALL[]

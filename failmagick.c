@@ -123,6 +123,7 @@ static const struct Format {
 	{ "CPR", "Trzmiel; 320x192, mono, compressed" },
 	{ "DGP", "DigiPaint; 80x192, 256 colors, interlaced" },
 	{ "DLM", "Dir Logo Maker; 88x128, mono" },
+	{ "DRG", "Atari CAD; 320x160, mono" },
 	{ "ESC", "EscalPaint; 80x192, 256 colors, interlaced" },
 	{ "FNT", "Standard 8x8 font, mono" },
 	{ "FWA", "Fun with Art; 160x192, 128 colors" },

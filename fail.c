@@ -3289,6 +3289,15 @@ static abool decode_art(
 	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
+static abool decode_drg(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	return image_len == 6400 && decode_gr8(image, image_len, atari_palette, image_info, pixels);
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -3370,6 +3379,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('G', '1', '0'):
 	case FAIL_EXT('G', '1', '1'):
 	case FAIL_EXT('A', 'R', 'T'):
+	case FAIL_EXT('D', 'R', 'G'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -3455,7 +3465,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('G', 'R', '7'), decode_gr7 },
 		{ FAIL_EXT('G', '1', '0'), decode_g10 },
 		{ FAIL_EXT('G', '1', '1'), decode_g11 },
-		{ FAIL_EXT('A', 'R', 'T'), decode_art }
+		{ FAIL_EXT('A', 'R', 'T'), decode_art },
+		{ FAIL_EXT('D', 'R', 'G'), decode_drg }
 	}, *ph;
 
 	if (atari_palette == NULL)
