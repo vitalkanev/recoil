@@ -1,7 +1,7 @@
 /*
  * failwin.rc - FAILWin GUI definition
  *
- * Copyright (C) 2009-2010  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2012  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -33,8 +33,12 @@ IDR_MENU MENU
 	POPUP "&File"
 	{
 		MENUITEM "&Open...\tO", IDM_OPEN
+		MENUITEM SEPARATOR
 		MENUITEM "&Previous file in directory\tUp", IDM_PREVFILE, GRAYED
 		MENUITEM "&Next file in directory\tDown", IDM_NEXTFILE, GRAYED
+		MENUITEM "&First file in directory\tHome", IDM_FIRSTFILE, GRAYED
+		MENUITEM "L&ast file in directory\tEnd", IDM_LASTFILE, GRAYED
+		MENUITEM "Skip files on error", IDM_SKIPFILES, CHECKED
 		MENUITEM SEPARATOR
 		MENUITEM "&Save as...\tS", IDM_SAVEAS, GRAYED
 		MENUITEM SEPARATOR
@@ -75,6 +79,8 @@ IDR_ACCELERATORS ACCELERATORS
 	VK_DOWN, IDM_NEXTFILE, VIRTKEY
 	VK_RIGHT, IDM_NEXTFILE, VIRTKEY
 	VK_NEXT, IDM_NEXTFILE, VIRTKEY
+	VK_HOME, IDM_FIRSTFILE, VIRTKEY
+	VK_END, IDM_LASTFILE, VIRTKEY
 	"s", IDM_SAVEAS
 	"S", IDM_SAVEAS
 	"^s", IDM_SAVEAS

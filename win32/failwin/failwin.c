@@ -57,6 +57,7 @@ static BOOL status_bar = TRUE;
 
 static char image_filename[MAX_PATH] = "";
 static BOOL image_loaded = FALSE;
+static BOOL skip_files = TRUE;
 static FAIL_ImageInfo image_info;
 static byte pixels[FAIL_PIXELS_MAX];
 static byte palette[FAIL_PALETTE_MAX];
@@ -282,6 +283,8 @@ static BOOL OpenImage(BOOL show_error)
 
 	SetMenuEnabled(IDM_PREVFILE, TRUE);
 	SetMenuEnabled(IDM_NEXTFILE, TRUE);
+	SetMenuEnabled(IDM_FIRSTFILE, TRUE);
+	SetMenuEnabled(IDM_LASTFILE, TRUE);
 
 	if (!LoadFile(image_filename, image, &image_len)) {
 		if (show_error)
@@ -415,15 +418,11 @@ static BOOL GetSiblingFile(char *filename, int dir)
 		return FALSE;
 	do {
 		if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0
-			&& wfd.nFileSizeHigh == 0
-			&& wfd.nFileSizeLow <= FAIL_IMAGE_MAX
-			&& FAIL_IsOurFile(wfd.cFileName)
-			&& _stricmp(wfd.cFileName, filename + path_len) * dir > 0) {
-			if (best[0] == '\0'
-			 || _stricmp(wfd.cFileName, best) * dir < 0) {
-				strcpy(best, wfd.cFileName);
-			}
-		}
+		 && wfd.nFileSizeHigh == 0 && wfd.nFileSizeLow <= FAIL_IMAGE_MAX
+		 && FAIL_IsOurFile(wfd.cFileName)
+		 && ((dir & 1) == 0 || _stricmp(wfd.cFileName, filename + path_len) * dir > 0)
+		 && (best[0] == '\0' || (_stricmp(wfd.cFileName, best) ^ dir) < 0))
+			strcpy(best, wfd.cFileName);
 	} while (FindNextFile(fh, &wfd));
 	FindClose(fh);
 	if (best[0] == '\0')
@@ -439,8 +438,17 @@ static void OpenSiblingImage(int dir)
 	if (image_filename[0] == '\0')
 		return;
 	while (GetSiblingFile(image_filename, dir)) {
-		if (OpenImage(FALSE))
+		if (skip_files) {
+			if (OpenImage(FALSE))
+				return;
+			/* first->next, last->prev */
+			if ((dir & 1) == 0)
+				dir >>= 1;
+		}
+		else {
+			OpenImage(TRUE);
 			return;
+		}
 	}
 	if (!image_loaded)
 		OpenImage(TRUE);
@@ -590,6 +598,16 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			break;
 		case IDM_NEXTFILE:
 			OpenSiblingImage(1);
+			break;
+		case IDM_FIRSTFILE:
+			OpenSiblingImage(2);
+			break;
+		case IDM_LASTFILE:
+			OpenSiblingImage(-2);
+			break;
+		case IDM_SKIPFILES:
+			skip_files = !skip_files;
+			SetMenuCheck(IDM_SKIPFILES, skip_files);
 			break;
 		case IDM_SAVEAS:
 			SelectAndSaveImage();

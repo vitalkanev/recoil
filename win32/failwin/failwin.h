@@ -1,7 +1,7 @@
 /*
  * failwin.h - FAILWin GUI declarations
  *
- * Copyright (C) 2009  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2012  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -26,16 +26,19 @@
 #define IDM_OPEN         201
 #define IDM_PREVFILE     202
 #define IDM_NEXTFILE     203
-#define IDM_SAVEAS       204
-#define IDM_LOADPALETTE  205
-#define IDM_USEPALETTE   206
-#define IDM_EXIT         207
-#define IDM_COPY         208
-#define IDM_FULLSCREEN   209
-#define IDM_ZOOMIN       210
-#define IDM_ZOOMOUT      211
-#define IDM_INVERT       212
-#define IDM_SHOWPATH     213
-#define IDM_STATUSBAR    214
-#define IDM_ABOUT        215
+#define IDM_FIRSTFILE    204
+#define IDM_LASTFILE     205
+#define IDM_SKIPFILES    206
+#define IDM_SAVEAS       207
+#define IDM_LOADPALETTE  208
+#define IDM_USEPALETTE   209
+#define IDM_EXIT         210
+#define IDM_COPY         211
+#define IDM_FULLSCREEN   212
+#define IDM_ZOOMIN       213
+#define IDM_ZOOMOUT      214
+#define IDM_INVERT       215
+#define IDM_SHOWPATH     216
+#define IDM_STATUSBAR    217
+#define IDM_ABOUT        218
 #define IDR_ACCELERATORS 300
