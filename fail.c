@@ -31,6 +31,7 @@
 
 #define FAIL_MODE_REAL11 27
 #define FAIL_MODE_15PF0FIRST 16
+#define FAIL_MODE_15WITHPF3 17
 #define FAIL_MODE_CIN15 31
 #define FAIL_MODE_MULTIRIP 48
 
@@ -47,21 +48,18 @@ static void decode_video_memory(
 	int dest_pos = dest_vert_offset * pixels_per_line;
 	int odd = dest_vert_offset & 1;
 	int pa = odd ? -pixels_per_line : pixels_per_line;
-	int x;
 	int y;
-	int i;
-	int col;
-	byte b;
 	int xe = dest_horz_offset + bytes_per_line * 8;
 	int xb = (dest_horz_offset > 0 ? dest_horz_offset : 0);
 	if (xe > bytes_per_line * 8)
 		xe = bytes_per_line * 8;
 	for (y = 0; y < line_count; y++) {
+		int x;
 		for (x = 0; x < xb; x++)
 			frame[dest_pos + x] = 0;
 		for (x = xb; x < xe; x++) {
-			b = image[src_pos + (x - dest_horz_offset) / 8];
-			i = (x - dest_horz_offset) % 8;
+			int i = (x - dest_horz_offset) % 8;
+			byte b = image[src_pos + (x - dest_horz_offset) / 8];
 			switch (dest_mode) {
 			case 8:
 				/* color_regs should be 2 bytes long */
@@ -95,18 +93,22 @@ static void decode_video_memory(
 					frame[dest_pos + pa + x] = (frame[dest_pos + pa + x] & 0x0F) | hu;
 				}
 				break;
-			case 15: /* 4 regs */
+			case 15: /* BAK, PF0, PF1, PF2 */
 				frame[dest_pos + x] = color_regs[b >> (~i & 6) & 3] & 0xFE;
 				break;
-			case FAIL_MODE_15PF0FIRST: /* 4 regs, PF0 first */
+			case FAIL_MODE_15PF0FIRST: /* PF0, PF1, PF2, BAK */
 				frame[dest_pos + x] = color_regs[((b >> (~i & 6)) - 1) & 3] & 0xFE;
+				break;
+			case FAIL_MODE_15WITHPF3: /* PF0, PF1, PF2, PF3 (unused), BAK */
+				i = b >> (~i & 6) & 3;
+				frame[dest_pos + x] = color_regs[i == 0 ? 4 : i - 1] & 0xFE;
 				break;
 			case FAIL_MODE_CIN15: /* 4 * 256 regs, only first 192 of each 256-byte group are used */
 				frame[dest_pos + x] = color_regs[(b >> (~i & 6) & 3) * 256 + y] & 0xFE;
 				break;
 			case FAIL_MODE_MULTIRIP:
-				col = b >> (~i & 4) & 0x0F;
-				frame[dest_pos + x] = col == 0 ? 0 : color_regs[gr10_to_reg[col] + (y / 2) * 8 - 1] & 0xFE;
+				i = b >> (~i & 4) & 0x0F;
+				frame[dest_pos + x] = i == 0 ? 0 : color_regs[gr10_to_reg[i] + (y / 2) * 8 - 1] & 0xFE;
 				break;
 			}
 		}
@@ -1189,13 +1191,10 @@ static abool decode_rip(
 	switch (image[7]) {
 	case 0x0e:
 		/* gr. 15 */
-		{
-			byte colors[4] = { image[32 + txt_len], image[28 + txt_len], image[29 + txt_len], image[30 + txt_len] };
-			decode_video_memory(
-				unpacked_image, colors,
-				frame_len, line_len, 0, 1, 0, line_len, image_info->height,
-				15, frame1);
-		}
+		decode_video_memory(
+			unpacked_image, image + 28 + txt_len,
+			frame_len, line_len, 0, 1, 0, line_len, image_info->height,
+			FAIL_MODE_15WITHPF3, frame1);
 		return frame_to_rgb(frame1, atari_palette, image_info, pixels);
 	case 0x0f:
 		image_info->original_width <<= 1;
@@ -3266,7 +3265,6 @@ static abool decode_artist(
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
-	byte color_regs[4];
 	byte frame[320 * 160];
 
 	if (image_len != 3206 || image[0] != 7)
@@ -3277,18 +3275,13 @@ static abool decode_artist(
 	image_info->original_width = 160;
 	image_info->original_height = 80;
 
-	color_regs[0] = image[5];
-	color_regs[1] = image[1];
-	color_regs[2] = image[2];
-	color_regs[3] = image[3];
-
 	decode_video_memory(
-		image, color_regs,
-		6, 40, 0, 2, 0, 40, 80, 15,
+		image, image + 1,
+		6, 40, 0, 2, 0, 40, 80, FAIL_MODE_15WITHPF3,
 		frame);
 	decode_video_memory(
-		image, color_regs,
-		6, 40, 1, 2, 0, 40, 80, 15,
+		image, image + 1,
+		6, 40, 1, 2, 0, 40, 80, FAIL_MODE_15WITHPF3,
 		frame);
 
 	return frame_to_rgb(frame, atari_palette, image_info, pixels);
@@ -3359,6 +3352,189 @@ static abool decode_drg(
 	byte pixels[])
 {
 	return image_len == 6400 && decode_gr8(image, image_len, atari_palette, image_info, pixels);
+}
+
+static abool decode_agp(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte frame[320 * 192];
+	if (image_len != 7690)
+		return FALSE;
+
+	switch (image[0]) {
+	case 8:
+		{
+			byte color_regs[2] = { image[7], image[6] };
+			image_info->original_width = 320;
+			decode_video_memory(
+				image, color_regs,
+				10, 40, 0, 1, 0, 40, 192, 8,
+				frame);
+		}
+		break;
+	case 9:
+		image_info->original_width = 80;
+		decode_video_memory(
+			image, image + 9,
+			10, 40, 0, 1, 0, 40, 192, 9,
+			frame);
+		break;
+	case 10:
+		image_info->original_width = 80;
+		decode_video_memory(
+			image, image + 1,
+			10, 40, 0, 1, 0, 40, 192, 10,
+			frame);
+		break;
+	case 11:
+		image_info->original_width = 80;
+		decode_video_memory(
+			image, image + 9,
+			10, 40, 0, 1, 0, 40, 192, FAIL_MODE_REAL11,
+			frame);
+		break;
+	case 15:
+		image_info->original_width = 160;
+		decode_video_memory(
+			image, image + 4,
+			10, 40, 0, 1, 0, 40, 192, FAIL_MODE_15WITHPF3,
+			frame);
+		break;
+	default:
+		return FALSE;
+	}
+
+	image_info->width = 320;
+	image_info->height = 192;
+	image_info->original_height = 192;
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
+}
+
+static void init_at800_sprites(FAIL_ImageInfo* image_info, int width, byte frame[])
+{
+	image_info->width = width * 2;
+	image_info->height = 240;
+	image_info->original_width = width;
+	image_info->original_height = 240;
+	memset(frame, 0, width * 2 * 240);
+}
+
+static void decode_player(const byte input[], byte color, int width, byte frame[])
+{
+	int y;
+	for (y = 0; y < 240; y++) {
+		byte b = input[y];
+		int x;
+		for (x = 0; x < 8; x++) {
+			if ((b >> (7 - x) & 1) != 0)
+				frame[(width * y + x) * 2 + 1] = frame[(width * y + x) * 2] = color;
+		}
+	}
+}
+
+#define AT800_SPRITE_GAP 2
+
+static void decode_players(const byte image[], int width, byte frame[])
+{
+	int i;
+	for (i = 0; i < 4; i++)
+		decode_player(image + 4 + 240 * i, image[i], width, frame + (8 + AT800_SPRITE_GAP) * 2 * i);
+}
+
+static void decode_missiles(const byte input[], const byte colors[], int width, byte frame[])
+{
+	int y;
+	for (y = 0; y < 240; y++) {
+		int i;
+		for (i = 0; i < 4; i++) {
+			byte b = input[y] >> (i << 1);
+			if ((b & 2) != 0)
+				frame[(width * y + (2 + AT800_SPRITE_GAP) * i) * 2 + 1] = frame[(width * y + (2 + AT800_SPRITE_GAP) * i) * 2] = colors[i];
+			if ((b & 1) != 0)
+				frame[(width * y + (2 + AT800_SPRITE_GAP) * i) * 2 + 3] = frame[(width * y + (2 + AT800_SPRITE_GAP) * i) * 2 + 2] = colors[i];
+		}
+	}
+}
+
+static abool decode_pla(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte frame[8 * 2 * 240];
+	if (image_len != 241)
+		return FALSE;
+	init_at800_sprites(image_info, 8, frame);
+	decode_player(image + 1, image[0], 8, frame);
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
+}
+
+static abool decode_mis(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte frame[2 * 2 * 240];
+	int y;
+	if (image_len != 61 && image_len != 241)
+		return FALSE;
+	init_at800_sprites(image_info, 2, frame);
+	for (y = 0; y < 240; y++) {
+		byte b = image[1 + (y >> 2)] >> ((~y & 3) << 1);
+		if ((b & 2) != 0)
+			frame[4 * y + 1] = frame[4 * y] = image[0];
+		if ((b & 1) != 0)
+			frame[4 * y + 3] = frame[4 * y + 2] = image[0];
+	}
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
+}
+
+static abool decode_4pl(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte frame[(8 + AT800_SPRITE_GAP) * 4 * 2 * 240];
+	if (image_len != 964)
+		return FALSE;
+	init_at800_sprites(image_info, (8 + AT800_SPRITE_GAP) * 4, frame);
+	decode_players(image, (8 + AT800_SPRITE_GAP) * 4, frame);
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
+}
+
+static abool decode_4mi(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte frame[(2 + AT800_SPRITE_GAP) * 4 * 2 * 240];
+	if (image_len != 244)
+		return FALSE;
+	init_at800_sprites(image_info, (2 + AT800_SPRITE_GAP) * 4, frame);
+	decode_missiles(image + 4, image, (2 + AT800_SPRITE_GAP) * 4, frame);
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
+}
+
+static abool decode_4pm(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte frame[(8 + AT800_SPRITE_GAP + 2 + AT800_SPRITE_GAP) * 4 * 2 * 240];
+	if (image_len != 1204)
+		return FALSE;
+	init_at800_sprites(image_info, (8 + AT800_SPRITE_GAP + 2 + AT800_SPRITE_GAP) * 4, frame);
+	decode_players(image, (8 + AT800_SPRITE_GAP + 2 + AT800_SPRITE_GAP) * 4, frame);
+	decode_missiles(image + 964, image, (8 + AT800_SPRITE_GAP + 2 + AT800_SPRITE_GAP) * 4, frame + (8 + AT800_SPRITE_GAP) * 4 * 2);
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
@@ -3443,6 +3619,12 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('G', '1', '1'):
 	case FAIL_EXT('A', 'R', 'T'):
 	case FAIL_EXT('D', 'R', 'G'):
+	case FAIL_EXT('A', 'G', 'P'):
+	case FAIL_EXT('P', 'L', 'A'):
+	case FAIL_EXT('M', 'I', 'S'):
+	case FAIL_EXT('4', 'P', 'L'):
+	case FAIL_EXT('4', 'M', 'I'):
+	case FAIL_EXT('4', 'P', 'M'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -3529,7 +3711,13 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('G', '1', '0'), decode_g10 },
 		{ FAIL_EXT('G', '1', '1'), decode_g11 },
 		{ FAIL_EXT('A', 'R', 'T'), decode_art },
-		{ FAIL_EXT('D', 'R', 'G'), decode_drg }
+		{ FAIL_EXT('D', 'R', 'G'), decode_drg },
+		{ FAIL_EXT('A', 'G', 'P'), decode_agp },
+		{ FAIL_EXT('P', 'L', 'A'), decode_pla },
+		{ FAIL_EXT('M', 'I', 'S'), decode_mis },
+		{ FAIL_EXT('4', 'P', 'L'), decode_4pl },
+		{ FAIL_EXT('4', 'M', 'I'), decode_4mi },
+		{ FAIL_EXT('4', 'P', 'M'), decode_4pm }
 	}, *ph;
 
 	if (atari_palette == NULL)

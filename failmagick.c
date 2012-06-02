@@ -107,6 +107,10 @@ static const struct Format {
 	const char *description;
 } formats[] = {
 	{ "256", "80x96, 256 colors" },
+	{ "4MI", "AtariTools-800 4 mono missiles" },
+	{ "4PL", "AtariTools-800 4 mono players" },
+	{ "4PM", "AtariTools-800 4 mono players and 4 mono missiles" },
+	{ "AGP", "AtariTools-800 graphic" },
 	{ "ALL", "Graph; 160x192, 5 colors" },
 	{ "AP2", "80x96, 256 colors" },
 	{ "AP3", "80x192, 256 colors, interlaced" },
@@ -148,7 +152,9 @@ static const struct Format {
 	{ "MCH", "Graph2Font; up to 176x240, 128 colors" },
 	{ "MCP", "McPainter; 160x200, 16 colors, interlaced" },
 	{ "MIC", "Micro Illustrator; up to 160x240, 4 colors" },
+	{ "MIS", "AtariTools-800 missile; 2x240, mono" },
 	{ "PIC", "Koala MicroIllustrator; 160x192, 4 colors, compressed" },
+	{ "PLA", "AtariTools-800 player; 8x240, mono" },
 	{ "PLM", "Plama 256; 80x96, 256 colors" },
 	{ "PZM", "EscalPaint; 80x192, 256 colors, interlaced" },
 	{ "RAW", "XL-Paint MAX; 160x192, 16 colors, interlaced" },

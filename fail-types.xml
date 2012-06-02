@@ -1,5 +1,9 @@
 <fail-types>
 	<type ext="256" />
+	<type ext="4mi" acronym="4 MIssiles" />
+	<type ext="4pl" acronym="4 PLayers" />
+	<type ext="4pm" acronym="4 Players and Missiles" />
+	<type ext="agp" />
 	<type ext="all" />
 	<type ext="ap2" />
 	<type ext="ap3" />
@@ -42,7 +46,9 @@
 	<type ext="mcp" acronym="MCPainter" />
 	<type ext="mgp" acronym="Magic Painter" />
 	<type ext="mic" acronym="MICro illustrator" />
+	<type ext="mis" acronym="MISsile" />
 	<type ext="pic" />
+	<type ext="pla" acronym="PLAyer" />
 	<type ext="plm" acronym="PLaMa 256" />
 	<type ext="pzm" />
 	<type ext="raw" />

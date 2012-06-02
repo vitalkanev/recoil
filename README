@@ -39,6 +39,10 @@ Supported file formats
 
 [horizontal]
 256, AP2:: 80x96, 256 colors.
+4MI:: "AtariTools-800" 4 mono missiles 2x240 each.
+4PL:: "AtariTools-800" 4 mono players 8x240 each.
+4PM:: "AtariTools-800" 4 mono players 8x240 each plus 4 mono missiles 8x240 each.
+AGP:: "AtariTools-800" graphic.
 ALL:: "Graph", 160x192, 5 colors.
 AP3, APV, DGP, ESC, ILC, PZM:: "DigiPaint" / "EscalPaint", 80x192, 256 colors, interlaced.
 APC, PLM:: "Any Point, Any Color" / "Plama 256", 80x96, 256 colors.
@@ -77,7 +81,9 @@ MCH:: "Graph2Font", up to 176x240, 128 colors.
 MCP:: "McPainter", 160x200, 16 colors, interlaced.
 MGP:: "Magic Painter", 160x96, 4 colors with optional rainbow effect.
 MIC:: "Micro Illustrator" / "Graphics 15" / "AtariGraphics", up to 160x240, 4 colors.
+MIS:: "AtariTools-800" missile, 2x240, mono.
 PIC:: "Koala MicroIllustrator", 160x192, 4 colors, compressed.
+PLA:: "AtariTools-800" player, 8x240, mono.
 RAW:: "XL-Paint MAX", 160x192, 16 colors, interlaced.
 RGB:: "ColorViewSquash", up to 160x192, three-frame interlace.
 RIP:: "Rocky Interlace Picture", up to 320x239.
