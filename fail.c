@@ -1193,17 +1193,17 @@ static abool decode_rip(
 		/* gr. 15 */
 		decode_video_memory(
 			unpacked_image, image + 28 + txt_len,
-			frame_len, line_len, 0, 1, 0, line_len, image_info->height,
+			0, line_len, 0, 1, 0, line_len, image_info->height,
 			FAIL_MODE_15WITHPF3, frame1);
 		return frame_to_rgb(frame1, atari_palette, image_info, pixels);
 	case 0x0f:
 		image_info->original_width <<= 1;
 		/* gr. 8 */
 		{
-			byte colors[2] = { image[29 + txt_len], image[28 + txt_len] };
+			byte color_regs[2] = { image[30 + txt_len], image[29 + txt_len] };
 			decode_video_memory(
-				unpacked_image, colors,
-				frame_len, line_len, 0, 1, 0, line_len, image_info->height,
+				unpacked_image, color_regs,
+				0, line_len, 0, 1, 0, line_len, image_info->height,
 				8, frame1);
 		}
 		return frame_to_rgb(frame1, atari_palette, image_info, pixels);
@@ -1212,7 +1212,7 @@ static abool decode_rip(
 		image_info->original_width >>= 1;
 		decode_video_memory(
 			unpacked_image, image + 32 + txt_len,
-			frame_len, line_len, 0, 1, 0, line_len, image_info->height,
+			0, line_len, 0, 1, 0, line_len, image_info->height,
 			9, frame1);
 		return frame_to_rgb(frame1, atari_palette, image_info, pixels);
 	case 0x8f:
@@ -1220,7 +1220,7 @@ static abool decode_rip(
 		image_info->original_width >>= 1;
 		decode_video_memory(
 			unpacked_image, image + 24 + txt_len,
-			frame_len, line_len, 0, 1, 0, line_len, image_info->height,
+			0, line_len, 0, 1, 0, line_len, image_info->height,
 			10, frame1);
 		return frame_to_rgb(frame1, atari_palette, image_info, pixels);
 	case 0xcf:
@@ -1228,7 +1228,7 @@ static abool decode_rip(
 		image_info->original_width >>= 1;
 		decode_video_memory(
 			unpacked_image, image + 32 + txt_len,
-			frame_len, line_len, 0, 1, 0, line_len, image_info->height,
+			0, line_len, 0, 1, 0, line_len, image_info->height,
 			FAIL_MODE_REAL11, frame1);
 		return frame_to_rgb(frame1, atari_palette, image_info, pixels);
 	case 0x10:
