@@ -153,6 +153,8 @@ static const struct Format {
 	{ "MCP", "McPainter; 160x200, 16 colors, interlaced" },
 	{ "MIC", "Micro Illustrator; up to 160x240, 4 colors" },
 	{ "MIS", "AtariTools-800 missile; 2x240, mono" },
+	{ "PGC", "Atari Portfolio; 240x64, mono, compressed" },
+	{ "PGF", "Atari Portfolio; 240x64, mono" },
 	{ "PIC", "Koala MicroIllustrator; 160x192, 4 colors, compressed" },
 	{ "PLA", "AtariTools-800 player; 8x240, mono" },
 	{ "PLM", "Plama 256; 80x96, 256 colors" },

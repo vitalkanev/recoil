@@ -12,7 +12,8 @@ http://sourceforge.net/projects/fail/[SourceForge project page]
 endif::failwww[]
 
 FAIL is a portable viewer of several
-http://en.wikipedia.org/wiki/Atari_8-bit_family[8-bit Atari] image formats.
+http://en.wikipedia.org/wiki/Atari_8-bit_family[8-bit Atari]
+and http://en.wikipedia.org/wiki/Atari_Portfolio[Atari Portfolio] image formats.
 
 Currently the project consists of:
 
@@ -82,6 +83,8 @@ MCP:: "McPainter", 160x200, 16 colors, interlaced.
 MGP:: "Magic Painter", 160x96, 4 colors with optional rainbow effect.
 MIC:: "Micro Illustrator" / "Graphics 15" / "AtariGraphics", up to 160x240, 4 colors.
 MIS:: "AtariTools-800" missile, 2x240, mono.
+PGC:: Atari Portfolio, 240x64, mono, compressed.
+PGF:: Atari Portfolio, 240x64, mono.
 PIC:: "Koala MicroIllustrator", 160x192, 4 colors, compressed.
 PLA:: "AtariTools-800" player, 8x240, mono.
 RAW:: "XL-Paint MAX", 160x192, 16 colors, interlaced.

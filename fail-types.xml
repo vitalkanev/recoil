@@ -47,6 +47,8 @@
 	<type ext="mgp" acronym="Magic Painter" />
 	<type ext="mic" acronym="MICro illustrator" />
 	<type ext="mis" acronym="MISsile" />
+	<type ext="pgc" />
+	<type ext="pgf" />
 	<type ext="pic" />
 	<type ext="pla" acronym="PLAyer" />
 	<type ext="plm" acronym="PLaMa 256" />

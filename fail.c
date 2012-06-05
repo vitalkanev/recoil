@@ -3537,6 +3537,65 @@ static abool decode_4pm(
 	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
+static abool decode_pgf(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	static const byte pgf_color_regs[] = { 0x0F, 0x00 };
+	byte frame[240 * 64];
+	if (image_len != 1920)
+		return FALSE;
+
+	image_info->original_width = image_info->width = 240;
+	image_info->original_height = image_info->height = 64;
+	decode_video_memory(
+		image, pgf_color_regs,
+		0, 30, 0, 1, 0, 30, 64, 8,
+		frame);
+	return frame_to_rgb(frame, atari_palette, image_info, pixels);
+}
+
+static abool decode_pgc(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte unpacked[1920];
+	int image_offset = 3;
+	int unpacked_offset;
+	if (image_len < 33 || image[0] != 'P' || image[1] != 'G' || image[2] != 1)
+		return FALSE;
+	for (unpacked_offset = 0; unpacked_offset < 1920; ) {
+		int c;
+		if (image_offset + 1 >= image_len) {
+			if (unpacked_offset == 1919) {
+				/* iraq1.pgc */
+				unpacked[1919] = 0;
+				break;
+			}
+			return FALSE;
+		}
+		c = image[image_offset++];
+		if (c < 128) {
+			if (image_offset + c > image_len || unpacked_offset + c > 1920)
+				return FALSE;
+			memcpy(unpacked + unpacked_offset, image + image_offset, c);
+			image_offset += c;
+		}
+		else {
+			c -= 128;
+			if (unpacked_offset + c > 1920)
+				return FALSE;
+			memset(unpacked + unpacked_offset, image[image_offset++], c);
+		}
+		unpacked_offset += c;
+	}
+	return decode_pgf(unpacked, 1920, atari_palette, image_info, pixels);
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -3625,6 +3684,8 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('4', 'P', 'L'):
 	case FAIL_EXT('4', 'M', 'I'):
 	case FAIL_EXT('4', 'P', 'M'):
+	case FAIL_EXT('P', 'G', 'F'):
+	case FAIL_EXT('P', 'G', 'C'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -3717,7 +3778,9 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('M', 'I', 'S'), decode_mis },
 		{ FAIL_EXT('4', 'P', 'L'), decode_4pl },
 		{ FAIL_EXT('4', 'M', 'I'), decode_4mi },
-		{ FAIL_EXT('4', 'P', 'M'), decode_4pm }
+		{ FAIL_EXT('4', 'P', 'M'), decode_4pm },
+		{ FAIL_EXT('P', 'G', 'F'), decode_pgf },
+		{ FAIL_EXT('P', 'G', 'C'), decode_pgc }
 	}, *ph;
 
 	if (atari_palette == NULL)
