@@ -33,7 +33,7 @@
 
 #define ZOOM_STEP               10
 #define ZOOM_MIN                100
-#define WINDOW_WIDTH_MIN        100
+#define WINDOW_WIDTH_MIN        160
 #define WINDOW_HEIGHT_MIN       100
 #define APP_TITLE               "FAILWin"
 #define WND_CLASS_NAME          "FAILWin"
@@ -200,6 +200,7 @@ static BOOL Repaint(BOOL fit_to_desktop)
 			}
 			ResizeWindow();
 			GetClientRect(hWnd, &rect);
+			rect.bottom -= GetStatusBarHeight();
 			if (rect.bottom < show_height) {
 				window_height += show_height - rect.bottom;
 				ResizeWindow();
