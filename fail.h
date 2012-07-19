@@ -30,9 +30,9 @@ extern "C" {
 
 /* Version. */
 #define FAIL_VERSION_MAJOR   1
-#define FAIL_VERSION_MINOR   2
+#define FAIL_VERSION_MINOR   3
 #define FAIL_VERSION_MICRO   0
-#define FAIL_VERSION         "1.2.0"
+#define FAIL_VERSION         "1.3.0"
 
 /* Credits and copyright. */
 #define FAIL_YEARS           "2009-2012"
@@ -55,11 +55,11 @@ typedef int abool;
 typedef unsigned char byte;
 
 /* Limits. */
-#define FAIL_IMAGE_MAX    30000
+#define FAIL_IMAGE_MAX    52000
 #define FAIL_WIDTH_MAX    640
-#define FAIL_HEIGHT_MAX   256
+#define FAIL_HEIGHT_MAX   400
 #define FAIL_PALETTE_MAX  768
-#define FAIL_PIXELS_MAX   (512 * 256 * 3)
+#define FAIL_PIXELS_MAX   (640 * 400 * 3)
 
 /* Structure holding information on converted image.
    See FAIL_DecodeImage for details. */

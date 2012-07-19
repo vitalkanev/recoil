@@ -361,7 +361,15 @@ static void SelectAndOpenImage(void)
 		sizeof(OPENFILENAME),
 		NULL,
 		0,
-		"All supported\0*.256;*.4mi;*.4pl;*.4pm;*.agp;*.all;*.ap2;*.ap3;*.apc;*.apl;*.app;*.apv;*.art;*.bg9;*.bkg;*.cci;*.chr;*.cin;*.cpr;*.dgp;*.dlm;*.drg;*.esc;*.fnt;*.fwa;*.g09;*.g10;*.g11;*.ghg;*.gr7;*.gr8;*.gr9;*.hip;*.hr;*.hr2;*.ige;*.ilc;*.inp;*.int;*.ist;*.jgp;*.max;*.mbg;*.mch;*.mcp;*.mgp;*.mic;*.mis;*.pgc;*.pgf;*.pic;*.pla;*.plm;*.pzm;*.raw;*.rgb;*.rip;*.rm0;*.rm1;*.rm2;*.rm3;*.rm4;*.sge;*.shc;*.shp;*.spc;*.sxs;*.tip;*.wnd;*.xlp\0"
+		"All supported\0"
+		"*.256;*.4mi;*.4pl;*.4pm;*.agp;*.all;*.ap2;*.ap3;*.apc;*.apl;"
+		"*.app;*.apv;*.art;*.bg9;*.bkg;*.cci;*.chr;*.cin;*.cpr;*.dgp;"
+		"*.dlm;*.doo;*.drg;*.esc;*.fnt;*.fwa;*.g09;*.g10;*.g11;*.ghg;"
+		"*.gr7;*.gr8;*.gr9;*.hip;*.hr;*.hr2;*.ige;*.ilc;*.inp;*.int;"
+		"*.ist;*.jgp;*.max;*.mbg;*.mch;*.mcp;*.mgp;*.mic;*.mis;*.neo;"
+		"*.pc1;*.pc2;*.pc3;*.pgc;*.pgf;*.pi1;*.pi2;*.pi3;*.pic;*.pla;"
+		"*.plm;*.pzm;*.raw;*.rgb;*.rip;*.rm0;*.rm1;*.rm2;*.rm3;*.rm4;"
+		"*.sge;*.shc;*.shp;*.spc;*.spu;*.sxs;*.tip;*.wnd;*.xlp\0"
 #define FAIL_FILTER(description, masks) description " (" masks ")\0" masks "\0"
 		FAIL_FILTER("Hi-res", "*.cpr;*.dlm;*.drg;*.ghg;*.gr8;*.mbg;*.sge")
 		FAIL_FILTER("GTIA mode", "*.bg9;*.g09;*.g10;*.g11;*.gr9")
@@ -374,6 +382,7 @@ static void SelectAndOpenImage(void)
 		FAIL_FILTER("CIN/HIP/RIP/TIP", "*.cci;*.cin;*.hip;*.rip;*.tip")
 		FAIL_FILTER("Other interlaced", "*.hr;*.hr2;*.rgb;*.shc")
 		FAIL_FILTER("Fonts", "*.chr;*.fnt;*.jgp;*.sxs")
+		FAIL_FILTER("Atari ST", "*.doo;*.neo;*.pc1;*.pc2;*.pc3;*.pi1;*.pi2;*.pi3;*.spu")
 		FAIL_FILTER("Atari Portfolio", "*.pgc;*.pgf")
 		"\0",
 		NULL,
@@ -384,7 +393,7 @@ static void SelectAndOpenImage(void)
 		NULL,
 		0,
 		NULL,
-		"Select 8-bit Atari image",
+		"Select Atari picture",
 		OFN_ENABLESIZING | OFN_EXPLORER | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST,
 		0,
 		0,

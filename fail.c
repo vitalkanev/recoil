@@ -3596,6 +3596,237 @@ static abool decode_pgc(
 	return decode_pgf(unpacked, 1920, atari_palette, image_info, pixels);
 }
 
+static abool decode_st_low(
+	const byte image[], int image_len,
+	const byte palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	int pixels_count;
+	int i;
+	image_info->original_width = image_info->width = 320;
+	image_info->original_height = image_info->height = image_len / 160;
+	pixels_count = 320 * image_info->height;
+	for (i = 0; i < pixels_count; i++) {
+		int bitplane_byte = (i >> 1 & ~7) + (i >> 3 & 1);
+		int bitplane_bit = ~i & 7;
+		int c = (image[bitplane_byte] >> bitplane_bit & 1) << 1
+			| (image[bitplane_byte + 2] >> bitplane_bit & 1) << 2
+			| (image[bitplane_byte + 4] >> bitplane_bit & 1) << 3
+			| (image[bitplane_byte + 6] >> bitplane_bit & 1) << 4;
+		pixels[i * 3] = (palette[c] & 7) * 36;
+		pixels[i * 3 + 1] = (palette[c + 1] >> 4 & 7) * 36;
+		pixels[i * 3 + 2] = (palette[c + 1] & 7) * 36;
+	}
+	return TRUE;
+}
+
+static abool decode_st_medium(
+	const byte image[],
+	const byte palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	int y;
+	image_info->original_width = image_info->width = 640;
+	image_info->height = 400;
+	image_info->original_height = 200;
+	for (y = 0; y < 200; y++) {
+		int x;
+		for (x = 0; x < 640; x++) {
+			int bitplane_byte = 160 * y + (x >> 2 & ~3) + (x >> 3 & 1);
+			int bitplane_bit = ~x & 7;
+			int c = (image[bitplane_byte] >> bitplane_bit & 1) << 1
+				| (image[bitplane_byte + 2] >> bitplane_bit & 1) << 2;
+			int pixels_offset = (1280 * y + x) * 3;
+			pixels[pixels_offset + 640 * 3] = pixels[pixels_offset] = (palette[c] & 7) * 36;
+			pixels[pixels_offset + 640 * 3 + 1] = pixels[pixels_offset + 1] = (palette[c + 1] >> 4 & 7) * 36;
+			pixels[pixels_offset + 640 * 3 + 2] = pixels[pixels_offset + 2] = (palette[c + 1] & 7) * 36;
+		}
+	}
+	return TRUE;
+}
+
+static abool decode_doo(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	int i;
+	if (image_len != 32000)
+		return FALSE;
+	image_info->original_width = image_info->width = 640;
+	image_info->original_height = image_info->height = 400;
+	for (i = 0; i < 640 * 400; i++) {
+		byte c = (image[i >> 3] & 0x80 >> (i & 7)) != 0 ? 0 : 0xff;
+		pixels[i * 3 + 2] = pixels[i * 3 + 1] = pixels[i * 3] = c;
+	}
+	return TRUE;
+}
+
+static abool decode_st(
+	const byte image[], int image_len,
+	const byte palette[], byte mode,
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	switch (mode) {
+	case 0:
+		return decode_st_low(image, image_len, palette, image_info, pixels);
+	case 1:
+		return decode_st_medium(image, palette, image_info, pixels);
+	case 2:
+		return decode_doo(image, 32000, NULL, image_info, pixels);
+	default:
+		return FALSE;
+	}
+}
+
+static abool decode_pi(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	if (image_len != 32034 && image_len != 32066 && image_len != 44834)
+		return FALSE;
+	if (image[0] != 0)
+		return FALSE;
+	return decode_st(image + 34, image_len - 34, image + 2, image[1], image_info, pixels);
+}
+
+static abool decode_pc(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte unpacked_image[32000];
+	int image_offset;
+	int unpacked_offset;
+	int y;
+	if (image_len < 68 || image[0] != 0x80)
+		return FALSE;
+
+	image_offset = 34;
+	for (unpacked_offset = 0; unpacked_offset < 32000; ) {
+		int c;
+		if (image_offset >= image_len)
+			return FALSE;
+		c = image[image_offset++];
+		if (c < 128) {
+			c++;
+			if (image_offset + c > image_len || unpacked_offset + c > 32000)
+				return FALSE;
+			memcpy(unpacked_image + unpacked_offset, image + image_offset, c);
+			image_offset += c;
+			unpacked_offset += c;
+		}
+		else if (c > 128) {
+			c = 257 - c;
+			if (image_offset >= image_len || unpacked_offset + c > 32000)
+				return FALSE;
+			memset(unpacked_image + unpacked_offset, image[image_offset++], c);
+			unpacked_offset += c;
+		}
+	}
+
+	switch (image[1]) {
+	case 0:
+		image_info->original_width = image_info->width = 320;
+		image_info->original_height = image_info->height = 200;
+		for (y = 0; y < 200; y++) {
+			int x;
+			for (x = 0; x < 320; x++) {
+				int bitplane_byte = 160 * y + (x >> 3);
+				int bitplane_bit = ~x & 7;
+				int c = ((unpacked_image[bitplane_byte] >> bitplane_bit & 1) << 1
+					| (unpacked_image[bitplane_byte + 40] >> bitplane_bit & 1) << 2
+					| (unpacked_image[bitplane_byte + 80] >> bitplane_bit & 1) << 3
+					| (unpacked_image[bitplane_byte + 120] >> bitplane_bit & 1) << 4) + 2;
+				pixels[(320 * y + x) * 3] = (image[c] & 7) * 36;
+				pixels[(320 * y + x) * 3 + 1] = (image[c + 1] >> 4 & 7) * 36;
+				pixels[(320 * y + x) * 3 + 2] = (image[c + 1] & 7) * 36;
+			}
+		}
+		return TRUE;
+	case 1:
+		image_info->original_width = image_info->width = 640;
+		image_info->height = 400;
+		image_info->original_height = 200;
+		for (y = 0; y < 200; y++) {
+			int x;
+			for (x = 0; x < 640; x++) {
+				int bitplane_byte = 160 * y + (x >> 3);
+				int bitplane_bit = ~x & 7;
+				int c = ((unpacked_image[bitplane_byte] >> bitplane_bit & 1) << 1
+					| (unpacked_image[bitplane_byte + 80] >> bitplane_bit & 1) << 2) + 2;
+				int pixels_offset = (1280 * y + x) * 3;
+				pixels[pixels_offset + 640 * 3] = pixels[pixels_offset] = (image[c] & 7) * 36;
+				pixels[pixels_offset + 640 * 3 + 1] = pixels[pixels_offset + 1] = (image[c + 1] >> 4 & 7) * 36;
+				pixels[pixels_offset + 640 * 3 + 2] = pixels[pixels_offset + 2] = (image[c + 1] & 7) * 36;
+			}
+		}
+		return TRUE;
+	case 2:
+		return decode_doo(unpacked_image, 32000, NULL, image_info, pixels);
+	default:
+		return FALSE;
+	}
+}
+
+static abool decode_neo(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	if (image_len != 32128
+	 || image[0] != 0 || image[1] != 0
+	 || image[2] != 0)
+		return FALSE;
+	return decode_st(image + 128, 32000, image + 4, image[3], image_info, pixels);
+}
+
+static abool decode_spu(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	int i;
+	int y;
+	if (image_len != 51104)
+		return FALSE;
+	image_info->original_width = image_info->width = 320;
+	image_info->original_height = image_info->height = 199;
+	i = 0;
+	for (y = 0; y < 199; y++) {
+		int x;
+		for (x = 0; x < 320; x++) {
+			int bitplane_byte = 160 + (i >> 1 & ~7) + (x >> 3 & 1);
+			int bitplane_bit = ~x & 7;
+			int c = (image[bitplane_byte] >> bitplane_bit & 1) << 1
+				| (image[bitplane_byte + 2] >> bitplane_bit & 1) << 2
+				| (image[bitplane_byte + 4] >> bitplane_bit & 1) << 3
+				| (image[bitplane_byte + 6] >> bitplane_bit & 1) << 4;
+			/* http://www.atari-forum.com/wiki/index.php?title=ST_Picture_Formats */
+			int x1 = 5 * c + 1 - 3 * (c & 2);
+			if (x >= x1 + 160)
+				c += 64;
+			else if (x >= x1)
+				c += 32;
+			c += 32000 + 96 * y;
+			pixels[i * 3] = (image[c] & 7) * 36;
+			pixels[i * 3 + 1] = (image[c + 1] >> 4 & 7) * 36;
+			pixels[i * 3 + 2] = (image[c + 1] & 7) * 36;
+			i++;
+		}
+	}
+	return TRUE;
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -3686,6 +3917,15 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('4', 'P', 'M'):
 	case FAIL_EXT('P', 'G', 'F'):
 	case FAIL_EXT('P', 'G', 'C'):
+	case FAIL_EXT('P', 'I', '1'):
+	case FAIL_EXT('P', 'I', '2'):
+	case FAIL_EXT('P', 'I', '3'):
+	case FAIL_EXT('P', 'C', '1'):
+	case FAIL_EXT('P', 'C', '2'):
+	case FAIL_EXT('P', 'C', '3'):
+	case FAIL_EXT('N', 'E', 'O'):
+	case FAIL_EXT('D', 'O', 'O'):
+	case FAIL_EXT('S', 'P', 'U'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -3780,7 +4020,16 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('4', 'M', 'I'), decode_4mi },
 		{ FAIL_EXT('4', 'P', 'M'), decode_4pm },
 		{ FAIL_EXT('P', 'G', 'F'), decode_pgf },
-		{ FAIL_EXT('P', 'G', 'C'), decode_pgc }
+		{ FAIL_EXT('P', 'G', 'C'), decode_pgc },
+		{ FAIL_EXT('P', 'I', '1'), decode_pi },
+		{ FAIL_EXT('P', 'I', '2'), decode_pi },
+		{ FAIL_EXT('P', 'I', '3'), decode_pi },
+		{ FAIL_EXT('P', 'C', '1'), decode_pc },
+		{ FAIL_EXT('P', 'C', '2'), decode_pc },
+		{ FAIL_EXT('P', 'C', '3'), decode_pc },
+		{ FAIL_EXT('N', 'E', 'O'), decode_neo },
+		{ FAIL_EXT('D', 'O', 'O'), decode_doo },
+		{ FAIL_EXT('S', 'P', 'U'), decode_spu }
 	}, *ph;
 
 	if (atari_palette == NULL)

@@ -1,4 +1,4 @@
-VERSION = 1.2.0
+VERSION = 1.3.0
 
 FAIL_CC = mingw32-gcc -s -O2 -Wall -o $@ -I..
 FAIL_CC_DLL = $(FAIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
@@ -20,7 +20,7 @@ CANDLE = candle -ext WixUtilExtension -nologo -o $@
 LIGHT = light -ext WixUtilExtension -nologo -o $@
 IMAGEMAGICK_X64_INST_DIR = c:\Program Files\ImageMagick-6.6.9-Q16
 
-WIN32_BIN = fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr Xfail3.usr Xfail4.usr Xfail5.usr Xfail6.usr Xfail7.usr failwin.exe thumbfail.dll
+WIN32_BIN = fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr Xfail3.usr Xfail4.usr Xfail5.usr Xfail6.usr Xfail7.usr Xfail8.usr failwin.exe thumbfail.dll
 
 all: $(WIN32_BIN)
 
@@ -30,8 +30,8 @@ fail2png.exe: ../fail2png.c ../pngsave.c ../fail.c ../pngsave.h ../fail.h ../pal
 IM_MOD_RL_fail_.dll: ../fail.c ../fail.h ../palette.h ../failmagick.c
 	$(FAIL_CC_DLL) ../fail.c ../failmagick.c -lCORE_RL_magick_
  
-Xfail1.usr Xfail2.usr Xfail3.usr Xfail4.usr Xfail5.usr Xfail6.usr Xfail7.usr: xnview/Xfail.c ../fail.c ../fail.h ../palette.h
-	$(FAIL_CC_DLL) "-DXNVIEW_FAIL_EXT=\"$(word $(@:Xfail%.usr=%),rip;gr8;mic;hip;tip;int;inp;apc;ap3;hr;hr2 pic;cpr;cin;cci;fnt;sxs;gr9;plm;ilc;mcp;ghg mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb mgp;wnd;chr;shp;mbg;fwa;rm0;rm1;rm2;rm3;rm4 xlp;max;shc;all;app;sge;dlm;bkg;g09;bg9;apv spc;apl;gr7;g10;g11;art;drg;agp;pla;mis;4pl 4mi;4pm;pgf;pgc)\"" \
+Xfail1.usr Xfail2.usr Xfail3.usr Xfail4.usr Xfail5.usr Xfail6.usr Xfail7.usr Xfail8.usr: xnview/Xfail.c ../fail.c ../fail.h ../palette.h
+	$(FAIL_CC_DLL) "-DXNVIEW_FAIL_EXT=\"$(word $(@:Xfail%.usr=%),rip;gr8;mic;hip;tip;int;inp;apc;ap3;hr;hr2 pic;cpr;cin;cci;fnt;sxs;gr9;plm;ilc;mcp;ghg mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb mgp;wnd;chr;shp;mbg;fwa;rm0;rm1;rm2;rm3;rm4 xlp;max;shc;all;app;sge;dlm;bkg;g09;bg9;apv spc;apl;gr7;g10;g11;art;drg;agp;pla;mis;4pl 4mi;4pm;pgf;pgc;pi1;pi2;pi3;pc1;pc2;pc3;neo doo;spu)\"" \
 		../fail.c xnview/Xfail.c
 	
 failwin.exe: failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c failwin/failwin.h ../pngsave.h ../fail.h ../palette.h
@@ -99,7 +99,7 @@ dist: srcdist ../../fail-$(VERSION)-win32.zip setup x64-setup
 	$(RM) ../../fail-$(VERSION)-win32.zip
 	$(SEVENZIP) -tzip ../../fail-$(VERSION)-win32.zip \
 		COPYING.txt README_Windows.html \
-		fail2png.exe Xfail1.usr Xfail2.usr Xfail3.usr Xfail4.usr Xfail5.usr Xfail6.usr Xfail7.usr failwin.exe \
+		fail2png.exe Xfail1.usr Xfail2.usr Xfail3.usr Xfail4.usr Xfail5.usr Xfail6.usr Xfail7.usr Xfail8.usr failwin.exe \
 		IM_MOD_RL_fail_.dll
 
 www: ../../www/index.html

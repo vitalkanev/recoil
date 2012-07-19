@@ -1,7 +1,7 @@
 /*
- * fail2png.c - command-line converter of 8-bit Atari image files to the PNG format
+ * fail2png.c - command-line converter of Atari pictures to the PNG format
  *
- * Copyright (C) 2009  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2012  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -41,7 +41,7 @@ static void print_help(void)
 		"Usage: fail2png [OPTIONS] INPUTFILE...\n"
 		"Options:\n"
 		"-o FILE  --output=FILE   Set output file name\n"
-		"-p FILE  --palette=FILE  Load Atari palette (768 bytes)\n"
+		"-p FILE  --palette=FILE  Load Atari 8-bit palette (768 bytes)\n"
 		"-h       --help          Display this information\n"
 		"-v       --version       Display version information\n"
 	);

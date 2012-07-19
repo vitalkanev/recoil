@@ -20,6 +20,7 @@
 	<type ext="cpr" />
 	<type ext="dgp" acronym="DiGiPaint" />
 	<type ext="dlm" acronym="Dir Logo Maker" />
+	<type ext="doo" acronym="DOOdle" />
 	<type ext="drg" />
 	<type ext="esc" acronym="ESCalpaint" />
 	<type ext="fnt" />
@@ -47,8 +48,15 @@
 	<type ext="mgp" acronym="Magic Painter" />
 	<type ext="mic" acronym="MICro illustrator" />
 	<type ext="mis" acronym="MISsile" />
+	<type ext="neo" acronym="NEOchrome" />
+	<type ext="pc1" />
+	<type ext="pc2" />
+	<type ext="pc3" />
 	<type ext="pgc" />
 	<type ext="pgf" />
+	<type ext="pi1" />
+	<type ext="pi2" />
+	<type ext="pi3" />
 	<type ext="pic" />
 	<type ext="pla" acronym="PLAyer" />
 	<type ext="plm" acronym="PLaMa 256" />
@@ -65,6 +73,7 @@
 	<type ext="shc" acronym="Samar Hi-res interlace with map of Colours" />
 	<type ext="shp" />
 	<type ext="spc" />
+	<type ext="spu" acronym="SPectrum 512 Uncompressed" />
 	<type ext="sxs" />
 	<type ext="tip" acronym="Taquart Interlace Picture" />
 	<type ext="wnd" />

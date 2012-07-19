@@ -12,8 +12,9 @@ http://sourceforge.net/projects/fail/[SourceForge project page]
 endif::failwww[]
 
 FAIL is a portable viewer of several
-http://en.wikipedia.org/wiki/Atari_8-bit_family[8-bit Atari]
-and http://en.wikipedia.org/wiki/Atari_Portfolio[Atari Portfolio] image formats.
+http://en.wikipedia.org/wiki/Atari_8-bit_family[Atari 8-bit],
+http://en.wikipedia.org/wiki/Atari_ST[Atari ST]
+and http://en.wikipedia.org/wiki/Atari_Portfolio[Atari Portfolio] picture formats.
 
 Currently the project consists of:
 
@@ -38,11 +39,13 @@ endif::failwww[]
 Supported file formats
 ----------------------
 
+Atari 8-bit
+~~~~~~~~~~~
 [horizontal]
 256, AP2:: 80x96, 256 colors.
 4MI:: "AtariTools-800" 4 mono missiles 2x240 each.
 4PL:: "AtariTools-800" 4 mono players 8x240 each.
-4PM:: "AtariTools-800" 4 mono players 8x240 each plus 4 mono missiles 8x240 each.
+4PM:: "AtariTools-800" 4 mono players 8x240 each plus 4 mono missiles 2x240 each.
 AGP:: "AtariTools-800" graphic.
 ALL:: "Graph", 160x192, 5 colors.
 AP3, APV, DGP, ESC, ILC, PZM:: "DigiPaint" / "EscalPaint", 80x192, 256 colors, interlaced.
@@ -83,8 +86,6 @@ MCP:: "McPainter", 160x200, 16 colors, interlaced.
 MGP:: "Magic Painter", 160x96, 4 colors with optional rainbow effect.
 MIC:: "Micro Illustrator" / "Graphics 15" / "AtariGraphics", up to 160x240, 4 colors.
 MIS:: "AtariTools-800" missile, 2x240, mono.
-PGC:: Atari Portfolio, 240x64, mono, compressed.
-PGF:: Atari Portfolio, 240x64, mono.
 PIC:: "Koala MicroIllustrator", 160x192, 4 colors, compressed.
 PLA:: "AtariTools-800" player, 8x240, mono.
 RAW:: "XL-Paint MAX", 160x192, 16 colors, interlaced.
@@ -107,10 +108,29 @@ TIP:: "Taquart Interlace Picture", up to 160x119.
 WND:: "Blazing Paddles" window, up to 160x192, 4 colors.
 XLP:: "XL-Paint", 160x192 or 160x200, 7 colors, interlaced, compressed.
 
-You can find some sample files in http://fail.sourceforge.net/examples.zip[examples.zip].
-
-Note: Artist, AtariGraphics, Magic Painter and Rambrandt had no default extensions, so I made them up.
+NOTE: Artist, AtariGraphics, Magic Painter and Rambrandt had no default extensions, so I made them up.
 Documentation for Rambrandt suggests RM0-RM4 for the compressed files, I also use them for the raw format.
+
+Atari ST
+~~~~~~~~
+[horizontal]
+DOO:: "Doodle", 640x400, mono.
+NEO:: "NEOchrome".
+PC1:: "DEGAS Elite", 320x200, 16 colors, compressed.
+PC2:: "DEGAS Elite", 640x200, 4 colors, compressed.
+PC3:: "DEGAS Elite", 640x400, mono, compressed.
+PI1:: "DEGAS", up to 320x280, 16 colors.
+PI2:: "DEGAS", 640x200, 4 colors.
+PI3:: "DEGAS", 640x400, mono.
+SPU:: "Spectrum 512", 320x199, 512 colors.
+
+Atari Portfolio
+~~~~~~~~~~~~~~~
+[horizontal]
+PGC:: 240x64, mono, compressed.
+PGF:: 240x64, mono.
+
+You can find some sample files in http://fail.sourceforge.net/examples.zip[examples.zip].
 
 ifdef::failsrc[]
 include::INSTALL[]
