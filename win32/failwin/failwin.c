@@ -383,7 +383,7 @@ static void SelectAndOpenImage(void)
 		FAIL_FILTER("CIN/HIP/RIP/TIP", "*.cci;*.cin;*.hip;*.rip;*.tip")
 		FAIL_FILTER("Other interlaced", "*.hr;*.hr2;*.rgb;*.shc")
 		FAIL_FILTER("Fonts", "*.chr;*.fnt;*.jgp;*.sxs")
-		FAIL_FILTER("Atari ST", "*.ca1;*.ca2;*.ca3;*.doo;*.neo;*.pc1;*.pc2;*.pc3;*.pi1;*.pi2;*.pi3;*.spc;*.spu;*.tn1;*.tn2;*.tn3;*.tny")
+		FAIL_FILTER("Atari ST", "*.art;*.ca1;*.ca2;*.ca3;*.doo;*.neo;*.pc1;*.pc2;*.pc3;*.pi1;*.pi2;*.pi3;*.spc;*.spu;*.tn1;*.tn2;*.tn3;*.tny")
 		FAIL_FILTER("Atari Portfolio", "*.pgc;*.pgf")
 		"\0",
 		NULL,

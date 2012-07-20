@@ -114,6 +114,7 @@ Documentation for Rambrandt suggests RM0-RM4 for the compressed files, I also us
 Atari ST
 ~~~~~~~~
 [horizontal]
+ART:: "Art Director", 320x200, 16 colors, compressed.
 CA1:: "Crack Art", 320x200, 16 colors, compressed.
 CA2:: "Crack Art", 640x200, 4 colors, compressed.
 CA3:: "Crack Art", 640x400, mono, compressed.

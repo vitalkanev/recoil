@@ -3335,16 +3335,6 @@ static abool decode_ascii_art_editor(
 #undef MAX_ROWS
 }
 
-static abool decode_art(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	FAIL_ImageInfo* image_info,
-	byte pixels[])
-{
-	return decode_artist(image, image_len, atari_palette, image_info, pixels)
-		|| decode_ascii_art_editor(image, image_len, atari_palette, image_info, pixels);
-}
-
 static abool decode_drg(
 	const byte image[], int image_len,
 	const byte atari_palette[],
@@ -4095,6 +4085,28 @@ static abool decode_ca(
 	default:
 		return FALSE;
 	}
+}
+
+static abool decode_art_director(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	if (image_len != 32512)
+		return FALSE;
+	return decode_st(image, 32000, image + 32000, 0, image_info, pixels);
+}
+
+static abool decode_art(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	return decode_art_director(image, image_len, atari_palette, image_info, pixels)
+		|| decode_artist(image, image_len, atari_palette, image_info, pixels)
+		|| decode_ascii_art_editor(image, image_len, atari_palette, image_info, pixels);
 }
 
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
