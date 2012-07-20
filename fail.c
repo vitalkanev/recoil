@@ -4222,6 +4222,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('C', 'A', '1'):
 	case FAIL_EXT('C', 'A', '2'):
 	case FAIL_EXT('C', 'A', '3'):
+	case FAIL_EXT('I', 'N', 'G'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -4332,7 +4333,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('T', 'N', '3'), decode_tny },
 		{ FAIL_EXT('C', 'A', '1'), decode_ca },
 		{ FAIL_EXT('C', 'A', '2'), decode_ca },
-		{ FAIL_EXT('C', 'A', '3'), decode_ca }
+		{ FAIL_EXT('C', 'A', '3'), decode_ca },
+		{ FAIL_EXT('I', 'N', 'G'), decode_inp }
 	}, *ph;
 
 	if (atari_palette == NULL)

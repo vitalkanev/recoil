@@ -147,6 +147,7 @@ static const struct Format {
 	{ "HR2", "320x200, 5 colors, interlaced" },
 	{ "IGE", "Interlace Graphics Editor; 128x96, 16 colors, interlaced" },
 	{ "ILC", "80x192, 256 colors, interlaced" },
+	{ "ING", "ING 15; 160x200, 7 colors, interlaced" },
 	{ "INP", "160x200, 7 colors, interlaced" },
 	{ "INT", "INT95a; up to 160x239, 16 colors, interlaced" },
 	{ "IST", "Interlace Studio; 160x200, interlaced" },

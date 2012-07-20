@@ -24,7 +24,7 @@
 		<Media Id="1" Cabinet="fail.cab" EmbedCab="yes" CompressionLevel="high" />
 
 		<?define FIRST_EXT=gr8?>
-		<?define OTHER_EXTS=hip;mic;int;tip;inp;hr;gr9;pic;cpr;cin;cci;apc;plm;ap3;ilc;rip;fnt;sxs;mcp;ghg;hr2;mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb;mgp;wnd;chr;shp;mbg;fwa;rm0;rm1;rm2;rm3;rm4;xlp;max;shc;all;app;sge;dlm;bkg;g09;bg9;apv;spc;apl;gr7;g10;g11;art;drg;agp;pla;mis;4pl;4mi;4pm;pgf;pgc;pi1;pi2;pi3;pc1;pc2;pc3;neo;doo;spu;tny;tn1;tn2;tn3;ca1;ca2;ca3?>
+		<?define OTHER_EXTS=hip;mic;int;tip;inp;hr;gr9;pic;cpr;cin;cci;apc;plm;ap3;ilc;rip;fnt;sxs;mcp;ghg;hr2;mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb;mgp;wnd;chr;shp;mbg;fwa;rm0;rm1;rm2;rm3;rm4;xlp;max;shc;all;app;sge;dlm;bkg;g09;bg9;apv;spc;apl;gr7;g10;g11;art;drg;agp;pla;mis;4pl;4mi;4pm;pgf;pgc;pi1;pi2;pi3;pc1;pc2;pc3;neo;doo;spu;tny;tn1;tn2;tn3;ca1;ca2;ca3;ing?>
 		<?define FAIL_EXTS=gr8;$(var.OTHER_EXTS)?>
 		<?define DOUBLECLICK=Double-click Atari image file in Windows Explorer to display it in ?>
 

@@ -16,8 +16,8 @@ INSTALL = install
 INSTALL_PROGRAM = $(INSTALL)
 INSTALL_DATA = $(INSTALL) -m 644
 
-FORMATS    = GR8 HIP MIC INT TIP INP HR GR9 PIC CPR CIN CCI APC PLM AP3 ILC RIP FNT SXS MCP GHG HR2 MCH IGE 256 AP2 JGP DGP ESC PZM IST RAW RGB MGP WND CHR SHP MBG FWA RM0 RM1 RM2 RM3 RM4 XLP MAX SHC ALL APP SGE DLM BKG G09 BG9 APV SPC APL GR7 G10 G11 ART DRG AGP PLA MIS 4PL 4MI 4PM PGF PGC PI1 PI2 PI3 PC1 PC2 PC3 NEO DOO SPU TNY TN1 TN2 TN3 CA1 CA2 CA3
-FORMATS_LC = gr8 hip mic int tip inp hr gr9 pic cpr cin cci apc plm ap3 ilc rip fnt sxs mcp ghg hr2 mch ige 256 ap2 jgp dgp esc pzm ist raw rgb mgp wnd chr shp mbg fwa rm0 rm1 rm2 rm3 rm4 xlp max shc all app sge dlm bkg g09 bg9 apv spc apl gr7 g10 g11 art drg agp pla mis 4pl 4mi 4pm pgf pgc pi1 pi2 pi3 pc1 pc2 pc3 neo doo spu tny tn1 tn2 tn3 ca1 ca2 ca3
+FORMATS    = GR8 HIP MIC INT TIP INP HR GR9 PIC CPR CIN CCI APC PLM AP3 ILC RIP FNT SXS MCP GHG HR2 MCH IGE 256 AP2 JGP DGP ESC PZM IST RAW RGB MGP WND CHR SHP MBG FWA RM0 RM1 RM2 RM3 RM4 XLP MAX SHC ALL APP SGE DLM BKG G09 BG9 APV SPC APL GR7 G10 G11 ART DRG AGP PLA MIS 4PL 4MI 4PM PGF PGC PI1 PI2 PI3 PC1 PC2 PC3 NEO DOO SPU TNY TN1 TN2 TN3 CA1 CA2 CA3 ING
+FORMATS_LC = gr8 hip mic int tip inp hr gr9 pic cpr cin cci apc plm ap3 ilc rip fnt sxs mcp ghg hr2 mch ige 256 ap2 jgp dgp esc pzm ist raw rgb mgp wnd chr shp mbg fwa rm0 rm1 rm2 rm3 rm4 xlp max shc all app sge dlm bkg g09 bg9 apv spc apl gr7 g10 g11 art drg agp pla mis 4pl 4mi 4pm pgf pgc pi1 pi2 pi3 pc1 pc2 pc3 neo doo spu tny tn1 tn2 tn3 ca1 ca2 ca3 ing
 
 all: fail2png $(if $(CAN_INSTALL_MAGICK),fail.so)
 
