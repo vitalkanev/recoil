@@ -190,11 +190,9 @@ static abool find_rgb_color(
 {
 	int b = 0;
 	int e = colors;
-	int d;
 	while (b < e) {
-		int cpal;
-		d = b + (e - b) / 2;
-		cpal = rgb_to_int(palette + d * 3);
+		int d = (b + e) >> 1;
+		int cpal = rgb_to_int(palette + d * 3);
 		if (rgb == cpal) {
 			*index = d;
 			return TRUE;
@@ -213,47 +211,48 @@ static abool find_rgb_color(
    Return FALSE if image cannot be palettized. */
 static abool rgb_to_palette(
 	byte pixels[], int pixel_count,
-	byte palette[], int *colors)
+	byte palette[], int *p_colors)
 {
+	int colors;
 	int i;
-	byte *temp_palette = (byte *) malloc(FAIL_PIXELS_MAX);
+	byte *temp_palette = (byte *) malloc(pixel_count * 3);
 	if (temp_palette == NULL) {
-		*colors = 65536;
+		*p_colors = 65536;
 		return FALSE;
 	}
 
 	/* count colors used, determine whether image can be palettized */
-	*colors = 0;
+	colors = 0;
 	for (i = 0; i < pixel_count; i++) {
 		int index;
-		if (!find_rgb_color(temp_palette, *colors, rgb_to_int(pixels + i * 3), &index)) {
+		if (!find_rgb_color(temp_palette, colors, rgb_to_int(pixels + i * 3), &index)) {
 			/* insert new color into palette */
-			if (*colors > index)
-				memmove(temp_palette + index * 3 + 3,
-					temp_palette + index * 3, (*colors - index) * 3);
+			if (index < colors)
+				memmove(temp_palette + index * 3 + 3, temp_palette + index * 3, (colors - index) * 3);
 			temp_palette[index * 3] = pixels[i * 3];
 			temp_palette[index * 3 + 1] = pixels[i * 3 + 1];
 			temp_palette[index * 3 + 2] = pixels[i * 3 + 2];
-			(*colors)++;
+			colors++;
 		}
 	}
-
-	/* convert rgb pixels to palette indices */
-	if (palette == NULL || *colors > 256) {
+	*p_colors = colors;
+	if (palette == NULL || colors > 256) {
 		free(temp_palette);
 		return FALSE;
 	}
 
-	memcpy(palette, temp_palette, FAIL_PALETTE_MAX);
+	/* return palette */
+	memcpy(palette, temp_palette, colors * 3);
+	free(temp_palette);
+	for (i = colors * 3; i < FAIL_PALETTE_MAX; i++)
+		palette[i] = 0;
+
+	/* convert rgb pixels to palette indices */
 	for (i = 0; i < pixel_count; i++) {
 		int index;
-		if (find_rgb_color(temp_palette, *colors, rgb_to_int(pixels + i * 3), &index))
+		if (find_rgb_color(palette, colors, rgb_to_int(pixels + i * 3), &index))
 			pixels[i] = index;
 	}
-	free(temp_palette);
-	/* pad palette with 0s */
-	for (i = *colors * 3; i < FAIL_PALETTE_MAX; i++)
-		palette[i] = 0;
 
 	return TRUE;
 }
