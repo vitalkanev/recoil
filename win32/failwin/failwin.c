@@ -376,14 +376,14 @@ static void SelectAndOpenImage(void)
 		FAIL_FILTER("GTIA mode", "*.bg9;*.g09;*.g10;*.g11;*.gr9")
 		FAIL_FILTER("Using DLI", "*.fwa;*.mch;*.mgp;*.rm0;*.rm1;*.rm2;*.rm3;*.rm4")
 		FAIL_FILTER("Sprites", "*.4mi;*.4pl;*.4pm;*.apl;*.mis;*.pla")
-		FAIL_FILTER("Other non-interlaced", "*.agp;*.all;*.art;*.bkg;*.gr7;*.mic;*.pic;*.shp;*.spc;*.wnd")
+		FAIL_FILTER("Other non-interlaced", "*.agp;*.all;*.art;*.bkg;*.gr7;*.mic;*.pic;*.shp;*.wnd") /* omitted *.spc because it's common ST and rare 8-bit */
 		FAIL_FILTER("Interlaced GR. 15", "*.ige;*.inp;*.int;*.ist;*.max;*.mcp;*.raw;*.xlp")
 		FAIL_FILTER("80x96x256", "*.256;*.ap2;*.apc;*.plm")
 		FAIL_FILTER("80x192x256", "*.ap3;*.app;*.apv;*.dgp;*.esc;*.ilc;*.pzm")
 		FAIL_FILTER("CIN/HIP/RIP/TIP", "*.cci;*.cin;*.hip;*.rip;*.tip")
 		FAIL_FILTER("Other interlaced", "*.hr;*.hr2;*.rgb;*.shc")
 		FAIL_FILTER("Fonts", "*.chr;*.fnt;*.jgp;*.sxs")
-		FAIL_FILTER("Atari ST", "*.ca1;*.ca2;*.ca3;*.doo;*.neo;*.pc1;*.pc2;*.pc3;*.pi1;*.pi2;*.pi3;*.spu;*.tn1;*.tn2;*.tn3;*.tny")
+		FAIL_FILTER("Atari ST", "*.ca1;*.ca2;*.ca3;*.doo;*.neo;*.pc1;*.pc2;*.pc3;*.pi1;*.pi2;*.pi3;*.spc;*.spu;*.tn1;*.tn2;*.tn3;*.tny")
 		FAIL_FILTER("Atari Portfolio", "*.pgc;*.pgf")
 		"\0",
 		NULL,

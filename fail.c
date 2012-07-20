@@ -3056,7 +3056,7 @@ static abool spc_fill(byte pixels[], int x, int y, int pattern)
 	return TRUE;
 }
 
-static abool decode_spc(
+static abool decode_spc_xe(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
@@ -3696,6 +3696,102 @@ static abool decode_pi(
 	return decode_st(image + 34, image_len - 34, image + 2, image[1], image_info, pixels);
 }
 
+static abool unpack_packbits(const byte data[], int data_len, int mode, byte unpacked_data[])
+{
+	int data_offset = 0;
+	int unpacked_offset = 0;
+	int count = 0;
+	abool rle = FALSE;
+	int b = 0;
+	for (;;) {
+		if (count == 0) {
+			if (data_offset >= data_len)
+				return FALSE;
+			count = data[data_offset++];
+			if (count < 128) {
+				count++;
+				rle = FALSE;
+			}
+			else if (mode < 0) { /* SPC */
+				count = 258 - count;
+				rle = TRUE;
+			}
+			else if (count > 128) {
+				count = 257 - count;
+				rle = TRUE;
+			}
+			else {
+				count = 0;
+				continue;
+			}
+			b = -1;
+		}
+		if (b < 0) {
+			if (data_offset >= data_len)
+				return FALSE;
+			b = data[data_offset++];
+		}
+		unpacked_data[unpacked_offset] = b;
+		if ((unpacked_offset & 1) == 0)
+			unpacked_offset++;
+		else {
+			switch (mode) {
+			case -1: /* SPC */
+				unpacked_offset += 7;
+				if (unpacked_offset >= 31840) {
+					unpacked_offset -= 31840 - 2;
+					if (unpacked_offset == 8)
+						return TRUE;
+				}
+				break;
+			case 0:
+				unpacked_offset += 7;
+				switch (unpacked_offset % 160) {
+				case 0:
+				case 2:
+				case 4:
+					/* same line, next bitplane */
+					unpacked_offset -= 160 - 2;
+					break;
+				case 6:
+					/* next line, first bitplane */
+					unpacked_offset -= 6;
+					if (unpacked_offset == 32000)
+						return TRUE;
+					break;
+				default:
+					break;
+				}
+				break;
+			case 1:
+				unpacked_offset += 3;
+				switch (unpacked_offset % 160) {
+				case 0:
+					/* same line, bitplane 1 */
+					unpacked_offset -= 160 - 2;
+					break;
+				case 2:
+					/* next line, bitplane 0 */
+					unpacked_offset -= 2;
+					if (unpacked_offset == 32000)
+						return TRUE;
+					break;
+				default:
+					break;
+				}
+				break;
+			case 2:
+				if (++unpacked_offset == 32000)
+					return TRUE;
+				break;
+			}
+		}
+		if (!rle)
+			b = -1;
+		count--;
+	}
+}
+
 static abool decode_pc(
 	const byte image[], int image_len,
 	const byte atari_palette[],
@@ -3703,77 +3799,11 @@ static abool decode_pc(
 	byte pixels[])
 {
 	byte unpacked_image[32000];
-	int image_offset;
-	int unpacked_offset;
-	int y;
 	if (image_len < 68 || image[0] != 0x80)
 		return FALSE;
-
-	image_offset = 34;
-	for (unpacked_offset = 0; unpacked_offset < 32000; ) {
-		int c;
-		if (image_offset >= image_len)
-			return FALSE;
-		c = image[image_offset++];
-		if (c < 128) {
-			c++;
-			if (image_offset + c > image_len || unpacked_offset + c > 32000)
-				return FALSE;
-			memcpy(unpacked_image + unpacked_offset, image + image_offset, c);
-			image_offset += c;
-			unpacked_offset += c;
-		}
-		else if (c > 128) {
-			c = 257 - c;
-			if (image_offset >= image_len || unpacked_offset + c > 32000)
-				return FALSE;
-			memset(unpacked_image + unpacked_offset, image[image_offset++], c);
-			unpacked_offset += c;
-		}
-	}
-
-	switch (image[1]) {
-	case 0:
-		image_info->original_width = image_info->width = 320;
-		image_info->original_height = image_info->height = 200;
-		for (y = 0; y < 200; y++) {
-			int x;
-			for (x = 0; x < 320; x++) {
-				int bitplane_byte = 160 * y + (x >> 3);
-				int bitplane_bit = ~x & 7;
-				int c = ((unpacked_image[bitplane_byte] >> bitplane_bit & 1) << 1
-					| (unpacked_image[bitplane_byte + 40] >> bitplane_bit & 1) << 2
-					| (unpacked_image[bitplane_byte + 80] >> bitplane_bit & 1) << 3
-					| (unpacked_image[bitplane_byte + 120] >> bitplane_bit & 1) << 4) + 2;
-				pixels[(320 * y + x) * 3] = (image[c] & 7) * 36;
-				pixels[(320 * y + x) * 3 + 1] = (image[c + 1] >> 4 & 7) * 36;
-				pixels[(320 * y + x) * 3 + 2] = (image[c + 1] & 7) * 36;
-			}
-		}
-		return TRUE;
-	case 1:
-		image_info->original_width = image_info->width = 640;
-		image_info->height = 400;
-		image_info->original_height = 200;
-		for (y = 0; y < 200; y++) {
-			int x;
-			for (x = 0; x < 640; x++) {
-				int bitplane_byte = 160 * y + (x >> 3);
-				int bitplane_bit = ~x & 7;
-				int c = ((unpacked_image[bitplane_byte] >> bitplane_bit & 1) << 1
-					| (unpacked_image[bitplane_byte + 80] >> bitplane_bit & 1) << 2) + 2;
-				int pixels_offset = (1280 * y + x) * 3;
-				pixels[pixels_offset + 640 * 3] = pixels[pixels_offset] = (image[c] & 7) * 36;
-				pixels[pixels_offset + 640 * 3 + 1] = pixels[pixels_offset + 1] = (image[c + 1] >> 4 & 7) * 36;
-				pixels[pixels_offset + 640 * 3 + 2] = pixels[pixels_offset + 2] = (image[c + 1] & 7) * 36;
-			}
-		}
-		return TRUE;
-	case 2:
-		return decode_doo(unpacked_image, 32000, NULL, image_info, pixels);
-	default:
+	if (!unpack_packbits(image + 34, image_len - 34, image[1], unpacked_image))
 		return FALSE;
-	}
+	return decode_st(unpacked_image, 32000, image + 2, image[1], image_info, pixels);
 }
 
 static abool decode_neo(
@@ -3825,6 +3855,56 @@ static abool decode_spu(
 		}
 	}
 	return TRUE;
+}
+
+static abool decode_spc_st(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte unpacked_image[51104];
+	int image_offset;
+	int palette;
+	if (image_len <12 || image[0] != 'S' || image[1] != 'P')
+		return FALSE;
+
+	if (!unpack_packbits(image + 12, image_len - 12, -1, unpacked_image + 160))
+		return FALSE;
+
+	image_offset = 12 + (image[4] << 24) + (image[5] << 16) + (image[6] << 8) + image[7];
+	for (palette = 0; palette < 199 * 3; palette++) {
+		int got;
+		int index;
+		if (image_offset + 1 >= image_len)
+			return FALSE;
+		got = (image[image_offset] << 8) | image[image_offset + 1];
+		image_offset += 2;
+		for (index = 0; index < 16; index++) {
+			int unpacked_offset = 32000 + palette * 32 + index * 2;
+			if ((got >> index & 1) == 0) {
+				unpacked_image[unpacked_offset] = 0;
+				unpacked_image[unpacked_offset + 1] = 0;
+			}
+			else {
+				if (image_offset + 1 >= image_len)
+					return FALSE;
+				unpacked_image[unpacked_offset] = image[image_offset++];
+				unpacked_image[unpacked_offset + 1] = image[image_offset++];
+			}
+		}
+	}
+	return decode_spu(unpacked_image, 51104, atari_palette, image_info, pixels);
+}
+
+static abool decode_spc(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	return decode_spc_st(image, image_len, atari_palette, image_info, pixels)
+		|| decode_spc_xe(image, image_len, atari_palette, image_info, pixels);
 }
 
 static abool unpack_tny(
@@ -3896,17 +3976,17 @@ static abool decode_tny(
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
-	int st_resolution;
+	int mode;
 	int control_len;
 	int data_len;
 	byte unpacked[32000];
 	if (image_len < 42)
 		return FALSE;
-	st_resolution = image[0];
-	if (st_resolution > 2) {
-		if (st_resolution > 5)
+	mode = image[0];
+	if (mode > 2) {
+		if (mode > 5)
 			return FALSE;
-		st_resolution -= 3;
+		mode -= 3;
 		image += 4;
 		image_len -= 4;
 	}
@@ -3916,7 +3996,7 @@ static abool decode_tny(
 		return FALSE;
 	if (!unpack_tny(image + 37, control_len, image + 37 + control_len, data_len, unpacked))
 		return FALSE;
-	return decode_st(unpacked, 32000, image + 1, st_resolution, image_info, pixels);
+	return decode_st(unpacked, 32000, image + 1, mode, image_info, pixels);
 }
 
 static abool unpack_ca(const byte data[], int data_len, byte unpacked_data[])
