@@ -3679,8 +3679,15 @@ static abool decode_pi(
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
-	if (image_len != 32034 && image_len != 32066 && image_len != 44834)
+	switch (image_len) {
+	case 32034: /* DEGAS */
+	case 32066: /* DEGAS Elite */
+	case 32128: /* "TROUBLE.PI1" */
+	case 44834: /* 280 lines overscan */
+		break;
+	default:
 		return FALSE;
+	}
 	if (image[0] != 0)
 		return FALSE;
 	return decode_st(image + 34, image_len - 34, image + 2, image[1], image_info, pixels);
