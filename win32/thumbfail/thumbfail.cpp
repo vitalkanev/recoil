@@ -69,14 +69,14 @@ DECLARE_INTERFACE_(IThumbnailProvider, IUnknown)
 
 static const char extensions[][5] =
 	{ ".256", ".4mi", ".4pl", ".4pm", ".agp", ".all", ".ap2", ".ap3", ".apc", ".apl",
-	  ".app", ".apv", ".art", ".bg9", ".bkg", ".cci", ".chr", ".cin", ".cpr", ".dgp",
-	  ".dlm", ".doo", ".drg", ".esc", ".fnt", ".fwa", ".g09", ".g10", ".g11", ".ghg",
-	  ".gr7", ".gr8", ".gr9", ".hip", ".hr",  ".hr2", ".ige", ".ilc", ".inp", ".int",
-	  ".ist", ".jgp", ".max", ".mbg", ".mch", ".mcp", ".mgp", ".mic", ".mis", ".neo",
-	  ".pc1", ".pc2", ".pc3", ".pgc", ".pgf", ".pi1", ".pi2", ".pi3", ".pic", ".pla",
-	  ".plm", ".pzm", ".raw", ".rgb", ".rip", ".rm0", ".rm1", ".rm2", ".rm3", ".rm4",
-	  ".sge", ".shc", ".shp", ".spc", ".spu", ".sxs", ".tip", ".tn1", ".tn2", ".tn3",
-	  ".tny", ".wnd", ".xlp" };
+	  ".app", ".apv", ".art", ".bg9", ".bkg", ".ca1", ".ca2", ".ca3", ".cci", ".chr",
+	  ".cin", ".cpr", ".dgp", ".dlm", ".doo", ".drg", ".esc", ".fnt", ".fwa", ".g09",
+	  ".g10", ".g11", ".ghg", ".gr7", ".gr8", ".gr9", ".hip", ".hr",  ".hr2", ".ige",
+	  ".ilc", ".inp", ".int", ".ist", ".jgp", ".max", ".mbg", ".mch", ".mcp", ".mgp",
+	  ".mic", ".mis", ".neo", ".pc1", ".pc2", ".pc3", ".pgc", ".pgf", ".pi1", ".pi2",
+	  ".pi3", ".pic", ".pla", ".plm", ".pzm", ".raw", ".rgb", ".rip", ".rm0", ".rm1",
+	  ".rm2", ".rm3", ".rm4", ".sge", ".shc", ".shp", ".spc", ".spu", ".sxs", ".tip",
+	  ".tn1", ".tn2", ".tn3", ".tny", ".wnd", ".xlp" };
 #define N_EXTS (int) (sizeof(extensions) / sizeof(extensions[0]))
 
 static HINSTANCE g_hDll;

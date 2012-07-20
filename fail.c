@@ -3919,6 +3919,104 @@ static abool decode_tny(
 	return decode_st(unpacked, 32000, image + 1, st_resolution, image_info, pixels);
 }
 
+static abool unpack_ca(const byte data[], int data_len, byte unpacked_data[])
+{
+	int unpacked_step;
+	byte is_filled[32000];
+	int data_offset = 4;
+	int unpacked_offset = 0;
+	int count = 0;
+	int b = 0;
+	if (data_len < 4)
+		return FALSE;
+	unpacked_step = (data[2] << 8) + data[3];
+	if (unpacked_step == 0 || unpacked_step >= 32000)
+		return FALSE;
+	memset(is_filled, 0, unpacked_step);
+	for (;;) {
+		if (count == 0) {
+#define CA_GET(result) \
+			if (data_offset >= data_len) \
+				return FALSE; \
+			result = data[data_offset++]
+			CA_GET(b);
+			if (b == data[0]) {
+				CA_GET(count);
+				if (count == data[0])
+					count = 0; /* b == data[0] */
+				else {
+					CA_GET(b);
+					switch (count) {
+					case 2:
+						if (b == 0)
+							count = 32000; /* end decompression */
+						else {
+							CA_GET(count);
+							count += b << 8;
+						}
+						b = data[1];
+						break;
+					case 1:
+						CA_GET(count);
+						b = (b << 8) + count;
+						/* FALLTHROUGH */
+					case 0:
+						count = b;
+						CA_GET(b);
+						break;
+					default:
+						break;
+					}
+				}
+			}
+			count++;
+		}
+		unpacked_data[unpacked_offset] = b;
+		is_filled[unpacked_offset] = 1;
+		unpacked_offset += unpacked_step;
+		if (unpacked_offset >= 32000) {
+			for (unpacked_offset = 1; is_filled[unpacked_offset] != 0; unpacked_offset++)
+				if (unpacked_offset >= unpacked_step)
+					return TRUE;
+		}
+		count--;
+	}
+}
+
+static abool decode_ca(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	int palette_len;
+	byte unpacked[32000];
+	if (image_len < 7 || image[0] != 'C' || image[1] != 'A')
+		return FALSE;
+	switch (image[3]) {
+	case 0:
+		palette_len = 32;
+		break;
+	case 1:
+		palette_len = 8;
+		break;
+	case 2:
+		palette_len = 0;
+		break;
+	default:
+		return FALSE;
+	}
+	switch (image[2]) {
+	case 0:
+		return decode_st(image + 4 + palette_len, image_len - 4 - palette_len, image + 4, image[3], image_info, pixels);
+	case 1:
+		return unpack_ca(image + 4 + palette_len, image_len - 4 - palette_len, unpacked)
+			&& decode_st(unpacked, 32000, image + 4, image[3], image_info, pixels);
+	default:
+		return FALSE;
+	}
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -4022,6 +4120,9 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('T', 'N', '1'):
 	case FAIL_EXT('T', 'N', '2'):
 	case FAIL_EXT('T', 'N', '3'):
+	case FAIL_EXT('C', 'A', '1'):
+	case FAIL_EXT('C', 'A', '2'):
+	case FAIL_EXT('C', 'A', '3'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -4129,7 +4230,10 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('T', 'N', 'Y'), decode_tny },
 		{ FAIL_EXT('T', 'N', '1'), decode_tny },
 		{ FAIL_EXT('T', 'N', '2'), decode_tny },
-		{ FAIL_EXT('T', 'N', '3'), decode_tny }
+		{ FAIL_EXT('T', 'N', '3'), decode_tny },
+		{ FAIL_EXT('C', 'A', '1'), decode_ca },
+		{ FAIL_EXT('C', 'A', '2'), decode_ca },
+		{ FAIL_EXT('C', 'A', '3'), decode_ca }
 	}, *ph;
 
 	if (atari_palette == NULL)
