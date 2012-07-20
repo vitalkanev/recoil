@@ -3696,95 +3696,89 @@ static abool unpack_packbits(const byte data[], int data_len, int mode, byte unp
 {
 	int data_offset = 0;
 	int unpacked_offset = 0;
-	int count = 0;
-	abool rle = FALSE;
-	int b = 0;
 	for (;;) {
-		if (count == 0) {
-			if (data_offset >= data_len)
-				return FALSE;
-			count = data[data_offset++];
-			if (count < 128) {
-				count++;
-				rle = FALSE;
+		abool rle;
+		int count;
+		int b = -1;
+		if (data_offset >= data_len)
+			return FALSE;
+		count = data[data_offset++];
+		if (count < 128) {
+			count++;
+			rle = FALSE;
+		}
+		else if (mode < 0) { /* SPC */
+			count = 258 - count;
+			rle = TRUE;
+		}
+		else if (count > 128) {
+			count = 257 - count;
+			rle = TRUE;
+		}
+		else
+			continue;
+		do {
+			if (!rle || b < 0) {
+				if (data_offset >= data_len)
+					return FALSE;
+				b = data[data_offset++];
 			}
-			else if (mode < 0) { /* SPC */
-				count = 258 - count;
-				rle = TRUE;
-			}
-			else if (count > 128) {
-				count = 257 - count;
-				rle = TRUE;
-			}
+			unpacked_data[unpacked_offset] = b;
+			if ((unpacked_offset & 1) == 0)
+				unpacked_offset++;
 			else {
-				count = 0;
-				continue;
-			}
-			b = -1;
-		}
-		if (b < 0) {
-			if (data_offset >= data_len)
-				return FALSE;
-			b = data[data_offset++];
-		}
-		unpacked_data[unpacked_offset] = b;
-		if ((unpacked_offset & 1) == 0)
-			unpacked_offset++;
-		else {
-			switch (mode) {
-			case -1: /* SPC */
-				unpacked_offset += 7;
-				if (unpacked_offset >= 31840) {
-					unpacked_offset -= 31840 - 2;
-					if (unpacked_offset == 8)
-						return TRUE;
-				}
-				break;
-			case 0:
-				unpacked_offset += 7;
-				switch (unpacked_offset % 160) {
+				switch (mode) {
+				case -1: /* SPC */
+					unpacked_offset += 7;
+					if (unpacked_offset >= 31840) {
+						unpacked_offset -= 31840 - 2;
+						if (unpacked_offset == 8)
+							return TRUE;
+					}
+					break;
 				case 0:
-				case 2:
-				case 4:
-					/* same line, next bitplane */
-					unpacked_offset -= 160 - 2;
+					unpacked_offset += 7;
+					switch (unpacked_offset % 160) {
+					case 0:
+					case 2:
+					case 4:
+						/* same line, next bitplane */
+						unpacked_offset -= 160 - 2;
+						break;
+					case 6:
+						/* next line, first bitplane */
+						unpacked_offset -= 6;
+						if (unpacked_offset == 32000)
+							return TRUE;
+						break;
+					default:
+						break;
+					}
 					break;
-				case 6:
-					/* next line, first bitplane */
-					unpacked_offset -= 6;
-					if (unpacked_offset == 32000)
-						return TRUE;
-					break;
-				default:
-					break;
-				}
-				break;
-			case 1:
-				unpacked_offset += 3;
-				switch (unpacked_offset % 160) {
-				case 0:
-					/* same line, bitplane 1 */
-					unpacked_offset -= 160 - 2;
+				case 1:
+					unpacked_offset += 3;
+					switch (unpacked_offset % 160) {
+					case 0:
+						/* same line, bitplane 1 */
+						unpacked_offset -= 160 - 2;
+						break;
+					case 2:
+						/* next line, bitplane 0 */
+						unpacked_offset -= 2;
+						if (unpacked_offset == 32000)
+							return TRUE;
+						break;
+					default:
+						break;
+					}
 					break;
 				case 2:
-					/* next line, bitplane 0 */
-					unpacked_offset -= 2;
-					if (unpacked_offset == 32000)
+					if (++unpacked_offset == 32000)
 						return TRUE;
 					break;
-				default:
-					break;
 				}
-				break;
-			case 2:
-				if (++unpacked_offset == 32000)
-					return TRUE;
-				break;
 			}
-		}
-		if (!rle)
-			b = -1;
-		count--;
+		} while (--count > 0);
 	}
 }
 
@@ -3911,58 +3905,58 @@ static abool unpack_tny(
 	int control_offset = 0;
 	int data_offset = 0;
 	int unpacked_offset = 0;
-	int current_control = 0;
-	int current_data = 0;
 	for (;;) {
-		if (current_control == 0) {
-			if (control_offset >= control_len)
+		int current_control;
+		int current_data;
+		if (control_offset >= control_len)
+			return FALSE;
+		current_control = (signed char) control[control_offset++];
+		switch (current_control) {
+		case 0:
+			if (control_offset + 1 >= control_len)
 				return FALSE;
-			current_control = (signed char) control[control_offset++];
-			switch (current_control) {
-			case 0:
-				if (control_offset + 1 >= control_len)
-					return FALSE;
-				current_control = (control[control_offset] << 8) + control[control_offset + 1];
-				if (current_control == 0)
-					return FALSE;
-				control_offset += 2;
-				break;
-			case 1:
-				if (control_offset + 1 >= control_len)
-					return FALSE;
-				current_control = -(control[control_offset] << 8) - control[control_offset + 1];
-				if (current_control == 0)
-					return FALSE;
-				control_offset += 2;
-				break;
-			default:
-				break;
-			}
-			current_data = -1;
-		}
-		if (current_data < 0) {
-			if (data_offset + 1 >= data_len)
+			current_control = (control[control_offset] << 8) + control[control_offset + 1];
+			if (current_control == 0)
 				return FALSE;
-			current_data = (data[data_offset] << 8) + data[data_offset + 1];
-			data_offset += 2;
+			control_offset += 2;
+			break;
+		case 1:
+			if (control_offset + 1 >= control_len)
+				return FALSE;
+			current_control = -(control[control_offset] << 8) - control[control_offset + 1];
+			if (current_control == 0)
+				return FALSE;
+			control_offset += 2;
+			break;
+		default:
+			break;
 		}
-		unpacked_data[unpacked_offset] = (byte) (current_data >> 8);
-		unpacked_data[unpacked_offset + 1] = (byte) current_data;
-		unpacked_offset += 160;
-		if (unpacked_offset >= 32000) {
-			unpacked_offset -= 32000 - 8;
-			if (unpacked_offset >= 160) {
-				unpacked_offset -= 160 - 2;
-				if (unpacked_offset == 8)
-					return TRUE;
+		current_data = -1;
+		do {
+			if (current_data < 0) {
+				if (data_offset + 1 >= data_len)
+					return FALSE;
+				current_data = (data[data_offset] << 8) + data[data_offset + 1];
+				data_offset += 2;
 			}
-		}
-		if (current_control < 0) {
-			current_data = -1;
-			current_control++;
-		}
-		else
-			current_control--;
+			unpacked_data[unpacked_offset] = (byte) (current_data >> 8);
+			unpacked_data[unpacked_offset + 1] = (byte) current_data;
+			unpacked_offset += 160;
+			if (unpacked_offset >= 32000) {
+				unpacked_offset -= 32000 - 8;
+				if (unpacked_offset >= 160) {
+					unpacked_offset -= 160 - 2;
+					if (unpacked_offset == 8)
+						return TRUE;
+				}
+			}
+			if (current_control < 0) {
+				current_data = -1;
+				current_control++;
+			}
+			else
+				current_control--;
+		} while (current_control != 0);
 	}
 }
 
@@ -4001,8 +3995,6 @@ static abool unpack_ca(const byte data[], int data_len, byte unpacked_data[])
 	byte is_filled[32000];
 	int data_offset = 4;
 	int unpacked_offset = 0;
-	int count = 0;
-	int b = 0;
 	if (data_len < 4)
 		return FALSE;
 	unpacked_step = (data[2] << 8) + data[3];
@@ -4010,52 +4002,53 @@ static abool unpack_ca(const byte data[], int data_len, byte unpacked_data[])
 		return FALSE;
 	memset(is_filled, 0, unpacked_step);
 	for (;;) {
-		if (count == 0) {
+		int count = 0;
+		int b;
 #define CA_GET(result) \
-			if (data_offset >= data_len) \
-				return FALSE; \
-			result = data[data_offset++]
-			CA_GET(b);
-			if (b == data[0]) {
-				CA_GET(count);
-				if (count == data[0])
-					count = 0; /* b == data[0] */
-				else {
-					CA_GET(b);
-					switch (count) {
-					case 2:
-						if (b == 0)
-							count = 32000; /* end decompression */
-						else {
-							CA_GET(count);
-							count += b << 8;
-						}
-						b = data[1];
-						break;
-					case 1:
+		if (data_offset >= data_len) \
+			return FALSE; \
+		result = data[data_offset++]
+		CA_GET(b);
+		if (b == data[0]) {
+			CA_GET(count);
+			if (count == data[0])
+				count = 0; /* b == data[0] */
+			else {
+				CA_GET(b);
+				switch (count) {
+				case 2:
+					if (b == 0)
+						count = 32000; /* end decompression */
+					else {
 						CA_GET(count);
-						b = (b << 8) + count;
-						/* FALLTHROUGH */
-					case 0:
-						count = b;
-						CA_GET(b);
-						break;
-					default:
-						break;
+						count += b << 8;
 					}
+					b = data[1];
+					break;
+				case 1:
+					CA_GET(count);
+					b = (b << 8) + count;
+					/* FALLTHROUGH */
+				case 0:
+					count = b;
+					CA_GET(b);
+					break;
+				default:
+					break;
 				}
 			}
-			count++;
 		}
-		unpacked_data[unpacked_offset] = b;
-		is_filled[unpacked_offset] = 1;
-		unpacked_offset += unpacked_step;
-		if (unpacked_offset >= 32000) {
-			for (unpacked_offset = 1; is_filled[unpacked_offset] != 0; unpacked_offset++)
-				if (unpacked_offset >= unpacked_step)
-					return TRUE;
-		}
-		count--;
+		count++;
+		do {
+			unpacked_data[unpacked_offset] = b;
+			is_filled[unpacked_offset] = 1;
+			unpacked_offset += unpacked_step;
+			if (unpacked_offset >= 32000) {
+				for (unpacked_offset = 1; is_filled[unpacked_offset] != 0; unpacked_offset++)
+					if (unpacked_offset >= unpacked_step)
+						return TRUE;
+			}
+		} while (--count > 0);
 	}
 }
 
