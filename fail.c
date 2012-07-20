@@ -4108,6 +4108,67 @@ static abool decode_art(
 		|| decode_ascii_art_editor(image, image_len, atari_palette, image_info, pixels);
 }
 
+static abool unpack_pac(const byte image[], int image_len, byte unpacked_image[])
+{
+	int image_offset = 7;
+	int unpacked_offset = 0;
+	int unpacked_step;
+	switch (image[3]) {
+	case '5':
+		unpacked_step = 1;
+		break;
+	case '6':
+		unpacked_step = 80;
+		break;
+	default:
+		return FALSE;
+	}
+	for (;;) {
+		int b;
+		int count;
+		if (image_offset >= image_len)
+			return FALSE;
+		b = image[image_offset++];
+		if (b == image[4]) {
+			if (image_offset >= image_len)
+				return FALSE;
+			b = image[5];
+			count = image[image_offset++] + 1;
+		}
+		else if (b == image[6]) {
+			if (image_offset + 1 >= image_len)
+				return FALSE;
+			b = image[image_offset];
+			count = image[image_offset];
+			image_offset += 2;
+		}
+		else
+			count = 1;
+		while (--count >= 0) {
+			unpacked_image[unpacked_offset] = b;
+			if (unpacked_offset == 31999)
+				return TRUE;
+			unpacked_offset += unpacked_step;
+			if (unpacked_offset >= 32000)
+				unpacked_offset -= 31999;
+		}
+	}
+}
+
+static abool decode_pac(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte unpacked_image[32000];
+	if (image_len < 7 || image[0] != 'p' || image[1] != 'M' || image[2] != '8')
+		return FALSE;
+	if (!unpack_pac(image, image_len, unpacked_image))
+		return FALSE;
+	return decode_doo(unpacked_image, 32000, atari_palette, image_info, pixels);
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -4215,6 +4276,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('C', 'A', '2'):
 	case FAIL_EXT('C', 'A', '3'):
 	case FAIL_EXT('I', 'N', 'G'):
+	case FAIL_EXT('P', 'A', 'C'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -4326,7 +4388,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('C', 'A', '1'), decode_ca },
 		{ FAIL_EXT('C', 'A', '2'), decode_ca },
 		{ FAIL_EXT('C', 'A', '3'), decode_ca },
-		{ FAIL_EXT('I', 'N', 'G'), decode_inp }
+		{ FAIL_EXT('I', 'N', 'G'), decode_inp },
+		{ FAIL_EXT('P', 'A', 'C'), decode_pac }
 	}, *ph;
 
 	if (atari_palette == NULL)

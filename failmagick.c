@@ -159,6 +159,7 @@ static const struct Format {
 	{ "MIC", "Micro Illustrator; up to 160x240, 4 colors" },
 	{ "MIS", "AtariTools-800 missile; 2x240, mono" },
 	{ "NEO", "NEOchrome" },
+	{ "PAC", "STAD; 640x400, mono, compressed" },
 	{ "PC1", "DEGAS Elite; 320x200, 16 colors, compressed" },
 	{ "PC2", "DEGAS Elite; 640x200, 4 colors, compressed" },
 	{ "PC3", "DEGAS Elite; 640x400, mono, compressed" },

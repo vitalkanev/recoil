@@ -53,6 +53,7 @@
 	<type ext="mic" acronym="MICro illustrator" />
 	<type ext="mis" acronym="MISsile" />
 	<type ext="neo" acronym="NEOchrome" />
+	<type ext="pac" />
 	<type ext="pc1" />
 	<type ext="pc2" />
 	<type ext="pc3" />
