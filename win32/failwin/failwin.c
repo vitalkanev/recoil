@@ -369,7 +369,8 @@ static void SelectAndOpenImage(void)
 		"*.ist;*.jgp;*.max;*.mbg;*.mch;*.mcp;*.mgp;*.mic;*.mis;*.neo;"
 		"*.pc1;*.pc2;*.pc3;*.pgc;*.pgf;*.pi1;*.pi2;*.pi3;*.pic;*.pla;"
 		"*.plm;*.pzm;*.raw;*.rgb;*.rip;*.rm0;*.rm1;*.rm2;*.rm3;*.rm4;"
-		"*.sge;*.shc;*.shp;*.spc;*.spu;*.sxs;*.tip;*.wnd;*.xlp\0"
+		"*.sge;*.shc;*.shp;*.spc;*.spu;*.sxs;*.tip;*.tn1;*.tn2;*.tn3;"
+		"*.tny;*.wnd;*.xlp\0"
 #define FAIL_FILTER(description, masks) description " (" masks ")\0" masks "\0"
 		FAIL_FILTER("Hi-res", "*.cpr;*.dlm;*.drg;*.ghg;*.gr8;*.mbg;*.sge")
 		FAIL_FILTER("GTIA mode", "*.bg9;*.g09;*.g10;*.g11;*.gr9")
@@ -382,7 +383,7 @@ static void SelectAndOpenImage(void)
 		FAIL_FILTER("CIN/HIP/RIP/TIP", "*.cci;*.cin;*.hip;*.rip;*.tip")
 		FAIL_FILTER("Other interlaced", "*.hr;*.hr2;*.rgb;*.shc")
 		FAIL_FILTER("Fonts", "*.chr;*.fnt;*.jgp;*.sxs")
-		FAIL_FILTER("Atari ST", "*.doo;*.neo;*.pc1;*.pc2;*.pc3;*.pi1;*.pi2;*.pi3;*.spu")
+		FAIL_FILTER("Atari ST", "*.doo;*.neo;*.pc1;*.pc2;*.pc3;*.pi1;*.pi2;*.pi3;*.spu;*.tn1;*.tn2;*.tn3;*.tny")
 		FAIL_FILTER("Atari Portfolio", "*.pgc;*.pgf")
 		"\0",
 		NULL,

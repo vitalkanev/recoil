@@ -182,6 +182,10 @@ static const struct Format {
 	{ "SPU", "Spectrum 512; 320x199, 256 colors" },
 	{ "SXS", "16x16 font, mono" },
 	{ "TIP", "Taquart Interlace Picture; up to 160x119" },
+	{ "TN1", "Tiny Stuff; 320x200, 16 colors, compressed" },
+	{ "TN2", "Tiny Stuff; 640x200, 4 colors, compressed" },
+	{ "TN3", "Tiny Stuff; 640x400, mono, compressed" },
+	{ "TNY", "Tiny Stuff; compressed" },
 	{ "WND", "Blazing Paddles window; up to 160x192, 4 colors" },
 	{ "XLP", "XL-Paint; 160x192 or 160x200, 7 colors, interlaced, compressed" }
 };

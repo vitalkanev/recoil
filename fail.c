@@ -3827,6 +3827,98 @@ static abool decode_spu(
 	return TRUE;
 }
 
+static abool unpack_tny(
+	const byte control[], int control_len,
+	const byte data[], int data_len,
+	byte unpacked_data[])
+{
+	int control_offset = 0;
+	int data_offset = 0;
+	int unpacked_offset = 0;
+	int current_control = 0;
+	int current_data = 0;
+	for (;;) {
+		if (current_control == 0) {
+			if (control_offset >= control_len)
+				return FALSE;
+			current_control = (signed char) control[control_offset++];
+			switch (current_control) {
+			case 0:
+				if (control_offset + 1 >= control_len)
+					return FALSE;
+				current_control = (control[control_offset] << 8) + control[control_offset + 1];
+				if (current_control == 0)
+					return FALSE;
+				control_offset += 2;
+				break;
+			case 1:
+				if (control_offset + 1 >= control_len)
+					return FALSE;
+				current_control = -(control[control_offset] << 8) - control[control_offset + 1];
+				if (current_control == 0)
+					return FALSE;
+				control_offset += 2;
+				break;
+			default:
+				break;
+			}
+			current_data = -1;
+		}
+		if (current_data < 0) {
+			if (data_offset + 1 >= data_len)
+				return FALSE;
+			current_data = (data[data_offset] << 8) + data[data_offset + 1];
+			data_offset += 2;
+		}
+		unpacked_data[unpacked_offset] = (byte) (current_data >> 8);
+		unpacked_data[unpacked_offset + 1] = (byte) current_data;
+		unpacked_offset += 160;
+		if (unpacked_offset >= 32000) {
+			unpacked_offset -= 32000 - 8;
+			if (unpacked_offset >= 160) {
+				unpacked_offset -= 160 - 2;
+				if (unpacked_offset == 8)
+					return TRUE;
+			}
+		}
+		if (current_control < 0) {
+			current_data = -1;
+			current_control++;
+		}
+		else
+			current_control--;
+	}
+}
+
+static abool decode_tny(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	int st_resolution;
+	int control_len;
+	int data_len;
+	byte unpacked[32000];
+	if (image_len < 42)
+		return FALSE;
+	st_resolution = image[0];
+	if (st_resolution > 2) {
+		if (st_resolution > 5)
+			return FALSE;
+		st_resolution -= 3;
+		image += 4;
+		image_len -= 4;
+	}
+	control_len = (image[33] << 8) + image[34];
+	data_len = ((image[35] << 8) + image[36]) << 1;
+	if (37 + control_len + data_len > image_len)
+		return FALSE;
+	if (!unpack_tny(image + 37, control_len, image + 37 + control_len, data_len, unpacked))
+		return FALSE;
+	return decode_st(unpacked, 32000, image + 1, st_resolution, image_info, pixels);
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -3926,6 +4018,10 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('N', 'E', 'O'):
 	case FAIL_EXT('D', 'O', 'O'):
 	case FAIL_EXT('S', 'P', 'U'):
+	case FAIL_EXT('T', 'N', 'Y'):
+	case FAIL_EXT('T', 'N', '1'):
+	case FAIL_EXT('T', 'N', '2'):
+	case FAIL_EXT('T', 'N', '3'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -4029,7 +4125,11 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('P', 'C', '3'), decode_pc },
 		{ FAIL_EXT('N', 'E', 'O'), decode_neo },
 		{ FAIL_EXT('D', 'O', 'O'), decode_doo },
-		{ FAIL_EXT('S', 'P', 'U'), decode_spu }
+		{ FAIL_EXT('S', 'P', 'U'), decode_spu },
+		{ FAIL_EXT('T', 'N', 'Y'), decode_tny },
+		{ FAIL_EXT('T', 'N', '1'), decode_tny },
+		{ FAIL_EXT('T', 'N', '2'), decode_tny },
+		{ FAIL_EXT('T', 'N', '3'), decode_tny }
 	}, *ph;
 
 	if (atari_palette == NULL)

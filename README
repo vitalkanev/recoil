@@ -123,6 +123,10 @@ PI1:: "DEGAS", up to 320x280, 16 colors.
 PI2:: "DEGAS", 640x200, 4 colors.
 PI3:: "DEGAS", 640x400, mono.
 SPU:: "Spectrum 512", 320x199, 512 colors.
+TNY:: "Tiny Stuff", compressed.
+TN1:: "Tiny Stuff", 320x200, 16 colors, compressed.
+TN2:: "Tiny Stuff", 640x200, 4 colors, compressed.
+TN3:: "Tiny Stuff", 640x400, mono, compressed.
 
 Atari Portfolio
 ~~~~~~~~~~~~~~~

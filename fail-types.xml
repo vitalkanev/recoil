@@ -76,6 +76,10 @@
 	<type ext="spu" acronym="SPectrum 512 Uncompressed" />
 	<type ext="sxs" />
 	<type ext="tip" acronym="Taquart Interlace Picture" />
+	<type ext="tny" acronym="TiNY stuff" />
+	<type ext="tn1" acronym="TiNy stuff" />
+	<type ext="tn2" acronym="TiNy stuff" />
+	<type ext="tn3" acronym="TiNy stuff" />
 	<type ext="wnd" />
 	<type ext="xlp" acronym="XL-Paint" />
 </fail-types>
