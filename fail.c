@@ -771,39 +771,6 @@ static abool is_koala_header(const byte image[], int image_len)
 		&& image[20] == 0 && image[21] == 0;
 }
 
-static abool decode_pic(
-	const byte image[], int image_len,
-	const byte atari_palette[],
-	FAIL_ImageInfo* image_info,
-	byte pixels[])
-{
-	byte unpacked_image[7680 + 4];
-
-	if (!is_koala_header(image, image_len)) {
-		/* some images with .pic extension are in micropainter format */
-		if (image_len >= 7680 && image_len <= 7685) {
-			return decode_mic(
-				image, image_len, atari_palette,
-				image_info, pixels);
-		}
-		return FALSE;
-	}
-
-	if (!unpack_koala(
-		image + image[4] + 1, image_len - image[4] - 1,
-		image[7], unpacked_image, 7680))
-		return FALSE;
-
-	unpacked_image[7680] = image[17];
-	unpacked_image[7681] = image[13];
-	unpacked_image[7682] = image[14];
-	unpacked_image[7683] = image[15];
-
-	return decode_mic(
-		unpacked_image, 7684, atari_palette,
-		image_info, pixels);
-}
-
 static abool decode_cpr(
 	const byte image[], int image_len,
 	const byte atari_palette[],
@@ -4167,6 +4134,35 @@ static abool decode_pac(
 	if (!unpack_pac(image, image_len, unpacked_image))
 		return FALSE;
 	return decode_doo(unpacked_image, 32000, atari_palette, image_info, pixels);
+}
+
+static abool decode_pic(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte unpacked_image[7680 + 4];
+
+	if (!is_koala_header(image, image_len)) {
+		/* some images with .pic extension are in micropainter format */
+		if (image_len >= 7680 && image_len <= 7685) {
+			return decode_mic( image, image_len, atari_palette, image_info, pixels);
+		}
+		return decode_doo(image, image_len, atari_palette, image_info, pixels);
+	}
+
+	if (!unpack_koala(
+		image + image[4] + 1, image_len - image[4] - 1,
+		image[7], unpacked_image, 7680))
+		return FALSE;
+
+	unpacked_image[7680] = image[17];
+	unpacked_image[7681] = image[13];
+	unpacked_image[7682] = image[14];
+	unpacked_image[7683] = image[15];
+
+	return decode_mic(unpacked_image, 7684, atari_palette, image_info, pixels);
 }
 
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
