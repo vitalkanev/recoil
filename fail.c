@@ -4106,7 +4106,7 @@ static abool unpack_pac(const byte image[], int image_len, byte unpacked_image[]
 			if (image_offset + 1 >= image_len)
 				return FALSE;
 			b = image[image_offset];
-			count = image[image_offset];
+			count = image[image_offset + 1] + 1;
 			image_offset += 2;
 		}
 		else
@@ -4129,7 +4129,7 @@ static abool decode_pac(
 	byte pixels[])
 {
 	byte unpacked_image[32000];
-	if (image_len < 7 || image[0] != 'p' || image[1] != 'M' || image[2] != '8')
+	if (image_len < 8 || image[0] != 'p' || image[1] != 'M' || image[2] != '8')
 		return FALSE;
 	if (!unpack_pac(image, image_len, unpacked_image))
 		return FALSE;
@@ -4149,6 +4149,7 @@ static abool decode_pic(
 		if (image_len >= 7680 && image_len <= 7685) {
 			return decode_mic( image, image_len, atari_palette, image_info, pixels);
 		}
+		/* some images with .pic extension are ST raw format */
 		return decode_doo(image, image_len, atari_palette, image_info, pixels);
 	}
 
