@@ -3965,7 +3965,11 @@ static abool unpack_ca(const byte data[], int data_len, byte unpacked_data[])
 	if (data_len < 4)
 		return FALSE;
 	unpacked_step = (data[2] << 8) + data[3];
-	if (unpacked_step == 0 || unpacked_step >= 32000)
+	if (unpacked_step == 0) {
+		memset(unpacked_data, data[1], 32000);
+		return TRUE;
+	}
+	if (unpacked_step >= 32000)
 		return FALSE;
 	memset(is_filled, 0, unpacked_step);
 	for (;;) {

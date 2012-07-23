@@ -116,9 +116,9 @@ Atari ST
 ~~~~~~~~
 [horizontal]
 ART:: "Art Director", 320x200, 16 colors, compressed.
-CA1:: "Crack Art", 320x200, 16 colors, compressed.
-CA2:: "Crack Art", 640x200, 4 colors, compressed.
-CA3:: "Crack Art", 640x400, mono, compressed.
+CA1:: "CrackArt", 320x200, 16 colors, compressed.
+CA2:: "CrackArt", 640x200, 4 colors, compressed.
+CA3:: "CrackArt", 640x400, mono, compressed.
 DOO:: "Doodle", 640x400, mono.
 NEO:: "NEOchrome".
 PAC:: "STAD", 640x400, mono, compressed.
