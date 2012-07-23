@@ -4115,14 +4115,14 @@ static abool unpack_pac(const byte image[], int image_len, byte unpacked_image[]
 		}
 		else
 			count = 1;
-		while (--count >= 0) {
+		do {
 			unpacked_image[unpacked_offset] = b;
 			if (unpacked_offset == 31999)
 				return TRUE;
 			unpacked_offset += unpacked_step;
 			if (unpacked_offset >= 32000)
 				unpacked_offset -= 31999;
-		}
+		} while (--count > 0);
 	}
 }
 
