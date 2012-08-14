@@ -184,6 +184,7 @@ static const struct Format {
 	{ "SHC", "SAMAR Hi-res Interlace with Map of Colours; 320x192, interlaced" },
 	{ "SHP", "Blazing Paddles or Movie Maker shapes" },
 	{ "SPC", "Spectrum 512 Compressed or The Graphics Magician Picture Painter" },
+	{ "SPS", "Spectrum 512 Smooshed; 320x199, 256 colors, compressed" },
 	{ "SPU", "Spectrum 512; 320x199, 256 colors" },
 	{ "SXS", "16x16 font, mono" },
 	{ "TIP", "Taquart Interlace Picture; up to 160x119" },

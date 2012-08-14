@@ -29,6 +29,47 @@
 
 #include "palette.h"
 
+typedef struct {
+	byte bits; /* sliding left with a trailing 1 */
+	const byte *bytes;
+	int length;
+	int offset;
+} BitStream;
+
+static void BitStream_init(BitStream *s, const byte *bytes, int length, int offset)
+{
+	s->bits = 0x80;
+	s->bytes = bytes;
+	s->length = length;
+	s->offset = offset;
+}
+
+static int BitStream_get_bit(BitStream *s)
+{
+	int bits = s->bits;
+	if (bits == 0x80) {
+		if (s->offset >= s->length)
+			return -1;
+		bits = s->bytes[s->offset++] * 2 + 1;
+	}
+	else
+		bits <<= 1;
+	s->bits = (byte) bits;
+	return bits >> 8;
+}
+
+static int BitStream_get_bits(BitStream *s, int bits)
+{
+	int result = 0;
+	while (--bits >= 0) {
+		int bit = BitStream_get_bit(s);
+		if (bit < 0)
+			return -1;
+		result = result * 2 + bit;
+	}
+	return result;
+}
+
 #define FAIL_MODE_REAL11 27
 #define FAIL_MODE_15PF0FIRST 16
 #define FAIL_MODE_15WITHPF3 17
@@ -402,27 +443,6 @@ static void unpack_rip_create_fano_tree(const byte *src, int n, FanoTree *tree)
 	}
 }
 
-typedef struct {
-	byte bits; /* sliding left with a trailing 1 */
-	const byte *bytes;
-	int length;
-	int offset;
-} BitStream;
-
-static int unpack_rip_get_bit(BitStream *s)
-{
-	int bits = s->bits;
-	if (bits == 0x80) {
-		if (s->offset >= s->length)
-			return -1;
-		bits = s->bytes[s->offset++] * 2 + 1;
-	}
-	else
-		bits <<= 1;
-	s->bits = (byte) bits;
-	return bits >> 8;
-}
-
 static int unpack_rip_get_code(BitStream *s, const FanoTree *tree)
 {
 	int p = tree->count[0];
@@ -430,7 +450,7 @@ static int unpack_rip_get_code(BitStream *s, const FanoTree *tree)
 	int bits;
 	for (bits = 1; bits < 16; bits++) {
 		int n = tree->count[bits];
-		int bit = unpack_rip_get_bit(s);
+		int bit = BitStream_get_bit(s);
 		if (bit == -1)
 			return -1;
 		i = i * 2 + bit;
@@ -447,7 +467,7 @@ static abool unpack_rip(const byte data[], int data_len, byte unpacked_data[], i
 	FanoTree length_tree;
 	FanoTree distance_tree;
 	FanoTree literal_tree;
-	BitStream stream = { 0x80, data, data_len, 16 + 288 };
+	BitStream stream;
 	int unpacked_offset;
 
 	/* "PCK" header (16 bytes) */
@@ -460,8 +480,9 @@ static abool unpack_rip(const byte data[], int data_len, byte unpacked_data[], i
 	unpack_rip_create_fano_tree(data + 16 + 32 + 128, 256, &literal_tree);
 
 	/* LZ77 */
+	BitStream_init(&stream, data, data_len, 16 + 288);
 	for (unpacked_offset = 0; unpacked_offset < unpacked_len; ) {
-		switch (unpack_rip_get_bit(&stream)) {
+		switch (BitStream_get_bit(&stream)) {
 		case -1:
 			return FALSE;
 		case 0:
@@ -3769,9 +3790,7 @@ static abool decode_neo(
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
-	if (image_len != 32128
-	 || image[0] != 0 || image[1] != 0
-	 || image[2] != 0)
+	if (image_len != 32128 || image[0] != 0 || image[1] != 0 || image[2] != 0)
 		return FALSE;
 	return decode_st(image + 128, 32000, image + 4, image[3], image_info, pixels);
 }
@@ -3823,7 +3842,7 @@ static abool decode_spc_st(
 	byte unpacked_image[51104];
 	int image_offset;
 	int palette;
-	if (image_len <12 || image[0] != 'S' || image[1] != 'P')
+	if (image_len < 12 || image[0] != 'S' || image[1] != 'P')
 		return FALSE;
 
 	if (!unpack_packbits(image + 12, image_len - 12, -1, unpacked_image + 160))
@@ -3851,6 +3870,7 @@ static abool decode_spc_st(
 			}
 		}
 	}
+
 	return decode_spu(unpacked_image, 51104, atari_palette, image_info, pixels);
 }
 
@@ -4150,9 +4170,8 @@ static abool decode_pic(
 
 	if (!is_koala_header(image, image_len)) {
 		/* some images with .pic extension are in micropainter format */
-		if (image_len >= 7680 && image_len <= 7685) {
-			return decode_mic( image, image_len, atari_palette, image_info, pixels);
-		}
+		if (image_len >= 7680 && image_len <= 7685)
+			return decode_mic(image, image_len, atari_palette, image_info, pixels);
 		/* some images with .pic extension are ST raw format */
 		return decode_doo(image, image_len, atari_palette, image_info, pixels);
 	}
@@ -4168,6 +4187,95 @@ static abool decode_pic(
 	unpacked_image[7683] = image[15];
 
 	return decode_mic(unpacked_image, 7684, atari_palette, image_info, pixels);
+}
+
+static abool unpack_sps(const byte data[], int data_len, abool spc_order, byte unpacked_data[])
+{
+	int data_offset = 0;
+	int unpacked_offset = 0;
+	for (;;) {
+		abool rle;
+		int count;
+		int b = -1;
+		if (data_offset >= data_len)
+			return FALSE;
+		count = data[data_offset++];
+		if (count < 128) {
+			count += 3;
+			rle = TRUE;
+		}
+		else {
+			count -= 127;
+			rle = FALSE;
+		}
+		do {
+			if (!rle || b < 0) {
+				if (data_offset >= data_len)
+					return FALSE;
+				b = data[data_offset++];
+			}
+			unpacked_data[unpacked_offset] = b;
+			if (unpacked_offset == 31839)
+				return TRUE;
+			if (spc_order) {
+				if ((unpacked_offset & 1) == 0)
+					unpacked_offset++;
+				else {
+					unpacked_offset += 7;
+					if (unpacked_offset >= 31840)
+						unpacked_offset -= 31840 - 2;
+				}
+			}
+			else {
+				unpacked_offset += 160;
+				if (unpacked_offset >= 31840) {
+					unpacked_offset -= (unpacked_offset & 1) == 0 ? 31840 - 1 /* even column -> odd column */
+						: unpacked_offset < 31840 + 152 ? 31840 - 7 /* same bitplane, next word */
+						: 31840 + 151 /* next bitplane */;
+				}
+			}
+		} while (--count > 0);
+	}
+}
+
+static abool decode_sps(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte unpacked_image[51104];
+	BitStream stream;
+	int palette;
+	if (image_len < 13 || image[0] != 'S' || image[1] != 'P' || image[2] != 0 || image[3] != 0)
+		return FALSE;
+
+	if (!unpack_sps(image + 12, image_len - 12, (image[image_len - 1] & 1) != 0, unpacked_image + 160))
+		return FALSE;
+
+	BitStream_init(&stream, image, image_len, 12 + (image[4] << 24) + (image[5] << 16) + (image[6] << 8) + image[7]);
+	for (palette = 0; palette < 199 * 3; palette++) {
+		int got = BitStream_get_bits(&stream, 14) * 2;
+		int index;
+		if (got < 0)
+			return FALSE;
+		for (index = 0; index < 16; index++) {
+			int unpacked_offset = 32000 + palette * 32 + index * 2;
+			int rgb;
+			if ((got >> (15 - index) & 1) == 0)
+				rgb = 0;
+			else {
+				rgb = BitStream_get_bits(&stream, 9);
+				if (rgb < 0)
+					return FALSE;
+			}
+			/* RRRGGGBBB -> 00000RRR 0GGG0BBB */
+			unpacked_image[unpacked_offset] = rgb >> 6;
+			unpacked_image[unpacked_offset + 1] = (rgb & 0x3f) + (rgb & 0x38);
+		}
+	}
+
+	return decode_spu(unpacked_image, 51104, atari_palette, image_info, pixels);
 }
 
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
@@ -4278,6 +4386,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('C', 'A', '3'):
 	case FAIL_EXT('I', 'N', 'G'):
 	case FAIL_EXT('P', 'A', 'C'):
+	case FAIL_EXT('S', 'P', 'S'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -4390,7 +4499,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('C', 'A', '2'), decode_ca },
 		{ FAIL_EXT('C', 'A', '3'), decode_ca },
 		{ FAIL_EXT('I', 'N', 'G'), decode_inp },
-		{ FAIL_EXT('P', 'A', 'C'), decode_pac }
+		{ FAIL_EXT('P', 'A', 'C'), decode_pac },
+		{ FAIL_EXT('S', 'P', 'S'), decode_sps }
 	}, *ph;
 
 	if (atari_palette == NULL)
