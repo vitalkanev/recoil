@@ -29,6 +29,11 @@
 
 #include "palette.h"
 
+static int get_32be(const byte *p)
+{
+	return (p[0] << 24) + (p[1] << 16) + (p[2] << 8) + p[3];
+}
+
 typedef struct {
 	byte bits; /* sliding left with a trailing 1 */
 	const byte *bytes;
@@ -3848,7 +3853,7 @@ static abool decode_spc_st(
 	if (!unpack_packbits(image + 12, image_len - 12, -1, unpacked_image + 160))
 		return FALSE;
 
-	image_offset = 12 + (image[4] << 24) + (image[5] << 16) + (image[6] << 8) + image[7];
+	image_offset = 12 + get_32be(image + 4);
 	for (palette = 0; palette < 199 * 3; palette++) {
 		int got;
 		int index;
@@ -4253,7 +4258,7 @@ static abool decode_sps(
 	if (!unpack_sps(image + 12, image_len - 12, (image[image_len - 1] & 1) != 0, unpacked_image + 160))
 		return FALSE;
 
-	BitStream_init(&stream, image, image_len, 12 + (image[4] << 24) + (image[5] << 16) + (image[6] << 8) + image[7]);
+	BitStream_init(&stream, image, image_len, 12 + get_32be(image + 4));
 	for (palette = 0; palette < 199 * 3; palette++) {
 		int got = BitStream_get_bits(&stream, 14) * 2;
 		int index;
@@ -4276,6 +4281,80 @@ static abool decode_sps(
 	}
 
 	return decode_spu(unpacked_image, 51104, atari_palette, image_info, pixels);
+}
+
+static abool decode_gfb(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	int planes;
+	int bitmap_len;
+	int i;
+	byte palette[48];
+	if (image_len < 20 || image[0] != 'G' || image[1] != 'F' || image[2] != '2' || image[3] != '5')
+		return FALSE;
+	switch (get_32be(image + 4)) {
+	case 2:
+		planes = 1;
+		break;
+	case 16:
+		planes = 4;
+		break;
+	default:
+		/* TODO: 4, 256, maybe more? */
+		return FALSE;
+	}
+	image_info->width = image_info->original_width = get_32be(image + 8);
+	if (image_info->width <= 0 || image_info->width > FAIL_WIDTH_MAX || (image_info->width & 15) != 0)
+		return FALSE;
+	image_info->height = image_info->original_height = get_32be(image + 12);
+	if (image_info->height <= 0 || image_info->height > FAIL_HEIGHT_MAX)
+		return FALSE;
+	bitmap_len = get_32be(image + 16);
+	if (image_len != bitmap_len + 1556 || bitmap_len != (image_info->width >> 3) * image_info->height * planes)
+		return FALSE;
+
+	for (i = 0; i < 48; i++) {
+		int palette_offset = 20 + bitmap_len + 2 * i;
+		int c = (image[palette_offset] << 8) + image[palette_offset + 1];
+		if (c > 1000)
+			return FALSE;
+		c = c * 255 / 1000;
+		if (planes == 4) {
+			static const byte pal2pixel[16] = { 0, 15, 1, 2, 4, 6, 3, 5, 7, 8, 9, 10, 12, 14, 11, 13 };
+			palette[pal2pixel[i / 3] * 3 + i % 3] = c;
+		}
+		/* else if (planes == 2) { 0, 3, 1, 2 } */
+		else
+			palette[i] = c;
+	}
+
+	bitmap_len = image_info->width * image_info->height;
+	for (i = 0; i < bitmap_len; i++) {
+		int bitplane_bit = ~i & 7;
+		int bitplane_byte;
+		int c;
+		switch (planes) {
+		case 1:
+			c = image[20 + (i >> 3)] >> bitplane_bit & 1;
+			break;
+		case 4:
+			bitplane_byte = 20 + (i >> 1 & ~7) + (i >> 3 & 1);
+			c = (image[bitplane_byte] >> bitplane_bit & 1)
+				| (image[bitplane_byte + 2] >> bitplane_bit & 1) << 1
+				| (image[bitplane_byte + 4] >> bitplane_bit & 1) << 2
+				| (image[bitplane_byte + 6] >> bitplane_bit & 1) << 3;
+			break;
+		default:
+			return FALSE;
+		}
+		pixels[i * 3] = palette[c * 3];
+		pixels[i * 3 + 1] = palette[c * 3 + 1];
+		pixels[i * 3 + 2] = palette[c * 3 + 2];
+	}
+	return TRUE;
 }
 
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
@@ -4387,6 +4466,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('I', 'N', 'G'):
 	case FAIL_EXT('P', 'A', 'C'):
 	case FAIL_EXT('S', 'P', 'S'):
+	case FAIL_EXT('G', 'F', 'B'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -4500,7 +4580,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('C', 'A', '3'), decode_ca },
 		{ FAIL_EXT('I', 'N', 'G'), decode_inp },
 		{ FAIL_EXT('P', 'A', 'C'), decode_pac },
-		{ FAIL_EXT('S', 'P', 'S'), decode_sps }
+		{ FAIL_EXT('S', 'P', 'S'), decode_sps },
+		{ FAIL_EXT('G', 'F', 'B'), decode_gfb }
 	}, *ph;
 
 	if (atari_palette == NULL)

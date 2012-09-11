@@ -138,6 +138,7 @@ static const struct Format {
 	{ "G09", "160x192, 16-level grayscale" },
 	{ "G10", "Graphics 10; up to 80x240, 9 colors" },
 	{ "G11", "Graphics 11; up to 80x240, 16 colors" },
+	{ "GFB", "DeskPic" },
 	{ "GHG", "Gephard Hires Graphics; up to 320x200, mono" },
 	{ "GR7", "Graphics 7; up to 160x120, 4 colors" },
 	{ "GR8", "Graphics 8; up to 320x240, mono" },

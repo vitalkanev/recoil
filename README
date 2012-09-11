@@ -85,7 +85,8 @@ MBG:: "Mad Designer", 512x256, mono.
 MCH:: "Graph2Font", up to 176x240, 128 colors.
 MCP:: "McPainter", 160x200, 16 colors, interlaced.
 MGP:: "Magic Painter", 160x96, 4 colors with optional rainbow effect.
-MIC:: "Micro Illustrator" / "Graphics 15" / "AtariGraphics", up to 160x240, 4 colors.
+MIC:: "Micro Illustrator" / "Graphics 15" , up to 160x240, 4 colors.
+MIC:: "AtariGraphics", 160x192, 4 colors.
 MIS:: "AtariTools-800" missile, 2x240, mono.
 PIC:: "Koala MicroIllustrator", 160x192, 4 colors, compressed.
 PLA:: "AtariTools-800" player, 8x240, mono.
@@ -120,6 +121,7 @@ CA1:: "CrackArt", 320x200, 16 colors, compressed.
 CA2:: "CrackArt", 640x200, 4 colors, compressed.
 CA3:: "CrackArt", 640x400, mono, compressed.
 DOO:: "Doodle", 640x400, mono.
+GFB:: "DeskPic".
 NEO:: "NEOchrome".
 PAC:: "STAD", 640x400, mono, compressed.
 PC1:: "DEGAS Elite", 320x200, 16 colors, compressed.
