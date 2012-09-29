@@ -59,6 +59,7 @@ static char image_filename[MAX_PATH] = "";
 static BOOL image_loaded = FALSE;
 static BOOL skip_files = TRUE;
 static FAIL_ImageInfo image_info;
+static int colors;
 static byte pixels[FAIL_PIXELS_MAX];
 static byte palette[FAIL_PALETTE_MAX];
 
@@ -125,7 +126,7 @@ static void UpdateText(void)
 	SetWindowText(hWnd, buf);
 	if (image_loaded) {
 		sprintf(buf, "%dx%d, %d colors, %d%%", image_info.original_width,
-			image_info.original_height, image_info.colors, zoom);
+			image_info.original_height, colors, zoom);
 		SetWindowText(hStatus, buf);
 	}
 }
@@ -270,7 +271,7 @@ static BOOL LoadFile(const char *filename, byte *buffer, int *len)
 static void CopyPaletteToBitmap(void)
 {
 	int i;
-	for (i = 0; i < image_info.colors; i++) {
+	for (i = 0; i < colors; i++) {
 		bitmap.bmiColors[i].rgbRed = palette[3 * i];
 		bitmap.bmiColors[i].rgbGreen = palette[3 * i + 1];
 		bitmap.bmiColors[i].rgbBlue = palette[3 * i + 2];
@@ -295,14 +296,14 @@ static BOOL OpenImage(BOOL show_error)
 
 	image_loaded = FAIL_DecodeImage(image_filename, image, image_len,
 		use_atari_palette ? atari_palette : NULL,
-		&image_info, pixels, palette);
+		&image_info, pixels);
 	SetMenuEnabled(IDM_SAVEAS, image_loaded);
 	SetMenuEnabled(IDM_COPY, image_loaded);
 	SetMenuEnabled(IDM_FULLSCREEN, image_loaded);
 	SetMenuEnabled(IDM_ZOOMIN, image_loaded);
 	SetMenuEnabled(IDM_ZOOMOUT, image_loaded);
-	SetMenuEnabled(IDM_INVERT, image_loaded && image_info.colors == 2);
 	if (!image_loaded) {
+		SetMenuEnabled(IDM_INVERT, FALSE);
 		SetWindowText(hWnd, APP_TITLE);
 		SetWindowText(hStatus, NULL);
 		if (show_error) {
@@ -311,23 +312,25 @@ static BOOL OpenImage(BOOL show_error)
 		}
 		return FALSE;
 	}
+	colors = FAIL_ToPalette(pixels, image_info.width * image_info.height, palette);
+	SetMenuEnabled(IDM_INVERT, colors == 2);
 
 	bitmap.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 	bitmap.bmiHeader.biWidth = image_info.width;
 	bitmap.bmiHeader.biHeight = image_info.height;
 	bitmap.bmiHeader.biPlanes = 1;
-	bitmap.bmiHeader.biBitCount = image_info.colors <= 256 ? 8 : 24;
+	bitmap.bmiHeader.biBitCount = colors <= 256 ? 8 : 24;
 	bitmap.bmiHeader.biCompression = BI_RGB;
 	bitmap.bmiHeader.biXPelsPerMeter = 1000;
 	bitmap.bmiHeader.biYPelsPerMeter = 1000;
-	if (image_info.colors <= 256) {
+	if (colors <= 256) {
 		int y;
 		bitmap.bmiHeader.biSizeImage =
-			sizeof(BITMAPINFOHEADER) + image_info.colors * sizeof(RGBQUAD) + image_info.width * image_info.height;
-		bitmap.bmiHeader.biClrUsed = image_info.colors;
-		bitmap.bmiHeader.biClrImportant = image_info.colors;
+			sizeof(BITMAPINFOHEADER) + colors * sizeof(RGBQUAD) + image_info.width * image_info.height;
+		bitmap.bmiHeader.biClrUsed = colors;
+		bitmap.bmiHeader.biClrImportant = colors;
 		CopyPaletteToBitmap();
-		bitmap_pixels = (byte *) (bitmap.bmiColors + image_info.colors);
+		bitmap_pixels = (byte *) (bitmap.bmiColors + colors);
 		for (y = 0; y < image_info.height; y++)
 			memcpy(bitmap_pixels + (image_info.height - 1 - y) * image_info.width,
 				pixels + y * image_info.width, image_info.width);
@@ -476,7 +479,7 @@ static void SelectAndSaveImage(void)
 	if (fullscreen)
 		ShowCursor(TRUE);
 	if (GetSaveFileName(&ofn)) {
-		if (!PNG_Save(png_filename, image_info.width, image_info.height, image_info.colors, pixels, palette))
+		if (!PNG_Save(png_filename, image_info.width, image_info.height, colors, pixels, palette))
 			ShowError("Error writing file");
 	}
 	if (fullscreen)
@@ -635,7 +638,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			ZoomOut();
 			break;
 		case IDM_INVERT:
-			if (image_info.colors == 2) {
+			if (colors == 2) {
 				int i;
 				for (i = 0; i < 3; i++) {
 					byte t = palette[i];

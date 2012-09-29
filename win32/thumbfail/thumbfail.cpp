@@ -191,7 +191,7 @@ public:
 		if (pixels == NULL)
 			return E_OUTOFMEMORY;
 		FAIL_ImageInfo image_info;
-		if (!FAIL_DecodeImage(filename, image, image_len, NULL, &image_info, pixels, NULL)) {
+		if (!FAIL_DecodeImage(filename, image, image_len, NULL, &image_info, pixels)) {
 			free(pixels);
 			return E_FAIL;
 		}

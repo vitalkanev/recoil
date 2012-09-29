@@ -74,7 +74,7 @@ static Image *ReadFAILImage(const ImageInfo *image_info, ExceptionInfo *exceptio
 
 	fail_image_len = ReadBlob(image, FAIL_IMAGE_MAX, fail_image);
 	if (!FAIL_DecodeImage(image_info->filename, fail_image, fail_image_len,
-		NULL, &fail_image_info, fail_pixels, NULL)) {
+		NULL, &fail_image_info, fail_pixels)) {
 		ThrowReaderException(CorruptImageError, "FileDecodingError");
 	}
 

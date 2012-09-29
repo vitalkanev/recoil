@@ -115,8 +115,7 @@ DLL_EXPORT void * API gfpLoadPictureInit(LPCSTR filename)
 	if (fail != NULL) {
 		fail->image_len = fread(fail->image, 1, sizeof(fail->image), fp);
 		if (!FAIL_DecodeImage(filename, fail->image, fail->image_len, NULL,
-			&fail->image_info,
-			fail->pixels, NULL /* fail->palette */)) {
+			&fail->image_info, fail->pixels)) {
 			fclose(fp);
 			free(fail);
 			return NULL;

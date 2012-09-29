@@ -1,4 +1,4 @@
-VERSION = 1.3.0
+VERSION = 1.4.0
 
 FAIL_CC = mingw32-gcc -s -O2 -Wall -o $@ -I..
 FAIL_CC_DLL = $(FAIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows

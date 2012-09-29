@@ -84,12 +84,14 @@ static void process_file(const char *input_file)
 	FAIL_ImageInfo image_info;
 	static byte pixels[FAIL_PIXELS_MAX];
 	static byte palette[FAIL_PALETTE_MAX];
+	int colors;
 	image_len = load_file(input_file, image, sizeof(image));
 	if (!FAIL_DecodeImage(input_file, image, image_len,
 		use_atari_palette ? atari_palette : NULL,
-		&image_info, pixels, palette)) {
+		&image_info, pixels)) {
 		fatal_error("%s: file decoding error", input_file);
 	}
+	colors = FAIL_ToPalette(pixels, image_info.width * image_info.height, palette);
 	if (output_file == NULL) {
 		static char output_default[FILENAME_MAX];
 		int i;
@@ -101,7 +103,7 @@ static void process_file(const char *input_file)
 		output_file = output_default;
 	}
 	if (!PNG_Save(output_file, image_info.width, image_info.height,
-		image_info.colors, pixels, palette))
+		colors, pixels, palette))
 		fatal_error("cannot write %s", output_file);
 	output_file = NULL;
 }

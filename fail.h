@@ -30,9 +30,9 @@ extern "C" {
 
 /* Version. */
 #define FAIL_VERSION_MAJOR   1
-#define FAIL_VERSION_MINOR   3
+#define FAIL_VERSION_MINOR   4
 #define FAIL_VERSION_MICRO   0
-#define FAIL_VERSION         "1.3.0"
+#define FAIL_VERSION         "1.4.0"
 
 /* Credits and copyright. */
 #define FAIL_YEARS           "2009-2012"
@@ -66,7 +66,6 @@ typedef unsigned char byte;
 typedef struct {
 	int width;
 	int height;
-	int colors;
 	int original_width;
 	int original_height;
 } FAIL_ImageInfo;
@@ -79,36 +78,41 @@ typedef struct {
    that the file can be decoded. */
 abool FAIL_IsOurFile(const char *filename);
 
-/* Decodes Atari image data to bitmap data with an optional palette.
+/* Decodes Atari image data to RGB bitmap.
 	* filename (in) - name of file to decode (only extension is processed,
 	                  in order to determine the image format)
 	* image (in) - binary data to decode (file contents)
-	* image_len (in) - number of binary data bytes
+	* image_len (in) - number of binary data bytes (file length)
 	* atari_palette (in, optional) - 768-byte array containing triplets
-	                                 of bytes (R, G, B) for Atari palette colors
+	                                 of bytes (R, G, B) for Atari 8-bit palette colors
 	                                 (NULL for built-in palette jakub.act)
 	* image_info (out):
 		* width - converted image width
 		* height - converted image height
-		* colors - exact number of colors in converted image (determines format
-		           of pixels and palette)
 		* original_width - original image width (informational)
 		* original_height - original image height (informational)
-	* pixels (out, optional) - width*height pixels, top-down, left-to-right
-	* palette (out, optional) - if colors <= 256, this array is filled
-	                            with 256 triplets of bytes (R, G, B)
+	* pixels (out) - width*height RGB pixels
    Returns TRUE if conversion successful, FALSE otherwise.
-   After successful execution, arrays pixels and palette are formatted as follows:
-    * If palette is not NULL and colors <= 256: pixels contains one byte per pixel
-      and palette has 256 entries (768 bytes) padded with blacks if necessary.
-    * Otherwise pixels contains triplets of bytes (R, G, B) for consecutive pixels
-      and palette is not set.
+   After successful execution, pixels contains triplets of bytes (R, G, B)
+   for consecutive pixels, top-down, left-to-right.
    After unsuccessful execution, the contents of 'out' parameters is undefined. */
 abool FAIL_DecodeImage(const char *filename,
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[]);
+	byte pixels[]);
+
+/* Calculates number of unique colors in an RGB image
+   and optionally turns it into 8-bit indexed.
+	* pixels (in, out) - on input, pixel_count RGB triplets
+	* pixel_count (in) - number of pixels
+	* palette (out, optional) - palette for the indexed mode, caller-allocated 768 bytes
+   Returns number of colors in the image.
+   If colors <= 256 and palette is not NULL, pixels are replaced with pixel_count
+   bytes of palette indexes and palette is filled with 256 RGB triplets.
+   Otherwise, pixels and palette are left unchanged.
+ */
+int FAIL_ToPalette(byte pixels[], int pixel_count, byte palette[]);
 
 #ifdef __cplusplus
 }

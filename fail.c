@@ -221,88 +221,6 @@ static abool frames_to_rgb_3(
 	return TRUE;
 }
 
-static int rgb_to_int(const byte *rgb)
-{
-	return rgb[0] | (rgb[1] << 8) | (rgb[2] << 16);
-}
-
-/* Binary search for RGB color value in palette.
-   index is set to the position of first color in palette
-   greater or equal (in order defined by rgb_to_int)
-   to given rgb value. */
-static abool find_rgb_color(
-	const byte palette[], int colors,
-	int rgb, int *index)
-{
-	int b = 0;
-	int e = colors;
-	while (b < e) {
-		int d = (b + e) >> 1;
-		int cpal = rgb_to_int(palette + d * 3);
-		if (rgb == cpal) {
-			*index = d;
-			return TRUE;
-		}
-		if (rgb < cpal)
-			e = d;
-		else
-			b = d + 1;
-	}
-	*index = b;
-	return FALSE;
-}
-
-/* Count colors used and optionally convert to an image with palette.
-   If palette is NULL, then only colors are counted.
-   Return FALSE if image cannot be palettized. */
-static abool rgb_to_palette(
-	byte pixels[], int pixel_count,
-	byte palette[], int *p_colors)
-{
-	int colors;
-	int i;
-	byte *temp_palette = (byte *) malloc(pixel_count * 3);
-	if (temp_palette == NULL) {
-		*p_colors = 65536;
-		return FALSE;
-	}
-
-	/* count colors used, determine whether image can be palettized */
-	colors = 0;
-	for (i = 0; i < pixel_count; i++) {
-		int index;
-		if (!find_rgb_color(temp_palette, colors, rgb_to_int(pixels + i * 3), &index)) {
-			/* insert new color into palette */
-			if (index < colors)
-				memmove(temp_palette + index * 3 + 3, temp_palette + index * 3, (colors - index) * 3);
-			temp_palette[index * 3] = pixels[i * 3];
-			temp_palette[index * 3 + 1] = pixels[i * 3 + 1];
-			temp_palette[index * 3 + 2] = pixels[i * 3 + 2];
-			colors++;
-		}
-	}
-	*p_colors = colors;
-	if (palette == NULL || colors > 256) {
-		free(temp_palette);
-		return FALSE;
-	}
-
-	/* return palette */
-	memcpy(palette, temp_palette, colors * 3);
-	free(temp_palette);
-	for (i = colors * 3; i < FAIL_PALETTE_MAX; i++)
-		palette[i] = 0;
-
-	/* convert rgb pixels to palette indices */
-	for (i = 0; i < pixel_count; i++) {
-		int index;
-		if (find_rgb_color(palette, colors, rgb_to_int(pixels + i * 3), &index))
-			pixels[i] = index;
-	}
-
-	return TRUE;
-}
-
 static abool unpack_koala(const byte data[], int data_len, int cprtype, byte unpacked_data[], int unpacked_data_len)
 {
 	int data_offset;
@@ -4483,7 +4401,7 @@ abool FAIL_DecodeImage(const char *filename,
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
-	byte pixels[], byte palette[])
+	byte pixels[])
 {
 	int ext;
 	static const struct {
@@ -4589,15 +4507,87 @@ abool FAIL_DecodeImage(const char *filename,
 	ext = get_packed_ext(filename);
 	for (ph = handlers; ph < handlers + sizeof(handlers) / sizeof(handlers[0]); ph++) {
 		if (ph->ext == ext) {
-			abool result = ph->func(
+			return ph->func(
 				image, image_len, atari_palette,
 				image_info, pixels);
-			if (!result)
-				return FALSE;
-			rgb_to_palette(pixels, image_info->height * image_info->width,
-				palette, &image_info->colors);
-			return TRUE;
 		}
 	}
 	return FALSE;
+}
+
+static int rgb_to_int(const byte *rgb)
+{
+	return rgb[0] | (rgb[1] << 8) | (rgb[2] << 16);
+}
+
+/* Binary search for RGB color value in palette.
+   index is set to the position of first color in palette
+   greater or equal (in order defined by rgb_to_int)
+   to given rgb value. */
+static abool find_rgb_color(
+	const byte palette[], int colors,
+	int rgb, int *index)
+{
+	int b = 0;
+	int e = colors;
+	while (b < e) {
+		int d = (b + e) >> 1;
+		int cpal = rgb_to_int(palette + d * 3);
+		if (rgb == cpal) {
+			*index = d;
+			return TRUE;
+		}
+		if (rgb < cpal)
+			e = d;
+		else
+			b = d + 1;
+	}
+	*index = b;
+	return FALSE;
+}
+
+/* Count colors used and optionally convert to an image with palette.
+   If palette is NULL, then only colors are counted.
+   Return FALSE if image cannot be palettized. */
+int FAIL_ToPalette(byte pixels[], int pixel_count, byte palette[])
+{
+	int colors;
+	int i;
+	byte *temp_palette = (byte *) malloc(pixel_count * 3);
+	if (temp_palette == NULL)
+		return 65536;
+
+	/* count colors used, determine whether image can be palettized */
+	colors = 0;
+	for (i = 0; i < pixel_count; i++) {
+		int index;
+		if (!find_rgb_color(temp_palette, colors, rgb_to_int(pixels + i * 3), &index)) {
+			/* insert new color into palette */
+			if (index < colors)
+				memmove(temp_palette + index * 3 + 3, temp_palette + index * 3, (colors - index) * 3);
+			temp_palette[index * 3] = pixels[i * 3];
+			temp_palette[index * 3 + 1] = pixels[i * 3 + 1];
+			temp_palette[index * 3 + 2] = pixels[i * 3 + 2];
+			colors++;
+		}
+	}
+	if (palette == NULL || colors > 256) {
+		free(temp_palette);
+		return colors;
+	}
+
+	/* return palette */
+	memcpy(palette, temp_palette, colors * 3);
+	free(temp_palette);
+	for (i = colors * 3; i < FAIL_PALETTE_MAX; i++)
+		palette[i] = 0;
+
+	/* convert rgb pixels to palette indices */
+	for (i = 0; i < pixel_count; i++) {
+		int index;
+		if (find_rgb_color(palette, colors, rgb_to_int(pixels + i * 3), &index))
+			pixels[i] = index;
+	}
+
+	return colors;
 }
