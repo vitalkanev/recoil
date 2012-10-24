@@ -197,6 +197,13 @@ static const struct Format {
 	{ "XLP", "XL-Paint; 160x192 or 160x200, 7 colors, interlaced, compressed" }
 };
 
+/* Workaround for MagickCore.h: it omits __declspec(dllexport) for MinGW.
+   As a result, no symbol has __declspec(dllexport) and thus all are exported from the DLL. */
+#ifdef _WIN32
+#undef ModuleExport
+#define ModuleExport __declspec(dllexport)
+#endif
+
 ModuleExport unsigned long RegisterFAILImage(void)
 {
 	const struct Format* pf;

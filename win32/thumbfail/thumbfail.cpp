@@ -281,7 +281,7 @@ STDAPI_(BOOL) DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 	return TRUE;
 }
 
-STDAPI DllRegisterServer(void)
+STDAPI __declspec(dllexport) DllRegisterServer(void)
 {
 	HKEY hk1;
 	if (RegCreateKeyEx(HKEY_CLASSES_ROOT, "CLSID\\" CLSID_FAILThumbProvider_str, 0, NULL, 0, KEY_WRITE, NULL, &hk1, NULL) != ERROR_SUCCESS)
@@ -331,7 +331,7 @@ STDAPI DllRegisterServer(void)
 	return S_OK;
 }
 
-STDAPI DllUnregisterServer(void)
+STDAPI __declspec(dllexport) DllUnregisterServer(void)
 {
 	HKEY hk1;
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Approved", 0, KEY_SET_VALUE, &hk1) == ERROR_SUCCESS) {
@@ -350,7 +350,7 @@ STDAPI DllUnregisterServer(void)
 	return S_OK;
 }
 
-STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv)
+STDAPI __declspec(dllexport) DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv)
 {
 	if (ppv == NULL)
 		return E_INVALIDARG;
@@ -362,7 +362,7 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv)
 	return CLASS_E_CLASSNOTAVAILABLE;
 }
 
-STDAPI DllCanUnloadNow(void)
+STDAPI __declspec(dllexport) DllCanUnloadNow(void)
 {
 	return g_cRef == 0 ? S_OK : S_FALSE;
 }
