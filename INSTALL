@@ -111,8 +111,8 @@ Unless you specify the `-o`/`--output` option, the output filename will be
 constructed from the input filename with the extension changed to `png`.
 
 
-Building fail2png, XnView plugin, ImageMagick coder and FAILWin on Windows
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Building fail2png, XnView plugin, ImageMagick coder, Imagine plugin and FAILWin on Windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 From the command prompt navigate to the `win32` directory and run:
 --------------------------------------------------------------------------------
