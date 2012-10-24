@@ -1,7 +1,8 @@
 *.dll
 *.exe
 *.o
-*.usr
+Xfail*.usr
+FAIL.plg
 COPYING.txt
 README_Windows.html
 README_WindowsSetup.html

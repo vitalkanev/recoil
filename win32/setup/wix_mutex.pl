@@ -1,5 +1,5 @@
 # Generate mutual exclusion conditions
-@c = qw(failwin.ext xnview_fail.ext);
+@c = qw(failwin.ext xnview_fail.ext imagine.ext);
 @a = map "\$$_=3 OR (\$$_=-1 AND ?$_=3)", @c; # action is install or (action is nothing and already installed)
 for $a (@a[0 .. $#a - 1]) {
 	@b = @a[++$i .. $#a];

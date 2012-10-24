@@ -7,12 +7,14 @@
 		<?define UPGRADE_GUID=19995735-0DC9-4C92-848E-AEFF0407139C?>
 		<?define PROGRAM_FILES_FOLDER=ProgramFilesFolder?>
 		<?define SRC_DIR=""?>
+		<?define IMAGINE64=""?>
 	<?elseif $(sys.BUILDARCH) = x64?>
 		<?define WIN64=yes?>
 		<?define PLATFORM_SUFFIX=" (64-bit)"?>
 		<?define UPGRADE_GUID=2FF8D81E-4C6A-4A2A-B5EF-2021E6620CDF?>
 		<?define PROGRAM_FILES_FOLDER=ProgramFiles64Folder?>
 		<?define SRC_DIR=x64\?>
+		<?define IMAGINE64=64?>
 	<?endif?>
 
 	<Product Id="*" Name="FAIL - First Atari Image Library $(var.VERSION)$(var.PLATFORM_SUFFIX)" Language="1033"
@@ -139,7 +141,8 @@
 			
 			<?if $(sys.BUILDARCH) = x86?>
 			<!-- handle mutually exclusive file associations, conditions generated with wix_mutex.pl -->
-			<?foreach MUTEXCOND in (($failwin.ext=3 OR ($failwin.ext=-1 AND ?failwin.ext=3)) AND ($xnview_fail.ext=3 OR ($xnview_fail.ext=-1 AND ?xnview_fail.ext=3)))?>
+			<?foreach MUTEXCOND in (($failwin.ext=3 OR ($failwin.ext=-1 AND ?failwin.ext=3)) AND ($xnview_fail.ext=3 OR ($xnview_fail.ext=-1 AND ?xnview_fail.ext=3) OR $imagine.ext=3 OR ($imagine.ext=-1 AND ?imagine.ext=3)));
+(($xnview_fail.ext=3 OR ($xnview_fail.ext=-1 AND ?xnview_fail.ext=3)) AND ($imagine.ext=3 OR ($imagine.ext=-1 AND ?imagine.ext=3)))?>
 			<Publish Dialog="MyCustomizeDlg" Control="Next" Event="SpawnDialog" Value="MyManyAssociationsDlg" Order="3">
 				$(var.MUTEXCOND)
 			</Publish>
@@ -175,6 +178,14 @@
 			<DirectorySearch Id="coder.xml" Path="[IMCONFIG.DIR]" Depth="1">
 				<FileSearch Name="coder.xml" />
 			</DirectorySearch>
+		</Property>
+		<Property Id="IMAGINE.DIR">
+			<RegistrySearch Id="imagine.dir" Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Imagine" Name="InstallLocation" Type="directory" />
+		</Property>
+		<Property Id="IMAGINE.EXE">
+			<RegistrySearch Id="imagine.exe" Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Imagine" Name="InstallLocation" Type="directory">
+				<FileSearch Name="Imagine$(var.IMAGINE64).exe" />
+			</RegistrySearch>
 		</Property>
 
 		<Directory Id="TARGETDIR" Name="SourceDir">
@@ -249,6 +260,25 @@
 							<util:XmlConfig Id="coder.xml_$(var.EXT)_Name_create" ElementPath="coder.xml_$(var.EXT)_Element_create" Name="name" Value="FAIL" File="[CODER.XML]" />
 							<util:XmlConfig Id="coder.xml_$(var.EXT)_Element_delete" On="uninstall" Action="delete" Node="element" VerifyPath="/codermap/coder[\[]@magick='$(var.EXT)' and @name='FAIL'[\]]" ElementPath="/codermap" Name="coder" File="[CODER.XML]" />
  						<?endforeach?>
+					</Component>
+				</Directory>
+				<Directory Id="IMAGINE.DIR" Name="Imagine">
+					<Directory Id="IMAGINEPLUG.DIR" Name="Plugin">
+						<Component Id="FAIL.plg" Guid="*" Win64="$(var.WIN64)">
+							<File Name="FAIL.plg$(var.IMAGINE64)" Source="$(var.SRC_DIR)FAIL.plg$(var.IMAGINE64)" Checksum="yes" KeyPath="yes" />
+						</Component>
+					</Directory>
+					<Component Id="imagine.ext" Guid="*">
+						<RegistryValue Root="HKCR" Key="fail.file" Name="Imagine.FAIL" Type="integer" Value="1" KeyPath="yes" />
+						<ProgId Id="Imagine.FAIL">
+							<Extension Id="$(var.FIRST_EXT)">
+								<!-- Verb needs to be defined only once per ProgId -->
+								<Verb Id="open" TargetProperty="IMAGINE.EXE" Argument='"%1"' />
+							</Extension>
+							<?foreach EXT in $(var.OTHER_EXTS)?>
+								<Extension Id="$(var.EXT)" />
+							<?endforeach?>
+						</ProgId>
 					</Component>
 				</Directory>
 			</Directory>
@@ -334,6 +364,14 @@
 				<Condition Level="1">VersionNT64 &gt;= 600</Condition><!-- selected on 64-bit Vista+ -->
 			<?endif?>
 			<ComponentRef Id="thumbfail.dll" />
+		</Feature>
+		<Feature Id="imagine" Title="Imagine plugin" Level="9" ConfigurableDirectory="IMAGINEPLUG.DIR" Description="Plugin for Imagine." AllowAdvertise="no">
+			<Condition Level="1">IMAGINE.DIR</Condition>
+			<ComponentRef Id="FAIL.plg" />
+			<Feature Id="imagine.ext" Title="Associate file types" Level="0" Description="$(var.DOUBLECLICK) Imagine." AllowAdvertise="no">
+				<Condition Level="9">IMAGINE.EXE</Condition>
+				<ComponentRef Id="imagine.ext" />
+			</Feature>
 		</Feature>
 
 		<?if $(sys.BUILDARCH) = x86?>

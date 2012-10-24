@@ -23,10 +23,12 @@ Currently the project includes:
 - thumbnail providers for Windows Explorer (Windows Vista and newer) and GNOME (Linux)
 - plugin for http://www.xnview.com[XnView]
 - (de)coder for http://www.imagemagick.org/[ImageMagick]
+- plugin for http://www.nyam.pe.kr/[Imagine]
 
 NOTE: The `win64` setup package only contains 64-bit versions
-of the thumbnail provider (for use in x64 Windows)
-and the ImageMagick coder (for use with x64 ImageMagick).
+of the thumbnail provider (for use in x64 Windows),
+the ImageMagick coder (for use with x64 ImageMagick)
+and Imagine plugin (for use with 64-bit Imagine).
 Other programs should be installed from the `win32` package.
 That is, on 64-bit Windows you may install both packages.
 
