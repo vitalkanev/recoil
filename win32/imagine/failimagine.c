@@ -39,7 +39,7 @@ static LPIMAGINEBITMAP IMAGINEAPI loadFile(IMAGINEPLUGINFILEINFOTABLE *fileInfoT
 	const IMAGINEPLUGININTERFACE *iface = fileInfoTable->iface;
 	char *filename;
 	FAIL_ImageInfo image_info;
-	byte pixels[FAIL_PIXELS_MAX];
+	byte *pixels;
 	LPIMAGINEBITMAP bitmap;
 	IMAGINECALLBACKPARAM param;
 	int bpl;
@@ -63,18 +63,28 @@ static LPIMAGINEBITMAP IMAGINEAPI loadFile(IMAGINEPLUGINFILEINFOTABLE *fileInfoT
 	else
 		filename = (char *) loadParam->fileName;
 
+	pixels = malloc(FAIL_PIXELS_MAX);
+	if (pixels == NULL) {
+		loadParam->errorCode = IMAGINEERROR_OUTOFMEMORY;
+		return NULL;
+	}
+
 	if (!FAIL_DecodeImage(filename, loadParam->buffer, loadParam->length, NULL, &image_info, pixels)) {
+		free(pixels);
 		loadParam->errorCode = IMAGINEERROR_UNSUPPORTEDTYPE;
 		return NULL;
 	}
 
 	bitmap = iface->lpVtbl->Create(image_info.width, image_info.height, 24, flags);
 	if (bitmap == NULL) {
+		free(pixels);
 		loadParam->errorCode = IMAGINEERROR_OUTOFMEMORY;
 		return NULL;
 	}
-	if ((flags & IMAGINELOADPARAM_GETINFO) != 0)
+	if ((flags & IMAGINELOADPARAM_GETINFO) != 0) {
+		free(pixels);
 		return bitmap;
+	}
 
 	param.dib = bitmap;
 	param.param = loadParam->callback.param;
@@ -94,11 +104,13 @@ static LPIMAGINEBITMAP IMAGINEAPI loadFile(IMAGINEPLUGINFILEINFOTABLE *fileInfoT
 		if ((flags & IMAGINELOADPARAM_CALLBACK) != 0) {
 			param.current = y;
 			if (!loadParam->callback.proc(&param)) {
+				free(pixels);
 				loadParam->errorCode = IMAGINEERROR_ABORTED;
 				return bitmap;
 			}
 		}
 	}
+	free(pixels);
 	return bitmap;
 }
 
