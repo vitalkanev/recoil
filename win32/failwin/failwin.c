@@ -526,7 +526,7 @@ static void SelectAndOpenPalette(void)
 		NULL,
 		0,
 		NULL,
-		"Select 8-bit Atari palette",
+		"Select Atari 8-bit palette",
 		OFN_ENABLESIZING | OFN_EXPLORER | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST,
 		0,
 		0,
