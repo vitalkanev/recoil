@@ -125,8 +125,7 @@ static void UpdateText(void)
 	sprintf(buf, "%s - " APP_TITLE, filename);
 	SetWindowText(hWnd, buf);
 	if (image_loaded) {
-		sprintf(buf, "%dx%d, %d colors, %d%%", image_info.original_width,
-			image_info.original_height, colors, zoom);
+		sprintf(buf, "%dx%d, %d colors, %d%%", image_info.original_width, image_info.original_height, colors, zoom);
 		SetWindowText(hStatus, buf);
 	}
 }
@@ -162,8 +161,10 @@ static int GetStatusBarHeight(void)
 
 static void CalculateWindowSize(void)
 {
-	window_width = show_width + GetSystemMetrics(SM_CXFIXEDFRAME) * 2;
-	window_height = show_height + GetSystemMetrics(SM_CYFIXEDFRAME) * 2 + GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYMENU);
+	RECT rect = { 0, 0, show_width, show_height };
+	AdjustWindowRect(&rect, WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, TRUE);
+	window_width = rect.right - rect.left;
+	window_height = rect.bottom - rect.top;
 	if (window_width < WINDOW_WIDTH_MIN)
 		window_width = WINDOW_WIDTH_MIN;
 	if (window_height < WINDOW_HEIGHT_MIN)
@@ -177,7 +178,7 @@ static void ResizeWindow(void)
 	if (GetWindowRect(hWnd, &rect)) {
 		int x = (rect.left + rect.right - window_width) >> 1;
 		int y = (rect.top + rect.bottom - window_height) >> 1;
-		MoveWindow(hWnd, x >= 0 ? x : 0, y >= 0 ? y : 0, window_width, window_height, TRUE);
+		MoveWindow(hWnd, x, y >= 0 ? y : 0, window_width, window_height, TRUE);
 	}
 }
 
@@ -295,8 +296,7 @@ static BOOL OpenImage(BOOL show_error)
 	}
 
 	image_loaded = FAIL_DecodeImage(image_filename, image, image_len,
-		use_atari_palette ? atari_palette : NULL,
-		&image_info, pixels);
+		use_atari_palette ? atari_palette : NULL, &image_info, pixels);
 	SetMenuEnabled(IDM_SAVEAS, image_loaded);
 	SetMenuEnabled(IDM_COPY, image_loaded);
 	SetMenuEnabled(IDM_FULLSCREEN, image_loaded);
