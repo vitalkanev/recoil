@@ -3437,24 +3437,32 @@ static abool decode_4pm(
 	return frame_to_rgb(frame, atari_palette, image_info, pixels);
 }
 
+static abool decode_hires(
+	const byte image[], int image_len,
+	int width, int height,
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	int n = width * height;
+	int i;
+	if (image_len != width * height >> 3)
+		return FALSE;
+	image_info->original_width = image_info->width = width;
+	image_info->original_height = image_info->height = height;
+	for (i = 0; i < n; i++) {
+		byte c = (image[i >> 3] & 0x80 >> (i & 7)) != 0 ? 0 : 0xff;
+		pixels[i * 3 + 2] = pixels[i * 3 + 1] = pixels[i * 3] = c;
+	}
+	return TRUE;
+}
+
 static abool decode_pgf(
 	const byte image[], int image_len,
 	const byte atari_palette[],
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
-	static const byte pgf_color_regs[] = { 0x0F, 0x00 };
-	byte frame[240 * 64];
-	if (image_len != 1920)
-		return FALSE;
-
-	image_info->original_width = image_info->width = 240;
-	image_info->original_height = image_info->height = 64;
-	decode_video_memory(
-		image, pgf_color_regs,
-		0, 30, 0, 1, 0, 30, 64, 8,
-		frame);
-	return frame_to_rgb(frame, atari_palette, image_info, pixels);
+	return decode_hires(image, image_len, 240, 64, image_info, pixels);
 }
 
 static abool decode_pgc(
@@ -3553,16 +3561,7 @@ static abool decode_doo(
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
-	int i;
-	if (image_len != 32000)
-		return FALSE;
-	image_info->original_width = image_info->width = 640;
-	image_info->original_height = image_info->height = 400;
-	for (i = 0; i < 640 * 400; i++) {
-		byte c = (image[i >> 3] & 0x80 >> (i & 7)) != 0 ? 0 : 0xff;
-		pixels[i * 3 + 2] = pixels[i * 3 + 1] = pixels[i * 3] = c;
-	}
-	return TRUE;
+	return decode_hires(image, image_len, 640, 400, image_info, pixels);
 }
 
 static abool decode_st(
