@@ -3510,11 +3510,21 @@ static abool decode_st_low(
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
+	int width;
+	int height;
 	int pixels_count;
 	int i;
-	image_info->original_width = image_info->width = 320;
-	image_info->original_height = image_info->height = image_len / 160;
-	pixels_count = 320 * image_info->height;
+	if (image_len == 116480) {
+		width = 416;
+		height = 560;
+	}
+	else {
+		width = 320;
+		height = image_len / 160;
+	}
+	image_info->original_width = image_info->width = width;
+	image_info->original_height = image_info->height = height;
+	pixels_count = width * height;
 	for (i = 0; i < pixels_count; i++) {
 		int bitplane_byte = (i >> 1 & ~7) + (i >> 3 & 1);
 		int bitplane_bit = ~i & 7;
@@ -3593,6 +3603,7 @@ static abool decode_pi(
 	case 32066: /* DEGAS Elite */
 	case 32128: /* "TROUBLE.PI1" */
 	case 44834: /* 280 lines overscan */
+	case 116514: /* 416x560 "FORESTV.PI1" */
 		break;
 	default:
 		return FALSE;
