@@ -63,6 +63,8 @@
 	<type ext="pi1" />
 	<type ext="pi2" />
 	<type ext="pi3" />
+	<type ext="pi4" />
+	<type ext="pi9" />
 	<type ext="pic" />
 	<type ext="pla" acronym="PLAyer" />
 	<type ext="plm" acronym="PLaMa 256" />

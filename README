@@ -13,7 +13,8 @@ endif::failwww[]
 
 FAIL is a viewer of pictures in native formats of
 http://en.wikipedia.org/wiki/Atari_8-bit_family[Atari 8-bit],
-http://en.wikipedia.org/wiki/Atari_ST[Atari ST]
+http://en.wikipedia.org/wiki/Atari_ST[Atari ST],
+http://en.wikipedia.org/wiki/Atari_Falcon[Atari Falcon]
 and http://en.wikipedia.org/wiki/Atari_Portfolio[Atari Portfolio] computers.
 
 Currently the project includes:
@@ -139,6 +140,11 @@ TNY:: "Tiny Stuff", compressed.
 TN1:: "Tiny Stuff", 320x200, 16 colors, compressed.
 TN2:: "Tiny Stuff", 640x200, 4 colors, compressed.
 TN3:: "Tiny Stuff", 640x400, mono, compressed.
+
+Atari Falcon
+~~~~~~~~~~~~
+[horizontal]
+PI4, PI9:: "Fuckpaint", 320x240 or 320x200, 256 colors.
 
 Atari Portfolio
 ~~~~~~~~~~~~~~~

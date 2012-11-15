@@ -74,9 +74,10 @@ static const char extensions[][5] =
 	  ".g10", ".g11", ".gfb", ".ghg", ".gr7", ".gr8", ".gr9", ".hip", ".hr",  ".hr2",
 	  ".ige", ".ilc", ".ing", ".inp", ".int", ".ist", ".jgp", ".max", ".mbg", ".mch",
 	  ".mcp", ".mgp", ".mic", ".mis", ".neo", ".pac", ".pc1", ".pc2", ".pc3", ".pgc",
-	  ".pgf", ".pi1", ".pi2", ".pi3", ".pic", ".pla", ".plm", ".pzm", ".raw", ".rgb",
-	  ".rip", ".rm0", ".rm1", ".rm2", ".rm3", ".rm4", ".sge", ".shc", ".shp", ".spc",
-	  ".sps", ".spu", ".sxs", ".tip", ".tn1", ".tn2", ".tn3", ".tny", ".wnd", ".xlp" };
+	  ".pgf", ".pi1", ".pi2", ".pi3", ".pi4", ".pi9", ".pic", ".pla", ".plm", ".pzm",
+	  ".raw", ".rgb", ".rip", ".rm0", ".rm1", ".rm2", ".rm3", ".rm4", ".sge", ".shc",
+	  ".shp", ".spc", ".sps", ".spu", ".sxs", ".tip", ".tn1", ".tn2", ".tn3", ".tny",
+	  ".wnd", ".xlp" };
 #define N_EXTS (int) (sizeof(extensions) / sizeof(extensions[0]))
 
 static HINSTANCE g_hDll;
@@ -180,21 +181,29 @@ public:
 		CoTaskMemFree(statstg.pwcsName);
 
 		// get contents
-		byte image[FAIL_IMAGE_MAX];
+		byte *image = (byte *) malloc(FAIL_IMAGE_MAX);
+		if (image == NULL)
+			return E_OUTOFMEMORY;
 		int image_len;
 		hr = m_pstream->Read(image, FAIL_IMAGE_MAX, (ULONG *) &image_len);
-		if (FAILED(hr))
+		if (FAILED(hr)) {
+			free(image);
 			return hr;
+		}
 
 		// decode
 		byte *pixels = (byte *) malloc(FAIL_PIXELS_MAX);
-		if (pixels == NULL)
+		if (pixels == NULL) {
+			free(image);
 			return E_OUTOFMEMORY;
+		}
 		FAIL_ImageInfo image_info;
 		if (!FAIL_DecodeImage(filename, image, image_len, NULL, &image_info, pixels)) {
 			free(pixels);
+			free(image);
 			return E_FAIL;
 		}
+		free(image);
 
 		// convert to bitmap
 		BITMAPINFO bmi = {};

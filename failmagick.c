@@ -169,6 +169,8 @@ static const struct Format {
 	{ "PI1", "DEGAS; up to 320x280, 16 colors" },
 	{ "PI2", "DEGAS; 640x200, 4 colors" },
 	{ "PI3", "DEGAS; 640x400, mono" },
+	{ "PI4", "Fuckpaint; 320x240 or 320x200, 256 colors" },
+	{ "PI9", "Fuckpaint; 320x240 or 320x200, 256 colors" },
 	{ "PIC", "Koala MicroIllustrator; 160x192, 4 colors, compressed" },
 	{ "PLA", "AtariTools-800 player; 8x240, mono" },
 	{ "PLM", "Plama 256; 80x96, 256 colors" },
