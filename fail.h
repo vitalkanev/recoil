@@ -55,7 +55,7 @@ typedef int abool;
 typedef unsigned char byte;
 
 /* Limits. */
-#define FAIL_IMAGE_MAX    78000
+#define FAIL_IMAGE_MAX    200000
 #define FAIL_WIDTH_MAX    640
 #define FAIL_HEIGHT_MAX   400
 #define FAIL_PALETTE_MAX  768

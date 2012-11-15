@@ -129,6 +129,7 @@ static const struct Format {
 	{ "CIN", "Champions' Interlace; 160x192 or 160x200" },
 	{ "CPR", "Trzmiel; 320x192, mono, compressed" },
 	{ "DGP", "DigiPaint; 80x192, 256 colors, interlaced" },
+	{ "DGU", "DuneGraph; 320x200, 256 colors" },
 	{ "DLM", "Dir Logo Maker; 88x128, mono" },
 	{ "DOO", "Doodle; 640x400, mono" },
 	{ "DRG", "Atari CAD; 320x160, mono" },
@@ -140,6 +141,7 @@ static const struct Format {
 	{ "G11", "Graphics 11; up to 80x240, 16 colors" },
 	{ "GFB", "DeskPic" },
 	{ "GHG", "Gephard Hires Graphics; up to 320x200, mono" },
+	{ "GOD", "GodPaint; 65536 colors" },
 	{ "GR7", "Graphics 7; up to 160x120, 4 colors" },
 	{ "GR8", "Graphics 8; up to 320x240, mono" },
 	{ "GR9", "Graphics 9; up to 80x240, 16-level grayscale" },
@@ -195,6 +197,8 @@ static const struct Format {
 	{ "TN2", "Tiny Stuff; 640x200, 4 colors, compressed" },
 	{ "TN3", "Tiny Stuff; 640x400, mono, compressed" },
 	{ "TNY", "Tiny Stuff; compressed" },
+	{ "TRP", "EggPaint; 65536 colors" },
+	{ "TRU", "IndyPaint; 65536 colors" },
 	{ "WND", "Blazing Paddles window; up to 160x192, 4 colors" },
 	{ "XLP", "XL-Paint; 160x192 or 160x200, 7 colors, interlaced, compressed" }
 };

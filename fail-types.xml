@@ -22,6 +22,7 @@
 	<type ext="cin" acronym="Champions' INterlace" />
 	<type ext="cpr" />
 	<type ext="dgp" acronym="DiGiPaint" />
+	<type ext="dgu" acronym="DuneGraph Uncompressed" />
 	<type ext="dlm" acronym="Dir Logo Maker" />
 	<type ext="doo" acronym="DOOdle" />
 	<type ext="drg" />
@@ -33,6 +34,7 @@
 	<type ext="g11" acronym="Graphics 11" />
 	<type ext="gfb" />
 	<type ext="ghg" acronym="Gephard Hires Graphics" />
+	<type ext="god" acronym="GODpaint" />
 	<type ext="gr7" acronym="GRaphics 7" />
 	<type ext="gr8" acronym="GRaphics 8" />
 	<type ext="gr9" acronym="GRaphics 9" />
@@ -89,6 +91,8 @@
 	<type ext="tn1" acronym="TiNy stuff" />
 	<type ext="tn2" acronym="TiNy stuff" />
 	<type ext="tn3" acronym="TiNy stuff" />
+	<type ext="trp" />
+	<type ext="tru" />
 	<type ext="wnd" />
 	<type ext="xlp" acronym="XL-Paint" />
 </fail-types>
