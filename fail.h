@@ -59,7 +59,7 @@ typedef unsigned char byte;
 #define FAIL_WIDTH_MAX    640
 #define FAIL_HEIGHT_MAX   560
 #define FAIL_PALETTE_MAX  768
-#define FAIL_PIXELS_MAX   (640 * 400 * 3)
+#define FAIL_PIXELS_MAX   (640 * 560 * 3)
 
 /* Structure holding information on converted image.
    See FAIL_DecodeImage for details. */

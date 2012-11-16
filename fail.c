@@ -4218,20 +4218,26 @@ static abool decode_gfb(
 	byte pixels[])
 {
 	int planes;
+	int pixel2byte;
 	int bitmap_len;
 	int i;
-	byte palette[48];
+	byte palette[768];
 	if (image_len < 20 || image[0] != 'G' || image[1] != 'F' || image[2] != '2' || image[3] != '5')
 		return FALSE;
 	switch (get_32be(image + 4)) {
 	case 2:
-		planes = 1;
+		pixel2byte = 3;
+		break;
+	case 4:
+		pixel2byte = 2;
 		break;
 	case 16:
-		planes = 4;
+		pixel2byte = 1;
+		break;
+	case 256:
+		pixel2byte = 0;
 		break;
 	default:
-		/* TODO: 4, 256, maybe more? */
 		return FALSE;
 	}
 	image_info->width = image_info->original_width = get_32be(image + 8);
@@ -4241,43 +4247,31 @@ static abool decode_gfb(
 	if (image_info->height <= 0 || image_info->height > FAIL_HEIGHT_MAX)
 		return FALSE;
 	bitmap_len = get_32be(image + 16);
-	if (image_len != bitmap_len + 1556 || bitmap_len != (image_info->width >> 3) * image_info->height * planes)
+	if (image_len != bitmap_len + 1556 || bitmap_len != (image_info->width >> pixel2byte) * image_info->height)
 		return FALSE;
 
-	for (i = 0; i < 48; i++) {
-		int palette_offset = 20 + bitmap_len + 2 * i;
-		int c = (image[palette_offset] << 8) + image[palette_offset + 1];
-		if (c > 1000)
-			return FALSE;
-		c = c * 255 / 1000;
-		if (planes == 4) {
-			static const byte pal2pixel[16] = { 0, 15, 1, 2, 4, 6, 3, 5, 7, 8, 9, 10, 12, 14, 11, 13 };
-			palette[pal2pixel[i / 3] * 3 + i % 3] = c;
+	planes = 8 >> pixel2byte;
+	for (i = 0; i < 1 << planes; i++) {
+		static const byte pal2pixel[16] = { 0, 255, 1, 2, 4, 6, 3, 5, 7, 8, 9, 10, 12, 14, 11, 13 };
+		int j = 3 * (i < 16 ? pal2pixel[i] & ((1 << planes) - 1) : i == 255 ? 15 : i);
+		int k;
+		for (k = 0; k < 3; k++) {
+			int palette_offset = 20 + bitmap_len + 2 * (3 * i + k);
+			int c = (image[palette_offset] << 8) + image[palette_offset + 1];
+			if (c > 1000)
+				return FALSE;
+			palette[j + k] = c * 255 / 1000;
 		}
-		/* else if (planes == 2) { 0, 3, 1, 2 } */
-		else
-			palette[i] = c;
 	}
 
 	bitmap_len = image_info->width * image_info->height;
 	for (i = 0; i < bitmap_len; i++) {
+		int bitplane_byte = 20 + ((i & ~15) >> pixel2byte) + (i >> 3 & 1);
 		int bitplane_bit = ~i & 7;
-		int bitplane_byte;
-		int c;
-		switch (planes) {
-		case 1:
-			c = image[20 + (i >> 3)] >> bitplane_bit & 1;
-			break;
-		case 4:
-			bitplane_byte = 20 + (i >> 1 & ~7) + (i >> 3 & 1);
-			c = (image[bitplane_byte] >> bitplane_bit & 1)
-				| (image[bitplane_byte + 2] >> bitplane_bit & 1) << 1
-				| (image[bitplane_byte + 4] >> bitplane_bit & 1) << 2
-				| (image[bitplane_byte + 6] >> bitplane_bit & 1) << 3;
-			break;
-		default:
-			return FALSE;
-		}
+		int c = 0;
+		int plane;
+		for (plane = planes; --plane >= 0; )
+			c += c + (image[bitplane_byte + 2 * plane] >> bitplane_bit & 1);
 		pixels[i * 3] = palette[c * 3];
 		pixels[i * 3 + 1] = palette[c * 3 + 1];
 		pixels[i * 3 + 2] = palette[c * 3 + 2];
@@ -4358,8 +4352,8 @@ static abool decode_falcon16(
 	int height = (image[width_offset + 2] << 8) + image[width_offset + 3];
 	int pixels_count;
 	int i;
-	/* TODO: resolution limits unknown, here I just check for FAIL_*_MAX */
-	if (width > 640 || height > 400)
+	/* TODO: resolution limits unknown */
+	if (width > FAIL_WIDTH_MAX || height > FAIL_HEIGHT_MAX)
 		return FALSE;
 	pixels_count = width * height;
 	if (data_offset + pixels_count * 2 != image_len)
