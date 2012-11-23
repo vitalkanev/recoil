@@ -92,7 +92,10 @@ uninstall-thumbnailer:
 		gconftool-2 -u "/desktop/gnome/thumbnailers/image@x-$$ext/command" "/desktop/gnome/thumbnailers/image@x-$$ext/enable" ; \
 	done
 
-.PHONY: all clean install uninstall install-fail2png uninstall-fail2png $(if $(CAN_INSTALL_MAGICK),install-magick uninstall-magick) install-thumbnailer uninstall-thumbnailer
+missing-examples:
+	@echo Missing examples for $(foreach EXT,$(FORMATS),$(if $(wildcard ../examples/*.$(EXT)),,$(EXT)))
+
+.PHONY: all clean install uninstall install-fail2png uninstall-fail2png $(if $(CAN_INSTALL_MAGICK),install-magick uninstall-magick) install-thumbnailer uninstall-thumbnailer missing-examples
 
 .DELETE_ON_ERROR:
 
