@@ -28,6 +28,7 @@
 	<type ext="drg" />
 	<type ext="esc" acronym="ESCalpaint" />
 	<type ext="fnt" />
+	<type ext="ftc" acronym="Falcon True Color" />
 	<type ext="fwa" acronym="Fun With Art" />
 	<type ext="g09" acronym="Graphics 9" />
 	<type ext="g10" acronym="Graphics 10" />

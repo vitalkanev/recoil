@@ -145,6 +145,7 @@ Atari Falcon
 ~~~~~~~~~~~~
 [horizontal]
 DGU:: "DuneGraph", 320x200, 256 colors.
+FTC:: Falcon True Color, 384x240, 65536 colors.
 GOD:: "GodPaint", 65536 colors.
 PI4, PI9:: "Fuckpaint", 320x240 or 320x200, 256 colors.
 TRP:: "EggPaint", 65536 colors.

@@ -4344,25 +4344,19 @@ static abool decode_dgu(
 
 static abool decode_falcon16(
 	const byte image[], int image_len,
-	int width_offset, int data_offset,
+	int width, int height, int data_offset,
 	FAIL_ImageInfo* image_info,
 	byte pixels[])
 {
-	int width = (image[width_offset] << 8) + image[width_offset + 1];
-	int height = (image[width_offset + 2] << 8) + image[width_offset + 3];
-	int pixels_count;
+	int pixels_count = width * height;
 	int i;
-	/* TODO: resolution limits unknown */
-	if (width > FAIL_WIDTH_MAX || height > FAIL_HEIGHT_MAX)
-		return FALSE;
-	pixels_count = width * height;
 	if (data_offset + pixels_count * 2 != image_len)
 		return FALSE;
 	image_info->original_width = image_info->width = width;
 	image_info->original_height = image_info->height = height;
 	for (i = 0; i < pixels_count; i++) {
 		int rg = image[data_offset + i * 2];
-		int gb = image[data_offset + i * 2];
+		int gb = image[data_offset + i * 2 + 1];
 		pixels[i * 3] = (rg & 0xf8) + (rg >> 5);
 		rg = ((rg & 7) << 3) + (gb >> 5);
 		pixels[i * 3 + 1] = (rg << 2) + (rg >> 4);
@@ -4370,6 +4364,20 @@ static abool decode_falcon16(
 		pixels[i * 3 + 2] = (gb << 3) + (gb >> 2);
 	}
 	return TRUE;
+}
+
+static abool decode_falcon16variable(
+	const byte image[], int image_len,
+	int width_offset, int data_offset,
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	int width = (image[width_offset] << 8) + image[width_offset + 1];
+	int height = (image[width_offset + 2] << 8) + image[width_offset + 3];
+	/* TODO: resolution limits unknown */
+	if (width > FAIL_WIDTH_MAX || height > FAIL_HEIGHT_MAX)
+		return FALSE;
+	return decode_falcon16(image, image_len, width, height, data_offset, image_info, pixels);
 }
 
 static abool decode_trp(
@@ -4380,7 +4388,7 @@ static abool decode_trp(
 {
 	return image_len > 9
 		&& image[0] == 'T' && image[1] == 'R' && image[2] == 'U' && image[3] == 'P'
-		&& decode_falcon16(image, image_len, 4, 8, image_info, pixels);
+		&& decode_falcon16variable(image, image_len, 4, 8, image_info, pixels);
 }
 
 static abool decode_tru(
@@ -4391,7 +4399,7 @@ static abool decode_tru(
 {
 	return image_len > 256
 		&& image[0] == 'I' && image[1] == 'n' && image[2] == 'd' && image[3] == 'y'
-		&& decode_falcon16(image, image_len, 4, 256, image_info, pixels);
+		&& decode_falcon16variable(image, image_len, 4, 256, image_info, pixels);
 }
 
 static abool decode_god(
@@ -4401,7 +4409,16 @@ static abool decode_god(
 	byte pixels[])
 {
 	return image_len > 6
-		&& decode_falcon16(image, image_len, 2, 6, image_info, pixels);
+		&& decode_falcon16variable(image, image_len, 2, 6, image_info, pixels);
+}
+
+static abool decode_ftc(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	return decode_falcon16(image, image_len, 384, 240, 0, image_info, pixels);
 }
 
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
@@ -4520,6 +4537,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('T', 'R', 'P'):
 	case FAIL_EXT('T', 'R', 'U'):
 	case FAIL_EXT('G', 'O', 'D'):
+	case FAIL_EXT('F', 'T', 'C'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -4640,7 +4658,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('D', 'G', 'U'), decode_dgu },
 		{ FAIL_EXT('T', 'R', 'P'), decode_trp },
 		{ FAIL_EXT('T', 'R', 'U'), decode_tru },
-		{ FAIL_EXT('G', 'O', 'D'), decode_god }
+		{ FAIL_EXT('G', 'O', 'D'), decode_god },
+		{ FAIL_EXT('F', 'T', 'C'), decode_ftc }
 	}, *ph;
 
 	if (atari_palette == NULL)

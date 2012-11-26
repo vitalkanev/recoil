@@ -135,6 +135,7 @@ static const struct Format {
 	{ "DRG", "Atari CAD; 320x160, mono" },
 	{ "ESC", "EscalPaint; 80x192, 256 colors, interlaced" },
 	{ "FNT", "Standard 8x8 font, mono" },
+	{ "FTC", "Falcon True Color; 384x240, 65536 colors" },
 	{ "FWA", "Fun with Art; 160x192, 128 colors" },
 	{ "G09", "160x192, 16-level grayscale" },
 	{ "G10", "Graphics 10; up to 80x240, 9 colors" },
