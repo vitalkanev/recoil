@@ -21,6 +21,7 @@
 	<type ext="chr" />
 	<type ext="cin" acronym="Champions' INterlace" />
 	<type ext="cpr" />
+	<type ext="dg1" acronym="DuneGraph" />
 	<type ext="dgp" acronym="DiGiPaint" />
 	<type ext="dgu" acronym="DuneGraph Uncompressed" />
 	<type ext="dlm" acronym="Dir Logo Maker" />

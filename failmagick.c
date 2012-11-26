@@ -128,6 +128,7 @@ static const struct Format {
 	{ "CHR", "Blazing Paddles font; mono" },
 	{ "CIN", "Champions' Interlace; 160x192 or 160x200" },
 	{ "CPR", "Trzmiel; 320x192, mono, compressed" },
+	{ "DG1", "DuneGraph; 320x200, 256 colors" },
 	{ "DGP", "DigiPaint; 80x192, 256 colors, interlaced" },
 	{ "DGU", "DuneGraph; 320x200, 256 colors" },
 	{ "DLM", "Dir Logo Maker; 88x128, mono" },

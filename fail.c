@@ -4534,6 +4534,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('P', 'I', '4'):
 	case FAIL_EXT('P', 'I', '9'):
 	case FAIL_EXT('D', 'G', 'U'):
+	case FAIL_EXT('D', 'G', '1'):
 	case FAIL_EXT('T', 'R', 'P'):
 	case FAIL_EXT('T', 'R', 'U'):
 	case FAIL_EXT('G', 'O', 'D'):
@@ -4656,6 +4657,7 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('P', 'I', '4'), decode_pi4 },
 		{ FAIL_EXT('P', 'I', '9'), decode_pi4 },
 		{ FAIL_EXT('D', 'G', 'U'), decode_dgu },
+		{ FAIL_EXT('D', 'G', '1'), decode_dgu },
 		{ FAIL_EXT('T', 'R', 'P'), decode_trp },
 		{ FAIL_EXT('T', 'R', 'U'), decode_tru },
 		{ FAIL_EXT('G', 'O', 'D'), decode_god },
