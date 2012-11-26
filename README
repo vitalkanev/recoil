@@ -144,8 +144,10 @@ TN3:: "Tiny Stuff", 640x400, mono, compressed.
 Atari Falcon
 ~~~~~~~~~~~~
 [horizontal]
+DEL:: "DelmPaint", 320x240, 256 colors, compressed.
 DGU, DG1:: "DuneGraph", 320x200, 256 colors.
-FTC:: Falcon True Color, 384x240, 65536 colors.
+DPH:: "DelmPaint", 640x480, 256 colors, compressed.
+FTC:: "Falcon True Color", 384x240, 65536 colors.
 GOD:: "GodPaint", 65536 colors.
 PI4, PI9:: "Fuckpaint", 320x240 or 320x200, 256 colors.
 TRP:: "EggPaint", 65536 colors.

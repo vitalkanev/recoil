@@ -4281,15 +4281,10 @@ static abool decode_gfb(
 
 static void decode_falcon8(
 	const byte image[],
-	int height, int data_offset, int palette_offset,
-	FAIL_ImageInfo* image_info,
+	int data_offset, int palette_offset, int pixels_count,
 	byte pixels[])
 {
-	int pixels_count;
 	int i;
-	image_info->original_width = image_info->width = 320;
-	image_info->original_height = image_info->height = height;
-	pixels_count = 320 * height;
 	for (i = 0; i < pixels_count; i++) {
 		int bitplane_byte = data_offset + (i & ~15) + (i >> 3 & 1);
 		int bitplane_bit = ~i & 7;
@@ -4306,6 +4301,17 @@ static void decode_falcon8(
 		pixels[i * 3 + 1] = image[c + 1];
 		pixels[i * 3 + 2] = image[c + 3];
 	}
+}
+
+static void decode_falcon8_320(
+	const byte image[],
+	int height, int data_offset, int palette_offset,
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	image_info->original_width = image_info->width = 320;
+	image_info->original_height = image_info->height = height;
+	decode_falcon8(image, data_offset, palette_offset, 320 * height, pixels);
 }
 
 static abool decode_pi4(
@@ -4325,7 +4331,7 @@ static abool decode_pi4(
 	default:
 		return FALSE;
 	}
-	decode_falcon8(image, height, 1024, 0, image_info, pixels);
+	decode_falcon8_320(image, height, 1024, 0, image_info, pixels);
 	return TRUE;
 }
 
@@ -4338,7 +4344,7 @@ static abool decode_dgu(
 	if (image_len != 65032 || image[0] != 'D' || image[1] != 'G' || image[2] != 'U' || image[3] != 1
 	 || image[4] != 1 || image[5] != 64 || image[6] != 0 || image[7] != 200)
 		return FALSE;
-	decode_falcon8(image, 200, 1032, 8, image_info, pixels);
+	decode_falcon8_320(image, 200, 1032, 8, image_info, pixels);
 	return TRUE;
 }
 
@@ -4419,6 +4425,66 @@ static abool decode_ftc(
 	byte pixels[])
 {
 	return decode_falcon16(image, image_len, 384, 240, 0, image_info, pixels);
+}
+
+static abool unpack_del(const byte image[], int image_len, int blocks, byte unpacked_data[])
+{
+	int packed_offset = 4 * blocks;
+	int block;
+	for (block = 0; block < blocks; block++) {
+		int packed_len = get_32be(image + 4 * block);
+		if (packed_offset >= image_len || !unpack_ca(image + packed_offset, packed_len, unpacked_data))
+			return FALSE;
+		packed_offset += packed_len;
+		unpacked_data += 32000;
+	}
+	if (blocks == 2) {
+		/* actually three blocks, but the length of the third block is implicit */
+		if (!unpack_ca(image + packed_offset, image_len - packed_offset, unpacked_data))
+			return FALSE;
+	}
+	return TRUE;
+}
+
+static abool decode_del(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte unpacked[96000];
+	if (!unpack_del(image, image_len, 2, unpacked))
+		return FALSE;
+	return decode_pi4(unpacked, 77824, atari_palette, image_info, pixels);
+}
+
+static abool decode_dph(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte *unpacked = (byte *) malloc(320000);
+	int y;
+	if (unpacked == NULL)
+		return FALSE;
+	if (!unpack_del(image, image_len, 10, unpacked)) {
+		free(unpacked);
+		return FALSE;
+	}
+	image_info->original_width = image_info->width = 640;
+	image_info->original_height = image_info->height = 480;
+	for (y = 0; y < 240; y++) {
+		/* Combine four 320x240 quarters:
+		   1 2
+		   3 4 */
+		decode_falcon8(unpacked, 1024 + 320 * y, 0, 320, pixels + 3 * 640 * y);
+		decode_falcon8(unpacked, 1024 + 76800 + 320 * y, 0, 320, pixels + 3 * 640 * y + 3 * 320);
+		decode_falcon8(unpacked, 1024 + 2 * 76800 + 320 * y, 0, 320, pixels + 3 * 640 * (240 + y));
+		decode_falcon8(unpacked, 1024 + 3 * 76800 + 320 * y, 0, 320, pixels + 3 * 640 * (240 + y) + 3 * 320);
+	}
+	free(unpacked);
+	return TRUE;
 }
 
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
@@ -4539,6 +4605,8 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('T', 'R', 'U'):
 	case FAIL_EXT('G', 'O', 'D'):
 	case FAIL_EXT('F', 'T', 'C'):
+	case FAIL_EXT('D', 'E', 'L'):
+	case FAIL_EXT('D', 'P', 'H'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -4661,7 +4729,9 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('T', 'R', 'P'), decode_trp },
 		{ FAIL_EXT('T', 'R', 'U'), decode_tru },
 		{ FAIL_EXT('G', 'O', 'D'), decode_god },
-		{ FAIL_EXT('F', 'T', 'C'), decode_ftc }
+		{ FAIL_EXT('F', 'T', 'C'), decode_ftc },
+		{ FAIL_EXT('D', 'E', 'L'), decode_del },
+		{ FAIL_EXT('D', 'P', 'H'), decode_dph }
 	}, *ph;
 
 	if (atari_palette == NULL)
