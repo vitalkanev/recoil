@@ -20,9 +20,9 @@ CANDLE = candle -ext WixUtilExtension -nologo -o $@
 LIGHT = light -ext WixUtilExtension -nologo -o $@
 IMAGEMAGICK_X64_INST_DIR = c:\Program Files\ImageMagick-6.6.9-Q16
 
-WIN32_BIN = fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr Xfail3.usr Xfail4.usr Xfail5.usr Xfail6.usr Xfail7.usr Xfail8.usr Xfail9.usr Xfail10.usr failwin.exe thumbfail.dll FAIL.plg
+WIN32_BIN = fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr Xfail3.usr Xfail4.usr Xfail5.usr Xfail6.usr Xfail7.usr Xfail8.usr Xfail9.usr Xfail10.usr failwin.exe FAIL.plg
 
-all: $(WIN32_BIN)
+all: $(WIN32_BIN) thumbfail.dll
 
 fail2png.exe: ../fail2png.c ../pngsave.c ../fail.c ../pngsave.h ../fail.h ../palette.h
 	$(FAIL_CC) ../fail2png.c ../pngsave.c ../fail.c -static -lpng -lz
@@ -74,7 +74,7 @@ README_WindowsSetup.html: ../README USAGE
 
 setup: ../../fail-$(VERSION)-win32.msi
 
-../../fail-$(VERSION)-win32.msi: setup/fail.wixobj faileye.ico setup/license.rtf setup/Website.url $(WIN32_BIN) README_WindowsSetup.html
+../../fail-$(VERSION)-win32.msi: setup/fail.wixobj faileye.ico setup/license.rtf setup/Website.url $(WIN32_BIN) thumbfail.dll README_WindowsSetup.html
 	$(LIGHT) -ext WixUIExtension -sice:ICE69 $<
 
 setup/fail.wixobj: setup/fail.wxs
@@ -103,10 +103,7 @@ dist: srcdist ../../fail-$(VERSION)-win32.zip setup x64-setup
 
 ../../fail-$(VERSION)-win32.zip: COPYING.txt README_Windows.html $(WIN32_BIN)
 	$(RM) ../../fail-$(VERSION)-win32.zip
-	$(SEVENZIP) -tzip ../../fail-$(VERSION)-win32.zip \
-		COPYING.txt README_Windows.html \
-		fail2png.exe Xfail1.usr Xfail2.usr Xfail3.usr Xfail4.usr Xfail5.usr Xfail6.usr Xfail7.usr Xfail8.usr Xfail9.usr Xfail10.usr failwin.exe \
-		IM_MOD_RL_fail_.dll
+	$(SEVENZIP) -tzip ../../fail-$(VERSION)-win32.zip COPYING.txt README_Windows.html $(WIN32_BIN)
 
 www: ../../www/index.html
 
@@ -114,7 +111,7 @@ www: ../../www/index.html
 	$(ASCIIDOC_START) -a failwww ../README $(ASCIIDOC_END)
 
 clean:
-	$(RM) $(WIN32_BIN) failwin/failwin-res.o ../palette.h COPYING.txt \
+	$(RM) $(WIN32_BIN) thumbfail.dll failwin/failwin-res.o ../palette.h COPYING.txt \
 		../README.html README_Windows.html README_WindowsSetup.html setup/fail.wixobj x64/fail.wixobj x64/IM_MOD_RL_fail_.dll x64/thumbfail.dll x64/FAIL.plg64
 
 .PHONY: all clean setup x64-setup ../MANIFEST srcdist dist www
