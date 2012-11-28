@@ -183,6 +183,19 @@ to submit bug reports, feature requests and small code patches.
 History
 -------
 
+FAIL 1.4.0 (2012-11-28)::
+
+Added Atari Falcon formats: Fuckpaint (PI4, PI9), DuneGraph (DGU, DG1),
+EggPaint (TRP), IndyPaint (TRU), GodPaint (GOD), Falcon True Color (FTC),
+DelmPaint (DEL, DPH).
+Added Atari ST formats: Spectrum 512 Smooshed (SPS), DeskPic (GFB),
+416x560 DEGAS (PI1).
+Created plugin for Imagine (might be interesting for Total Commander users,
+as Imagine includes a Total Commander plugin).
+Reduced CPU and memory usage in Windows thumbnail provider, ImageMagick
+and XnView.
+
+
 FAIL 1.3.0 (2012-07-23)::
 
 Added Atari ST formats: DEGAS (PI1, PI2, PI3), DEGAS Elite (PC1, PC2, PC3),

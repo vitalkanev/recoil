@@ -18,8 +18,9 @@ Extract `failwin.exe` to a directory of your choice.
 Usage instructions are needless, it's a typical Windows application.
 
 XnView plugin::
-Extract `Xfail1.usr`, `Xfail2.usr`, `Xfail3.usr`, `Xfail4.usr`, `Xfail5.usr`
-and `Xfail6.usr` to the `Plugins` directory of your XnView installation.
+Extract `Xfail*.usr` to the `Plugins` directory of your XnView installation.
+There are so many files because XnView supports only 11 filename extensions
+per plugin file.
 If XnView crashes when started, try removing the `Plugins` section
 from `%APPDATA%\XnView\xnview.ini`.
 
@@ -27,8 +28,12 @@ ImageMagick coder::
 Extract `IM_MOD_RL_fail_.dll` to the `modules\coders` directory of your
 ImageMagick installation.
 
-Note: ImageMagick coder is built for `Q16 dll` version of ImageMagick
+NOTE: ImageMagick coder is built for `Q16 dll` version of ImageMagick
 (the one that is recommended by its authors). If you have installed another
 version, you will need to download and install the right build of ImageMagick,
 or to build FAIL coder from source using configuration of your ImageMagick
 installation.
+
+Imagine plugin::
+Extract `FAIL.plg` to the `Plugin` directory of Imagine.
+This plugin is for 32-bit Imagine. For 64-bit, use the 64-bit FAIL installer.
