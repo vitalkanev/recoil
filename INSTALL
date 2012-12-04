@@ -54,10 +54,10 @@ Getting latest source code
 Alternatively you may get the latest version from the Git repository.
 To do this using a command-line Git client:
 --------------------------------------------------------------------------------
-git clone git://fail.git.sourceforge.net/gitroot/fail/fail
+git clone git://git.code.sf.net/p/fail/code fail-code
 --------------------------------------------------------------------------------
 
-This will fetch the latest code to a new directory called `fail`.
+This will fetch the latest code to a new directory called `fail-code`.
 
 
 Building fail2png, GNOME thumbnailer and ImageMagick coder on Unix-like systems
