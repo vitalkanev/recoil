@@ -578,8 +578,8 @@ static abool decode_hr(
 		frame1);
 
 	decode_video_memory(
-		image + 8192, gr8_color_regs,
-		0, 32, 0, 1, 0, 32, 239, 8,
+		image, gr8_color_regs,
+		8192, 32, 0, 1, 0, 32, 239, 8,
 		frame2);
 
 	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
@@ -758,8 +758,8 @@ static abool decode_inp(
 		frame1);
 
 	decode_video_memory(
-		image + 8000, image + 16000,
-		0, 40, 0, 1, 0, 40, image_info->height, 15,
+		image, image + 16000,
+		8000, 40, 0, 1, 0, 40, image_info->height, 15,
 		frame2);
 
 	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
@@ -789,13 +789,13 @@ static abool decode_int(
 	image_info->original_height = image[7];
 
 	decode_video_memory(
-		image + 18, image + 10,
-		0, image[6], 0, 1, 0, image[6], image_info->height, 15,
+		image, image + 10,
+		18, image[6], 0, 1, 0, image[6], image_info->height, 15,
 		frame1);
 
 	decode_video_memory(
-		image + 18 + image[6] * image_info->height, image + 14,
-		0, image[6], 0, 1, 0, image[6], image_info->height, 15,
+		image, image + 14,
+		18 + image[6] * image_info->height, image[6], 0, 1, 0, image[6], image_info->height, 15,
 		frame2);
 
 	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
