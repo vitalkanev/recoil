@@ -1,7 +1,7 @@
 /*
  * failmagick.c - FAIL coder for ImageMagick
  *
- * Copyright (C) 2009-2012  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2013  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -157,6 +157,7 @@ static const struct Format {
 	{ "ING", "ING 15; 160x200, 7 colors, interlaced" },
 	{ "INP", "160x200, 7 colors, interlaced" },
 	{ "INT", "INT95a; up to 160x239, 16 colors, interlaced" },
+	{ "IPC", "ICE PCIN; 160x192, 35 colors, interlaced" },
 	{ "IST", "Interlace Studio; 160x200, interlaced" },
 	{ "JGP", "Jet Graphics Planner; 8x16 tiles, 4 colors" },
 	{ "MAX", "XL-Paint MAX; 160x192, interlaced, compressed" },
@@ -172,7 +173,7 @@ static const struct Format {
 	{ "PC3", "DEGAS Elite; 640x400, mono, compressed" },
 	{ "PGC", "Atari Portfolio; 240x64, mono, compressed" },
 	{ "PGF", "Atari Portfolio; 240x64, mono" },
-	{ "PI1", "DEGAS; up to 320x280, 16 colors" },
+	{ "PI1", "DEGAS; up to 416x560, 16 colors" },
 	{ "PI2", "DEGAS; 640x200, 4 colors" },
 	{ "PI3", "DEGAS; 640x400, mono" },
 	{ "PI4", "Fuckpaint; 320x240 or 320x200, 256 colors" },

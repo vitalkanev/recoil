@@ -1,7 +1,7 @@
 /*
  * fail.h - FAIL library interface
  *
- * Copyright (C) 2009-2012  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2013  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -35,9 +35,9 @@ extern "C" {
 #define FAIL_VERSION         "1.4.0"
 
 /* Credits and copyright. */
-#define FAIL_YEARS           "2009-2012"
+#define FAIL_YEARS           "2009-2013"
 #define FAIL_CREDITS \
-	"First Atari Image Library (C) 2009-2012 Piotr Fusik and Adrian Matoga\n"
+	"First Atari Image Library (C) 2009-2013 Piotr Fusik and Adrian Matoga\n"
 #define FAIL_COPYRIGHT \
 	"This program is free software; you can redistribute it and/or modify\n" \
 	"it under the terms of the GNU General Public License as published\n" \

@@ -1,7 +1,7 @@
 /*
  * thumbfail.cpp - Windows thumbnail provider for FAIL
  *
- * Copyright (C) 2011-2012  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2011-2013  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -73,11 +73,12 @@ static const char extensions[][5] =
 	  ".cin", ".cpr", ".del", ".dg1", ".dgp", ".dgu", ".dlm", ".doo", ".dph", ".drg",
 	  ".esc", ".fnt", ".ftc", ".fwa", ".g09", ".g10", ".g11", ".gfb", ".ghg", ".god",
 	  ".gr7", ".gr8", ".gr9", ".hip", ".hr",  ".hr2", ".ige", ".ilc", ".ing", ".inp",
-	  ".int", ".ist", ".jgp", ".max", ".mbg", ".mch", ".mcp", ".mgp", ".mic", ".mis",
-	  ".neo", ".pac", ".pc1", ".pc2", ".pc3", ".pgc", ".pgf", ".pi1", ".pi2", ".pi3",
-	  ".pi4", ".pi9", ".pic", ".pla", ".plm", ".pzm", ".raw", ".rgb", ".rip", ".rm0",
-	  ".rm1", ".rm2", ".rm3", ".rm4", ".sge", ".shc", ".shp", ".spc", ".sps", ".spu",
-	  ".sxs", ".tip", ".tn1", ".tn2", ".tn3", ".tny", ".trp", ".tru", ".wnd", ".xlp" };
+	  ".int", ".ipc", ".ist", ".jgp", ".max", ".mbg", ".mch", ".mcp", ".mgp", ".mic",
+	  ".mis", ".neo", ".pac", ".pc1", ".pc2", ".pc3", ".pgc", ".pgf", ".pi1", ".pi2",
+	  ".pi3", ".pi4", ".pi9", ".pic", ".pla", ".plm", ".pzm", ".raw", ".rgb", ".rip",
+	  ".rm0", ".rm1", ".rm2", ".rm3", ".rm4", ".sge", ".shc", ".shp", ".spc", ".sps",
+	  ".spu", ".sxs", ".tip", ".tn1", ".tn2", ".tn3", ".tny", ".trp", ".tru", ".wnd",
+	  ".xlp" };
 #define N_EXTS (int) (sizeof(extensions) / sizeof(extensions[0]))
 
 static HINSTANCE g_hDll;

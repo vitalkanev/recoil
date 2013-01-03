@@ -1,7 +1,7 @@
 /*
  * fail.c - FAIL library functions
  *
- * Copyright (C) 2009-2012  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2013  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -81,6 +81,8 @@ static int BitStream_get_bits(BitStream *s, int bits)
 #define FAIL_MODE_CIN15 31
 #define FAIL_MODE_MULTIRIP 48
 
+static const byte gr10_to_reg[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8, 8, 4, 5, 6, 7 };
+
 static void decode_video_memory(
 	const byte image[], const byte color_regs[],
 	int src_start_offset, int src_stride,	/* in bytes */
@@ -88,7 +90,6 @@ static void decode_video_memory(
 	int dest_horz_offset, int bytes_per_line,	/* in pixels, in bytes */
 	int line_count, int dest_mode, byte frame[])
 {
-	static const byte gr10_to_reg[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8, 8, 4, 5, 6, 7 };
 	int pixels_per_line = bytes_per_line * 8;
 	int src_pos = src_start_offset;
 	int dest_pos = dest_vert_offset * pixels_per_line;
@@ -4487,6 +4488,41 @@ static abool decode_dph(
 	return TRUE;
 }
 
+static abool decode_ipc(
+	const byte image[], int image_len,
+	const byte atari_palette[],
+	FAIL_ImageInfo* image_info,
+	byte pixels[])
+{
+	byte frame1[320 * 192];
+	byte frame2[320 * 192];
+	int y;
+	if (image_len != 17354 || image[0] != 1)
+		return FALSE;
+	image_info->width = 320;
+	image_info->original_width = 160;
+	image_info->original_height = image_info->height = 192;
+	for (y = 0; y < 192; y++) {
+		int x;
+		frame2[320 * y] = frame1[320 * y + 319] = image[1] & 0xfe;
+		for (x = 0; x < 320; x++) {
+			int ch = image[16394 + (y >> 3) * 40 + (x >> 3)];
+			int gr12col = ch >= 0x80 ? 0x8651 : 0x7651;
+			int font_offset = 10 + (y / 24 << 11) + ((ch & 0x7f) << 3) + (y & 7);
+			int i;
+			if (x >= 1) {
+				i = image[font_offset] >> (~x & 6) & 3;
+				frame1[320 * y + x - 1] = image[gr12col >> (i << 2) & 0xf] & 0xfe;
+			}
+			if (x < 319) {
+				i = image[font_offset + 1024] >> (~x & 4) & 0xf;
+				frame2[320 * y + x + 1] = image[1 + gr10_to_reg[i]] & 0xfe;
+			}
+		}
+	}
+	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
+}
+
 #define FAIL_EXT(c1, c2, c3) (((c1) + ((c2) << 8) + ((c3) << 16)) | 0x202020)
 
 static int get_packed_ext(const char *filename)
@@ -4607,6 +4643,7 @@ static abool is_our_ext(int ext)
 	case FAIL_EXT('F', 'T', 'C'):
 	case FAIL_EXT('D', 'E', 'L'):
 	case FAIL_EXT('D', 'P', 'H'):
+	case FAIL_EXT('I', 'P', 'C'):
 		return TRUE;
 	default:
 		return FALSE;
@@ -4731,7 +4768,8 @@ abool FAIL_DecodeImage(const char *filename,
 		{ FAIL_EXT('G', 'O', 'D'), decode_god },
 		{ FAIL_EXT('F', 'T', 'C'), decode_ftc },
 		{ FAIL_EXT('D', 'E', 'L'), decode_del },
-		{ FAIL_EXT('D', 'P', 'H'), decode_dph }
+		{ FAIL_EXT('D', 'P', 'H'), decode_dph },
+		{ FAIL_EXT('I', 'P', 'C'), decode_ipc }
 	}, *ph;
 
 	if (atari_palette == NULL)
