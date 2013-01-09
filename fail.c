@@ -434,9 +434,9 @@ static abool unpack_rip(const byte data[], int data_len, byte unpacked_data[], i
 static abool parse_binary_header(const byte image[], int *len)
 {
 	if (image[0] == 0xFF && image[1] == 0xFF) {
-		int start_address = image[4] | (image[5] << 8);
-		int end_address = image[2] | (image[3] << 8);
-		*len = start_address - end_address + 1;
+		int start_address = image[2] | (image[3] << 8);
+		int end_address = image[4] | (image[5] << 8);
+		*len = end_address - start_address + 1;
 		return TRUE;
 	}
 	else
