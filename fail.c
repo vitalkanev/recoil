@@ -2717,13 +2717,13 @@ static abool decode_sge(
 			switch (ch & 0x60) {
 			case 0x00:
 			case 0x20:
-				if (ch == 0x1b)
-					ch = 0x80;
-				else
-					ch += 0x20;
+				ch += 0x20;
 				break;
 			case 0x40:
-				ch -= 0x40;
+				if (ch == 0x5b)
+					ch = 0x80;
+				else
+					ch -= 0x40;
 				break;
 			default:
 				if (ch == 0x7d)
