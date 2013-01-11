@@ -117,7 +117,7 @@ static void decode_video_memory(
 				frame[dest_pos + x] = (b >> (~i & 4) & 0x0F) | (color_regs[0] & 0xFE);
 				break;
 			case 10:
-				/* 16 regs, typically only colors 0-8 are used */
+				/* 9 regs */
 				frame[dest_pos + x] = color_regs[gr10_to_reg[b >> (~i & 4) & 0x0F]] & 0xFE;
 				break;
 			case FAIL_MODE_REAL11:
@@ -586,7 +586,7 @@ static abool decode_hr(
 	return frames_to_rgb(frame1, frame2, atari_palette, image_info, pixels);
 }
 
-static const byte hip_color_regs[] = { 0x00, 0x00, 0x02, 0x04, 0x06, 0x08, 0x0A, 0x0C, 0x0E };
+static const byte hip_color_regs[] = { 0x00, 0x00, 0x02, 0x04, 0x06, 0x08, 0x0A, 0x0C, 0x0E, 0x00 };
 
 static abool decode_hip(
 	const byte image[], int image_len,
@@ -938,7 +938,7 @@ static abool decode_tip(
 
 	/* odd frame, gr11 + gr10 */
 	decode_video_memory(
-		image, hip_color_regs,
+		image, hip_color_regs + 1,
 		9 + frame_len, line_len, 1, 2, +1, line_len, image[6], 10,
 		frame2);
 
