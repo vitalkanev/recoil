@@ -93,8 +93,6 @@ static void decode_video_memory(
 	int pixels_per_line = bytes_per_line * 8;
 	int src_pos = src_start_offset;
 	int dest_pos = dest_vert_offset * pixels_per_line;
-	int odd = dest_vert_offset & 1;
-	int pa = odd ? -pixels_per_line : pixels_per_line;
 	int y;
 	int xe = dest_horz_offset + bytes_per_line * 8;
 	int xb = (dest_horz_offset > 0 ? dest_horz_offset : 0);
@@ -127,17 +125,18 @@ static void decode_video_memory(
 				}
 				break;
 			case 11:
-				/* copy hue to the other line so lines 2k and 2k+1 have the same
-				   hue (emulating PAL color resolution reduction), and average intensity
-				   from both neighboring lines (to avoid distortion in tip/apac modes
-				   with non-integer zoom factors) */
 				{
 					int hu = b << (i & 4) & 0xF0;
+					/* Average intensity from neighboring lines. This doesn't happen on real hardware,
+					   but avoids ugly aliasing with non-integer zoom factors. */
 					int in =
-						((y == 0 && !odd ? 0 : frame[dest_pos - pixels_per_line + x] & 0x0F) +
-						(y == line_count - 1 && odd ? 0 : frame[dest_pos + pixels_per_line + x] & 0x0F)) / 2;
+						((y == 0 && dest_vert_offset == 0 ? 0 : frame[dest_pos - pixels_per_line + x] & 0x0F) +
+						(y == line_count - 1 && dest_vert_offset != 0 ? 0 : frame[dest_pos + pixels_per_line + x] & 0x0F)) >> 1;
 					frame[dest_pos + x] = hu | in;
-					frame[dest_pos + pa + x] = (frame[dest_pos + pa + x] & 0x0F) | hu;
+					/* Copy hue to the next line emulating PAL color resolution reduction.
+					   TODO: we should combine the two hues. */
+					if (y < line_count - 1 || dest_vert_offset == 0)
+						frame[dest_pos + pixels_per_line + x] = hu | (frame[dest_pos + pixels_per_line + x] & 0x0F);
 				}
 				break;
 			case 15: /* BAK, PF0, PF1, PF2 */
