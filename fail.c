@@ -110,7 +110,7 @@ static void decode_video_memory(
 			switch (dest_mode) {
 			case 8:
 				/* color_regs should be 2 bytes long */
-				frame[dest_pos + x] = color_regs[b >> (7 - i) & 1] & 0xFE;
+				frame[dest_pos + x] = (color_regs[0] & 0xF0) | (color_regs[b >> (7 - i) & 1] & 0x0E);
 				break;
 			case 9:
 				/* 1 reg, only hue is meaningful */
