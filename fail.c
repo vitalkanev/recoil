@@ -1082,6 +1082,8 @@ static abool decode_rip(
 		break;
 	case 1:
 		line_len = image[13];
+		if (image[7] < 0x10)
+			line_len >>= 1;
 		if (image[7] == 0x30)
 			line_len += 4; /* multi rip: 8 bytes of palette per two lines */
 		if (unpack_rip(image + hdr_len, data_len, unpacked_image, line_len * image[15]))
