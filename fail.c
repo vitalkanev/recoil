@@ -1141,8 +1141,19 @@ static abool decode_rip(
 			0, line_len, 0, 1, 0, line_len, image_info->height,
 			FAIL_MODE_REAL11, frame1);
 		return frame_to_rgb(frame1, atari_palette, image_info, pixels);
+	case 0x1e:
+		/* interlaced gr. 15 with one palette*/
+		decode_video_memory(
+			unpacked_image, image + 28 + txt_len,
+			0, line_len, 0, 1, 0, line_len, image_info->height,
+			FAIL_MODE_15WITHPF3, frame1);
+		decode_video_memory(
+			unpacked_image, image + 28 + txt_len,
+			frame_len, line_len, 0, 1, 0, line_len, image_info->height,
+			FAIL_MODE_15WITHPF3, frame2);
+		break;
 	case 0x10:
-		/* interlaced gr. 15 */
+		/* interlaced gr. 15 with different palettes */
 		decode_madteam_c64(unpacked_image, image + 28 + txt_len, image + 24 + txt_len, image_info, 15, frame1, frame2);
 		break;
 	case 0x20:
