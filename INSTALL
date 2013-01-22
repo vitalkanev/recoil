@@ -65,7 +65,7 @@ make
 
 To install fail2png under `PREFIX`, run:
 --------------------------------------------------------------------------------
-make install
+make install-fail2png
 --------------------------------------------------------------------------------
 
 To install GNOME thumbnailer and fail2png, run:
