@@ -85,7 +85,7 @@ install-thumbnailer: fail-mime.xml install-fail2png
 		gconftool-2 --config-source xml:readwrite:/etc/gconf/gconf.xml.defaults -s /desktop/gnome/thumbnailers/image@x-$$ext/enable -t boolean true; \
 	done
 
-uninstall-thumbnailer:
+uninstall-thumbnailer: uninstall-fail2png
 	rm -f $(PREFIX)/share/mime/packages/fail-mime.xml
 	update-mime-database $(PREFIX)/share/mime
 	for ext in $(FORMATS_LC); do \
