@@ -704,6 +704,11 @@ public class FAIL
 		"by the Free Software Foundation; either version 2 of the License,\n" +
 		"or (at your option) any later version.";
 
+	public FAIL()
+	{
+		SetAtari8Palette(null);
+	}
+
 	/// Maximum length of a supported input file.
 	/// You may assume that files longer than this are not supported by FAIL.
 	public const int MaxContentLength = 200000;
@@ -714,22 +719,6 @@ public class FAIL
 	public const int MaxHeight = 560;
 	/// Maximum number of pixels in a decoded image.
 	public const int MaxPixelsLength = 640 * 560;
-
-	int[256] Atari8Palette;
-
-	/// Sets Atari 8-bit palette from a 768-byte array (256 times RGB).
-	public void SetAtari8Palette(byte[] content)
-	{
-		if (content == null)
-			content = BinaryResource("jakub.act");
-		for (int i = 0; i < 256; i++)
-			Atari8Palette[i] = content[i * 3] << 16 | content[i * 3 + 1] << 8 | content[i * 3 + 2];
-	}
-
-	public FAIL()
-	{
-		SetAtari8Palette(null);
-	}
 
 	/// Decoded image width.
 	int Width;
@@ -759,7 +748,10 @@ public class FAIL
 		return Pixels;
 	}
 
-	/// Returns the computer family the decoded file format originates from.
+	/// Maximum length of a string returned by `GetPlatform()`.
+	public const int MaxPlatformLength = "Atari Portfolio".Length;
+
+	/// Returns the computer family of the decoded file format.
 	public string GetPlatform()
 	{
 		switch (Resolution) {
@@ -777,7 +769,7 @@ public class FAIL
 		case FAILResolution.Portfolio1x1:
 			return "Atari Portfolio";
 		default:
-			throw "Unknown platform";
+			throw "Unknown";
 		}
 	}
 
@@ -1448,6 +1440,17 @@ public class FAIL
 	}
 
 	// Atari 8-bit formats.
+
+	int[256] Atari8Palette;
+
+	/// Sets Atari 8-bit palette from a 768-byte array (256 times RGB).
+	public void SetAtari8Palette(byte[] content)
+	{
+		if (content == null)
+			content = BinaryResource("jakub.act");
+		for (int i = 0; i < 256; i++)
+			Atari8Palette[i] = content[i * 3] << 16 | content[i * 3 + 1] << 8 | content[i * 3 + 2];
+	}
 
 	static int ParseAtari8ExecutableHeader(byte[] content, int contentOffset)
 	{
@@ -2579,7 +2582,7 @@ public class FAIL
 		if (content[7] < 0x10)
 			contentStride >>= 1;
 		else if (content[7] == 0x30)
-			contentStride += 4; // multi-rip: 8 bytes of palette per two lines
+			contentStride += 4; // Multi RIP: 8 bytes of palette per two lines
 		int unpackedLength = contentStride * height;
 		byte[84 * 239] unpacked;
 		switch (content[9]) {

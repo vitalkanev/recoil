@@ -38,11 +38,12 @@ static LPIMAGINEBITMAP IMAGINEAPI loadFile(IMAGINEPLUGINFILEINFOTABLE *fileInfoT
 {
 	const IMAGINEPLUGININTERFACE *iface = fileInfoTable->iface;
 	char *filename;
-	FAIL_ImageInfo image_info;
-	byte *pixels;
+	FAIL *fail;
+	int width;
+	int height;
+	const int *pixels;
 	LPIMAGINEBITMAP bitmap;
 	IMAGINECALLBACKPARAM param;
-	int bpl;
 	int y;
 
 	if (iface == NULL)
@@ -63,54 +64,56 @@ static LPIMAGINEBITMAP IMAGINEAPI loadFile(IMAGINEPLUGINFILEINFOTABLE *fileInfoT
 	else
 		filename = (char *) loadParam->fileName;
 
-	pixels = malloc(FAIL_PIXELS_MAX);
-	if (pixels == NULL) {
+	fail = FAIL_New();
+	if (fail == NULL) {
 		loadParam->errorCode = IMAGINEERROR_OUTOFMEMORY;
 		return NULL;
 	}
 
-	if (!FAIL_DecodeImage(filename, loadParam->buffer, loadParam->length, NULL, &image_info, pixels)) {
-		free(pixels);
+	if (!FAIL_Decode(fail, filename, loadParam->buffer, loadParam->length)) {
+		FAIL_Delete(fail);
 		loadParam->errorCode = IMAGINEERROR_UNSUPPORTEDTYPE;
 		return NULL;
 	}
+	width = FAIL_GetWidth(fail);
+	height = FAIL_GetHeight(fail);
+	pixels = FAIL_GetPixels(fail);
 
-	bitmap = iface->lpVtbl->Create(image_info.width, image_info.height, 24, flags);
+	bitmap = iface->lpVtbl->Create(width, height, 24, flags);
 	if (bitmap == NULL) {
-		free(pixels);
+		FAIL_Delete(fail);
 		loadParam->errorCode = IMAGINEERROR_OUTOFMEMORY;
 		return NULL;
 	}
 	if ((flags & IMAGINELOADPARAM_GETINFO) != 0) {
-		free(pixels);
+		FAIL_Delete(fail);
 		return bitmap;
 	}
 
 	param.dib = bitmap;
 	param.param = loadParam->callback.param;
-	param.overall = image_info.height - 1;
+	param.overall = height - 1;
 	param.message = NULL;
-	bpl = image_info.width * 3;
-	for (y = 0; y < image_info.height; y++) {
-		LPBYTE src = pixels + y * bpl;
+	for (y = 0; y < height; y++) {
 		LPBYTE dest = iface->lpVtbl->GetLineBits(bitmap, y);
 		int x;
-		for (x = 0; x < bpl; x += 3) {
-			/* RGB -> BGR */
-			dest[x + 2] = src[x];
-			dest[x + 1] = src[x + 1];
-			dest[x] = src[x + 2];
+		for (x = 0; x < width; x++) {
+			int rgb = *pixels++;
+			/* 0xRRGGBB -> 0xBB 0xGG 0xRR */
+			*dest++ = (BYTE) rgb;
+			*dest++ = (BYTE) (rgb >> 8);
+			*dest++ = (BYTE) (rgb >> 16);
 		}
 		if ((flags & IMAGINELOADPARAM_CALLBACK) != 0) {
 			param.current = y;
 			if (!loadParam->callback.proc(&param)) {
-				free(pixels);
+				FAIL_Delete(fail);
 				loadParam->errorCode = IMAGINEERROR_ABORTED;
 				return bitmap;
 			}
 		}
 	}
-	free(pixels);
+	FAIL_Delete(fail);
 	return bitmap;
 }
 

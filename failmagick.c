@@ -49,15 +49,13 @@ static MagickBooleanType IsFAIL(const unsigned char *magick, const size_t length
 
 static Image *ReadFAILImage(const ImageInfo *image_info, ExceptionInfo *exception)
 {
-	byte fail_image[FAIL_IMAGE_MAX];
-	FAIL_ImageInfo fail_image_info;
-	byte fail_pixels[FAIL_PIXELS_MAX];
-	int fail_image_len;
+	unsigned char content[FAIL_MAX_CONTENT_LENGTH];
+	int content_len;
+	FAIL *fail;
 
 	Image *image;
 	MagickBooleanType status;
 	PixelPacket *q;
-	byte *p;
 
 	assert(image_info != (const ImageInfo*) NULL);
 	assert(image_info->signature == MagickSignature);
@@ -72,30 +70,37 @@ static Image *ReadFAILImage(const ImageInfo *image_info, ExceptionInfo *exceptio
 		return (Image*) NULL;
 	}
 
-	fail_image_len = ReadBlob(image, FAIL_IMAGE_MAX, fail_image);
-	if (!FAIL_DecodeImage(image_info->filename, fail_image, fail_image_len,
-		NULL, &fail_image_info, fail_pixels)) {
+	fail = FAIL_New();
+	if (fail == NULL) {
+		/* TODO? */
+		return (Image*) NULL;
+	}
+	content_len = ReadBlob(image, FAIL_MAX_CONTENT_LENGTH, content);
+	if (!FAIL_Decode(fail, image_info->filename, content, content_len)) {
+		FAIL_Delete(fail);
 		ThrowReaderException(CorruptImageError, "FileDecodingError");
 	}
 
 	image->depth = 8;
-
-	if (SetImageExtent(image, fail_image_info.width, fail_image_info.height) == MagickFalse) {
+	if (SetImageExtent(image, FAIL_GetWidth(fail), FAIL_GetHeight(fail)) == MagickFalse) {
+		FAIL_Delete(fail);
 		InheritException(exception, &image->exception);
 		return DestroyImageList(image);
 	}
 
 	q = QueueAuthenticPixels(image, 0, 0, image->columns, image->rows, NULL);
 	if (q != NULL) {
-		int x;
-		p = fail_pixels;
-		for (x = image->columns * image->rows; x > 0; x--) {
-			q->red = ScaleCharToQuantum(*p++);
-			q->green = ScaleCharToQuantum(*p++);
-			q->blue = ScaleCharToQuantum(*p++);
-			q++;
+		const int *pixels = FAIL_GetPixels(fail);
+		int n = image->columns * image->rows;
+		int i;
+		for (i = 0; i < n; i++) {
+			int rgb = pixels[i];
+			q[i].red = ScaleCharToQuantum((unsigned char) (rgb >> 16));
+			q[i].green = ScaleCharToQuantum((unsigned char) (rgb >> 8));
+			q[i].blue = ScaleCharToQuantum((unsigned char) rgb);
 		}
 	}
+	FAIL_Delete(fail);
 	SyncAuthenticPixels(image, exception);
 
 	CloseBlob(image);

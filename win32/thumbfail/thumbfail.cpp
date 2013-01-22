@@ -102,18 +102,23 @@ class CFAILThumbProvider : public IInitializeWithStream, public IThumbnailProvid
 {
 	LONG m_cRef;
 	IStream *m_pstream;
+	FAIL *m_pFail;
+	unsigned char m_content[FAIL_MAX_CONTENT_LENGTH];
 
 public:
 
 	CFAILThumbProvider() : m_cRef(1), m_pstream(NULL)
 	{
 		DllAddRef();
+		m_pFail = FAIL_New();
 	}
 
 	virtual ~CFAILThumbProvider()
 	{
 		if (m_pstream != NULL)
 			m_pstream->Release();
+		if (m_pFail != NULL)
+			FAIL_Delete(m_pFail);
 		DllRelease();
 	}
 
@@ -163,6 +168,8 @@ public:
 	{
 		if (m_pstream == NULL)
 			return E_UNEXPECTED;
+		if (m_pFail == NULL)
+			return E_OUTOFMEMORY;
 
 		// get filename
 		STATSTG statstg;
@@ -182,52 +189,33 @@ public:
 		CoTaskMemFree(statstg.pwcsName);
 
 		// get contents
-		byte *image = (byte *) malloc(FAIL_IMAGE_MAX);
-		if (image == NULL)
-			return E_OUTOFMEMORY;
-		int image_len;
-		hr = m_pstream->Read(image, FAIL_IMAGE_MAX, (ULONG *) &image_len);
-		if (FAILED(hr)) {
-			free(image);
+		int content_len;
+		hr = m_pstream->Read(m_content, sizeof(m_content), (ULONG *) &content_len);
+		if (FAILED(hr))
 			return hr;
-		}
 
 		// decode
-		byte *pixels = (byte *) malloc(FAIL_PIXELS_MAX);
-		if (pixels == NULL) {
-			free(image);
-			return E_OUTOFMEMORY;
-		}
-		FAIL_ImageInfo image_info;
-		if (!FAIL_DecodeImage(filename, image, image_len, NULL, &image_info, pixels)) {
-			free(pixels);
-			free(image);
+		if (!FAIL_Decode(m_pFail, filename, m_content, content_len))
 			return E_FAIL;
-		}
-		free(image);
+		int width = FAIL_GetWidth(m_pFail);
+		int height = FAIL_GetHeight(m_pFail);
+		const int *pixels = FAIL_GetPixels(m_pFail);
 
 		// convert to bitmap
 		BITMAPINFO bmi = {};
 		bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
-		bmi.bmiHeader.biWidth = image_info.width;
-		bmi.bmiHeader.biHeight = -image_info.height;
+		bmi.bmiHeader.biWidth = width;
+		bmi.bmiHeader.biHeight = -height;
 		bmi.bmiHeader.biPlanes = 1;
 		bmi.bmiHeader.biBitCount = 32;
 		bmi.bmiHeader.biCompression = BI_RGB;
 		BYTE *pBits;
 		HBITMAP hbmp = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, reinterpret_cast<void **>(&pBits), NULL, 0);
-		if (hbmp == NULL) {
-			free(pixels);
+		if (hbmp == NULL)
 			return E_OUTOFMEMORY;
-		}
-		int n = image_info.width * image_info.height;
-		for (int i = 0; i < n; i++) {
-			pBits[4 * i] = pixels[3 * i + 2];
-			pBits[4 * i + 1] = pixels[3 * i + 1];
-			pBits[4 * i + 2] = pixels[3 * i];
-			pBits[4 * i + 3] = 0xff;
-		}
-		free(pixels);
+		int pixels_count = width * height;
+		for (int i = 0; i < pixels_count; i++)
+			((int *) pBits)[i] = pixels[i] | 0xff000000;
 		*phbmp = hbmp;
 		*pdwAlpha = WTSAT_RGB;
 		return S_OK;

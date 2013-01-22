@@ -1,7 +1,7 @@
 /*
  * failwin.c - Windows API port of FAIL
  *
- * Copyright (C) 2009-2012  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2013  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -33,7 +33,7 @@
 
 #define ZOOM_STEP               10
 #define ZOOM_MIN                100
-#define WINDOW_WIDTH_MIN        160
+#define WINDOW_WIDTH_MIN        200
 #define WINDOW_HEIGHT_MIN       100
 #define APP_TITLE               "FAILWin"
 #define WND_CLASS_NAME          "FAILWin"
@@ -43,9 +43,11 @@ static HWND hWnd;
 static HMENU hMenu;
 static HWND hStatus;
 
-static byte atari_palette[FAIL_PALETTE_MAX + 1];
-static BOOL atari_palette_loaded = FALSE;
-static BOOL use_atari_palette = FALSE;
+static FAIL *fail;
+static char image_filename[MAX_PATH] = "";
+static BOOL image_loaded = FALSE;
+
+static BOOL skip_files = TRUE;
 static BOOL fullscreen = FALSE;
 static int zoom = 100;
 static int show_width;
@@ -55,20 +57,12 @@ static int window_height;
 static BOOL show_path = FALSE;
 static BOOL status_bar = TRUE;
 
-static char image_filename[MAX_PATH] = "";
-static BOOL image_loaded = FALSE;
-static BOOL skip_files = TRUE;
-static FAIL_ImageInfo image_info;
-static int colors;
-static byte pixels[FAIL_PIXELS_MAX];
-static byte palette[FAIL_PALETTE_MAX];
-
 static struct {
 	BITMAPINFOHEADER bmiHeader;
 	RGBQUAD bmiColors[256];
-	byte pixels[FAIL_PIXELS_MAX];
+	BYTE pixels[FAIL_MAX_PIXELS_LENGTH * 3];
 } bitmap;
-static byte *bitmap_pixels;
+static BYTE *bitmap_pixels;
 
 static void ShowError(const char *message)
 {
@@ -125,22 +119,24 @@ static void UpdateText(void)
 	sprintf(buf, "%s - " APP_TITLE, filename);
 	SetWindowText(hWnd, buf);
 	if (image_loaded) {
-		sprintf(buf, "%dx%d, %d colors, %d%%", image_info.original_width, image_info.original_height, colors, zoom);
+		sprintf(buf, "%s, %dx%d, %d colors, %d%%", FAIL_GetPlatform(fail), FAIL_GetOriginalWidth(fail), FAIL_GetOriginalHeight(fail), FAIL_GetColors(fail), zoom);
 		SetWindowText(hStatus, buf);
 	}
 }
 
 static int Fit(int dest_width, int dest_height)
 {
-	if (image_info.width * dest_height < image_info.height * dest_width) {
-		show_width = MulDiv(image_info.width, dest_height, image_info.height);
+	int width = FAIL_GetWidth(fail);
+	int height = FAIL_GetHeight(fail);
+	if (width * dest_height < height * dest_width) {
+		show_width = MulDiv(width, dest_height, height);
 		show_height = dest_height;
-		return MulDiv(100, dest_height, image_info.height);
+		return MulDiv(100, dest_height, height);
 	}
 	else {
 		show_width = dest_width;
-		show_height = MulDiv(image_info.height, dest_width, image_info.width);
-		return MulDiv(100, dest_width, image_info.width);
+		show_height = MulDiv(height, dest_width, width);
+		return MulDiv(100, dest_width, width);
 	}
 }
 
@@ -191,8 +187,8 @@ static BOOL Repaint(BOOL fit_to_desktop)
 			int desktop_width = GetSystemMetrics(SM_CXFULLSCREEN);
 			int desktop_height = GetSystemMetrics(SM_CYFULLSCREEN);
 			RECT rect;
-			show_width = MulDiv(image_info.width, zoom, 100);
-			show_height = MulDiv(image_info.height, zoom, 100);
+			show_width = MulDiv(FAIL_GetWidth(fail), zoom, 100);
+			show_height = MulDiv(FAIL_GetHeight(fail), zoom, 100);
 			CalculateWindowSize();
 			if (window_width > desktop_width || window_height > desktop_height) {
 				if (!fit_to_desktop)
@@ -256,7 +252,7 @@ static void ZoomOut(void)
 	} while (!Repaint(FALSE));
 }
 
-static BOOL LoadFile(const char *filename, byte *buffer, int *len)
+static BOOL LoadFile(const char *filename, BYTE *buffer, int *len)
 {
 	HANDLE fh;
 	BOOL ok;
@@ -269,34 +265,27 @@ static BOOL LoadFile(const char *filename, byte *buffer, int *len)
 	return ok;
 }
 
-static void CopyPaletteToBitmap(void)
-{
-	int i;
-	for (i = 0; i < colors; i++) {
-		bitmap.bmiColors[i].rgbRed = palette[3 * i];
-		bitmap.bmiColors[i].rgbGreen = palette[3 * i + 1];
-		bitmap.bmiColors[i].rgbBlue = palette[3 * i + 2];
-	}
-}
-
 static BOOL OpenImage(BOOL show_error)
 {
-	byte image[FAIL_IMAGE_MAX];
-	int image_len = sizeof(image);
+	BYTE content[FAIL_MAX_CONTENT_LENGTH];
+	int content_len = sizeof(content);
+	int width;
+	int height;
+	const int *palette;
+	int colors;
 
 	SetMenuEnabled(IDM_PREVFILE, TRUE);
 	SetMenuEnabled(IDM_NEXTFILE, TRUE);
 	SetMenuEnabled(IDM_FIRSTFILE, TRUE);
 	SetMenuEnabled(IDM_LASTFILE, TRUE);
 
-	if (!LoadFile(image_filename, image, &image_len)) {
+	if (!LoadFile(image_filename, content, &content_len)) {
 		if (show_error)
 			ShowError("Cannot open file");
 		return FALSE;
 	}
 
-	image_loaded = FAIL_DecodeImage(image_filename, image, image_len,
-		use_atari_palette ? atari_palette : NULL, &image_info, pixels);
+	image_loaded = FAIL_Decode(fail, image_filename, content, content_len);
 	SetMenuEnabled(IDM_SAVEAS, image_loaded);
 	SetMenuEnabled(IDM_COPY, image_loaded);
 	SetMenuEnabled(IDM_FULLSCREEN, image_loaded);
@@ -312,44 +301,45 @@ static BOOL OpenImage(BOOL show_error)
 		}
 		return FALSE;
 	}
-	colors = FAIL_ToPalette(pixels, image_info.width * image_info.height, palette);
+	width = FAIL_GetWidth(fail);
+	height = FAIL_GetHeight(fail);
+	palette = FAIL_ToPalette(fail, bitmap.pixels + FAIL_MAX_PIXELS_LENGTH); /* an area we won't need later */
+	colors = FAIL_GetColors(fail);
 	SetMenuEnabled(IDM_INVERT, colors == 2);
 
 	bitmap.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bitmap.bmiHeader.biWidth = image_info.width;
-	bitmap.bmiHeader.biHeight = image_info.height;
+	bitmap.bmiHeader.biWidth = width;
+	bitmap.bmiHeader.biHeight = height;
 	bitmap.bmiHeader.biPlanes = 1;
-	bitmap.bmiHeader.biBitCount = colors <= 256 ? 8 : 24;
+	bitmap.bmiHeader.biBitCount = palette != NULL ? 8 : 24;
 	bitmap.bmiHeader.biCompression = BI_RGB;
 	bitmap.bmiHeader.biXPelsPerMeter = 1000;
 	bitmap.bmiHeader.biYPelsPerMeter = 1000;
-	if (colors <= 256) {
+	if (palette != NULL) {
 		int y;
-		bitmap.bmiHeader.biSizeImage =
-			sizeof(BITMAPINFOHEADER) + colors * sizeof(RGBQUAD) + image_info.width * image_info.height;
+		bitmap.bmiHeader.biSizeImage = sizeof(BITMAPINFOHEADER) + colors * sizeof(RGBQUAD) + width * height;
 		bitmap.bmiHeader.biClrUsed = colors;
 		bitmap.bmiHeader.biClrImportant = colors;
-		CopyPaletteToBitmap();
+		memcpy(bitmap.bmiColors, palette, colors * 4);
 		bitmap_pixels = (byte *) (bitmap.bmiColors + colors);
-		for (y = 0; y < image_info.height; y++)
-			memcpy(bitmap_pixels + (image_info.height - 1 - y) * image_info.width,
-				pixels + y * image_info.width, image_info.width);
+		for (y = 0; y < height; y++)
+			memcpy(bitmap_pixels + (height - 1 - y) * width, bitmap.pixels + FAIL_MAX_PIXELS_LENGTH + y * width, width);
 	}
 	else {
+		const int *pixels = FAIL_GetPixels(fail);
 		int y;
-		bitmap.bmiHeader.biSizeImage =
-			sizeof(BITMAPINFOHEADER) + image_info.width * image_info.height * 3;
+		bitmap.bmiHeader.biSizeImage = sizeof(BITMAPINFOHEADER) + width * height * 3;
 		bitmap.bmiHeader.biClrUsed = 0;
 		bitmap.bmiHeader.biClrImportant = 0;
-		bitmap_pixels = (byte *) bitmap.bmiColors;
-		for (y = 0; y < image_info.height; y++) {
-			const byte *p = pixels + y * image_info.width * 3;
-			byte *q = bitmap_pixels + (image_info.height - 1 - y) * image_info.width * 3;
-			int i;
-			for (i = 0; i < image_info.width * 3; i += 3) {
-				q[i] = p[i + 2];
-				q[i + 1] = p[i + 1];
-				q[i + 2] = p[i];
+		bitmap_pixels = (BYTE *) bitmap.bmiColors;
+		for (y = 0; y < height; y++) {
+			BYTE *dest = bitmap_pixels + (height - 1 - y) * width * 3;
+			int x;
+			for (x = 0; x < width; x++) {
+				int rgb = *pixels++;
+				*dest++ = (BYTE) rgb;
+				*dest++ = (BYTE) (rgb >> 8);
+				*dest++ = (BYTE) (rgb >> 16);
 			}
 		}
 	}
@@ -415,7 +405,7 @@ static BOOL GetSiblingFile(char *filename, int dir)
 		return FALSE;
 	do {
 		if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0
-		 && wfd.nFileSizeHigh == 0 && wfd.nFileSizeLow <= FAIL_IMAGE_MAX
+		 && wfd.nFileSizeHigh == 0 && wfd.nFileSizeLow <= FAIL_MAX_CONTENT_LENGTH
 		 && FAIL_IsOurFile(wfd.cFileName)
 		 && ((dir & 1) == 0 || _stricmp(wfd.cFileName, filename + path_len) * dir > 0)
 		 && (best[0] == '\0' || (_stricmp(wfd.cFileName, best) ^ dir) < 0))
@@ -480,7 +470,7 @@ static void SelectAndSaveImage(void)
 	if (fullscreen)
 		ShowCursor(TRUE);
 	if (GetSaveFileName(&ofn)) {
-		if (!PNG_Save(png_filename, image_info.width, image_info.height, colors, pixels, palette))
+		if (!FAIL_SavePng(fail, png_filename))
 			ShowError("Error writing file");
 	}
 	if (fullscreen)
@@ -489,21 +479,23 @@ static void SelectAndSaveImage(void)
 
 static BOOL OpenPalette(const char *filename)
 {
-	int atari_palette_len = sizeof(atari_palette);
-	if (!LoadFile(filename, atari_palette, &atari_palette_len)) {
+	BYTE atari8_palette[768 + 1];
+	int atari8_palette_len = sizeof(atari8_palette);
+	if (!LoadFile(filename, atari8_palette, &atari8_palette_len)) {
 		ShowError("Cannot open file");
 		return FALSE;
 	}
-	if (atari_palette_len != FAIL_PALETTE_MAX) {
+	if (atari8_palette_len != 768) {
 		ShowError("Invalid file length - must be 768 bytes");
 		return FALSE;
 	}
+	FAIL_SetAtari8Palette(fail, atari8_palette);
 	return TRUE;
 }
 
 static void UseExternalPalette(BOOL act)
 {
-	use_atari_palette = act;
+	SetMenuEnabled(IDM_USEPALETTE, act);
 	SetMenuCheck(IDM_USEPALETTE, act);
 	if (image_loaded)
 		OpenImage(TRUE);
@@ -539,11 +531,8 @@ static void SelectAndOpenPalette(void)
 	ofn.hwndOwner = hWnd;
 	if (fullscreen)
 		ShowCursor(TRUE);
-	if (GetOpenFileName(&ofn)) {
-		atari_palette_loaded = OpenPalette(act_filename);
-		SetMenuEnabled(IDM_USEPALETTE, atari_palette_loaded);
-		UseExternalPalette(atari_palette_loaded);
-	}
+	if (GetOpenFileName(&ofn) && OpenPalette(act_filename))
+		UseExternalPalette(TRUE);
 	if (fullscreen)
 		ShowCursor(FALSE);
 }
@@ -564,7 +553,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 				rect.bottom -= GetStatusBarHeight();
 				x = rect.right > show_width ? (rect.right - show_width) >> 1 : 0;
 				y = rect.bottom > show_height ? (rect.bottom - show_height) >> 1 : 0;
-				StretchDIBits(hdc, x, y, show_width, show_height, 0, 0, image_info.width, image_info.height,
+				StretchDIBits(hdc, x, y, show_width, show_height, 0, 0, FAIL_GetWidth(fail), FAIL_GetHeight(fail),
 					bitmap_pixels, (CONST BITMAPINFO *) &bitmap, DIB_RGB_COLORS, SRCCOPY);
 			}
 			EndPaint(hWnd, &ps);
@@ -613,7 +602,8 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			SelectAndOpenPalette();
 			break;
 		case IDM_USEPALETTE:
-			UseExternalPalette(!use_atari_palette);
+			FAIL_SetAtari8Palette(fail, NULL);
+			UseExternalPalette(FALSE);
 			break;
 		case IDM_EXIT:
 			PostQuitMessage(0);
@@ -639,14 +629,10 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			ZoomOut();
 			break;
 		case IDM_INVERT:
-			if (colors == 2) {
-				int i;
-				for (i = 0; i < 3; i++) {
-					byte t = palette[i];
-					palette[i] = palette[3 + i];
-					palette[3 + i] = t;
-				}
-				CopyPaletteToBitmap();
+			{
+				RGBQUAD c0 = bitmap.bmiColors[0];
+				bitmap.bmiColors[0] = bitmap.bmiColors[1];
+				bitmap.bmiColors[1] = c0;
 				Repaint(TRUE);
 			}
 			break;
@@ -732,6 +718,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 		return 0;
 	}
+
+	fail = FAIL_New();
+	if (fail == NULL)
+		return 1;
 
 	hInst = hInstance;
 	InitCommonControlsEx(&iccx);

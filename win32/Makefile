@@ -1,5 +1,6 @@
-VERSION = 1.4.0
+VERSION = 2.0.0
 
+CITO = cito
 FAIL_CC = mingw32-gcc -s -O2 -Wall -o $@ -I..
 FAIL_CC_DLL = $(FAIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
 FAIL_GPP = mingw32-g++ -static -s -O2 -Wall -o $@ -I..
@@ -8,7 +9,6 @@ X64_FAIL_CC = x86_64-w64-mingw32-gcc -s -O2 -Wall -o $@ -I..
 X64_FAIL_CC_DLL = $(X64_FAIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
 X64_FAIL_GPP = x86_64-w64-mingw32-g++ -static -s -O2 -Wall -o $@ -I..
 X64_WINDRES = x86_64-w64-mingw32-windres -o $@
-PERL = perl
 RM = rm -f
 UNIX2DOS = unix2dos
 ASCIIDOC_START = asciidoc -o -
@@ -24,41 +24,42 @@ WIN32_BIN = fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr Xfail3.usr Xf
 
 all: $(WIN32_BIN) thumbfail.dll
 
-fail2png.exe: ../fail2png.c ../pngsave.c ../fail.c ../pngsave.h ../fail.h ../palette.h
+fail2png.exe: ../fail2png.c ../pngsave.c ../pngsave.h ../fail.c ../fail.h
 	$(FAIL_CC) ../fail2png.c ../pngsave.c ../fail.c -static -lpng -lz
 
-IM_MOD_RL_fail_.dll: ../fail.c ../fail.h ../palette.h ../failmagick.c
-	$(FAIL_CC_DLL) ../fail.c ../failmagick.c -lCORE_RL_magick_
+IM_MOD_RL_fail_.dll: ../failmagick.c ../fail.c ../fail.h
+	$(FAIL_CC_DLL) ../failmagick.c ../fail.c -lCORE_RL_magick_
  
-x64/IM_MOD_RL_fail_.dll: ../fail.c ../fail.h ../palette.h ../failmagick.c
+x64/IM_MOD_RL_fail_.dll: ../failmagick.c ../fail.c ../fail.h
 	test -d x64 || mkdir x64
-	$(X64_FAIL_CC_DLL) ../fail.c ../failmagick.c -I"$(IMAGEMAGICK_X64_INST_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_X64_INST_DIR)"
+	$(X64_FAIL_CC_DLL) ../failmagick.c ../fail.c -I"$(IMAGEMAGICK_X64_INST_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_X64_INST_DIR)"
 
-Xfail1.usr Xfail2.usr Xfail3.usr Xfail4.usr Xfail5.usr Xfail6.usr Xfail7.usr Xfail8.usr Xfail9.usr Xfail10.usr: xnview/Xfail.c ../fail.c ../fail.h ../palette.h
+Xfail1.usr Xfail2.usr Xfail3.usr Xfail4.usr Xfail5.usr Xfail6.usr Xfail7.usr Xfail8.usr Xfail9.usr Xfail10.usr: xnview/Xfail.c ../fail.c ../fail.h
 	$(FAIL_CC_DLL) "-DXNVIEW_FAIL_EXT=\"$(word $(@:Xfail%.usr=%),rip;gr8;mic;hip;tip;int;inp;apc;ap3;hr;hr2 pic;cpr;cin;cci;fnt;sxs;gr9;plm;ilc;mcp;ghg mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb mgp;wnd;chr;shp;mbg;fwa;rm0;rm1;rm2;rm3;rm4 xlp;max;shc;all;app;sge;dlm;bkg;g09;bg9;apv spc;apl;gr7;g10;g11;art;drg;agp;pla;mis;4pl 4mi;4pm;pgf;pgc;pi1;pi2;pi3;pc1;pc2;pc3;neo doo;spu;tny;tn1;tn2;tn3;ca1;ca2;ca3;ing;pac sps;gfb;pi4;pi9;dgu;dg1;trp;tru;god;ftc;del dph;ipc)\"" \
-		../fail.c xnview/Xfail.c
-	
-failwin.exe: failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c failwin/failwin.h ../pngsave.h ../fail.h ../palette.h
+		xnview/Xfail.c ../fail.c
+
+failwin.exe: failwin/failwin.c failwin/failwin.h failwin/failwin-res.o ../pngsave.c ../pngsave.h ../fail.c ../fail.h
 	$(FAIL_CC) -Wl,-subsystem,windows failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng -lz
 
 failwin/failwin-res.o: failwin/failwin.rc failwin/failwin.h faileye.ico ../fail.h
 	$(WINDRES) -I .. failwin/failwin.rc
 
-thumbfail.dll: thumbfail/thumbfail.cpp ../fail.c ../fail.h ../palette.h
+thumbfail.dll: thumbfail/thumbfail.cpp ../fail.c ../fail.h
 	$(FAIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbfail/thumbfail.cpp ../fail.c -lgdi32 -lole32 -luuid
 
-x64/thumbfail.dll: thumbfail/thumbfail.cpp ../fail.c ../fail.h ../palette.h
+x64/thumbfail.dll: thumbfail/thumbfail.cpp ../fail.c ../fail.h
 	test -d x64 || mkdir x64
 	$(X64_FAIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbfail/thumbfail.cpp ../fail.c -lgdi32 -lole32 -luuid
 
-FAIL.plg: imagine/failimagine.c ../fail.c ../fail.h ../palette.h
+FAIL.plg: imagine/failimagine.c ../fail.c ../fail.h
 	$(FAIL_CC_DLL) imagine/failimagine.c ../fail.c
 
-x64/FAIL.plg64: imagine/failimagine.c ../fail.c ../fail.h ../palette.h
+x64/FAIL.plg64: imagine/failimagine.c ../fail.c ../fail.h
+	test -d x64 || mkdir x64
 	$(X64_FAIL_CC_DLL) imagine/failimagine.c ../fail.c
 
-../palette.h: ../raw2c.pl ../jakub.act
-	$(PERL) ../raw2c.pl ../jakub.act >$@
+../fail.h: ../fail.ci ../atari8.fnt ../jakub.act
+	$(CITO) -o ../fail.c -I .. $<
 
 COPYING.txt: ../COPYING
 	$(UNIX2DOS) <$< >$@
@@ -92,7 +93,7 @@ x64/fail.wixobj: setup/fail.wxs
 ../MANIFEST:
 	test -e ../.git && ( \
 		($(GIT) ls-tree -r --name-only --full-tree master | grep -vF .gitignore \
-			&& echo MANIFEST && echo README.html) | sort >$@; \
+			&& echo MANIFEST && echo README.html && echo fail.c && echo fail.h) | sort >$@; \
 	)
 
 srcdist: ../MANIFEST ../README.html
@@ -111,7 +112,7 @@ www: ../../www/index.html
 	$(ASCIIDOC_START) -a failwww ../README $(ASCIIDOC_END)
 
 clean:
-	$(RM) $(WIN32_BIN) thumbfail.dll failwin/failwin-res.o ../palette.h COPYING.txt \
+	$(RM) $(WIN32_BIN) thumbfail.dll failwin/failwin-res.o COPYING.txt \
 		../README.html README_Windows.html README_WindowsSetup.html setup/fail.wixobj x64/fail.wixobj x64/IM_MOD_RL_fail_.dll x64/thumbfail.dll x64/FAIL.plg64
 
 .PHONY: all clean setup x64-setup ../MANIFEST srcdist dist www

@@ -1,4 +1,4 @@
-// This file is in AsciiDoc format. It is converted to README.html.
+﻿// This file is in AsciiDoc format. It is converted to README.html.
 
 Compilation instructions
 ------------------------
@@ -7,18 +7,11 @@ Compilation instructions
 Required tools
 ~~~~~~~~~~~~~~
 
-For all builds you will need:
-
-C compiler and Make utility::
-On Windows download http://www.mingw.org/[MinGW]
-and install binutils, core compiler, w32api and MinGW Make.
-
-Perl::
-On Windows install either http://www.activestate.com/activeperl[ActivePerl],
-http://strawberryperl.com/[Strawberry Perl] or
-http://cygwin.com/[Cygwin]'s Perl.
-
-Make sure these tools are on your `PATH`.
+FAIL is written in the Ć programming language.
+Official releases include translation of FAIL to C,
+so you only need a C compiler and Make utility.
+For other cases (Git or JavaScript)
+you'll need http://cito.sourceforge.net[cito].
 
 
 Required libraries
@@ -63,7 +56,7 @@ This will fetch the latest code to a new directory called `fail-code`.
 Building fail2png, GNOME thumbnailer and ImageMagick coder on Unix-like systems
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-From your shell prompt navigate to the directory which contains `fail.c`.
+From your shell prompt navigate to the directory which contains `fail.ci`.
 
 Review the contents of `Makefile` and run:
 --------------------------------------------------------------------------------
@@ -80,7 +73,8 @@ To install GNOME thumbnailer and fail2png, run:
 make install-thumbnailer
 --------------------------------------------------------------------------------
 
-After you restart your system, Nautilus windows should display thumbnails of Atari images.
+After you restart your system, Nautilus windows should display thumbnails
+of Atari images.
 
 Installation of the ImageMagick coder requires that you have complete source
 distribution of ImageMagick. Current version of the ImageMagick coder has been
@@ -114,7 +108,21 @@ constructed from the input filename with the extension changed to `png`.
 Building fail2png, XnView plugin, ImageMagick coder, Imagine plugin and FAILWin on Windows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Download http://www.mingw.org/[MinGW] and install binutils, core compiler,
+w32api and MinGW Make.
+
 From the command prompt navigate to the `win32` directory and run:
 --------------------------------------------------------------------------------
 mingw32-make
+--------------------------------------------------------------------------------
+
+
+Building HTML 5 based viewer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Make sure http://cito.sourceforge.net[cito] is on your PATH.
+
+From the command prompt navigate to the `html5` directory and run:
+--------------------------------------------------------------------------------
+make
 --------------------------------------------------------------------------------

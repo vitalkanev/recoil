@@ -1,7 +1,7 @@
 /*
  * pngsave.c - save PNG file
  *
- * Copyright (C) 2009-2011  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2013  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -26,86 +26,85 @@
 
 #include "pngsave.h"
 
-abool PNG_Save(const char *filename,
-               int width, int height, int colors,
-               const byte pixels[], const byte palette[])
+static void FAIL_Rgb2Png(png_colorp dest, const int *src, int length)
 {
-	FILE *fp;
+	int i;
+	for (i = 0; i < length; i++) {
+		int rgb = src[i];
+		dest[i].red = (png_byte) (rgb >> 16);
+		dest[i].green = (png_byte) (rgb >> 8);
+		dest[i].blue = (png_byte) rgb;
+	}
+}
+
+cibool FAIL_SavePng(FAIL *self, const char *filename)
+{
+	FILE *fp = fopen(filename, "wb");
 	png_structp png_ptr;
 	png_infop info_ptr;
-	png_byte bit_depth;
-	png_bytep *row_pointers;
-	int i, bpp = palette != NULL && colors <= 256 ? 1 : 3;
+	int width;
+	int height;
+	unsigned char indexes[FAIL_MAX_PIXELS_LENGTH];
+	const int *palette;
+	png_bytep row_pointers[FAIL_MAX_HEIGHT];
+	int y;
 
-	row_pointers = (png_bytep*)malloc(height * sizeof(png_bytep));
-	if (row_pointers == NULL)
-		return FALSE;
-
-	fp = fopen(filename, "wb");
 	if (fp == NULL)
 		return FALSE;
-
 	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-
 	if (png_ptr == NULL) {
 		fclose(fp);
 		return FALSE;
 	}
-
 	info_ptr = png_create_info_struct(png_ptr);
 	if (info_ptr == NULL) {
 		fclose(fp);
 		png_destroy_write_struct(&png_ptr, NULL);
 		return FALSE;
 	}
-
 	/* Set error handling. */
 	if (setjmp(png_jmpbuf(png_ptr))) {
 		/* If we get here, we had a problem writing the file */
 		fclose(fp);
-		free(row_pointers);
 		png_destroy_write_struct(&png_ptr, &info_ptr);
 		return FALSE;
 	}
-
 	png_init_io(png_ptr, fp);
 
-	bit_depth = 8;
-	if (palette != NULL) {
-		if (colors <= 2)
-			bit_depth = 1;
-		else if (colors <= 4)
-			bit_depth = 2;
-		else if (colors <= 16)
-			bit_depth = 4;
+	width = FAIL_GetWidth(self);
+	height = FAIL_GetHeight(self);
+	palette = FAIL_ToPalette(self, indexes);
+	if (palette == NULL) {
+		png_color png_pixels[FAIL_MAX_PIXELS_LENGTH];
+		FAIL_Rgb2Png(png_pixels, FAIL_GetPixels(self), width * height);
+		png_set_IHDR(png_ptr, info_ptr, width, height, 8, PNG_COLOR_TYPE_RGB,
+			PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+		png_write_info(png_ptr, info_ptr);
+
+		for (y = 0; y < height; y++)
+			row_pointers[y] = (png_bytep) (png_pixels + y * width);
 	}
+	else {
+		int colors = FAIL_GetColors(self);
+		int bit_depth = colors <= 2 ? 1
+			: colors <= 4 ? 2
+			: colors <= 16 ? 4
+			: 8;
+		png_color png_palette[256];
+		FAIL_Rgb2Png(png_palette, palette, colors);
+		png_set_IHDR(png_ptr, info_ptr, width, height, bit_depth, PNG_COLOR_TYPE_PALETTE,
+			PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+		png_set_PLTE(png_ptr, info_ptr, png_palette, colors);
+		png_write_info(png_ptr, info_ptr);
 
-	png_set_IHDR(png_ptr, info_ptr, width, height, bit_depth,
-				 palette != NULL && colors <= 256 ?
-					PNG_COLOR_TYPE_PALETTE : PNG_COLOR_TYPE_RGB,
-				 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
-				 PNG_FILTER_TYPE_BASE);
-
-	if (palette != NULL && colors <= 256)
-		png_set_PLTE(png_ptr, info_ptr, (png_colorp)palette, colors);
-
-	png_write_info(png_ptr, info_ptr);
-
-	if (bit_depth < 8)
-		png_set_packing(png_ptr);
-
-	for (i = 0; i < height; i++)
-		row_pointers[i] = (png_bytep)(pixels + i*width*bpp);
-
+		if (bit_depth < 8)
+			png_set_packing(png_ptr);
+		for (y = 0; y < height; y++)
+			row_pointers[y] = indexes + y * width;
+	}
 	png_write_image(png_ptr, row_pointers);
-
-	free(row_pointers);
-
 	png_write_end(png_ptr, info_ptr);
-
 	png_destroy_write_struct(&png_ptr, &info_ptr);
-
 	fclose(fp);
-
 	return TRUE;
 }

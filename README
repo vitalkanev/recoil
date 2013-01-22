@@ -1,4 +1,4 @@
-FAIL - First Atari Image Library
+﻿FAIL - First Atari Image Library
 ================================
 
 // This file is in AsciiDoc format. It is the source for README.html.
@@ -24,6 +24,7 @@ Currently the project includes:
 - plugin for http://www.xnview.com[XnView]
 - (de)coder for http://www.imagemagick.org/[ImageMagick]
 - plugin for http://www.nyam.pe.kr/[Imagine]
+- http://fail.sourceforge.net/html5fail.html[HTML 5 based viewer]
 
 NOTE: The `win64` setup package only contains 64-bit versions
 of the thumbnail provider (for use in x64 Windows),
@@ -182,6 +183,15 @@ You may submit bugs http://sourceforge.net/p/fail/bugs/[here] (log in required).
 History
 -------
 
+FAIL 2.0.0 (2013-??-??)::
+
+Library rewritten from C to the Ć programming language.
+Created an HTML 5 port.
+Added ICE PCIN (IPC).
+Fixed decoding of RIP, TIP, SGE, HR2, AGP, AP3/APV/DGP/ESC/ILC/PZM, APP, CIN, CCI.
+FAILWin and XnView show the Atari computer family of the file format.
+Reduced CPU and memory usage in fail2png.
+
 FAIL 1.4.0 (2012-11-28)::
 
 Added Atari Falcon formats: Fuckpaint (PI4, PI9), DuneGraph (DGU, DG1),
@@ -250,16 +260,16 @@ Idea, programming.
 Adrian Matoga {failwww!<epi@atari8.info>}::
 Programming.
 
-Pawel Szewczyk {failwww!<ripek@op.pl>}::
+Paweł Szewczyk {failwww!<ripek@op.pl>}::
 FAILWin icon, testing.
 
 Peter Dell {failwww!<jac@wudsn.com>}::
 Testing.
 
-Slawomir Sledz {failwww!<slaves@scene.pl>}::
+Sławomir Śledź {failwww!<slaves@scene.pl>}::
 Testing.
 
-Monika Wesolowska {failwww!<giulio.caesar@gmail.com>}::
+Monika Wesołowska {failwww!<giulio.caesar@gmail.com>}::
 Testing.
 
 ifdef::failwww[]

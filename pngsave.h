@@ -1,7 +1,7 @@
 /*
  * pngsave.h - save PNG file
  *
- * Copyright (C) 2009  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2013  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -24,25 +24,13 @@
 #ifndef _PNGSAVE_H_
 #define _PNGSAVE_H_
 
+#include "fail.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
- #ifndef _FAIL_H_
-/* Handy type definitions. */
-#ifndef FALSE
-#define FALSE  0
-#endif
-#ifndef TRUE
-#define TRUE   1
-#endif
-typedef int abool;
-typedef unsigned char byte;
- #endif
-
-abool PNG_Save(const char *filename,
-               int width, int height, int colors,
-               const byte pixels[], const byte palette[]);
+cibool FAIL_SavePng(FAIL *self, const char *filename);
 
 #ifdef __cplusplus
 }

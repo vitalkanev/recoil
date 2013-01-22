@@ -1,7 +1,7 @@
 /*
  * fail2png.c - command-line converter of Atari pictures to the PNG format
  *
- * Copyright (C) 2009-2012  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2013  Piotr Fusik and Adrian Matoga
  *
  * This file is part of FAIL (First Atari Image Library),
  * see http://fail.sourceforge.net
@@ -29,11 +29,8 @@
 #include "fail.h"
 #include "pngsave.h"
 
+static FAIL *fail = NULL;
 static const char *output_file = NULL;
-/* atari_palette is one byte bigger than necessary in order to check
-   that the file we read is exactly FAIL_PALETTE_MAX bytes long. */
-static byte atari_palette[FAIL_PALETTE_MAX + 1];
-static abool use_atari_palette = FALSE;
 
 static void print_help(void)
 {
@@ -58,11 +55,10 @@ static void fatal_error(const char *format, ...)
 	exit(1);
 }
 
-static int load_file(const char *filename, byte buffer[], size_t buffer_len)
+static int load_file(const char *filename, void *buffer, size_t buffer_len)
 {
-	FILE *fp;
+	FILE *fp = fopen(filename, "rb");
 	int len;
-	fp = fopen(filename, "rb");
 	if (fp == NULL)
 		fatal_error("cannot open %s", filename);
 	len = fread(buffer, 1, buffer_len, fp);
@@ -72,26 +68,19 @@ static int load_file(const char *filename, byte buffer[], size_t buffer_len)
 
 static void load_palette(const char *filename)
 {
-	if (load_file(filename, atari_palette, sizeof(atari_palette)) != FAIL_PALETTE_MAX)
+	unsigned char atari8_palette[768 + 1];
+	if (load_file(filename, atari8_palette, sizeof(atari8_palette)) != 768)
 		fatal_error("%s: palette file must be 768 bytes", filename);
-	use_atari_palette = TRUE;
+	FAIL_SetAtari8Palette(fail, atari8_palette);
 }
 
 static void process_file(const char *input_file)
 {
-	static byte image[FAIL_IMAGE_MAX];
-	int image_len;
-	FAIL_ImageInfo image_info;
-	static byte pixels[FAIL_PIXELS_MAX];
-	static byte palette[FAIL_PALETTE_MAX];
-	int colors;
-	image_len = load_file(input_file, image, sizeof(image));
-	if (!FAIL_DecodeImage(input_file, image, image_len,
-		use_atari_palette ? atari_palette : NULL,
-		&image_info, pixels)) {
+	static unsigned char content[FAIL_MAX_CONTENT_LENGTH];
+	int content_len = load_file(input_file, content, sizeof(content));
+	if (!FAIL_Decode(fail, input_file, content, content_len))
 		fatal_error("%s: file decoding error", input_file);
-	}
-	colors = FAIL_ToPalette(pixels, image_info.width * image_info.height, palette);
+
 	if (output_file == NULL) {
 		static char output_default[FILENAME_MAX];
 		int i;
@@ -102,16 +91,18 @@ static void process_file(const char *input_file)
 		strcpy(output_default + (dotp == 0 ? i : dotp), ".png");
 		output_file = output_default;
 	}
-	if (!PNG_Save(output_file, image_info.width, image_info.height,
-		colors, pixels, palette))
+	if (!FAIL_SavePng(fail, output_file))
 		fatal_error("cannot write %s", output_file);
 	output_file = NULL;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
-	abool no_input_files = TRUE;
+	cibool no_input_files = TRUE;
 	int i;
+	fail = FAIL_New();
+	if (fail == NULL)
+		fatal_error("fail2png: out of memory");
 	for (i = 1; i < argc; i++) {
 		const char *arg = argv[i];
 		if (arg[0] != '-') {

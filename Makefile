@@ -10,6 +10,7 @@ MAGICK_CONFIG_PATH := $(wildcard $(shell MagickCore-config --exec-prefix)/etc/Im
 CAN_INSTALL_MAGICK := $(and $(MAGICK_VERSION),$(MAGICK_CODER_PATH),$(MAGICK_CONFIG_PATH))
 endif
 
+CITO = cito
 CC = gcc 
 CFLAGS = -s -O2 -Wall
 INSTALL = install
@@ -21,13 +22,13 @@ FORMATS_LC = gr8 hip mic int tip inp hr gr9 pic cpr cin cci apc plm ap3 ilc rip 
 
 all: fail2png $(if $(CAN_INSTALL_MAGICK),fail.so)
 
-fail2png: fail2png.c pngsave.c fail.c pngsave.h fail.h palette.h
+fail2png: fail2png.c pngsave.c pngsave.h fail.c fail.h
 	$(CC) $(CFLAGS) fail2png.c pngsave.c fail.c -lpng -lz -lm -o $@
 
 ifneq ($(CAN_INSTALL_MAGICK),)
-fail.so: fail.c failmagick.c fail.h palette.h
+fail.so: failmagick.c fail.c fail.h
 ifdef MAGICK_INCLUDE_PATH
-	$(CC) $(CFLAGS) $(MAGICK_CFLAGS) -I"$(MAGICK_INCLUDE_PATH)" fail.c failmagick.c \
+	$(CC) $(CFLAGS) $(MAGICK_CFLAGS) -I"$(MAGICK_INCLUDE_PATH)" failmagick.c fail.c \
 		-shared $(MAGICK_LDFLAGS) -ldl $(MAGICK_LIBS) -o $@;
 else
 	@echo "\nDetected ImageMagick version $(MAGICK_VERSION) on your system."; \
@@ -36,15 +37,14 @@ else
 endif
 endif
 
-palette.h: raw2c.pl jakub.act
-	perl raw2c.pl jakub.act >$@
+fail.c: fail.ci atari8.fnt jakub.act
+	$(CITO) -o $@ $<
 
 README.html: README INSTALL
-	asciidoc -o $@ -a failsrc README
-	perl -pi -e 's/527bbd;/800080;/' $@
+	asciidoc -o - -a failsrc README | sed -e "s/527bbd;/800080;/" >$@
 
 clean:
-	rm -f fail2png palette.h fail.so coder.xml.new fail-mime.xml
+	rm -f fail2png fail.so coder.xml.new fail-mime.xml
 
 install: install-thumbnailer $(if $(CAN_INSTALL_MAGICK),install-magick)
 
@@ -98,4 +98,3 @@ missing-examples:
 .PHONY: all clean install uninstall install-fail2png uninstall-fail2png $(if $(CAN_INSTALL_MAGICK),install-magick uninstall-magick) install-thumbnailer uninstall-thumbnailer missing-examples
 
 .DELETE_ON_ERROR:
-
