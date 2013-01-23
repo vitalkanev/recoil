@@ -820,6 +820,15 @@ public class FAIL
 			| content[contentOffset + 3];
 	}
 
+	static bool IsStringAt(byte[] content, int contentOffset, string s)
+	{
+		int length = s.Length;
+		for (int i = 0; i < length; i++)
+			if (content[contentOffset + i] != s[i])
+				return false;
+		return true;
+	}
+
 	/// Atari ST/Falcon/Portfolio palette.
 	/// Unlike Atari 8-bit, this palette is always decoded from the image file.
 	int[256] Atari16Palette;
@@ -1038,8 +1047,7 @@ public class FAIL
 
 	bool DecodeGfb(byte[] content, int contentLength)
 	{
-		if (contentLength < 20
-		 || content[0] != 'G' || content[1] != 'F' || content[2] != '2' || content[3] != '5')
+		if (contentLength < 20 || !IsStringAt(content, 0, "GF25"))
 			return false;
 		int log2PixelsPerByte;
 		switch (Get32BigEndian(content, 4)) {
@@ -1427,14 +1435,14 @@ public class FAIL
 
 	bool DecodeTrp(byte[] content, int contentLength)
 	{
-		if (contentLength < 9 || content[0] != 'T' || content[1] != 'R' || content[2] != 'U' || content[3] != 'P')
+		if (contentLength < 9 || !IsStringAt(content, 0, "TRUP"))
 			return false;
 		return DecodeFalconTrueColorVariable(content, contentLength, 4, 8);
 	}
 
 	bool DecodeTru(byte[] content, int contentLength)
 	{
-		if (contentLength < 256 || content[0] != 'I' || content[1] != 'n' || content[2] != 'd' || content[3] != 'y')
+		if (contentLength < 256 || !IsStringAt(content, 0, "Indy"))
 			return false;
 		return DecodeFalconTrueColorVariable(content, contentLength, 4, 256);
 	}
@@ -2144,8 +2152,7 @@ public class FAIL
 	bool DecodeInt(byte[] content, int contentLength)
 	{
 		if (contentLength < 18
-		 || content[0] != 'I' || content[1] != 'N' || content[2] != 'T'
-		 || content[3] != '9' || content[4] != '5' || content[5] != 'a'
+		 || !IsStringAt(content, 0, "INT95a")
 		 || content[8] != 0x0f || content[9] != 0x2b)
 			return false;
 		int contentStride = content[6];
@@ -2204,8 +2211,7 @@ public class FAIL
 
 	bool DecodeRaw(byte[] content, int contentLength)
 	{
-		if (contentLength != 15372
-		 || content[0] != 'X' || content[1] != 'L' || content[2] != 'P' || content[3] != 'B')
+		if (contentLength != 15372 || !IsStringAt(content, 0, "XLPB"))
 			return false;
 		return DecodeGr15Blend(content, 4, 0x3c04, 192);
 	}
@@ -2218,8 +2224,7 @@ public class FAIL
 		byte[16000] unpacked;
 		int height;
 		int colorsOffset;
-		if (contentLength >= 10
-		 && content[0] == 'X' && content[1] == 'L' && content[2] == 'P' && content[3] == 'C') {
+		if (contentLength >= 10 && IsStringAt(content, 0, "XLPC")) {
 			// Ignore errors: STAIRS.XLP included with XL-Paint is missing last two image bytes.
 			unpacked.Clear();
 			rle.ContentOffset = 8;
@@ -2253,8 +2258,7 @@ public class FAIL
 
 	bool DecodeMax(byte[] content, int contentLength)
 	{
-		if (contentLength < 4 + 9 * 192
-		 || content[0] != 'X' || content[1] != 'L' || content[2] != 'P' || content[3] != 'M')
+		if (contentLength < 4 + 9 * 192 || !IsStringAt(content, 0, "XLPM"))
 			return false;
 		XlpStream() rle;
 		rle.Content = content;
@@ -2345,7 +2349,7 @@ public class FAIL
 	bool DecodeApp(byte[] content, int contentLength)
 	{
 		if (contentLength < 22 + 15872 / 2 // two or more compressed bits per uncompressed nibble
-		 || content[0] != 'S' || content[1] != '1' || content[2] != '0' || content[3] != '1'
+		 || !IsStringAt(content, 0, "S101")
 		 || content[4] != 0 || content[5] != 0x3e)
 			return false;
 		byte[15872] unpacked;
@@ -2486,9 +2490,7 @@ public class FAIL
 
 	bool DecodeCci(byte[] content, int contentLength)
 	{
-		if (contentLength < 24
-		 || content[0] != 'C' || content[1] != 'I' || content[2] != 'N' || content[3] != ' '
-		 || content[4] != '1' || content[5] != '.' || content[6] != '2' || content[7] != ' ')
+		if (contentLength < 24 || !IsStringAt(content, 0, "CIN 1.2 "))
 			return false;
 		CciStream() rle;
 		rle.Content = content;
@@ -2513,8 +2515,7 @@ public class FAIL
 	bool UnpackRip(byte[] content, int contentOffset, int contentLength, byte[] unpacked, int unpackedLength)
 	{
 		// "PCK" header (16 bytes)
-		if (contentOffset + 304 > contentLength
-		 || content[contentOffset] != 'P' || content[contentOffset + 1] != 'C' || content[contentOffset + 2] != 'K')
+		if (contentOffset + 304 > contentLength || !IsStringAt(content, contentOffset, "PCK"))
 			return false;
 
 		// 288 bytes Shannon-Fano bit lengths
@@ -2576,7 +2577,7 @@ public class FAIL
 		 || contentStride == 0 || contentStride > 80 || (contentStride & 1) != 0 || height == 0 || height > 239
 		 || 33 + textLength >= contentLength
 		 || content[20 + textLength] != 9
-		 || content[21 + textLength] != 'C' || content[22 + textLength] != 'M' || content[23 + textLength] != ':')
+		 || !IsStringAt(content, 21 + textLength, "CM:"))
 			return false;
 
 		if (content[7] < 0x10)
@@ -2975,6 +2976,34 @@ public class FAIL
 		return DecodeAtari8Font(characters, content, 6);
 	}
 
+	bool DecodeNlq(byte[] content, int contentLength)
+	{
+		if (contentLength < 19 + 90 * 4 || !IsStringAt(content, 0, "DAISY-DOT NLQ FONT") || content[18] != 0x9b)
+			return false;
+		SetSize(320, 96, FAILResolution.Xe1x1);
+		byte[320 * 96] frame = 0;
+		int contentOffset = 19;
+		for (int i = 0; i < 91; i++) {
+			if (contentOffset >= contentLength)
+				return false;
+			int width = content[contentOffset];
+			if (width == 0 || width > 19)
+				return false;
+			int nextContentOffset = contentOffset + (width + 1) * 2;
+			if (nextContentOffset > contentLength || content[nextContentOffset - 1] != 0x9b)
+				return false;
+			int c = i < 64 ? i : i < 90 ? i + 1 : 92;
+			for (int y = 0; y < 16; y++) {
+				for (int x = 0; x < width; x++) {
+					int b = content[contentOffset + 1 + (y & 1) * width + x] >> (7 - (y >> 1)) & 1;
+					frame[(c & 0xf0 | y) * 320 + (c & 0xf) * 20 + x] = b == 0 ? 0x00 : 0x0e;
+				}
+			}
+			contentOffset = nextContentOffset;
+		}
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodeJgp(byte[] content, int contentLength)
 	{
 		if (contentLength != 2054 || ParseAtari8ExecutableHeader(content, 0) != 2048)
@@ -3163,8 +3192,7 @@ public class FAIL
 
 	bool DecodeRgb(byte[] content, int contentLength)
 	{
-		if (contentLength < 9
-		 || content[0] != 'R' || content[1] != 'G' || content[2] != 'B' || content[3] != '1')
+		if (contentLength < 9 || !IsStringAt(content, 0, "RGB1"))
 			return false;
 		int titleLength = content[4];
 		int width = content[6 + titleLength];
@@ -3684,6 +3712,7 @@ public class FAIL
 		case PACKED_EXT("MIC"):
 		case PACKED_EXT("MIS"):
 		case PACKED_EXT("NEO"):
+		case PACKED_EXT("NLQ"):
 		case PACKED_EXT("PAC"):
 		case PACKED_EXT("PC1"):
 		case PACKED_EXT("PC2"):
@@ -3855,6 +3884,8 @@ public class FAIL
 			return DecodeMis(content, contentLength);
 		case PACKED_EXT("NEO"):
 			return DecodeNeo(content, contentLength);
+		case PACKED_EXT("NLQ"):
+			return DecodeNlq(content, contentLength);
 		case PACKED_EXT("PAC"):
 			return DecodePac(content, contentLength);
 		case PACKED_EXT("PC1"):

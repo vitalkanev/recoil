@@ -92,6 +92,7 @@ MGP:: "Magic Painter", 160x96, 4 colors with optional rainbow effect.
 MIC:: "Micro Illustrator" / "Graphics 15" , up to 160x240, 4 colors.
 MIC:: "AtariGraphics", 160x192, 4 colors.
 MIS:: "AtariTools-800" missile, 2x240, mono.
+NLQ:: "Daisy-Dot" 19x16 font, mono.
 PIC:: "Koala MicroIllustrator", 160x192, 4 colors, compressed.
 PLA:: "AtariTools-800" player, 8x240, mono.
 RAW:: "XL-Paint MAX", 160x192, 16 colors, interlaced.
@@ -187,7 +188,7 @@ FAIL 2.0.0 (2013-??-??)::
 
 Library rewritten from C to the Ć programming language.
 Created an HTML 5 port.
-Added ICE PCIN (IPC).
+Added ICE PCIN (IPC), Daisy-Dot font (NLQ).
 Fixed decoding of RIP, TIP, SGE, HR2, AGP, AP3/APV/DGP/ESC/ILC/PZM, APP, CIN, CCI.
 FAILWin and XnView show the Atari computer family of the file format.
 Reduced CPU and memory usage in fail2png.
