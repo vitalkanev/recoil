@@ -95,6 +95,7 @@ MIS:: "AtariTools-800" missile, 2x240, mono.
 NLQ:: "Daisy-Dot" 19x16 font, mono.
 PIC:: "Koala MicroIllustrator", 160x192, 4 colors, compressed.
 PLA:: "AtariTools-800" player, 8x240, mono.
+PMD:: "PMG Designer" by Henryk Karpowicz.
 RAW:: "XL-Paint MAX", 160x192, 16 colors, interlaced.
 RGB:: "ColorViewSquash", up to 160x192, three-frame interlace.
 RIP:: "Rocky Interlace Picture", up to 320x239.
@@ -188,7 +189,7 @@ FAIL 2.0.0 (2013-??-??)::
 
 Library rewritten from C to the Ć programming language.
 Created an HTML 5 port.
-Added ICE PCIN (IPC), Daisy-Dot font (NLQ).
+Added ICE PCIN (IPC), Daisy-Dot font (NLQ), PMG Designer (PMD).
 Fixed decoding of RIP, TIP, SGE, HR2, AGP, AP3/APV/DGP/ESC/ILC/PZM, APP, CIN, CCI.
 FAILWin and XnView show the Atari computer family of the file format.
 Reduced CPU and memory usage in fail2png.

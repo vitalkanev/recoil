@@ -76,6 +76,7 @@
 	<type ext="pic" />
 	<type ext="pla" acronym="PLAyer" />
 	<type ext="plm" acronym="PLaMa 256" />
+	<type ext="pmd" acronym="PMg Designer" />
 	<type ext="pzm" />
 	<type ext="raw" />
 	<type ext="rgb" />

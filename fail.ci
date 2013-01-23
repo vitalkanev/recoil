@@ -1707,13 +1707,15 @@ public class FAIL
 		}
 	}
 
-	void DecodeAtari8Player(byte[] content, int contentOffset, byte color, byte[] frame, int frameOffset)
+	void DecodeAtari8Player(byte[] content, int contentOffset, int color, byte[] frame, int frameOffset, int height)
 	{
-		for (int y = 0; y < 240; y++) {
+		color &= 0xfe;
+		for (int y = 0; y < height; y++) {
 			int b = content[contentOffset + y];
 			for (int x = 0; x < 8; x++) {
 				int c = b >> (7 - x) & 1;
-				frame[frameOffset + x * 2 + 1] = frame[frameOffset + x * 2] = c == 0 ? 0x00 : color;
+				if (c != 0)
+					frame[frameOffset + x * 2 + 1] = frame[frameOffset + x * 2] = frame[frameOffset + x * 2] | color;
 			}
 			frameOffset += Width;
 		}
@@ -1984,7 +1986,7 @@ public class FAIL
 	void DecodeAt800Players(byte[] content, byte[] frame)
 	{
 		for (int i = 0; i < 4; i++)
-			DecodeAtari8Player(content, 4 + i * 240, content[i], frame, i * (8 + At800SpriteGap) * 2);
+			DecodeAtari8Player(content, 4 + i * 240, content[i], frame, i * (8 + At800SpriteGap) * 2, 240);
 	}
 
 	void DecodeAt800Missiles(byte[] content, int contentOffset, byte[] frame, int frameOffset)
@@ -2005,8 +2007,8 @@ public class FAIL
 		if (contentLength != 241)
 			return false;
 		SetSize(16, 240, FAILResolution.Xe2x1);
-		byte[16 * 240] frame;
-		DecodeAtari8Player(content, 1, content[0], frame, 0);
+		byte[16 * 240] frame = 0;
+		DecodeAtari8Player(content, 1, content[0], frame, 0, 240);
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -2059,6 +2061,54 @@ public class FAIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodePmd(byte[] content, int contentLength)
+	{
+		if (contentLength < 3 + 4 + 4 + 1
+		 || content[0] != 0xf0 || content[1] != 0xed || content[2] != 0xe4)
+			return false;
+		int sprites = content[7];
+		int shapes = content[8] * content[9];
+		int totalShapes = sprites * shapes;
+		int height = content[10];
+		if (sprites == 0 || sprites > 4
+		 || shapes == 0 || shapes > 16 * 10
+		 || height == 0 || height > 48
+		 || 11 + totalShapes * height != contentLength)
+			return false;
+
+		// Unfortunately the information whether sprites are multi-color is not saved in the file.
+		// We choose multi because there are three multi examples vs one mono.
+		const bool multi = true;
+		if (multi)
+			totalShapes >>= 1;
+		// 16 shapes per row * (8 pixels + 2 pixels gap) = 160 pixels wide
+		int rows = (totalShapes + 15 >> 4);
+		const int horizontalGap = 2;
+		const int verticalGap = 2;
+		if (rows == 1)
+			SetSize(totalShapes * (8 + horizontalGap << 1), height, FAILResolution.Xe2x1);
+		else {
+			int totalHeight = rows * height + (rows - 1) * verticalGap;
+			if (totalHeight > MaxHeight)
+				return false;
+			SetSize(320, totalHeight, FAILResolution.Xe2x1);
+		}
+
+		byte[320 * MaxHeight] frame = 0;
+		for (int shape = 0; shape < totalShapes; shape++) {
+			int frameOffset = (shape >> 4) * (height + verticalGap) * 320 + (shape & 0xf) * (8 + horizontalGap << 1);
+			if (multi) {
+				int spritePair = shape / shapes;
+				int contentOffset = 11 + (spritePair * shapes + shape) * height;
+				DecodeAtari8Player(content, contentOffset, content[3 + spritePair * 2], frame, frameOffset, height);
+				DecodeAtari8Player(content, contentOffset + shapes * height, content[4 + spritePair * 2], frame, frameOffset, height);
+			}
+			else
+				DecodeAtari8Player(content, 11 + shape * height, content[3 + shape / shapes], frame, frameOffset, height);
+		}
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodeApl(byte[] content, int contentLength)
 	{
 		if (contentLength != 1677
@@ -2070,36 +2120,13 @@ public class FAIL
 		if (frames == 0 || frames > 16 || height == 0 || height > 48 || gap > 8)
 			return false;
 		const int frameGap = 2;
-		int frameWidth = 8 + gap + frameGap;
-		SetSize(frames * frameWidth * 2, height, FAILResolution.Xe2x1);
-		
-		byte[(16 + frameGap) * 2 * 16 * 48] frame;
-		int i = 0;
-		for (int y = 0; y < height; y++) {
-			for (int f = 0; f < frames; f++) {
-				for (int x = 0; x < frameWidth; x++) {
-					int p0 = x < 8 ? content[42 + f * 48 + y] >> (7 - x) & 1 : 0;
-					int x1 = x - gap;
-					int p1 = x1 >= 0 && x < 8 ? content[858 + f * 48 + y] >> (7 - x1) & 1 : 0;
-					int c;
-					switch (p1 << 1 | p0) {
-					case 0:
-						c = content[41];
-						break;
-					case 1:
-						c = content[7 + f];
-						break;
-					case 2:
-						c = content[24 + f];
-						break;
-					default:
-						c = content[7 + f] | content[24 + f];
-						break;
-					}
-					frame[i + 1] = frame[i] = c & 0xfe;
-					i += 2;
-				}
-			}
+		int frameWidth = 8 + gap + frameGap << 1;
+		SetSize(frames * frameWidth, height, FAILResolution.Xe2x1);
+		byte[(16 + frameGap) * 2 * 16 * 48] frame = 0;
+
+		for (int f = 0; f < frames; f++) {
+			DecodeAtari8Player(content, 42 + f * 48, content[7 + f], frame, f * frameWidth, height);
+			DecodeAtari8Player(content, 858 + f * 48, content[24 + f], frame, f * frameWidth + gap * 2, height);
 		}
 		return ApplyAtari8Palette(frame);
 	}
@@ -3727,6 +3754,7 @@ public class FAIL
 		case PACKED_EXT("PIC"):
 		case PACKED_EXT("PLA"):
 		case PACKED_EXT("PLM"):
+		case PACKED_EXT("PMD"):
 		case PACKED_EXT("RAW"):
 		case PACKED_EXT("RGB"):
 		case PACKED_EXT("RIP"):
@@ -3909,6 +3937,8 @@ public class FAIL
 			return DecodePla(content, contentLength);
 		case PACKED_EXT("PLM"):
 			return DecodeApc(content, contentLength);
+		case PACKED_EXT("PMD"):
+			return DecodePmd(content, contentLength);
 		case PACKED_EXT("RAW"):
 			return DecodeRaw(content, contentLength);
 		case PACKED_EXT("RGB"):

@@ -187,6 +187,7 @@ static const struct Format {
 	{ "PIC", "Koala MicroIllustrator; 160x192, 4 colors, compressed" },
 	{ "PLA", "AtariTools-800 player; 8x240, mono" },
 	{ "PLM", "Plama 256; 80x96, 256 colors" },
+	{ "PMD", "PMG Designer by Henryk Karpowicz" },
 	{ "PZM", "EscalPaint; 80x192, 256 colors, interlaced" },
 	{ "RAW", "XL-Paint MAX; 160x192, 16 colors, interlaced" },
 	{ "RGB", "ColorViewSquash; up to 160x192; three-frame interlace" },
