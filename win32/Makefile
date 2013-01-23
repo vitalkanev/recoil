@@ -58,8 +58,9 @@ x64/FAIL.plg64: imagine/failimagine.c ../fail.c ../fail.h
 	test -d x64 || mkdir x64
 	$(X64_FAIL_CC_DLL) imagine/failimagine.c ../fail.c
 
-../fail.h: ../fail.ci ../atari8.fnt ../jakub.act
-	$(CITO) -o ../fail.c -I .. $<
+# http://www.cmcrossroads.com/article/rules-multiple-outputs-gnu-make
+%.c %.h: %.ci ../atari8.fnt ../jakub.act
+	$(CITO) -o $*.c -I .. $<
 
 COPYING.txt: ../COPYING
 	$(UNIX2DOS) <$< >$@

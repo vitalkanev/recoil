@@ -37,8 +37,9 @@ else
 endif
 endif
 
-fail.c: fail.ci atari8.fnt jakub.act
-	$(CITO) -o $@ $<
+# http://www.cmcrossroads.com/article/rules-multiple-outputs-gnu-make
+%.c %.h: %.ci atari8.fnt jakub.act
+	$(CITO) -o $*.c $<
 
 README.html: README INSTALL
 	asciidoc -o - -a failsrc README | sed -e "s/527bbd;/800080;/" >$@
