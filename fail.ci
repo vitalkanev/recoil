@@ -2612,7 +2612,7 @@ public class FAIL
 		int unpackedLength = contentStride * height;
 		if (content[7] == 0x30)
 			unpackedLength += (height + 1 >> 1) << 3; // Multi RIP: 8 bytes of palette per two lines
-		byte[84 * 239] unpacked;
+		byte[84 * 239] unpacked = 0;
 		switch (content[9]) {
 		case 0:
 			if (headerLength + unpackedLength > contentLength)
@@ -2620,8 +2620,8 @@ public class FAIL
 			content.CopyTo(headerLength, unpacked, 0, unpackedLength);
 			break;
 		case 1:
-			if (!UnpackRip(content, headerLength, contentLength, unpacked, unpackedLength))
-				return false;
+			// Ignore errors, because many RIP files included with Atari Interlace Studio are corrupted.
+			UnpackRip(content, headerLength, contentLength, unpacked, unpackedLength);
 			break;
 		default:
 			return false;
