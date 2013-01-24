@@ -1952,11 +1952,15 @@ public class FAIL
 			return ApplyAtari8Palette(frame);
 		}
 
-		// Some images with .pic extension are in micropainter format.
-		if (contentLength >= 7680 && contentLength <= 7685)
+		// Some images with .PIC extension are GR8.
+		if (contentLength == 7680)
+			return DecodeGr8(content, contentLength);
+
+		// Some images with .PIC extension are MIC.
+		if (contentLength >= 7681 && contentLength <= 7685)
 			return DecodeMic(content, contentLength);
 
-		// Some images with .pic extension are ST raw format.
+		// Some images with .PIC extension are ST raw format.
 		return DecodeDoo(content, contentLength);
 	}
 
