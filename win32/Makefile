@@ -97,7 +97,7 @@ x64/fail.wixobj: setup/fail.wxs
 			&& echo MANIFEST && echo README.html && echo fail.c && echo fail.h) | sort >$@; \
 	)
 
-srcdist: ../MANIFEST ../README.html
+srcdist: ../MANIFEST ../README.html ../fail.c ../fail.h
 	$(RM) ../../fail-$(VERSION).tar.gz
 	cd .. && $(TAR) -c --numeric-owner --owner=0 --group=0 --mode=644 -T MANIFEST --transform=s,,fail-$(VERSION)/, | $(SEVENZIP) -tgzip -si ../fail-$(VERSION).tar.gz
 
