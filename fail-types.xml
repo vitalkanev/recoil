@@ -67,6 +67,7 @@
 	<type ext="pc1" />
 	<type ext="pc2" />
 	<type ext="pc3" />
+	<type ext="pcs" />
 	<type ext="pgc" />
 	<type ext="pgf" />
 	<type ext="pi1" />

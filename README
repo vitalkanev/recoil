@@ -134,6 +134,7 @@ PAC:: "STAD", 640x400, mono, compressed.
 PC1:: "DEGAS Elite", 320x200, 16 colors, compressed.
 PC2:: "DEGAS Elite", 640x200, 4 colors, compressed.
 PC3:: "DEGAS Elite", 640x400, mono, compressed.
+PCS:: "PhotoChrome", 320x199, compressed.
 PI1:: "DEGAS", up to 416x560, 16 colors.
 PI2:: "DEGAS", 640x200, 4 colors.
 PI3:: "DEGAS", 640x400, mono.
@@ -191,7 +192,7 @@ FAIL 2.0.0 (2013-??-??)::
 Library rewritten from C to the Ć programming language.
 Created HTML 5 port.
 Added ICE PCIN (IPC), Daisy-Dot font (NLQ), PMG Designer (PMD),
-AtariTools-800 font (ACS).
+AtariTools-800 font (ACS), PhotoChrome (PCS).
 Fixed decoding of RIP, TIP, SGE, HR2, AGP, AP3/APV/DGP/ESC/ILC/PZM, APP, CIN, CCI.
 FAILWin and XnView show the Atari computer family of the file format.
 Reduced CPU and memory usage in fail2png.

@@ -543,20 +543,9 @@ class RgbStream : RleStream
 	}
 }
 
-class TnyStream : RleStream
+// TNY and PCS use identical control bytes.
+abstract class TnyPcsStream : RleStream
 {
-	int ValueOffset;
-	int ValueLength;
-
-	override int ReadValue()
-	{
-		if (ValueOffset + 1 >= ValueLength)
-			return -1;
-		int value = Content[ValueOffset] << 8 | Content[ValueOffset + 1];
-		ValueOffset += 2;
-		return value;
-	}
-
 	override bool ReadCommand()
 	{
 		int b = ReadByte();
@@ -577,6 +566,71 @@ class TnyStream : RleStream
 			RepeatCount = 256 - b;
 			RepeatValue = -1;
 		}
+		return true;
+	}
+}
+
+// In TNY values don't mix with control bytes.
+class TnyStream : TnyPcsStream
+{
+	int ValueOffset;
+	int ValueLength;
+
+	override int ReadValue()
+	{
+		if (ValueOffset + 1 >= ValueLength)
+			return -1;
+		int value = Content[ValueOffset] << 8 | Content[ValueOffset + 1];
+		ValueOffset += 2;
+		return value;
+	}
+}
+
+class PcsStream : TnyPcsStream
+{
+	bool Palette;
+
+	override int ReadValue()
+	{
+		// one byte for bitmap
+		if (!Palette)
+			return ReadByte();
+
+		// one word for palette
+		if (ContentOffset + 1 >= ContentLength)
+			return -1;
+		int value = Content[ContentOffset] << 8 | Content[ContentOffset + 1];
+		ContentOffset += 2;
+		return value;
+	}
+
+	const int UnpackedLength = 32000 + 9616 * 2;
+
+	bool UnpackPcs(byte[] unpacked)
+	{
+		// bitmap
+		ContentOffset += 2;
+		Palette = false;
+		for (int unpackedOffset = 0; unpackedOffset < 32000; unpackedOffset++) {
+			int b = ReadRle();
+			if (b < 0)
+				return false;
+			unpacked[unpackedOffset] = b;
+		}
+		if (RepeatCount != 0)
+			return false;
+
+		// palettes
+		ContentOffset += 2;
+		Palette = true;
+		for (int unpackedOffset = 32000; unpackedOffset < UnpackedLength; unpackedOffset += 2) {
+			int b = ReadRle();
+			if (b < 0)
+				return false;
+			unpacked[unpackedOffset] = b >> 8;
+			unpacked[unpackedOffset + 1] = b.LowByte;
+		}
+		// Don't check RepeatCount: "PhotoChrome files with a few extra entries have been found".
 		return true;
 	}
 }
@@ -1321,6 +1375,76 @@ public class FAIL
 		return DecodeSpu(unpacked, 51104);
 	}
 
+	void DecodePcsScreen(byte[] unpacked, int pixelsOffset)
+	{
+		for (int y = 0; y < 199; y++) {
+			for (int x = 0; x < 320; x++) {
+				int bitmapOffset = 40 + y * 40 + (x >> 3);
+				int bit = ~x & 7;
+				int c = (unpacked[bitmapOffset] >> bit & 1) << 1
+					| (unpacked[8000 + bitmapOffset] >> bit & 1) << 2
+					| (unpacked[16000 + bitmapOffset] >> bit & 1) << 3
+					| (unpacked[24000 + bitmapOffset] >> bit & 1) << 4;
+				// http://www.atari-forum.com/wiki/index.php?title=ST_Picture_Formats
+				if (x >= c * 2) {
+					if (c < 14 * 2) {
+						if (x >= c * 2 + 76) {
+							if (x >= 176 + c * 5 - (c & 2) * 3)
+								c += 32;
+							c += 32;
+						}
+					}
+					else if (x >= c * 2 + 92)
+						c += 32;
+					c += 32;
+				}
+				Pixels[pixelsOffset++] = GetStColor(unpacked, 32000 + y * 96 + c);
+			}
+		}
+	}
+
+	bool DecodePcs(byte[] content, int contentLength)
+	{
+		if (contentLength < 18
+		 || content[0] != 0x01 || content[1] != 0x40 || content[2] != 0x00 || content[3] != 0xc8)
+			return false;
+
+		PcsStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 6;
+		rle.ContentLength = contentLength;
+		byte[PcsStream.UnpackedLength] unpacked1;
+		if (!rle.UnpackPcs(unpacked1))
+			return false;
+		SetSize(320, 199, FAILResolution.St1x1);
+		DecodePcsScreen(unpacked1, 0);
+		if (content[4] == 0)
+			return true; // single screen
+
+		// alternating screens
+		rle.RepeatCount = 0; // ignore possible overrun from first picture palettes
+		byte[PcsStream.UnpackedLength] unpacked2;
+		if (!rle.UnpackPcs(unpacked2))
+			return false;
+		if ((content[4] & 1) == 0) {
+			for (int i = 0; i < 32000; i++)
+				unpacked2[i] ^= unpacked1[i];
+		}
+		if ((content[4] & 2) == 0) {
+			for (int i = 32000; i < PcsStream.UnpackedLength; i++)
+				unpacked2[i] ^= unpacked1[i];
+		}
+		DecodePcsScreen(unpacked2, 320 * 199);
+
+		for (int i = 0; i < 320 * 199; i++) {
+			int rgb1 = Pixels[i];
+			int rgb2 = Pixels[320 * 199 + i];
+			// This clever formula just computes the byte-by-byte averages.
+			Pixels[i] = (rgb1 & rgb2) + ((rgb1 ^ rgb2) >> 1 & 0x7f7f7f);
+		}
+		return true;
+	}
+
 	// Atari Falcon formats.
 
 	void SetFalconPalette(byte[] content, int contentOffset)
@@ -1715,7 +1839,7 @@ public class FAIL
 			for (int x = 0; x < 8; x++) {
 				int c = b >> (7 - x) & 1;
 				if (c != 0)
-					frame[frameOffset + x * 2 + 1] = frame[frameOffset + x * 2] = frame[frameOffset + x * 2] | color;
+					frame[frameOffset + x * 2 + 1] = frame[frameOffset + x * 2] |= color;
 			}
 			frameOffset += Width;
 		}
@@ -3764,6 +3888,7 @@ public class FAIL
 		case PACKED_EXT("PC1"):
 		case PACKED_EXT("PC2"):
 		case PACKED_EXT("PC3"):
+		case PACKED_EXT("PCS"):
 		case PACKED_EXT("PGC"):
 		case PACKED_EXT("PGF"):
 		case PACKED_EXT("PI1"):
@@ -3942,6 +4067,8 @@ public class FAIL
 		case PACKED_EXT("PC2"):
 		case PACKED_EXT("PC3"):
 			return DecodePc(content, contentLength);
+		case PACKED_EXT("PCS"):
+			return DecodePcs(content, contentLength);
 		case PACKED_EXT("PGC"):
 			return DecodePgc(content, contentLength);
 		case PACKED_EXT("PGF"):

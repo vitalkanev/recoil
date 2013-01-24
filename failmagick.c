@@ -178,6 +178,7 @@ static const struct Format {
 	{ "PC1", "DEGAS Elite; 320x200, 16 colors, compressed" },
 	{ "PC2", "DEGAS Elite; 640x200, 4 colors, compressed" },
 	{ "PC3", "DEGAS Elite; 640x400, mono, compressed" },
+	{ "PCS", "PhotoChrome; 320x199, compressed" },
 	{ "PGC", "Atari Portfolio; 240x64, mono, compressed" },
 	{ "PGF", "Atari Portfolio; 240x64, mono" },
 	{ "PI1", "DEGAS; up to 416x560, 16 colors" },
