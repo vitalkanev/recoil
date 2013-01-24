@@ -2185,7 +2185,7 @@ public class FAIL
 		if (contentLength < 18
 		 || !IsStringAt(content, 0, "INT95a")
 		 || content[8] != 0x0f || content[9] != 0x2b)
-			return false;
+			return DecodeInp(content, contentLength);
 		int contentStride = content[6];
 		int height = content[7];
 		if (contentStride == 0 || contentStride > 320
