@@ -3035,6 +3035,21 @@ public class FAIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeAcs(byte[] content, int contentLength)
+	{
+		if (contentLength != 1028)
+			return false;
+		byte[16] characters;
+		for (int i = 0; i < 16; i++)
+			characters[i] = i;
+		SetBakPF012(content, 0, 1);
+		SetSize(128, 64, FAILResolution.Xe2x1);
+		byte[128 * 64] frame;
+		for (int y = 0; y < 8; y++)
+			DecodeAtari8Gr12Line(characters, 0, content, 4 + (y << 7), frame, y << 10);
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodeJgp(byte[] content, int contentLength)
 	{
 		if (contentLength != 2054 || ParseAtari8ExecutableHeader(content, 0) != 2048)
@@ -3684,6 +3699,7 @@ public class FAIL
 		case PACKED_EXT("4MI"):
 		case PACKED_EXT("4PL"):
 		case PACKED_EXT("4PM"):
+		case PACKED_EXT("ACS"):
 		case PACKED_EXT("AGP"):
 		case PACKED_EXT("ALL"):
 		case PACKED_EXT("AP2"):
@@ -3808,6 +3824,8 @@ public class FAIL
 			return Decode4pl(content, contentLength);
 		case PACKED_EXT("4PM"):
 			return Decode4pm(content, contentLength);
+		case PACKED_EXT("ACS"):
+			return DecodeAcs(content, contentLength);
 		case PACKED_EXT("AGP"):
 			return DecodeAgp(content, contentLength);
 		case PACKED_EXT("ALL"):
