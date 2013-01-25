@@ -782,6 +782,8 @@ public class FAIL
 	int[MaxPixelsLength] Pixels;
 	/// Platform and pixel ratio.
 	FAILResolution Resolution;
+	/// Number of frames (normally 1; 2 or 3 for flickering pictures).
+	int Frames;
 
 	/// Returns decoded image width.
 	public int GetWidth()
@@ -855,12 +857,22 @@ public class FAIL
 		}
 	}
 
+	/// Returns the number of alternating frames the pictures is composed of.
+	/// * 1 means the picture doesn't flicker.
+	/// * 2 means the picture is displayed by quickly alternating two sub-pictures.
+	/// * 3 means the picture is displayed by alternating three sub-pictures.
+	public int GetFrames()
+	{
+		return Frames;
+	}
+
 	/// Initializes decoded image size and resolution.
 	void SetSize(int width, int height, FAILResolution resolution)
 	{
 		Width = width;
 		Height = height;
 		Resolution = resolution;
+		Frames = 1;
 		Colors = UnknownColors;
 		GtiaLeftSkip = 0;
 	}
@@ -1422,6 +1434,7 @@ public class FAIL
 			return true; // single screen
 
 		// alternating screens
+		Frames = 2;
 		rle.RepeatCount = 0; // ignore possible overrun from first picture palettes
 		byte[PcsStream.UnpackedLength] unpacked2;
 		if (!rle.UnpackPcs(unpacked2))
@@ -1856,6 +1869,7 @@ public class FAIL
 	bool ApplyAtari8PaletteBlend(byte[] frame1, byte[] frame2)
 	{
 		int pixelsLength = Width * Height;
+		Frames = 2;
 		for (int i = 0; i < pixelsLength; i++) {
 			int rgb1 = Atari8Palette[frame1[i]];
 			int rgb2 = Atari8Palette[frame2[i]];
@@ -1868,6 +1882,7 @@ public class FAIL
 	bool ApplyAtari8PaletteBlend3(byte[] frame1, byte[] frame2, byte[] frame3)
 	{
 		int pixelsLength = Width * Height;
+		Frames = 3;
 		for (int i = 0; i < pixelsLength; i++) {
 			int rgb1 = Atari8Palette[frame1[i]];
 			int rgb2 = Atari8Palette[frame2[i]];

@@ -112,14 +112,17 @@ static void UpdateText(void)
 {
 	char buf[MAX_PATH + 32];
 	const char *filename = image_filename;
+	int frames;
 	if (filename[0] == '\0')
 		return;
 	if (!show_path)
 		filename += GetPathLength(filename);
 	sprintf(buf, "%s - " APP_TITLE, filename);
 	SetWindowText(hWnd, buf);
+	frames = FAIL_GetFrames(fail);
 	if (image_loaded) {
-		sprintf(buf, "%s, %dx%d, %d colors, %d%%", FAIL_GetPlatform(fail), FAIL_GetOriginalWidth(fail), FAIL_GetOriginalHeight(fail), FAIL_GetColors(fail), zoom);
+		sprintf(buf, "%s, %dx%d, %d colors, %s%d%%", FAIL_GetPlatform(fail), FAIL_GetOriginalWidth(fail), FAIL_GetOriginalHeight(fail),
+			FAIL_GetColors(fail), frames == 2 ? "2 frames, " : frames == 3 ? "3 frames, " : "", zoom);
 		SetWindowText(hStatus, buf);
 	}
 }

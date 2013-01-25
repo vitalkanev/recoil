@@ -52,18 +52,18 @@ Atari 8-bit
 ACS:: "AtariTools-800" 4x8 font, 4 colors.
 AGP:: "AtariTools-800" graphic.
 ALL:: "Graph", 160x192, 5 colors.
-AP3, APV, DGP, ESC, ILC, PZM:: "DigiPaint" / "EscalPaint", 80x192, 256 colors, interlaced.
+AP3, APV, DGP, ESC, ILC, PZM:: "DigiPaint" / "EscalPaint", 80x192, 256 colors, 2 frames.
 APC, PLM:: "Any Point, Any Color" / "Plama 256", 80x96, 256 colors.
 APL:: "Atari Player Editor", up to 16 16x48 frames, 4 colors.
-APP:: 80x192, 256 colors, interlaced, compressed.
+APP:: 80x192, 256 colors, 2 frames, compressed.
 ART:: "Ascii-Art Editor", up to 64x24 characters, mono.
 // I only see up to 40x21 in the editor, but the sample file SIANO.ART is bigger
 ART:: "Artist" by David Eaton, 160x80, 4 colors.
 BG9, G09:: 160x192, 16-level grayscale.
 BKG:: "Movie Maker" background, 160x96, 4 colors.
-CCI:: "Champions' Interlace", 160x192, compressed.
+CCI:: "Champions' Interlace", 160x192, 2 frames, compressed.
 CHR:: "Blazing Paddles" font, mono.
-CIN:: "Champions' Interlace", 160x192 or 160x200.
+CIN:: "Champions' Interlace", 160x192 or 160x200, 2 frames.
 CPR:: "Trzmiel", 320x192, mono, compressed.
 DLM:: "Dir Logo Maker", 11x16 characters, mono.
 DRG:: "Atari CAD", 320x160, mono.
@@ -75,20 +75,20 @@ GHG:: "Gephard Hires Graphics", up to 320x200, mono.
 GR7:: "Graphics 7", up to 160x120, 4 colors.
 GR8:: "Graphics 8", up to 320x240, mono.
 GR9:: "Graphics 9", up to 80x240, 16-level grayscale.
-HIP:: "Hard Interlace Picture", 160x200, grayscale.
-HR:: 256x239, 3 colors, interlaced.
-HR2:: 320x200, 5 colors, interlaced.
-IGE:: "Interlace Graphics Editor", 128x96, 16 colors, interlaced.
-ING:: "ING 15", 160x200, 7 colors, interlaced.
-INP:: 160x200, 7 colors, interlaced.
-INT:: "INT95a", up to 160x239, 16 colors, interlaced.
-IPC:: "ICE PCIN", 160x192, 35 colors, interlaced.
-IST:: "Interlace Studio", 160x200, interlaced.
+HIP:: "Hard Interlace Picture", 160x200, grayscale, 2 frames.
+HR:: 256x239, 3 colors, 2 frames.
+HR2:: 320x200, 5 colors, 2 frames.
+IGE:: "Interlace Graphics Editor", 128x96, 16 colors, 2 frames.
+ING:: "ING 15", 160x200, 7 colors, 2 frames.
+INP:: 160x200, 7 colors, 2 frames.
+INT:: "INT95a", up to 160x239, 16 colors, 2 frames.
+IPC:: "ICE PCIN", 160x192, 35 colors, 2 frames.
+IST:: "Interlace Studio", 160x200, 2 frames.
 JGP:: "Jet Graphics Planner", 8x16 tiles, 4 colors.
-MAX:: "XL-Paint MAX", 160x192, interlaced, compressed.
+MAX:: "XL-Paint MAX", 160x192, 2 frames, compressed.
 MBG:: "Mad Designer", 512x256, mono.
 MCH:: "Graph2Font", up to 176x240, 128 colors.
-MCP:: "McPainter", 160x200, 16 colors, interlaced.
+MCP:: "McPainter", 160x200, 16 colors, 2 frames.
 MGP:: "Magic Painter", 160x96, 4 colors with optional rainbow effect.
 MIC:: "Micro Illustrator" / "Graphics 15" , up to 160x240, 4 colors.
 MIC:: "AtariGraphics", 160x192, 4 colors.
@@ -97,9 +97,9 @@ NLQ:: "Daisy-Dot" 19x16 font, mono.
 PIC:: "Koala MicroIllustrator", 160x192, 4 colors, compressed.
 PLA:: "AtariTools-800" player, 8x240, mono.
 PMD:: "PMG Designer" by Henryk Karpowicz.
-RAW:: "XL-Paint MAX", 160x192, 16 colors, interlaced.
-RGB:: "ColorViewSquash", up to 160x192, three-frame interlace.
-RIP:: "Rocky Interlace Picture", up to 320x239.
+RAW:: "XL-Paint MAX", 160x192, 16 colors, 2 frames.
+RGB:: "ColorViewSquash", up to 160x192, 3 frames.
+RIP:: "Rocky Interlace Picture", up to 320x239, 1 or 2 frames.
 RM0:: "Rambrandt", 160x96, 99 colors.
 // 99 = 4 colors + 95 DLI changes
 RM1:: "Rambrandt", 80x192, 256 colors.
@@ -108,14 +108,14 @@ RM2:: "Rambrandt", 80x192, 104 colors.
 RM3:: "Rambrandt", 80x192, 128 colors.
 RM4:: "Rambrandt", 160x192, 99 colors.
 SGE:: "Semi-Graphic logos Editor", 40x24 characters, mono.
-SHC:: "SAMAR Hi-res Interlace with Map of Colours", 320x192, interlaced.
+SHC:: "SAMAR Hi-res Interlace with Map of Colours", 320x192, 2 frames.
 SHP:: "Blazing Paddles" shape table, mono.
 SHP:: "Movie Maker" shapes, 160x96, 4 colors.
 SPC:: "The Graphics Magician Picture Painter", 160x192, 128 colors.
 SXS:: 16x16 font, mono.
-TIP:: "Taquart Interlace Picture", up to 160x119.
+TIP:: "Taquart Interlace Picture", up to 160x119, 2 frames.
 WND:: "Blazing Paddles" window, up to 160x192, 4 colors.
-XLP:: "XL-Paint", 160x192 or 160x200, 7 colors, interlaced, compressed.
+XLP:: "XL-Paint", 160x192 or 160x200, 7 colors, 2 frames, compressed.
 
 NOTE: Artist, AtariGraphics, Magic Painter and Rambrandt had no default extensions, so I made them up.
 Documentation for Rambrandt suggests RM0-RM4 for the compressed files, I also use them for the raw format.
@@ -134,7 +134,7 @@ PAC:: "STAD", 640x400, mono, compressed.
 PC1:: "DEGAS Elite", 320x200, 16 colors, compressed.
 PC2:: "DEGAS Elite", 640x200, 4 colors, compressed.
 PC3:: "DEGAS Elite", 640x400, mono, compressed.
-PCS:: "PhotoChrome", 320x199, compressed.
+PCS:: "PhotoChrome", 320x199, 1 or 2 frames, compressed.
 PI1:: "DEGAS", up to 416x560, 16 colors.
 PI2:: "DEGAS", 640x200, 4 colors.
 PI3:: "DEGAS", 640x400, mono.
@@ -163,6 +163,11 @@ Atari Portfolio
 [horizontal]
 PGC:: 240x64, mono, compressed.
 PGF:: 240x64, mono.
+
+"2 frames" above means the picture is composed of two quickly alternating frames so that
+a human perceives more colors (for example black alternated with gray looks like dark gray).
+On Atari 8-bit this technique is commonly (but incorrectly) referred to as "interlace".
+Likewise, "3 frames" means three different alternating pictures and more flickering.
 
 You can find some sample files in http://fail.sourceforge.net/examples.zip[examples.zip].
 
@@ -195,6 +200,7 @@ Added ICE PCIN (IPC), Daisy-Dot font (NLQ), PMG Designer (PMD),
 AtariTools-800 font (ACS), PhotoChrome (PCS).
 Fixed decoding of RIP, TIP, SGE, HR2, AGP, AP3/APV/DGP/ESC/ILC/PZM, APP, CIN, CCI.
 FAILWin and XnView show the Atari computer family of the file format.
+FAILWin shows the number of alternating frames.
 Reduced CPU and memory usage in fail2png.
 
 FAIL 1.4.0 (2012-11-28)::
