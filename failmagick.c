@@ -115,6 +115,7 @@ static const struct Format {
 	{ "4MI", "AtariTools-800 4 mono missiles" },
 	{ "4PL", "AtariTools-800 4 mono players" },
 	{ "4PM", "AtariTools-800 4 mono players and 4 mono missiles" },
+	{ "A4R", "Anime 4ever; 80x256, 16-level grayscale, compressed" },
 	{ "ACS", "AtariTools-800 4x8 font, 4 colors" },
 	{ "AGP", "AtariTools-800 graphic" },
 	{ "ALL", "Graph; 160x192, 5 colors" },

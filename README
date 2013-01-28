@@ -49,6 +49,7 @@ Atari 8-bit
 4MI:: "AtariTools-800" 4 mono missiles 2x240 each.
 4PL:: "AtariTools-800" 4 mono players 8x240 each.
 4PM:: "AtariTools-800" 4 mono players 8x240 each plus 4 mono missiles 2x240 each.
+A4R:: "Anime 4ever", 80x256, 16-level grayscale, compressed.
 ACS:: "AtariTools-800" 4x8 font, 4 colors.
 AGP:: "AtariTools-800" graphic.
 ALL:: "Graph", 160x192, 5 colors.
@@ -199,7 +200,7 @@ FAIL 2.0.0 (2013-??-??)::
 Library rewritten from C to the Ć programming language.
 Created HTML 5 port.
 Added ICE PCIN (IPC), Daisy-Dot font (NLQ), PMG Designer (PMD),
-AtariTools-800 font (ACS), PhotoChrome (PCS), HPM, MCS.
+AtariTools-800 font (ACS), PhotoChrome (PCS), HPM, MCS, Anime 4ever (A4R).
 Fixed decoding of RIP, TIP, SGE, HR2, AGP, AP3/APV/DGP/ESC/ILC/PZM, APP, CIN, CCI.
 FAILWin and XnView show the Atari computer family of the file format.
 FAILWin shows the number of alternating frames.
