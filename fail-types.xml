@@ -59,6 +59,7 @@
 	<type ext="mbg" />
 	<type ext="mch" />
 	<type ext="mcp" acronym="MCPainter" />
+	<type ext="mcs" />
 	<type ext="mgp" acronym="Magic Painter" />
 	<type ext="mic" acronym="MICro illustrator" />
 	<type ext="mis" acronym="MISsile" />

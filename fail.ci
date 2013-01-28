@@ -3418,6 +3418,59 @@ public class FAIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeMcs(byte[] content, int contentLength)
+	{
+		if (contentLength != 10185)
+			return false;
+		// "Super Bilder.atr" slideshow:
+		// 9 bytes: COLPM0-3, COLPF0-3, COLBAK
+		// 8192 bytes: 8 fonts (one font per 3 character lines)
+		// 960 bytes: 40x24 characters
+		// 640 bytes: missiles and four players
+		// 384 bytes: apparently unused
+		SetSize(320, 192, FAILResolution.Xe2x1);
+		byte[320 * 192] frame;
+		for (int y = 0; y < 192; y++) {
+			int fontOffset = 9 + (y / 24 << 10);
+			for (int x = 0; x < 320; x++) {
+				int ch = content[9 + 8192 + (y >> 3) * 40 + (x >> 3)];
+				int c;
+				switch (content[fontOffset + ((ch & 0x7f) << 3) + (y & 7)] >> (~x & 6) & 3) {
+				case 0:
+					// Sprites are 4x width, arranged next to each other in the following order:
+					// P0 M0 P1 M1 P2 M2 P3 M3
+					c = x / 80; // player/missile number
+					int pmgBit = (x >> 3) % 10;
+					int pmgOffset;
+					if (pmgBit < 8) {
+						// player
+						pmgBit = 7 - pmgBit;
+						pmgOffset = 9 + 8192 + 960 + 128 + 16 + (c << 7);
+					}
+					else {
+						// missile
+						pmgBit = (c << 1) | (pmgBit ^ 9);
+						pmgOffset = 9 + 8192 + 960 + 16;
+					}
+					if ((content[pmgOffset + (y >> 1)] >> pmgBit & 1) == 0)
+						c = 8; // COLBAK
+					break;
+				case 1:
+					c = 4;
+					break;
+				case 2:
+					c = 5;
+					break;
+				case 3:
+					c = 6 + (ch >> 7);
+					break;
+				}
+				frame[y * 320 + x] = content[c] & 0xfe;
+			}
+		}
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodeIpc(byte[] content, int contentLength)
 	{
 		if (contentLength != 17354 || content[0] != 1)
@@ -3981,6 +4034,7 @@ public class FAIL
 		case PACKED_EXT("MBG"):
 		case PACKED_EXT("MCH"):
 		case PACKED_EXT("MCP"):
+		case PACKED_EXT("MCS"):
 		case PACKED_EXT("MGP"):
 		case PACKED_EXT("MIC"):
 		case PACKED_EXT("MIS"):
@@ -4155,6 +4209,8 @@ public class FAIL
 			return DecodeMch(content, contentLength);
 		case PACKED_EXT("MCP"):
 			return DecodeMcp(content, contentLength);
+		case PACKED_EXT("MCS"):
+			return DecodeMcs(content, contentLength);
 		case PACKED_EXT("MGP"):
 			return DecodeMgp(content, contentLength);
 		case PACKED_EXT("MIC"):

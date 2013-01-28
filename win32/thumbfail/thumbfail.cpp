@@ -74,11 +74,11 @@ static const char extensions[][5] =
 	  ".drg", ".esc", ".fnt", ".ftc", ".fwa", ".g09", ".g10", ".g11", ".gfb", ".ghg",
 	  ".god", ".gr7", ".gr8", ".gr9", ".hip", ".hpm", ".hr",  ".hr2", ".ige", ".ilc",
 	  ".ing", ".inp", ".int", ".ipc", ".ist", ".jgp", ".max", ".mbg", ".mch", ".mcp",
-	  ".mgp", ".mic", ".mis", ".neo", ".nlq", ".pac", ".pc1", ".pc2", ".pc3", ".pcs",
-	  ".pgc", ".pgf", ".pi1", ".pi2", ".pi3", ".pi4", ".pi9", ".pic", ".pla", ".plm",
-	  ".pmd", ".pzm", ".raw", ".rgb", ".rip", ".rm0", ".rm1", ".rm2", ".rm3", ".rm4",
-	  ".sge", ".shc", ".shp", ".spc", ".sps", ".spu", ".sxs", ".tip", ".tn1", ".tn2",
-	  ".tn3", ".tny", ".trp", ".tru", ".wnd", ".xlp" };
+	  ".mcs", ".mgp", ".mic", ".mis", ".neo", ".nlq", ".pac", ".pc1", ".pc2", ".pc3",
+	  ".pcs", ".pgc", ".pgf", ".pi1", ".pi2", ".pi3", ".pi4", ".pi9", ".pic", ".pla",
+	  ".plm", ".pmd", ".pzm", ".raw", ".rgb", ".rip", ".rm0", ".rm1", ".rm2", ".rm3",
+	  ".rm4", ".sge", ".shc", ".shp", ".spc", ".sps", ".spu", ".sxs", ".tip", ".tn1",
+	  ".tn2", ".tn3", ".tny", ".trp", ".tru", ".wnd", ".xlp" };
 #define N_EXTS (int) (sizeof(extensions) / sizeof(extensions[0]))
 
 static HINSTANCE g_hDll;

@@ -171,6 +171,7 @@ static const struct Format {
 	{ "MBG", "Mad Designer; 512x256, mono" },
 	{ "MCH", "Graph2Font; up to 176x240, 128 colors" },
 	{ "MCP", "McPainter; 160x200, 16 colors, 2 frames" },
+	{ "MCS", "160x192, 9 colors" },
 	{ "MIC", "Micro Illustrator; up to 160x240, 4 colors" },
 	{ "MIS", "AtariTools-800 missile; 2x240, mono" },
 	{ "NEO", "NEOchrome" },
