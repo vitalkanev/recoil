@@ -156,6 +156,7 @@ static const struct Format {
 	{ "GR8", "Graphics 8; up to 320x240, mono" },
 	{ "GR9", "Graphics 9; up to 80x240, 16-level grayscale" },
 	{ "HIP", "Hard Interlace Picture; 160x200, grayscale, 2 frames" },
+	{ "HPM", "Grass' Slideshow; 160x192, 4 colors, compressed" },
 	{ "HR", "256x239, 3 colors, 2 frames" },
 	{ "HR2", "320x200, 5 colors, 2 frames" },
 	{ "IGE", "Interlace Graphics Editor; 128x96, 16 colors, 2 frames" },

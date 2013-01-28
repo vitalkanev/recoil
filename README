@@ -76,6 +76,7 @@ GR7:: "Graphics 7", up to 160x120, 4 colors.
 GR8:: "Graphics 8", up to 320x240, mono.
 GR9:: "Graphics 9", up to 80x240, 16-level grayscale.
 HIP:: "Hard Interlace Picture", 160x200, grayscale, 2 frames.
+HPM:: "Grass' Slideshow", 160x192, 4 colors, compressed.
 HR:: 256x239, 3 colors, 2 frames.
 HR2:: 320x200, 5 colors, 2 frames.
 IGE:: "Interlace Graphics Editor", 128x96, 16 colors, 2 frames.
@@ -197,7 +198,7 @@ FAIL 2.0.0 (2013-??-??)::
 Library rewritten from C to the Ć programming language.
 Created HTML 5 port.
 Added ICE PCIN (IPC), Daisy-Dot font (NLQ), PMG Designer (PMD),
-AtariTools-800 font (ACS), PhotoChrome (PCS).
+AtariTools-800 font (ACS), PhotoChrome (PCS), Grass' Slideshow (HPM).
 Fixed decoding of RIP, TIP, SGE, HR2, AGP, AP3/APV/DGP/ESC/ILC/PZM, APP, CIN, CCI.
 FAILWin and XnView show the Atari computer family of the file format.
 FAILWin shows the number of alternating frames.

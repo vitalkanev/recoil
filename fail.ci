@@ -149,6 +149,25 @@ abstract class RleStream : BitStream
 	}
 }
 
+class HpmStream : RleStream
+{
+	override bool ReadCommand()
+	{
+		int b = ReadByte();
+		if (b < 0)
+			return false;
+		if (b == 0) {
+			RepeatValue = ReadByte();
+			RepeatCount = ReadByte();
+		}
+		else {
+			RepeatCount = b;
+			RepeatValue = -1;
+		}
+		return true;
+	}
+}
+
 class PgcStream : RleStream
 {
 	override bool ReadCommand()
@@ -2080,6 +2099,73 @@ public class FAIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeHpm(byte[] content, int contentLength)
+	{
+		// This format appears in Grass' Slideshow.
+		byte[7684] unpacked;
+		HpmStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 0;
+		rle.ContentLength = contentLength;
+		if (!rle.Unpack(unpacked, 0, 1, 7680))
+			return false;
+
+		// Colors aren't stored in the file.
+		// Yvonne (http://atari8.sourceforge.net) sets colors according to filenames
+		// (note Grass' Slideshow and Yvonne were programmed by the same guy).
+		// I have found out that the last byte of the file is COLPF0.
+		// Other colors can be deduced from this one.
+		// One exception is JORDAN.HPM, which I additionally match by length (3494 bytes).
+		switch (rle.ReadByte()) {
+		case 0x34: // ALIEN.HPM, DN.HPM, HPZ.HPM, RAPER.HPM, SALEM.HPM, ZWIEWKA.HPM, JORDAN.HPM
+		case 0x35: // KOPALNY.HPM
+			unpacked[7680] = 0x00;
+			unpacked[7681] = 0x34;
+			unpacked[7682] = contentLength == 3494 ? 0x38 : 0xc8;
+			unpacked[7683] = contentLength == 3494 ? 0x3c : 0x7c;
+			break;
+		case 0x51: // CZASZKA.HPM
+			unpacked[7680] = 0xa4;
+			unpacked[7681] = 0x51;
+			unpacked[7682] = 0xb9;
+			unpacked[7683] = 0x7c;
+			break;
+		case 0xe4: // FSILY.HPM
+			unpacked[7680] = 0x00;
+			unpacked[7681] = 0xe4;
+			unpacked[7682] = 0xc8;
+			unpacked[7683] = 0xbe;
+			break;
+		case 0x04: // GIRL.HPM
+			unpacked[7680] = 0x06;
+			unpacked[7681] = 0x04;
+			unpacked[7682] = 0x00;
+			unpacked[7683] = 0x0a;
+			break;
+		case 0x30: // KISS.HPM
+			unpacked[7680] = 0x0e;
+			unpacked[7681] = 0x30;
+			unpacked[7682] = 0xc7;
+			unpacked[7683] = 0x7b;
+			break;
+		case 0x74: // STAR.HPM, VIVALDI.HPM
+			unpacked[7680] = 0x00;
+			unpacked[7681] = 0x74; // for STAR.HPM Yvonne uses 0x64, unlike the slideshow
+			unpacked[7682] = 0x58;
+			unpacked[7683] = 0x7e;
+			break;
+		case 0x05: // FATHER.HPM
+		default: // just in case
+			unpacked[7680] = 0x00;
+			unpacked[7681] = 0x04;
+			unpacked[7682] = 0x08;
+			unpacked[7683] = 0x0c;
+			break;
+		}
+
+		return DecodeMic(unpacked, 7684);
+	}
+
 	bool DecodePic(byte[] content, int contentLength)
 	{
 		byte[7680] unpacked;
@@ -3881,6 +3967,7 @@ public class FAIL
 		case PACKED_EXT("GR8"):
 		case PACKED_EXT("GR9"):
 		case PACKED_EXT("HIP"):
+		case PACKED_EXT("HPM"):
 		case PACKED_EXT("HR"):
 		case PACKED_EXT("HR2"):
 		case PACKED_EXT("IGE"):
@@ -4041,6 +4128,8 @@ public class FAIL
 			return DecodeGr9(content, contentLength);
 		case PACKED_EXT("HIP"):
 			return DecodeHip(content, contentLength);
+		case PACKED_EXT("HPM"):
+			return DecodeHpm(content, contentLength);
 		case PACKED_EXT("HR"):
 			return DecodeHr(content, contentLength);
 		case PACKED_EXT("HR2"):
