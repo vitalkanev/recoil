@@ -205,6 +205,7 @@ Added ICE PCIN (IPC), Daisy-Dot font (NLQ), PMG Designer (PMD),
 AtariTools-800 font (ACS), PhotoChrome (PCS), HPM, MCS, Anime 4ever (A4R),
 DuneGraph compressed (DGC, DC1), Canvas compressed (CPT).
 Fixed decoding of RIP, TIP, SGE, HR2, AGP, AP3/APV/DGP/ESC/ILC/PZM, APP, CIN, CCI.
+Added auto-detection of Atari STE 4096-color palette.
 FAILWin and XnView show the Atari computer family of the file format.
 FAILWin shows the number of alternating frames.
 Reduced CPU and memory usage in fail2png.

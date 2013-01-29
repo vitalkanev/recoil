@@ -29,6 +29,8 @@ enum FAILResolution
 	Xe4x2,
 	St1x1,
 	St1x2,
+	Ste1x1,
+	Ste1x2,
 	Falcon1x1,
 	Portfolio1x1
 }
@@ -967,6 +969,9 @@ public class FAIL
 		case FAILResolution.St1x1:
 		case FAILResolution.St1x2:
 			return "Atari ST";
+		case FAILResolution.Ste1x1:
+		case FAILResolution.Ste1x2:
+			return "Atari STE";
 		case FAILResolution.Falcon1x1:
 			return "Atari Falcon";
 		case FAILResolution.Portfolio1x1:
@@ -998,6 +1003,7 @@ public class FAIL
 		case FAILResolution.Xe2x2:
 		case FAILResolution.Xe4x2:
 		case FAILResolution.St1x2:
+		case FAILResolution.Ste1x2:
 			return Height >> 1;
 		default:
 			return Height;
@@ -1142,51 +1148,78 @@ public class FAIL
 		return DecodeDoo(unpacked, 32000);
 	}
 
-	static int GetStColor(byte[] content, int contentOffset)
+	static bool IsStePalette(byte[] content, int contentOffset, int colors)
 	{
-		int rgb = (content[contentOffset] & 7) << 16
-			| (content[contentOffset + 1] & 0x70) << 4
-			| content[contentOffset + 1] & 7;
-		return rgb << 5 | rgb << 2 | rgb >> 1 & 0x030303;
+		while (--colors >= 0) {
+			if ((content[contentOffset] & 8) != 0 || (content[contentOffset + 1] & 0x88) != 0)
+				return true;
+			contentOffset += 2;
+		}
+		return false;
 	}
 
-	void SetStPalette(byte[] content, int contentOffset)
+	int GetStColor(byte[] content, int contentOffset)
 	{
-		for (int i = 0; i < 16; i++)
-			Atari16Palette[i] = GetStColor(content, contentOffset + i * 2);
+		int r = content[contentOffset];
+		int gb = content[contentOffset + 1];
+		int rgb;
+		switch (Resolution) {
+		case FAILResolution.Ste1x1:
+		case FAILResolution.Ste1x2:
+			// STE 4096 colors
+			// xxxxrRRR gGGGbBBB -> 0000RRRr0000GGGg0000BBBb
+			rgb = (r & 7) << 17 | (r & 8) << 13
+				| (gb & 0x70) << 5 | (gb & 0x87) << 1 | (gb & 8) >> 3;
+			return rgb << 4 | rgb;
+		default:
+			// ST 512 colors
+			// xxxx0RRR 0GGG0BBB -> 00000RRR00000GGG00000BBB
+			rgb = (r & 7) << 16
+				| (gb & 0x70) << 4
+				| (gb & 7);
+			return rgb << 5 | rgb << 2 | (rgb >> 1 & 0x030303);
+		}
 	}
 
-	bool DecodeStLow(byte[] content, int contentOffset, int width, int height)
+	void SetStPalette(byte[] content, int contentOffset, int colors)
 	{
-		SetSize(width, height, FAILResolution.St1x1);
-		DecodeBitplanes(content, contentOffset, 1, 0, width * height);
+		for (int c = 0; c < colors; c++)
+			Atari16Palette[c] = GetStColor(content, contentOffset + c * 2);
+	}
+
+	bool DecodeStLow(byte[] bitmap, int bitmapOffset, byte[] palette, int paletteOffset, int width, int height)
+	{
+		SetSize(width, height, IsStePalette(palette, paletteOffset, 16) ? FAILResolution.Ste1x1 : FAILResolution.St1x1);
+		SetStPalette(palette, paletteOffset, 16);
+		DecodeBitplanes(bitmap, bitmapOffset, 1, 0, width * height);
 		return true;
 	}
 
-	void DecodeStMedium(byte[] content, int contentOffset)
+	void DecodeStMedium(byte[] bitmap, int bitmapOffset, byte[] palette, int paletteOffset)
 	{
-		SetSize(640, 400, FAILResolution.St1x2);
+		SetSize(640, 400, IsStePalette(palette, paletteOffset, 4) ? FAILResolution.Ste1x2 : FAILResolution.St1x2);
+		SetStPalette(palette, paletteOffset, 4);
 		for (int y = 0; y < 200; y++) {
 			for (int x = 0; x < 640; x++) {
-				int offset = contentOffset + y * 160 + (x >> 2 & ~3) + (x >> 3 & 1);
+				int offset = bitmapOffset + y * 160 + (x >> 2 & ~3) + (x >> 3 & 1);
 				int bit = ~x & 7;
-				int c = content[offset] >> bit & 1 | (content[offset + 2] >> bit & 1) << 1;
+				int c = bitmap[offset] >> bit & 1 | (bitmap[offset + 2] >> bit & 1) << 1;
 				int pixelsOffset = y * 1280 + x;
 				Pixels[pixelsOffset + 640] = Pixels[pixelsOffset] = Atari16Palette[c];
 			}
 		}
 	}
 
-	bool DecodeSt(byte[] content, int contentOffset, int mode)
+	bool DecodeSt(byte[] bitmap, int bitmapOffset, byte[] palette, int paletteOffset, int mode)
 	{
 		switch (mode) {
 		case 0:
-			return DecodeStLow(content, contentOffset, 320, 200);
+			return DecodeStLow(bitmap, bitmapOffset, palette, paletteOffset, 320, 200);
 		case 1:
-			DecodeStMedium(content, contentOffset);
+			DecodeStMedium(bitmap, bitmapOffset, palette, paletteOffset);
 			return true;
 		case 2:
-			DecodeBlackAndWhite(content, contentOffset, 640, 400, FAILResolution.St1x1);
+			DecodeBlackAndWhite(bitmap, bitmapOffset, 640, 400, FAILResolution.St1x1);
 			return true;
 		default:
 			return false;
@@ -1201,18 +1234,15 @@ public class FAIL
 		case 32034: // DEGAS
 		case 32066: // DEGAS Elite
 		case 32128: // TROUBLE.PI1
-			SetStPalette(content, 2);
-			return DecodeSt(content, 34, content[1]);
+			return DecodeSt(content, 34, content, 2, content[1]);
 		case 44834: // 280 lines overscan
 			if (content[1] != 0)
 				return false;
-			SetStPalette(content, 2);
-			return DecodeStLow(content, 34, 320, 280);
+			return DecodeStLow(content, 34, content, 2, 320, 280);
 		case 116514: // 416x560 FORESTV.PI1
 			if (content[1] != 0)
 				return false;
-			SetStPalette(content, 2);
-			return DecodeStLow(content, 34, 416, 560);
+			return DecodeStLow(content, 34, content, 2, 416, 560);
 		default:
 			return false;
 		}
@@ -1238,24 +1268,21 @@ public class FAIL
 				}
 			}
 		}
-		SetStPalette(content, 2);
-		return DecodeSt(unpacked, 0, content[1]);
+		return DecodeSt(unpacked, 0, content, 2, content[1]);
 	}
 
 	bool DecodeNeo(byte[] content, int contentLength)
 	{
 		if (contentLength != 32128 || content[0] != 0 || content[1] != 0 || content[2] != 0)
 			return false;
-		SetStPalette(content, 4);
-		return DecodeSt(content, 128, content[3]);
+		return DecodeSt(content, 128, content, 4, content[3]);
 	}
 
 	bool DecodeArtDirector(byte[] content, int contentLength)
 	{
 		if (contentLength != 32512)
 			return false;
-		SetStPalette(content, 32000);
-		return DecodeStLow(content, 0, 320, 200);
+		return DecodeStLow(content, 0, content, 32000, 320, 200);
 	}
 
 	bool DecodeGfb(byte[] content, int contentLength)
@@ -1339,14 +1366,12 @@ public class FAIL
 		case 0:
 			if (contentOffset + 32000 != contentLength)
 				return false;
-			SetStPalette(content, 4);
-			return DecodeSt(content, contentOffset, content[3]);
+			return DecodeSt(content, contentOffset, content, 4, content[3]);
 		case 1:
 			byte[32000] unpacked;
 			if (!CaStream.UnpackCa(content, contentOffset, contentLength, unpacked, 0))
 				return false;
-			SetStPalette(content, 4);
-			return DecodeSt(unpacked, 0, content[3]);
+			return DecodeSt(unpacked, 0, content, 4, content[3]);
 		default:
 			return false;
 		}
@@ -1390,8 +1415,7 @@ public class FAIL
 			}
 		}
 
-		SetStPalette(content, contentOffset + 1);
-		return DecodeSt(unpacked, 0, mode);
+		return DecodeSt(unpacked, 0, content, contentOffset + 1, mode);
 	}
 
 	bool DecodeCpt(byte[] content, int contentLength)
@@ -1436,15 +1460,14 @@ public class FAIL
 			}
 		}
 
-		SetStPalette(content, 0);
-		return DecodeSt(unpacked, 0, content[33]);
+		return DecodeSt(unpacked, 0, content, 0, content[33]);
 	}
 
 	bool DecodeSpu(byte[] content, int contentLength)
 	{
 		if (contentLength != 51104)
 			return false;
-		SetSize(320, 199, FAILResolution.St1x1);
+		SetSize(320, 199, IsStePalette(content, 32000, 199 * 3 * 16) ? FAILResolution.Ste1x1 : FAILResolution.St1x1);
 		int pixelsOffset = 0;
 		for (int y = 0; y < 199; y++) {
 			for (int x = 0; x < 320; x++) {
@@ -1621,7 +1644,8 @@ public class FAIL
 		byte[PcsStream.UnpackedLength] unpacked1;
 		if (!rle.UnpackPcs(unpacked1))
 			return false;
-		SetSize(320, 199, FAILResolution.St1x1);
+		// FIXME: I only check if first screen's colors are STE
+		SetSize(320, 199, IsStePalette(unpacked1, 32000, 9616) ? FAILResolution.Ste1x1 : FAILResolution.St1x1);
 		DecodePcsScreen(unpacked1, 0);
 		if (content[4] == 0)
 			return true; // single screen
