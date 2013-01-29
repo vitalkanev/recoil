@@ -511,10 +511,10 @@ class CaStream : RleStream
 			return false;
 		int unpackedOffset = 0;
 		for (int block = 0; block < blocks; block++) {
-			int contentNextOffset = contentOffset + FAIL.Get32BigEndian(content, block << 2);
-			if (!UnpackCa(content, contentOffset, contentNextOffset, unpacked, unpackedOffset))
+			int nextContentOffset = contentOffset + FAIL.Get32BigEndian(content, block << 2);
+			if (!UnpackCa(content, contentOffset, nextContentOffset, unpacked, unpackedOffset))
 				return false;
-			contentOffset = contentNextOffset;
+			contentOffset = nextContentOffset;
 			unpackedOffset += 32000;
 		}
 		if (blocks == 2) {
@@ -1646,6 +1646,55 @@ public class FAIL
 		 || content[4] != 1 || content[5] != 64 || content[6] != 0 || content[7] != 200)
 			return false;
 		DecodeFalconPalette320(content, 1032, 8, 200);
+		return true;
+	}
+
+	bool DecodeDgc(byte[] content, int contentLength)
+	{
+		if (contentLength < 1042
+		 || content[0] != 'D' || content[1] != 'G' || content[2] != 'C' || content[3] > 3
+		 || content[4] != 1 || content[5] != 64 || content[6] != 0 || content[7] != 200)
+			return false;
+		if (content[3] == 0) {
+			if (contentLength != 65034)
+				return false;
+			DecodeFalconPalette320(content, 1034, 10, 200);
+			return true;
+		}
+
+		byte[64000] unpacked;
+		int contentOffset = 1038;
+		int valueBytes = 1 << content[3] - 1; // 1, 2 or 4
+		int repeatCount = 0;
+		for (int bitplane = 0; bitplane < 16; bitplane += 2) {
+			for (int unpackedOffset = bitplane; unpackedOffset < 64000; unpackedOffset += 16) {
+				for (int x = 0; x < 2; x++) {
+					if (repeatCount == 0) {
+						int nextContentOffset = contentOffset + content[3] * 2;
+						if (nextContentOffset > contentLength)
+							return false;
+						switch (content[3]) {
+						case 1:
+							repeatCount = content[contentOffset] + 1;
+							break;
+						case 2:
+							repeatCount = (content[contentOffset] << 8) + content[contentOffset + 1] + 1 << 1;
+							break;
+						case 3:
+							repeatCount = (content[contentOffset] << 8) + content[contentOffset + 1] + 1 << 2;
+							break;
+						}
+						contentOffset = nextContentOffset;
+					}
+					repeatCount--;
+					unpacked[unpackedOffset + x] = content[contentOffset - valueBytes + (~repeatCount & valueBytes - 1)];
+				}
+			}
+		}
+
+		SetFalconPalette(content, 10);
+		SetSize(320, 200, FAILResolution.Falcon1x1);
+		DecodeBitplanes(unpacked, 0, 0, 0, 320 * 200);
 		return true;
 	}
 
@@ -4145,8 +4194,10 @@ public class FAIL
 		case PACKED_EXT("CHR"):
 		case PACKED_EXT("CIN"):
 		case PACKED_EXT("CPR"):
+		case PACKED_EXT("DC1"):
 		case PACKED_EXT("DEL"):
 		case PACKED_EXT("DG1"):
+		case PACKED_EXT("DGC"):
 		case PACKED_EXT("DGU"):
 		case PACKED_EXT("DLM"):
 		case PACKED_EXT("DOO"):
@@ -4291,6 +4342,9 @@ public class FAIL
 			return DecodeCin(content, contentLength);
 		case PACKED_EXT("CPR"):
 			return DecodeCpr(content, contentLength);
+		case PACKED_EXT("DC1"):
+		case PACKED_EXT("DGC"):
+			return DecodeDgc(content, contentLength);
 		case PACKED_EXT("DEL"):
 			return DecodeDel(content, contentLength);
 		case PACKED_EXT("DG1"):
