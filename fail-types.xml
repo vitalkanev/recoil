@@ -23,6 +23,7 @@
 	<type ext="chr" />
 	<type ext="cin" acronym="Champions' INterlace" />
 	<type ext="cpr" />
+	<type ext="cpt" />
 	<type ext="dc1" acronym="Dunegraph Compressed" />
 	<type ext="del" acronym="DELmpaint" />
 	<type ext="dg1" acronym="DuneGraph" />

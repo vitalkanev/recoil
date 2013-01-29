@@ -135,6 +135,7 @@ static const struct Format {
 	{ "CHR", "Blazing Paddles font; mono" },
 	{ "CIN", "Champions' Interlace; 160x192 or 160x200, 2 frames" },
 	{ "CPR", "Trzmiel; 320x192, mono, compressed" },
+	{ "CPT", "Canvas; compressed" },
 	{ "DC1", "DuneGraph; 320x200, 256 colors, compressed" },
 	{ "DEL", "DelmPaint; 320x240, 256 colors, compressed" },
 	{ "DG1", "DuneGraph; 320x200, 256 colors" },

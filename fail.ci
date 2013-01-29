@@ -1394,6 +1394,52 @@ public class FAIL
 		return DecodeSt(unpacked, 0, mode);
 	}
 
+	bool DecodeCpt(byte[] content, int contentLength)
+	{
+		if (contentLength < 40 || content[32] != 0 || content[33] > 2)
+			return false;
+		int bitplanes = 4 >> content[33];
+		byte[32000] unpacked;
+		byte[16000] isFilled = 0;
+		int contentOffset = 34;
+
+		// RLE
+		for (;;) {
+			int nextContentOffset = contentOffset + 4 + bitplanes * 2;
+			if (nextContentOffset > contentLength)
+				return false;
+			int repeatCount = content[contentOffset] << 8 | content[contentOffset + 1];
+			if (repeatCount == 0xffff) {
+				contentOffset = nextContentOffset;
+				break;
+			}
+			int offset = (content[contentOffset + 2] << 8 | content[contentOffset + 3]) * bitplanes;
+			do {
+				if (offset >= 16000)
+					return false;
+				for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
+					unpacked[offset * 2] = content[contentOffset + 4 + bitplane * 2];
+					unpacked[offset * 2 + 1] = content[contentOffset + 4 + bitplane * 2 + 1];
+					isFilled[offset++] = 1;
+				}
+			} while (--repeatCount >= 0);
+			contentOffset = nextContentOffset;
+		}
+
+		// fill in holes
+		for (int offset = 0; offset < 16000; offset++) {
+			if (isFilled[offset] == 0) {
+				if (contentOffset + 1 >= contentLength)
+					return false;
+				unpacked[offset * 2] = content[contentOffset++];
+				unpacked[offset * 2 + 1] = content[contentOffset++];
+			}
+		}
+
+		SetStPalette(content, 0);
+		return DecodeSt(unpacked, 0, content[33]);
+	}
+
 	bool DecodeSpu(byte[] content, int contentLength)
 	{
 		if (contentLength != 51104)
@@ -4194,6 +4240,7 @@ public class FAIL
 		case PACKED_EXT("CHR"):
 		case PACKED_EXT("CIN"):
 		case PACKED_EXT("CPR"):
+		case PACKED_EXT("CPT"):
 		case PACKED_EXT("DC1"):
 		case PACKED_EXT("DEL"):
 		case PACKED_EXT("DG1"):
@@ -4342,6 +4389,8 @@ public class FAIL
 			return DecodeCin(content, contentLength);
 		case PACKED_EXT("CPR"):
 			return DecodeCpr(content, contentLength);
+		case PACKED_EXT("CPT"):
+			return DecodeCpt(content, contentLength);
 		case PACKED_EXT("DC1"):
 		case PACKED_EXT("DGC"):
 			return DecodeDgc(content, contentLength);

@@ -126,10 +126,11 @@ Documentation for Rambrandt suggests RM0-RM4 for the compressed files, I also us
 Atari ST
 ~~~~~~~~
 [horizontal]
-ART:: "Art Director", 320x200, 16 colors, compressed.
+ART:: "Art Director", 320x200, 16 colors.
 CA1:: "CrackArt", 320x200, 16 colors, compressed.
 CA2:: "CrackArt", 640x200, 4 colors, compressed.
 CA3:: "CrackArt", 640x400, mono, compressed.
+CPT:: "Canvas", compressed.
 DOO:: "Doodle", 640x400, mono.
 GFB:: "DeskPic".
 NEO:: "NEOchrome".
@@ -202,7 +203,7 @@ Library rewritten from C to the Ć programming language.
 Created HTML 5 port.
 Added ICE PCIN (IPC), Daisy-Dot font (NLQ), PMG Designer (PMD),
 AtariTools-800 font (ACS), PhotoChrome (PCS), HPM, MCS, Anime 4ever (A4R),
-DuneGraph compressed (DGC, DC1).
+DuneGraph compressed (DGC, DC1), Canvas compressed (CPT).
 Fixed decoding of RIP, TIP, SGE, HR2, AGP, AP3/APV/DGP/ESC/ILC/PZM, APP, CIN, CCI.
 FAILWin and XnView show the Atari computer family of the file format.
 FAILWin shows the number of alternating frames.
