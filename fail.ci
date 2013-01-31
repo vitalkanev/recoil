@@ -1086,6 +1086,26 @@ public class FAIL
 		return true;
 	}
 
+	bool DecodeBru(byte[] content, int contentLength)
+	{
+		if (contentLength != 64)
+			return false;
+		SetSize(8, 8, FAILResolution.St1x1);
+		for (int i = 0; i < 64; i++) {
+			switch (content[i]) {
+			case 0:
+				Pixels[i] = 0x000000;
+				break;
+			case 1:
+				Pixels[i] = 0xffffff;
+				break;
+			default:
+				return false;
+			}
+		}
+		return true;
+	}
+
 	/// Atari ST/Falcon/Portfolio palette.
 	/// Unlike Atari 8-bit, this palette is always decoded from the image file.
 	int[256] Atari16Palette;
@@ -4504,6 +4524,7 @@ public class FAIL
 		case PACKED_EXT("BG9"):
 		case PACKED_EXT("G09"):
 		case PACKED_EXT("BKG"):
+		case PACKED_EXT("BRU"):
 		case PACKED_EXT("CA1"):
 		case PACKED_EXT("CA2"):
 		case PACKED_EXT("CA3"):
@@ -4652,6 +4673,8 @@ public class FAIL
 			return DecodeG09(content, contentLength);
 		case PACKED_EXT("BKG"):
 			return DecodeBkg(content, contentLength);
+		case PACKED_EXT("BRU"):
+			return DecodeBru(content, contentLength);
 		case PACKED_EXT("CA1"):
 		case PACKED_EXT("CA2"):
 		case PACKED_EXT("CA3"):

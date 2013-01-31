@@ -131,6 +131,7 @@ static const struct Format {
 	{ "BL1", "DEGAS Elite block; 16 colors" },
 	{ "BL2", "DEGAS Elite block; 4 colors" },
 	{ "BL3", "DEGAS Elite block; mono" },
+	{ "BRU", "DEGAS Elite brush; 8x8, mono" },
 	{ "CA1", "CrackArt; 320x200, 16 colors, compressed" },
 	{ "CA2", "CrackArt; 640x200, 4 colors, compressed" },
 	{ "CA3", "CrackArt; 640x400, mono, compressed" },
