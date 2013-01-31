@@ -127,12 +127,16 @@ Atari ST
 ~~~~~~~~
 [horizontal]
 ART:: "Art Director", 320x200, 16 colors.
+BL1:: "DEGAS Elite" block, 16 colors.
+BL2:: "DEGAS Elite" block, 4 colors.
+BL3:: "DEGAS Elite" block, mono.
 CA1:: "CrackArt", 320x200, 16 colors, compressed.
 CA2:: "CrackArt", 640x200, 4 colors, compressed.
 CA3:: "CrackArt", 640x400, mono, compressed.
 CPT:: "Canvas", compressed.
 DOO:: "Doodle", 640x400, mono.
 GFB:: "DeskPic".
+IFF:: "Interchange File Format", compressed.
 NEO:: "NEOchrome".
 PAC:: "STAD", 640x400, mono, compressed.
 PC1:: "DEGAS Elite", 320x200, 16 colors, compressed.
@@ -203,7 +207,8 @@ Library rewritten from C to the Ć programming language.
 Created HTML 5 port.
 Added ICE PCIN (IPC), Daisy-Dot font (NLQ), PMG Designer (PMD),
 AtariTools-800 font (ACS), PhotoChrome (PCS), HPM, MCS, Anime 4ever (A4R),
-DuneGraph compressed (DGC, DC1), Canvas compressed (CPT).
+DuneGraph compressed (DGC, DC1), Canvas compressed (CPT),
+Interchange File Format (IFF), DEGAS Elite block (BL1, BL2, BL3).
 Fixed decoding of RIP, TIP, SGE, HR2, AGP, AP3/APV/DGP/ESC/ILC/PZM, APP, CIN, CCI.
 Added auto-detection of Atari STE 4096-color palette.
 FAILWin and XnView show the Atari computer family of the file format.

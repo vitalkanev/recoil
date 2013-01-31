@@ -32,7 +32,8 @@ enum FAILResolution
 	Ste1x1,
 	Ste1x2,
 	Falcon1x1,
-	Portfolio1x1
+	Portfolio1x1,
+	Amiga1x1
 }
 
 /// Readable in-memory stream of bits, most-significant bit first.
@@ -226,7 +227,7 @@ class CciStream : RleStream
 	}
 }
 
-class PcStream : RleStream
+class PackBitsStream : RleStream
 {
 	override bool ReadCommand()
 	{
@@ -656,6 +657,34 @@ class PcsStream : TnyPcsStream
 	}
 }
 
+// Similar to TNY. Differences:
+// 1. Word-sized counts belong to data, not commands.
+// 2. Commands 0 and 1 are swapped.
+class VdatStream : TnyStream
+{
+	override bool ReadCommand()
+	{
+		int b = ReadByte();
+		if (b < 0)
+			return false;
+		if (b < 128) {
+			if (b == 0 || b == 1) {
+				RepeatCount = ReadValue();
+				if (RepeatCount < 0)
+					return false;
+			}
+			else
+				RepeatCount = b;
+			RepeatValue = b == 0 ? -1 : ReadValue();
+		}
+		else {
+			RepeatCount = 256 - b;
+			RepeatValue = -1;
+		}
+		return true;
+	}
+}
+
 // FlashPack 2.1
 class A4rStream
 {
@@ -914,7 +943,7 @@ public class FAIL
 
 	/// Maximum length of a supported input file.
 	/// You may assume that files longer than this are not supported by FAIL.
-	public const int MaxContentLength = 200000;
+	public const int MaxContentLength = 350000;
 
 	/// Maximum width of a decoded image.
 	public const int MaxWidth = 640;
@@ -976,6 +1005,8 @@ public class FAIL
 			return "Atari Falcon";
 		case FAILResolution.Portfolio1x1:
 			return "Atari Portfolio";
+		case FAILResolution.Amiga1x1:
+			return "Amiga";
 		default:
 			throw "Unknown";
 		}
@@ -1030,6 +1061,13 @@ public class FAIL
 		GtiaLeftSkip = 0;
 	}
 
+	void SetSizeStOrFalcon(int width, int height, int bitplanes)
+	{
+		SetSize(width, height, (bitplanes == 1 && width <= 640 && height <= 400)
+			|| (bitplanes <= 4 && width <= 320 && height <= 200)
+			? FAILResolution.St1x1 : FAILResolution.Falcon1x1);
+	}
+
 	/// Reads a 32-bit big endian integer from a byte array.
 	static int Get32BigEndian(byte[] content, int contentOffset)
 	{
@@ -1054,15 +1092,10 @@ public class FAIL
 
 	/// Decodes Atari ST/Falcon interleaved bitplanes.
 	/// Each 16 pixels are encoded in N consecutive 16-bit words.
-	/// * `log2PixelsPerByte==3` - 8 pixels per byte, i.e. one bitplane, two colors
-	/// * `log2PixelsPerByte==2` - 4 pixels per byte, i.e. two bitplanes, four colors
-	/// * `log2PixelsPerByte==1` - 2 pixels per byte, i.e. four bitplanes, sixteen colors
-	/// * `log2PixelsPerByte==0` - 1 pixel per byte, i.e. eigth bitplanes, 256 colors
-	void DecodeBitplanes(byte[] content, int contentOffset, int log2PixelsPerByte, int pixelsOffset, int pixelsCount)
+	void DecodeBitplanes(byte[] content, int contentOffset, int bitplanes, int pixelsOffset, int pixelsCount)
 	{
-		int bitplanes = 8 >> log2PixelsPerByte;
 		for (int i = 0; i < pixelsCount; i++) {
-			int offset = contentOffset + ((i & ~15) >> log2PixelsPerByte) + (i >> 3 & 1);
+			int offset = contentOffset + (i >> 3 & ~1) * bitplanes + (i >> 3 & 1);
 			int bit = ~i & 7;
 			int c = 0;
 			for (int bitplane = bitplanes; --bitplane >= 0; )
@@ -1076,7 +1109,7 @@ public class FAIL
 		SetSize(width, height, resolution);
 		Atari16Palette[0] = 0xffffff;
 		Atari16Palette[1] = 0x000000;
-		DecodeBitplanes(content, contentOffset, 3, 0, width * height);
+		DecodeBitplanes(content, contentOffset, 1, 0, width * height);
 	}
 
 	// Atari Portfolio formats.
@@ -1191,7 +1224,7 @@ public class FAIL
 	{
 		SetSize(width, height, IsStePalette(palette, paletteOffset, 16) ? FAILResolution.Ste1x1 : FAILResolution.St1x1);
 		SetStPalette(palette, paletteOffset, 16);
-		DecodeBitplanes(bitmap, bitmapOffset, 1, 0, width * height);
+		DecodeBitplanes(bitmap, bitmapOffset, 4, 0, width * height);
 		return true;
 	}
 
@@ -1253,7 +1286,7 @@ public class FAIL
 		if (contentLength < 68 || content[0] != 0x80 || content[1] > 2)
 			return false;
 		int bitplanes = 4 >> content[1];
-		PcStream() rle;
+		PackBitsStream() rle;
 		rle.Content = content;
 		rle.ContentOffset = 34;
 		rle.ContentLength = contentLength;
@@ -1289,12 +1322,12 @@ public class FAIL
 	{
 		if (contentLength < 20 || !IsStringAt(content, 0, "GF25"))
 			return false;
-		int log2PixelsPerByte;
+		int bitplanes;
 		switch (Get32BigEndian(content, 4)) {
-		case   2: log2PixelsPerByte = 3; break;
-		case   4: log2PixelsPerByte = 2; break;
-		case  16: log2PixelsPerByte = 1; break;
-		case 256: log2PixelsPerByte = 0; break;
+		case   2: bitplanes = 1; break;
+		case   4: bitplanes = 2; break;
+		case  16: bitplanes = 4; break;
+		case 256: bitplanes = 8; break;
 		default: return false;
 		}
 		int width = Get32BigEndian(content, 8);
@@ -1304,10 +1337,9 @@ public class FAIL
 		if (height <= 0 || height > MaxHeight)
 			return false;
 		int bitmapLength = Get32BigEndian(content, 16);
-		if (1556 + bitmapLength != contentLength || bitmapLength != (width >> log2PixelsPerByte) * height)
+		if (1556 + bitmapLength != contentLength || bitmapLength != (width >> 3) * bitplanes * height)
 			return false;
 
-		int bitplanes = 8 >> log2PixelsPerByte;
 		for (int i = 0; i < 1 << bitplanes; i++) {
 			int j;
 			switch (i) {
@@ -1338,8 +1370,8 @@ public class FAIL
 			Atari16Palette[j] = rgb;
 		}
 
-		SetSize(width, height, FAILResolution.St1x1);
-		DecodeBitplanes(content, 20, log2PixelsPerByte, 0, width * height);
+		SetSizeStOrFalcon(width, height, bitplanes);
+		DecodeBitplanes(content, 20, bitplanes, 0, width * height);
 		return true;
 	}
 
@@ -1689,7 +1721,7 @@ public class FAIL
 	{
 		SetFalconPalette(content, paletteOffset);
 		SetSize(320, height, FAILResolution.Falcon1x1);
-		DecodeBitplanes(content, bitplanesOffset, 0, 0, 320 * height);
+		DecodeBitplanes(content, bitplanesOffset, 8, 0, 320 * height);
 	}
 
 	bool DecodePi4(byte[] content, int contentLength)
@@ -1764,7 +1796,7 @@ public class FAIL
 
 		SetFalconPalette(content, 10);
 		SetSize(320, 200, FAILResolution.Falcon1x1);
-		DecodeBitplanes(unpacked, 0, 0, 0, 320 * 200);
+		DecodeBitplanes(unpacked, 0, 8, 0, 320 * 200);
 		return true;
 	}
 
@@ -1789,10 +1821,10 @@ public class FAIL
 			// Combine four 320x240 quarters:
 			// 1 2
 			// 3 4
-			DecodeBitplanes(unpacked, 1024 + y * 320, 0, y * 640, 320);
-			DecodeBitplanes(unpacked, 1024 + 76800 + y * 320, 0, y * 640 + 320, 320);
-			DecodeBitplanes(unpacked, 1024 + 2 * 76800 + y * 320, 0, (240 + y) * 640, 320);
-			DecodeBitplanes(unpacked, 1024 + 3 * 76800 + y * 320, 0, (240 + y) * 640 + 320, 320);
+			DecodeBitplanes(unpacked, 1024 + y * 320, 8, y * 640, 320);
+			DecodeBitplanes(unpacked, 1024 + 76800 + y * 320, 8, y * 640 + 320, 320);
+			DecodeBitplanes(unpacked, 1024 + 2 * 76800 + y * 320, 8, (240 + y) * 640, 320);
+			DecodeBitplanes(unpacked, 1024 + 3 * 76800 + y * 320, 8, (240 + y) * 640 + 320, 320);
 		}
 		delete unpacked;
 		return true;
@@ -1848,6 +1880,221 @@ public class FAIL
 		if (contentLength < 256 || !IsStringAt(content, 0, "Indy"))
 			return false;
 		return DecodeFalconTrueColorVariable(content, contentLength, 4, 256);
+	}
+
+	void DecodeHam(byte[] unpacked, int width, int height, int bitplanes)
+	{
+		int holdBits = bitplanes > 6 ? 6 : 4;
+		int i = 0;
+		for (int y = 0; y < height; y++) {
+			int rgb = Atari16Palette[0];
+			for (int x = 0; x < width; x++) {
+				int offset = (i >> 3 & ~1) * bitplanes + (i >> 3 & 1);
+				int bit = ~i & 7;
+				int c = 0;
+				for (int bitplane = bitplanes; --bitplane >= 0; )
+					c = c << 1 | unpacked[offset + (bitplane << 1)] >> bit & 1;
+
+				switch (c >> holdBits) {
+				case 0:
+					rgb = Atari16Palette[c];
+					break;
+				case 1: // blue
+					c = c << 8 - holdBits & 0xff;
+					c |= c >> holdBits;
+					rgb = (rgb & 0xffff00) | c;
+					break;
+				case 2: // red
+					c = c << 8 - holdBits & 0xff;
+					c |= c >> holdBits;
+					rgb = (rgb & 0x00ffff) | c << 16;
+					break;
+				case 3: // green
+					c = c << 8 - holdBits & 0xff;
+					c |= c >> holdBits;
+					rgb = (rgb & 0xff00ff) | c << 8;
+					break;
+				}
+				Pixels[i++] = rgb;
+			}
+		}
+	}
+
+	void DecodeIffUnpacked(byte[] unpacked, int width, int height, int bitplanes, int colors, int camg)
+	{
+		int pixelsCount = width * height;
+		if (camg != 0)
+			SetSize(width, height, FAILResolution.Amiga1x1);
+		else
+			SetSizeStOrFalcon(width, height, bitplanes);
+
+		if (bitplanes <= 8) {
+			if (colors == 0) {
+				// grayscale
+				colors = 1 << bitplanes;
+				for (int c = 0; c < colors; c++)
+					Atari16Palette[c] = c * 255 / colors * 0x010101;
+			}
+			else if ((camg & 0x880) == 0x80 && bitplanes == 6 && colors < 64) {
+				// Amiga Extra Half-Brite
+				// atarist.c by Hans Wessels says bitplanes check is necessary.
+				// I also check if we don't already have 64 colors,
+				// because I found such EHB files.
+				for (int c = 0; c < 32; c++)
+					Atari16Palette[32 + c] = Atari16Palette[c] >> 1 & 0x7f7f7f;
+			}
+			if ((camg & 0x800) != 0) {
+				// Amiga Hold-And-Modify
+				DecodeHam(unpacked, width, height, bitplanes);
+			}
+			else {
+				// palette
+				DecodeBitplanes(unpacked, 0, bitplanes, 0, pixelsCount);
+			}
+		}
+		else {
+			// 24-bit or 32-bit true color
+			for (int i = 0; i < pixelsCount; i++) {
+				int offset = (i >> 3 & ~1) * bitplanes + (i >> 3 & 1);
+				int bit = ~i & 7;
+				int c = 0;
+				for (int bitplane = 24; --bitplane >= 0; )
+					c = c << 1 | unpacked[offset + (bitplane << 1)] >> bit & 1;
+				// 0xBBGGRR -> 0xRRGGBB
+				Pixels[i] = (c & 0xff) << 16 | (c & 0xff00) | c >> 16;
+			}
+		}
+		delete unpacked;
+	}
+
+	bool DecodeIff(byte[] content, int contentLength)
+	{
+		if (contentLength < 56 || !IsStringAt(content, 0, "FORM"))
+			return false;
+		int contentOffset = 8;
+		if (IsStringAt(content, 8, "DPSTDPAH") && Get32BigEndian(content, 16) == 24 && IsStringAt(content, 44, "FORM"))
+			contentOffset = 52;
+		if (!IsStringAt(content, contentOffset, "ILBM") && !IsStringAt(content, contentOffset, "ACBM"))
+			return false;
+		contentOffset += 4;
+
+		int width = 0;
+		int height = 0;
+		int bitplanes = 0;
+		bool hasMask = false;
+		int compression = 0;
+		int colors = 0;
+		int camg = 0;
+		while (contentOffset + 7 < contentLength) {
+			int chunkLength = Get32BigEndian(content, contentOffset + 4);
+			if (contentOffset + 8 + chunkLength > contentLength)
+				break;
+			if (IsStringAt(content, contentOffset, "BMHD") && chunkLength >= 11) {
+				width = content[contentOffset + 8] << 8 | content[contentOffset + 9];
+				height = content[contentOffset + 10] << 8 | content[contentOffset + 11];
+				bitplanes = content[contentOffset + 16];
+				hasMask = content[contentOffset + 17] == 1;
+				compression = content[contentOffset + 18];
+				if (width == 0 || width > MaxWidth
+				 || height == 0 || height > MaxHeight
+				 || bitplanes == 0 || (bitplanes > 8 && bitplanes != 24 && bitplanes != 32)
+				 || compression > 2)
+					return false;
+				// FIXME: round up to 16 pixels; we shouldn't show the extra pixels
+				width = width + 15 & ~15;
+			}
+			else if (IsStringAt(content, contentOffset, "CMAP")) {
+				colors = chunkLength / 3;
+				if (colors > 256)
+					return false;
+				int c;
+				for (c = 0; c < colors; c++) {
+					int offset = contentOffset + 8 + c * 3;
+					Atari16Palette[c] = content[offset] << 16 | content[offset + 1] << 8 | content[offset + 2];
+				}
+				for ( ; c < 256; c++)
+					Atari16Palette[c] = 0;
+			}
+			else if (IsStringAt(content, contentOffset, "CAMG") && chunkLength >= 4)
+				camg = Get32BigEndian(content, contentOffset + 8);
+			else if (IsStringAt(content, contentOffset, "BODY")) {
+				if (width == 0)
+					return false;
+				int bytesPerLine = (width >> 3) * bitplanes;
+				byte[] unpacked = new byte[bytesPerLine * height];
+				if (compression == 2) {
+					VdatStream() rle;
+					rle.Content = content;
+					rle.ContentOffset = contentOffset + 8;
+					for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
+						if (rle.ContentOffset + 14 > contentLength || !IsStringAt(content, rle.ContentOffset, "VDAT"))
+							return false;
+						int nextContentOffset = rle.ContentOffset + 8 + Get32BigEndian(content, rle.ContentOffset + 4);
+						if (nextContentOffset > contentOffset + 8 + chunkLength)
+							return false;
+						rle.ValueOffset = rle.ContentLength = rle.ContentOffset + 8 + (content[rle.ContentOffset + 8] << 8) + content[rle.ContentOffset + 9];
+						rle.ValueLength = nextContentOffset;
+						rle.ContentOffset += 10;
+						for (int x = bitplane << 1; x < bytesPerLine; x += bitplanes << 1) {
+							int unpackedOffset = x;
+							for (int y = 0; y < height; y++) {
+								int b = rle.ReadRle();
+								if (b < 0)
+									return false;
+								unpacked[unpackedOffset] = b >> 8;
+								unpacked[unpackedOffset + 1] = b.LowByte;
+								unpackedOffset += bytesPerLine;
+							}
+						}
+						rle.ContentOffset = nextContentOffset;
+					}
+				}
+				else {
+					PackBitsStream() rle;
+					rle.Content = content;
+					rle.ContentOffset = contentOffset + 8;
+					rle.ContentLength = contentOffset + 8 + chunkLength;
+					for (int y = 0; y < height; y++) {
+						for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
+							for (int w = bitplane << 1; w < bytesPerLine; w += bitplanes << 1) {
+								for (int x = 0; x < 2; x++) {
+									int b = compression == 0 ? rle.ReadByte() : rle.ReadRle();
+									if (b < 0)
+										return false;
+									unpacked[y * bytesPerLine + w + x] = b;
+								}
+							}
+						}
+						if (hasMask) {
+							// ignore transparency mask
+							for (int x = 0; x < width; x += 8) {
+								int b = compression == 0 ? rle.ReadByte() : rle.ReadRle();
+								if (b < 0)
+									return false;
+							}
+						}
+					}
+				}
+				DecodeIffUnpacked(unpacked, width, height, bitplanes, colors, camg);
+				return true;
+			}
+			else if (IsStringAt(content, contentOffset, "ABIT")) {
+				if (width == 0 || compression != 0 || chunkLength != (width >> 3) * height * bitplanes)
+					return false;
+				contentOffset += 8;
+				byte[] unpacked = new byte[chunkLength];
+				for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
+					for (int unpackedOffset = bitplane << 1; unpackedOffset < chunkLength; unpackedOffset += bitplanes << 1) {
+						for (int x = 0; x < 2; x++)
+							unpacked[unpackedOffset + x] = content[contentOffset++];
+					}
+				}
+				DecodeIffUnpacked(unpacked, width, height, bitplanes, colors, camg);
+				return true;
+			}
+			contentOffset += 8 + (chunkLength + 1 & ~1); // round up to even bytes
+		}
+		return false;
 	}
 
 	// Atari 8-bit formats.
@@ -4289,6 +4536,10 @@ public class FAIL
 		case PACKED_EXT("HPM"):
 		case PACKED_EXT("HR"):
 		case PACKED_EXT("HR2"):
+		case PACKED_EXT("IFF"):
+		case PACKED_EXT("BL1"):
+		case PACKED_EXT("BL2"):
+		case PACKED_EXT("BL3"):
 		case PACKED_EXT("IGE"):
 		case PACKED_EXT("ING"):
 		case PACKED_EXT("INP"):
@@ -4461,6 +4712,11 @@ public class FAIL
 			return DecodeHr(content, contentLength);
 		case PACKED_EXT("HR2"):
 			return DecodeHr2(content, contentLength);
+		case PACKED_EXT("IFF"):
+		case PACKED_EXT("BL1"):
+		case PACKED_EXT("BL2"):
+		case PACKED_EXT("BL3"):
+			return DecodeIff(content, contentLength);
 		case PACKED_EXT("IGE"):
 			return DecodeIge(content, contentLength);
 		case PACKED_EXT("ING"):
