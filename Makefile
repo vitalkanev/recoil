@@ -44,8 +44,11 @@ endif
 README.html: README INSTALL
 	asciidoc -o - -a failsrc README | sed -e "s/527bbd;/800080;/" >$@
 
+benchmark: benchmark.c
+	$(CC) $(CFLAGS) benchmark.c fail.c -o $@
+
 clean:
-	rm -f fail2png fail.so coder.xml.new fail-mime.xml
+	rm -f fail2png fail.so coder.xml.new fail-mime.xml benchmark
 
 install: install-thumbnailer $(if $(CAN_INSTALL_MAGICK),install-magick)
 
