@@ -1,9 +1,8 @@
 *.dll
-*.exe
 *.o
-Xfail*.usr
-FAIL.plg
-COPYING.txt
-README_Windows.html
-README_WindowsSetup.html
-x64
+/Xfail*.usr
+/FAIL.plg
+/COPYING.txt
+/README_Windows.html
+/README_WindowsSetup.html
+/x64
