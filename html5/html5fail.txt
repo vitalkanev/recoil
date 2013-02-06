@@ -5,6 +5,7 @@ link:/[Home]
 
 This page decodes pictures in formats native to Atari computers.
 Decoding takes place in your browser, nothing is sent to a server.
+You can http://caniuse.com/filereader[check] if your browser is modern enough.
 
 ++++
 <script type="text/javascript" src="fail.js"> </script>
