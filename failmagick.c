@@ -52,53 +52,57 @@ static Image *ReadFAILImage(const ImageInfo *image_info, ExceptionInfo *exceptio
 	unsigned char content[FAIL_MAX_CONTENT_LENGTH];
 	int content_len;
 	FAIL *fail;
-
 	Image *image;
-	MagickBooleanType status;
 	PixelPacket *q;
+	const int *pixels;
+	int num_pixels;
+	int i;
 
-	assert(image_info != (const ImageInfo*) NULL);
+	assert(image_info != NULL);
 	assert(image_info->signature == MagickSignature);
-	if (image_info->debug != MagickFalse)
+	if (image_info->debug)
 		LogMagickEvent(TraceEvent, GetMagickModule(), "%s", image_info->filename);
-	assert(exception != (ExceptionInfo*) NULL);
+	assert(exception != NULL);
 	assert(exception->signature == MagickSignature);
 	image = AcquireImage(image_info);
-	status = OpenBlob(image_info, image, ReadBinaryBlobMode, exception);
-	if (status == MagickFalse) {
-		image = DestroyImageList(image);
-		return (Image*) NULL;
+	if (!OpenBlob(image_info, image, ReadBinaryBlobMode, exception)) {
+		(void) DestroyImageList(image);
+		return NULL;
 	}
 
-	fail = FAIL_New();
-	if (fail == NULL) {
-		/* TODO? */
-		return (Image*) NULL;
-	}
 	content_len = ReadBlob(image, FAIL_MAX_CONTENT_LENGTH, content);
+	if (content_len < 0 || content_len > FAIL_MAX_CONTENT_LENGTH)
+		ThrowReaderException(CorruptImageError, "UnableToReadImageData");
+	fail = FAIL_New();
+	if (fail == NULL)
+		ThrowReaderException(ResourceLimitError, "MemoryAllocationFailed");
 	if (!FAIL_Decode(fail, image_info->filename, content, content_len)) {
 		FAIL_Delete(fail);
 		ThrowReaderException(CorruptImageError, "FileDecodingError");
 	}
 
 	image->depth = 8;
-	if (SetImageExtent(image, FAIL_GetWidth(fail), FAIL_GetHeight(fail)) == MagickFalse) {
-		FAIL_Delete(fail);
+	if (!SetImageExtent(image, FAIL_GetWidth(fail), FAIL_GetHeight(fail))) {
 		InheritException(exception, &image->exception);
-		return DestroyImageList(image);
+		FAIL_Delete(fail);
+		(void) DestroyImageList(image);
+		return NULL;
 	}
 
-	q = QueueAuthenticPixels(image, 0, 0, image->columns, image->rows, NULL);
-	if (q != NULL) {
-		const int *pixels = FAIL_GetPixels(fail);
-		int n = image->columns * image->rows;
-		int i;
-		for (i = 0; i < n; i++) {
-			int rgb = pixels[i];
-			q[i].red = ScaleCharToQuantum((unsigned char) (rgb >> 16));
-			q[i].green = ScaleCharToQuantum((unsigned char) (rgb >> 8));
-			q[i].blue = ScaleCharToQuantum((unsigned char) rgb);
-		}
+	q = QueueAuthenticPixels(image, 0, 0, image->columns, image->rows, exception);
+	if (q == NULL) {
+		FAIL_Delete(fail);
+		(void) DestroyImageList(image);
+		return NULL;
+	}
+
+	pixels = FAIL_GetPixels(fail);
+	num_pixels = image->columns * image->rows;
+	for (i = 0; i < num_pixels; i++) {
+		int rgb = pixels[i];
+		q[i].red = ScaleCharToQuantum((unsigned char) (rgb >> 16));
+		q[i].green = ScaleCharToQuantum((unsigned char) (rgb >> 8));
+		q[i].blue = ScaleCharToQuantum((unsigned char) rgb);
 	}
 	FAIL_Delete(fail);
 	SyncAuthenticPixels(image, exception);
@@ -236,7 +240,7 @@ static const struct Format {
 
 ModuleExport unsigned long RegisterFAILImage(void)
 {
-	const struct Format* pf;
+	const struct Format *pf;
 	MagickInfo *entry;
 	for (pf = formats; pf < formats + sizeof(formats) / sizeof(formats[0]); pf++) {
 		entry = SetMagickInfo(pf->name);
@@ -251,7 +255,7 @@ ModuleExport unsigned long RegisterFAILImage(void)
 
 ModuleExport void UnregisterFAILImage(void)
 {
-	const struct Format* pf;
+	const struct Format *pf;
 	for (pf = formats; pf < formats + sizeof(formats) / sizeof(formats[0]); pf++)
 		UnregisterMagickInfo(pf->name);
 }
