@@ -2952,7 +2952,7 @@ public class FAIL
 		SetBakPF012(content, 10, 1);
 		DecodeAtari8Gr15(content, 18, contentStride, frame1, 0, width, height);
 		byte[320 * 239] frame2;
-		SetBakPF012(content, 10, 1);
+		SetBakPF012(content, 14, 1);
 		DecodeAtari8Gr15(content, 18 + contentStride * height, contentStride, frame2, 0, width, height);
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
