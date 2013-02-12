@@ -71,7 +71,7 @@ static Image *ReadFAILImage(const ImageInfo *image_info, ExceptionInfo *exceptio
 	}
 
 	content_len = ReadBlob(image, FAIL_MAX_CONTENT_LENGTH, content);
-	if (content_len < 0 || content_len > FAIL_MAX_CONTENT_LENGTH)
+	if (content_len < 0)
 		ThrowReaderException(CorruptImageError, "UnableToReadImageData");
 	fail = FAIL_New();
 	if (fail == NULL)
