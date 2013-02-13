@@ -2939,7 +2939,7 @@ public class FAIL
 		if (contentLength < 18
 		 || !IsStringAt(content, 0, "INT95a")
 		 || content[8] != 0x0f || content[9] != 0x2b)
-			return DecodeInp(content, contentLength);
+			return false;
 		int contentStride = content[6];
 		int height = content[7];
 		if (contentStride == 0 || contentStride > 320
@@ -4466,19 +4466,6 @@ public class FAIL
 		return ApplyAtari8Palette(frame);
 	}
 
-	bool DecodeArt(byte[] content, int contentLength)
-	{
-		return DecodeArtDirector(content, contentLength)
-			|| DecodeAtari8Artist(content, contentLength)
-			|| DecodeAsciiArtEditor(content, contentLength);
-	}
-
-	bool DecodeSpc(byte[] content, int contentLength)
-	{
-		return DecodeStSpc(content, contentLength)
-			|| DecodeAtari8Spc(content, contentLength);
-	}
-
 	macro PACKED_EXT(s) ( s.Length >> 1 == 1 ? s[0] + (s[1] << 8) + (s.Length == 3 ? s[2] << 16 : 0) | 0x202020 : 0 )
 
 	static int GetPackedExt(string filename)
@@ -4667,7 +4654,9 @@ public class FAIL
 		case PACKED_EXT("APP"):
 			return DecodeApp(content, contentLength);
 		case PACKED_EXT("ART"):
-			return DecodeArt(content, contentLength);
+			return DecodeArtDirector(content, contentLength)
+				|| DecodeAtari8Artist(content, contentLength)
+				|| DecodeAsciiArtEditor(content, contentLength);
 		case PACKED_EXT("BG9"):
 		case PACKED_EXT("G09"):
 			return DecodeG09(content, contentLength);
@@ -4746,7 +4735,8 @@ public class FAIL
 		case PACKED_EXT("INP"):
 			return DecodeInp(content, contentLength);
 		case PACKED_EXT("INT"):
-			return DecodeInt(content, contentLength);
+			return DecodeInt(content, contentLength)
+				|| DecodeInp(content, contentLength);
 		case PACKED_EXT("IPC"):
 			return DecodeIpc(content, contentLength);
 		case PACKED_EXT("IST"):
@@ -4823,7 +4813,8 @@ public class FAIL
 		case PACKED_EXT("SHP"):
 			return DecodeShp(content, contentLength);
 		case PACKED_EXT("SPC"):
-			return DecodeSpc(content, contentLength);
+			return DecodeStSpc(content, contentLength)
+				|| DecodeAtari8Spc(content, contentLength);
 		case PACKED_EXT("SPS"):
 			return DecodeSps(content, contentLength);
 		case PACKED_EXT("SPU"):
