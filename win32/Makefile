@@ -76,7 +76,7 @@ README_WindowsSetup.html: ../README USAGE
 
 setup: ../../fail-$(VERSION)-win32.msi
 
-../../fail-$(VERSION)-win32.msi: setup/fail.wixobj faileye.ico setup/license.rtf setup/Website.url $(WIN32_BIN) thumbfail.dll README_WindowsSetup.html
+../../fail-$(VERSION)-win32.msi: setup/fail.wixobj faileye.ico setup/license.rtf setup/Website.url README_WindowsSetup.html $(WIN32_BIN) thumbfail.dll
 	$(LIGHT) -ext WixUIExtension -sice:ICE69 $<
 
 setup/fail.wixobj: setup/fail.wxs
@@ -84,8 +84,8 @@ setup/fail.wixobj: setup/fail.wxs
 
 x64-setup: ../../fail-$(VERSION)-win64.msi
 
-../../fail-$(VERSION)-win64.msi: x64/fail.wixobj faileye.ico setup/license.rtf x64/thumbfail.dll x64/IM_MOD_RL_fail_.dll x64/FAIL.plg64
-	$(LIGHT) -ext WixUIExtension -sice:ICE69 -b setup $<
+../../fail-$(VERSION)-win64.msi: x64/fail.wixobj faileye.ico setup/license.rtf setup/Website.url README_WindowsSetup.html $(WIN32_BIN) thumbfail.dll x64/thumbfail.dll x64/IM_MOD_RL_fail_.dll x64/FAIL.plg64
+	$(LIGHT) -ext WixUIExtension -sice:ICE69 -sice:ICE80 -b setup $<
 
 x64/fail.wixobj: setup/fail.wxs
 	test -d x64 || mkdir x64

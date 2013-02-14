@@ -26,13 +26,6 @@ Currently the project includes:
 - plugin for http://www.nyam.pe.kr/[Imagine]
 - http://fail.sourceforge.net/html5fail.html[HTML 5 based viewer]
 
-NOTE: The `win64` setup package only contains 64-bit versions
-of the thumbnail provider (for use in x64 Windows),
-the ImageMagick coder (for use with x64 ImageMagick)
-and Imagine plugin (for use with 64-bit Imagine).
-Other programs should be installed from the `win32` package.
-That is, on 64-bit Windows you may install both packages.
-
 ifdef::failwww[]
 image::failwin.png["FAILWin"]
 image::thumbfail.png["Thumbnails in Windows Explorer"]
@@ -202,19 +195,20 @@ You may submit bugs http://sourceforge.net/p/fail/bugs/[here] (log in required).
 History
 -------
 
-FAIL 2.0.0 (2013-02-??)::
+FAIL 2.0.0 (2013-02-15)::
 
-Library rewritten from C to the Ć programming language.
-Created HTML 5 port.
-Added ICE PCIN (IPC), Daisy-Dot font (NLQ), PMG Designer (PMD),
+Library rewritten from C to the http://cito.sourceforge.net/[Ć programming language].
+This made it possible to create the HTML 5 port.
+The rewrite included code clean-up and bug fixes in decoding of
+RIP, TIP, SGE, HR2, AGP, AP3/APV/DGP/ESC/ILC/PZM, APP, CIN, CCI.
+Added new formats: ICE PCIN (IPC), Daisy-Dot font (NLQ), PMG Designer (PMD),
 AtariTools-800 font (ACS), PhotoChrome (PCS), HPM, MCS, Anime 4ever (A4R),
-DuneGraph compressed (DGC, DC1), Canvas compressed (CPT),
-Interchange File Format (IFF), DEGAS Elite block (BL1, BL2, BL3),
-DEGAS Elite brush (BRU).
-Fixed decoding of RIP, TIP, SGE, HR2, AGP, AP3/APV/DGP/ESC/ILC/PZM, APP, CIN, CCI.
+DuneGraph compressed (DGC, DC1), Canvas compressed (CPT), Interchange File Format (IFF),
+DEGAS Elite block (BL1, BL2, BL3), DEGAS Elite brush (BRU).
 Added auto-detection of Atari STE 4096-color palette.
-FAILWin and XnView show the Atari computer family of the file format.
+FAILWin and XnView show the computer family of the file format.
 FAILWin shows the number of alternating frames.
+The win64 package is now sufficient on 64-bit Windows, there's no need to install the win32 package.
 Reduced CPU and memory usage in fail2png.
 
 FAIL 1.4.0 (2012-11-28)::

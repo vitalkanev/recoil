@@ -1,34 +1,41 @@
 <?xml version="1.0"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
-	xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+	<?define FIRST_EXT=gr8?>
+	<?define OTHER_EXTS=hip;mic;int;tip;inp;hr;gr9;pic;cpr;cin;cci;apc;plm;ap3;ilc;rip;fnt;sxs;mcp;ghg;hr2;mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb;mgp;wnd;chr;shp;mbg;fwa;rm0;rm1;rm2;rm3;rm4;xlp;max;shc;all;app;sge;dlm;bkg;g09;bg9;apv;spc;apl;gr7;g10;g11;art;drg;agp;pla;mis;4pl;4mi;4pm;pgf;pgc;pi1;pi2;pi3;pc1;pc2;pc3;neo;doo;spu;tny;tn1;tn2;tn3;ca1;ca2;ca3;ing;pac;sps;gfb;pi4;pi9;dgu;dg1;trp;tru;god;ftc;del;dph;ipc;nlq;pmd;acs;pcs;hpm;mcs;a4r;dc1;dgc;cpt;iff;bl1;bl2;bl3;bru?>
+	<?define FAIL_EXTS=gr8;$(var.OTHER_EXTS)?>
+	<?define DOUBLECLICK=Double-click Atari image file in Windows Explorer to display it in ?>
+
+	<?define UPGRADE_GUID32=19995735-0DC9-4C92-848E-AEFF0407139C?>
 	<?if $(sys.BUILDARCH) = x86?>
-		<?define WIN64=no?>
-		<?define PLATFORM_SUFFIX=""?>
-		<?define UPGRADE_GUID=19995735-0DC9-4C92-848E-AEFF0407139C?>
+		<?define UPGRADE_GUID=$(var.UPGRADE_GUID32)?>
 		<?define PROGRAM_FILES_FOLDER=ProgramFilesFolder?>
-		<?define SRC_DIR=""?>
-		<?define IMAGINE64=""?>
+		<?define MUTEXCONDS=(($failwin.ext=3 OR ($failwin.ext=-1 AND ?failwin.ext=3)) AND ($xnview_fail.ext=3 OR ($xnview_fail.ext=-1 AND ?xnview_fail.ext=3) OR $imagine.ext=3 OR ($imagine.ext=-1 AND ?imagine.ext=3)));
+(($xnview_fail.ext=3 OR ($xnview_fail.ext=-1 AND ?xnview_fail.ext=3)) AND ($imagine.ext=3 OR ($imagine.ext=-1 AND ?imagine.ext=3)))?>
 	<?elseif $(sys.BUILDARCH) = x64?>
-		<?define WIN64=yes?>
-		<?define PLATFORM_SUFFIX=" (64-bit)"?>
 		<?define UPGRADE_GUID=2FF8D81E-4C6A-4A2A-B5EF-2021E6620CDF?>
 		<?define PROGRAM_FILES_FOLDER=ProgramFiles64Folder?>
-		<?define SRC_DIR=x64\?>
-		<?define IMAGINE64=64?>
+		<?define MUTEXCONDS=(($failwin.ext=3 OR ($failwin.ext=-1 AND ?failwin.ext=3)) AND ($xnview_fail.ext=3 OR ($xnview_fail.ext=-1 AND ?xnview_fail.ext=3) OR $imagine.ext=3 OR ($imagine.ext=-1 AND ?imagine.ext=3)));
+(($failwin.ext=3 OR ($failwin.ext=-1 AND ?failwin.ext=3)) AND ($imagine64.ext=3 OR ($imagine64.ext=-1 AND ?imagine64.ext=3)));
+(($xnview_fail.ext=3 OR ($xnview_fail.ext=-1 AND ?xnview_fail.ext=3)) AND ($imagine.ext=3 OR ($imagine.ext=-1 AND ?imagine.ext=3) OR $imagine64.ext=3 OR ($imagine64.ext=-1 AND ?imagine64.ext=3)));
+(($imagine.ext=3 OR ($imagine.ext=-1 AND ?imagine.ext=3)) AND ($imagine64.ext=3 OR ($imagine64.ext=-1 AND ?imagine64.ext=3)))?>
 	<?endif?>
 
-	<Product Id="*" Name="FAIL - First Atari Image Library $(var.VERSION)$(var.PLATFORM_SUFFIX)" Language="1033"
+	<Product Id="*" Name="FAIL - First Atari Image Library $(var.VERSION)" Language="1033"
 		Version="$(var.VERSION)" Manufacturer="Piotr Fusik and Adrian Matoga" UpgradeCode="$(var.UPGRADE_GUID)">
 
-		<Package Description="FAIL - First Atari Image Library" Manufacturer="Piotr Fusik and Adrian Matoga"
-			InstallerVersion="200" Platform="$(sys.BUILDARCH)" Compressed="yes" />
-		<MajorUpgrade DowngradeErrorMessage="Newer version of FAIL is already installed!" MigrateFeatures="yes" />
+		<Package Description="FAIL - First Atari Image Library" Manufacturer="Piotr Fusik and Adrian Matoga" InstallerVersion="200" Compressed="yes" />
+		<MajorUpgrade DowngradeErrorMessage="Newer version of FAIL is already installed!" />
 		<Media Id="1" Cabinet="fail.cab" EmbedCab="yes" CompressionLevel="high" />
 
-		<?define FIRST_EXT=gr8?>
-		<?define OTHER_EXTS=hip;mic;int;tip;inp;hr;gr9;pic;cpr;cin;cci;apc;plm;ap3;ilc;rip;fnt;sxs;mcp;ghg;hr2;mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb;mgp;wnd;chr;shp;mbg;fwa;rm0;rm1;rm2;rm3;rm4;xlp;max;shc;all;app;sge;dlm;bkg;g09;bg9;apv;spc;apl;gr7;g10;g11;art;drg;agp;pla;mis;4pl;4mi;4pm;pgf;pgc;pi1;pi2;pi3;pc1;pc2;pc3;neo;doo;spu;tny;tn1;tn2;tn3;ca1;ca2;ca3;ing;pac;sps;gfb;pi4;pi9;dgu;dg1;trp;tru;god;ftc;del;dph;ipc;nlq;pmd;acs;pcs;hpm;mcs;a4r;dc1;dgc;cpt;iff;bl1;bl2;bl3;bru?>
-		<?define FAIL_EXTS=gr8;$(var.OTHER_EXTS)?>
-		<?define DOUBLECLICK=Double-click Atari image file in Windows Explorer to display it in ?>
+		<!-- inspired by TortoiseSVN.wxs -->
+		<?if $(sys.BUILDARCH) = x86?>
+			<Condition Message="You are attempting to run the 32-bit installer on a 64-bit version of Windows. This worked for previous versions of FAIL, but now the 64-bit installer is all you need.">NOT Msix64</Condition>
+		<?else?>
+			<Upgrade Id="$(var.UPGRADE_GUID32)">
+				<UpgradeVersion Minimum="0.0.0.0" OnlyDetect="yes" Property="WIN32FAILFOUND" />
+			</Upgrade>
+			<Condition Message="Please uninstall the previous version of FAIL.">NOT WIN32FAILFOUND</Condition>
+		<?endif?>
 
 		<Icon Id="faileye.ico" SourceFile="faileye.ico" />
 		<Property Id="ARPHELPLINK" Value="http://fail.sourceforge.net/" />
@@ -138,14 +145,12 @@
 					<Condition Action="hide">Installed</Condition>
 				</Control>
 			</Dialog>
-			
-			<?if $(sys.BUILDARCH) = x86?>
+
 			<!-- handle mutually exclusive file associations, conditions generated with wix_mutex.pl -->
-			<?foreach MUTEXCOND in (($failwin.ext=3 OR ($failwin.ext=-1 AND ?failwin.ext=3)) AND ($xnview_fail.ext=3 OR ($xnview_fail.ext=-1 AND ?xnview_fail.ext=3) OR $imagine.ext=3 OR ($imagine.ext=-1 AND ?imagine.ext=3)));
-(($xnview_fail.ext=3 OR ($xnview_fail.ext=-1 AND ?xnview_fail.ext=3)) AND ($imagine.ext=3 OR ($imagine.ext=-1 AND ?imagine.ext=3)))?>
-			<Publish Dialog="MyCustomizeDlg" Control="Next" Event="SpawnDialog" Value="MyManyAssociationsDlg" Order="3">
-				$(var.MUTEXCOND)
-			</Publish>
+			<?foreach MUTEXCOND in $(var.MUTEXCONDS)?>
+				<Publish Dialog="MyCustomizeDlg" Control="Next" Event="SpawnDialog" Value="MyManyAssociationsDlg" Order="3">
+					$(var.MUTEXCOND)
+				</Publish>
 			<?endforeach?>
 			<Dialog Id="MyManyAssociationsDlg" Width="270" Height="85" Title="!(loc.ErrorDlg_Title)">
 				<Control Id="ErrorText" Type="Text" X="48" Y="15" Width="205" Height="60" TabSkip="no" Text="You have selected &quot;Associate file types&quot; for many viewers. You may associate files with only one viewer." />
@@ -154,48 +159,67 @@
 					<Publish Event="EndDialog" Value="Return">1</Publish>
 				</Control>
 			</Dialog>
-			<?endif?>
 		</UI>
 		<UIRef Id="WixUI_Common" />
 
-		<?if $(sys.BUILDARCH) = x86?>
 		<Property Id="XNVIEW.DIR">
-			<RegistrySearch Id="xnview.installdir" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\XnView_is1" Name="InstallLocation" Type="directory" />
+			<RegistrySearch Id="xnview.installdir" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\XnView_is1" Name="InstallLocation" Type="directory" Win64="no" />
 		</Property>
 		<Property Id="XNVIEW.EXE">
-			<RegistrySearch Id="xnview.exe" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\XnView_is1" Name="InstallLocation" Type="directory">
+			<RegistrySearch Id="xnview.exe" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\XnView_is1" Name="InstallLocation" Type="directory" Win64="no">
 				<FileSearch Name="xnview.exe" />
 			</RegistrySearch>
 		</Property>
-		<?endif?>
+
 		<Property Id="IMCODERS.DIR">
-			<RegistrySearch Id="imcoders.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="CoderModulesPath" Type="directory" Win64="$(var.WIN64)" />
+			<RegistrySearch Id="imcoders.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="CoderModulesPath" Type="directory" Win64="no" />
 		</Property>
 		<Property Id="IMCONFIG.DIR">
-			<RegistrySearch Id="imconfig.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="ConfigurePath" Type="directory" Win64="$(var.WIN64)" />
+			<RegistrySearch Id="imconfig.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="ConfigurePath" Type="directory" Win64="no" />
 		</Property>
 		<Property Id="CODER.XML">
 			<DirectorySearch Id="coder.xml" Path="[IMCONFIG.DIR]" Depth="1">
 				<FileSearch Name="coder.xml" />
 			</DirectorySearch>
 		</Property>
+		<?if $(sys.BUILDARCH) = x64?>
+			<Property Id="IMCODERS64.DIR">
+				<RegistrySearch Id="imcoders64.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="CoderModulesPath" Type="directory" Win64="yes" />
+			</Property>
+			<Property Id="IMCONFIG64.DIR">
+				<RegistrySearch Id="imconfig64.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="ConfigurePath" Type="directory" Win64="yes" />
+			</Property>
+			<Property Id="CODER64.XML">
+				<DirectorySearch Id="coder64.xml" Path="[IMCONFIG64.DIR]" Depth="1">
+					<FileSearch Name="coder.xml" />
+				</DirectorySearch>
+			</Property>
+		<?endif?>
+
 		<Property Id="IMAGINE.DIR">
+			<!-- apparently there is no Wow6432Node for this key, hence no IMAGINE64.DIR -->
 			<RegistrySearch Id="imagine.dir" Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Imagine" Name="InstallLocation" Type="directory" />
 		</Property>
 		<Property Id="IMAGINE.EXE">
 			<RegistrySearch Id="imagine.exe" Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Imagine" Name="InstallLocation" Type="directory">
-				<FileSearch Name="Imagine$(var.IMAGINE64).exe" />
+				<FileSearch Name="Imagine.exe" />
 			</RegistrySearch>
 		</Property>
+		<?if $(sys.BUILDARCH) = x64?>
+			<Property Id="IMAGINE64.EXE">
+				<RegistrySearch Id="imagine64.exe" Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Imagine" Name="InstallLocation" Type="directory">
+					<FileSearch Name="Imagine64.exe" />
+				</RegistrySearch>
+			</Property>
+		<?endif?>
 
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="$(var.PROGRAM_FILES_FOLDER)">
 				<Directory Id="FAIL.DIR" Name="FAIL">
-					<?if $(sys.BUILDARCH) = x86?>
-					<Component Id="failwin.exe" Guid="*">
+					<Component Id="failwin.exe" Win64="no">
 						<File Name="failwin.exe" Source="failwin.exe" Checksum="yes" KeyPath="yes" />
 					</Component>
-					<Component Id="failwin.ext" Guid="*">
+					<Component Id="failwin.ext">
 						<RegistryValue Root="HKCR" Key="fail.file" Name="failwin" Type="integer" Value="1" KeyPath="yes" />
 						<ProgId Id="failwin.file">
 							<Extension Id="$(var.FIRST_EXT)">
@@ -207,19 +231,21 @@
 							<?endforeach?>
 						</ProgId>
 					</Component>
-					<Component Id="fail2png.exe" Guid="*">
+
+					<Component Id="fail2png.exe" Win64="no">
 						<File Name="fail2png.exe" Source="fail2png.exe" Checksum="yes" KeyPath="yes" />
 					</Component>
 					<Component Id="path" Guid="496125A6-884C-4A43-B075-268A248EF3E5">
 						<Environment Id="path" Action="set" Name="Path" Part="last" Permanent="no" System="yes" Value="[FAIL.DIR]" />
 						<CreateFolder />
 					</Component>
-					<Component Id="README_WindowsSetup.html" Guid="*">
+
+					<Component Id="README_WindowsSetup.html">
 						<File Name="README_WindowsSetup.html" Source="README_WindowsSetup.html" KeyPath="yes" />
 					</Component>
-					<?endif?>
-					<Component Id="thumbfail.dll" Guid="*" Win64="$(var.WIN64)">
-						<File Name="thumbfail.dll" Source="$(var.SRC_DIR)thumbfail.dll" Checksum="yes" KeyPath="yes">
+
+					<Component Id="thumbfail.dll" Win64="no">
+						<File Name="thumbfail.dll" Source="thumbfail.dll" Checksum="yes" KeyPath="yes">
 							<Class Id="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Context="InprocServer32" Description="FAIL Thumbnail Handler" ThreadingModel="both" />
 						</File>
 						<RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Approved" Name="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Value="FAIL Thumbnail Handler" Type="string" Action="write" />
@@ -227,17 +253,28 @@
 							<RegistryValue Root="HKCR" Key=".$(var.EXT)\ShellEx\{e357fccd-a995-4576-b01f-234630154e96}" Value="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Type="string" Action="write" />
 						<?endforeach?>
 					</Component>
+					<?if $(sys.BUILDARCH) = x64?>
+						<Component Id="thumbfail64.dll" Win64="yes">
+							<File Name="thumbfail64.dll" Source="x64\thumbfail.dll" Checksum="yes" KeyPath="yes">
+								<Class Id="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Context="InprocServer32" Description="FAIL Thumbnail Handler" ThreadingModel="both" />
+							</File>
+							<RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Approved" Name="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Value="FAIL Thumbnail Handler" Type="string" Action="write" />
+							<?foreach EXT in $(var.FAIL_EXTS)?>
+								<RegistryValue Root="HKCR" Key=".$(var.EXT)\ShellEx\{e357fccd-a995-4576-b01f-234630154e96}" Value="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Type="string" Action="write" />
+							<?endforeach?>
+						</Component>
+					<?endif?>
 				</Directory>
-				<?if $(sys.BUILDARCH) = x86?>
+
 				<Directory Id="XNVIEW.DIR" Name="XnView">
 					<Directory Id="XNVIEWPLUG.DIR" Name="PlugIns">
 						<?foreach I in 1;2;3;4;5;6;7;8;9;10;11?>
-							<Component Id="Xfail$(var.I).usr" Guid="*">
+							<Component Id="Xfail$(var.I).usr" Win64="no">
 								<File Name="Xfail$(var.I).usr" Source="Xfail$(var.I).usr" Checksum="yes" KeyPath="yes" />
 							</Component>
 						<?endforeach?>
 					</Directory>
-					<Component Id="xnview_fail.ext" Guid="*">
+					<Component Id="xnview_fail.ext">
 						<RegistryValue Root="HKCR" Key="fail.file" Name="XnView.Image" Type="integer" Value="1" KeyPath="yes" />
 						<ProgId Id="XnView.Image">
 							<Extension Id="$(var.FIRST_EXT)">
@@ -250,10 +287,10 @@
 						</ProgId>
 					</Component>
 				</Directory>
-				<?endif?>
+
 				<Directory Id="IMCODERS.DIR" Name="ImageMagick-FAIL"><!-- fake Name -->
-					<Component Id="IM_MOD_RL_fail_.dll" Guid="*" Win64="$(var.WIN64)">
-						<File Name="IM_MOD_RL_fail_.dll" Source="$(var.SRC_DIR)IM_MOD_RL_fail_.dll" Checksum="yes" KeyPath="yes" />
+					<Component Id="IM_MOD_RL_fail_.dll" Win64="no">
+						<File Name="IM_MOD_RL_fail_.dll" Source="IM_MOD_RL_fail_.dll" Checksum="yes" KeyPath="yes" />
 						<?foreach EXT in $(var.FAIL_EXTS)?>
 							<util:XmlConfig Id="coder.xml_$(var.EXT)_Element_create" On="install" Action="create" Node="element" ElementPath="/codermap" Name="coder" File="[CODER.XML]" />
 							<util:XmlConfig Id="coder.xml_$(var.EXT)_Magick_create" ElementPath="coder.xml_$(var.EXT)_Element_create" Name="magick" Value="$(var.EXT)" File="[CODER.XML]" />
@@ -262,13 +299,27 @@
  						<?endforeach?>
 					</Component>
 				</Directory>
-				<Directory Id="IMAGINE.DIR" Name="Imagine">
-					<Directory Id="IMAGINEPLUG.DIR" Name="Plugin">
-						<Component Id="FAIL.plg" Guid="*" Win64="$(var.WIN64)">
-							<File Name="FAIL.plg$(var.IMAGINE64)" Source="$(var.SRC_DIR)FAIL.plg$(var.IMAGINE64)" Checksum="yes" KeyPath="yes" />
+				<?if $(sys.BUILDARCH) = x64?>
+					<Directory Id="IMCODERS64.DIR" Name="ImageMagick64-FAIL"><!-- fake Name -->
+						<Component Id="IM_MOD_RL_fail_64.dll" Win64="yes">
+							<File Id="IM_MOD_RL_fail_64.dll" Name="IM_MOD_RL_fail_.dll" Source="x64\IM_MOD_RL_fail_.dll" Checksum="yes" KeyPath="yes" />
+							<?foreach EXT in $(var.FAIL_EXTS)?>
+								<util:XmlConfig Id="coder64.xml_$(var.EXT)_Element_create" On="install" Action="create" Node="element" ElementPath="/codermap" Name="coder" File="[CODER64.XML]" />
+								<util:XmlConfig Id="coder64.xml_$(var.EXT)_Magick_create" ElementPath="coder64.xml_$(var.EXT)_Element_create" Name="magick" Value="$(var.EXT)" File="[CODER64.XML]" />
+								<util:XmlConfig Id="coder64.xml_$(var.EXT)_Name_create" ElementPath="coder64.xml_$(var.EXT)_Element_create" Name="name" Value="FAIL" File="[CODER64.XML]" />
+								<util:XmlConfig Id="coder64.xml_$(var.EXT)_Element_delete" On="uninstall" Action="delete" Node="element" VerifyPath="/codermap/coder[\[]@magick='$(var.EXT)' and @name='FAIL'[\]]" ElementPath="/codermap" Name="coder" File="[CODER64.XML]" />
+							<?endforeach?>
 						</Component>
 					</Directory>
-					<Component Id="imagine.ext" Guid="*">
+				<?endif?>
+
+				<Directory Id="IMAGINE.DIR" Name="Imagine">
+					<Directory Id="IMAGINEPLUG.DIR" Name="Plugin">
+						<Component Id="FAIL.plg" Win64="no">
+							<File Name="FAIL.plg" Source="FAIL.plg" Checksum="yes" KeyPath="yes" />
+						</Component>
+					</Directory>
+					<Component Id="imagine.ext">
 						<RegistryValue Root="HKCR" Key="fail.file" Name="Imagine.FAIL" Type="integer" Value="1" KeyPath="yes" />
 						<ProgId Id="Imagine.FAIL">
 							<Extension Id="$(var.FIRST_EXT)">
@@ -280,17 +331,35 @@
 							<?endforeach?>
 						</ProgId>
 					</Component>
+					<?if $(sys.BUILDARCH) = x64?>
+						<Directory Id="IMAGINEPLUG64.DIR" Name="Plugin">
+							<Component Id="FAIL.plg64" Win64="yes">
+								<File Name="FAIL.plg64" Source="x64\FAIL.plg64" Checksum="yes" KeyPath="yes" />
+							</Component>
+						</Directory>
+						<Component Id="imagine64.ext">
+							<RegistryValue Root="HKCR" Key="fail.file" Name="Imagine64.FAIL" Type="integer" Value="1" KeyPath="yes" />
+							<ProgId Id="Imagine.FAIL">
+								<Extension Id="$(var.FIRST_EXT)">
+									<!-- Verb needs to be defined only once per ProgId -->
+									<Verb Id="open" TargetProperty="IMAGINE64.EXE" Argument='"%1"' />
+								</Extension>
+								<?foreach EXT in $(var.OTHER_EXTS)?>
+									<Extension Id="$(var.EXT)" />
+								<?endforeach?>
+							</ProgId>
+						</Component>
+					<?endif?>
 				</Directory>
 			</Directory>
 
-			<?if $(sys.BUILDARCH) = x86?>
 			<Directory Id="ProgramMenuFolder" Name="Programs">
 				<Directory Id="menu.dir" Name="FAIL">
-					<Component Id="FAILWin.lnk" Guid="*">
+					<Component Id="FAILWin.lnk">
 						<RegistryValue Root="HKCU" Key="Software\FAIL" Name="ProgramsMenuFAILWin" Type="integer" Value="1" KeyPath="yes" />
 						<Shortcut Id="FAILWin.lnk" Name="FAILWin" Target="[#failwin.exe]" />
 					</Component>
-					<Component Id="Documentation.lnk" Guid="*">
+					<Component Id="Documentation.lnk">
 						<RemoveFolder Id="menu.dir" On="uninstall" />
 						<RegistryValue Root="HKCU" Key="Software\FAIL" Name="ProgramsMenuDoc" Type="integer" Value="1" KeyPath="yes" />
 						<Shortcut Id="Documentation.lnk" Name="Documentation" Target="[#README_WindowsSetup.html]" />
@@ -299,24 +368,20 @@
 						<RegistryValue Root="HKCU" Key="Software\FAIL" Name="ProgramsMenuWebsite" Type="integer" Value="1" KeyPath="yes" />
 						<File Name="Website.url" Source="Website.url" />
 					</Component>
-					<!--
-					<Component Id="uninstall.lnk" Guid="*">
+					<Component Id="uninstall.lnk">
 						<RegistryValue Root="HKCU" Key="Software\FAIL" Name="ProgramsMenuUninstall" Type="integer" Value="1" KeyPath="yes" />
 						<Shortcut Id="uninstall.lnk" Name="Uninstall" Target="[System64Folder]msiexec.exe" Arguments="/x [ProductCode]" />
 					</Component>
-					-->
 				</Directory>
 			</Directory>
 			<Directory Id="DesktopFolder" Name="Desktop">
-				<Component Id="FAILWin.desktop" Guid="*">
+				<Component Id="FAILWin.desktop">
 					<RegistryValue Root="HKCU" Key="Software\FAIL" Name="DesktopFAILWin" Type="integer" Value="1" KeyPath="yes" />
 					<Shortcut Id="FAILWin.desktop" Name="FAILWin" Target="[#failwin.exe]" />
 				</Component>
 			</Directory>
-			<?endif?>
 		</Directory>
 
-		<?if $(sys.BUILDARCH) = x86?>
 		<Feature Id="failwin" Title="FAILWin" Level="1" ConfigurableDirectory="FAIL.DIR" Description="Simple viewer." AllowAdvertise="no">
 			<ComponentRef Id="failwin.exe" />
 			<Feature Id="failwin.lnk" Title="Start menu shortcut" Level="1" Description="Adds FAILWin to the Programs menu." AllowAdvertise="no">
@@ -329,12 +394,14 @@
 				<ComponentRef Id="failwin.ext" />
 			</Feature>
 		</Feature>
+
 		<Feature Id="fail2png" Title="FAIL2PNG" Level="1" ConfigurableDirectory="FAIL.DIR" Description="Command-line converter to PNG files." AllowAdvertise="no">
 			<ComponentRef Id="fail2png.exe" />
 			<Feature Id="path" Title="Add to Path" Level="1" Description="Add the directory to the Path environment variable so that you don't have to type the location of fail2png at the command prompt." AllowAdvertise="no">
 				<ComponentRef Id="path" />
 			</Feature>
 		</Feature>
+
 		<Feature Id="xnview" Title="XnView plugin" Level="9" ConfigurableDirectory="XNVIEWPLUG.DIR" Description="Plugin for XnView." AllowAdvertise="no">
 			<Condition Level="1">XNVIEW.DIR</Condition>
 			<ComponentRef Id="Xfail1.usr" />
@@ -353,30 +420,45 @@
 				<ComponentRef Id="xnview_fail.ext" />
 			</Feature>
 		</Feature>
-		<?endif?>
 
-		<Feature Id="imagemagick" Title="ImageMagick coder" Level="0" ConfigurableDirectory="IMCODERS.DIR" Description="Image coder for ImageMagick." AllowAdvertise="no">
+		<Feature Id="imagemagick32" Title="ImageMagick coder" Level="0" ConfigurableDirectory="IMCODERS.DIR" Description="Image coder for ImageMagick." AllowAdvertise="no">
 			<Condition Level="1">IMCODERS.DIR AND CODER.XML</Condition>
 			<ComponentRef Id="IM_MOD_RL_fail_.dll" />
 		</Feature>
+		<?if $(sys.BUILDARCH) = x64?>
+			<Feature Id="imagemagick64" Title="ImageMagick 64-bit coder" Level="0" ConfigurableDirectory="IMCODERS64.DIR" Description="Image coder for 64-bit ImageMagick." AllowAdvertise="no">
+				<Condition Level="1">IMCODERS64.DIR AND CODER64.XML</Condition>
+				<ComponentRef Id="IM_MOD_RL_fail_64.dll" />
+			</Feature>
+		<?endif?>
+
 		<Feature Id="thumbfail" Title="Windows thumbnail provider" Level="0" ConfigurableDirectory="FAIL.DIR" Description="Shows thumbnails in Windows Explorer." AllowAdvertise="no">
-			<?if $(sys.BUILDARCH) = x86?>
-				<Condition Level="9">VersionNT &gt;= 600 AND NOT VersionNT64</Condition><!-- optional on 32-bit Vista+ -->
-			<?elseif $(sys.BUILDARCH) = x64?>
-				<Condition Level="1">VersionNT64 &gt;= 600</Condition><!-- selected on 64-bit Vista+ -->
-			<?endif?>
+			<Condition Level="1">VersionNT &gt;= 600</Condition><!-- Vista+ -->
 			<ComponentRef Id="thumbfail.dll" />
+			<?if $(sys.BUILDARCH) = x64?>
+				<ComponentRef Id="thumbfail64.dll" />
+			<?endif?>
 		</Feature>
-		<Feature Id="imagine" Title="Imagine plugin" Level="9" ConfigurableDirectory="IMAGINEPLUG.DIR" Description="Plugin for Imagine." AllowAdvertise="no">
-			<Condition Level="1">IMAGINE.DIR</Condition>
+
+		<Feature Id="imagine32" Title="Imagine 32-bit plugin" Level="9" ConfigurableDirectory="IMAGINEPLUG.DIR" Description="Plugin for 32-bit Imagine." AllowAdvertise="no">
+			<Condition Level="1">IMAGINE.EXE</Condition>
 			<ComponentRef Id="FAIL.plg" />
-			<Feature Id="imagine.ext" Title="Associate file types" Level="0" Description="$(var.DOUBLECLICK) Imagine." AllowAdvertise="no">
+			<Feature Id="imagine32.ext" Title="Associate file types" Level="0" Description="$(var.DOUBLECLICK) Imagine." AllowAdvertise="no">
 				<Condition Level="9">IMAGINE.EXE</Condition>
 				<ComponentRef Id="imagine.ext" />
 			</Feature>
 		</Feature>
+		<?if $(sys.BUILDARCH) = x64?>
+			<Feature Id="imagine64" Title="Imagine 64-bit plugin" Level="9" ConfigurableDirectory="IMAGINEPLUG64.DIR" Description="Plugin for 64-bit Imagine." AllowAdvertise="no">
+				<Condition Level="1">IMAGINE64.EXE</Condition>
+				<ComponentRef Id="FAIL.plg64" />
+				<Feature Id="imagine64.ext" Title="Associate file types" Level="0" Description="$(var.DOUBLECLICK) 64-bit Imagine." AllowAdvertise="no">
+					<Condition Level="9">IMAGINE64.EXE</Condition>
+					<ComponentRef Id="imagine64.ext" />
+				</Feature>
+			</Feature>
+		<?endif?>
 
-		<?if $(sys.BUILDARCH) = x86?>
 		<Feature Id="docs" Title="Documentation" Level="1" ConfigurableDirectory="FAIL.DIR" Description="Documentation file." AllowAdvertise="no">
 			<ComponentRef Id="README_WindowsSetup.html" />
 			<Feature Id="docs.lnk" Title="Start menu shortcuts" Level="1" Description="Adds documentation and website links to the Programs menu." AllowAdvertise="no">
@@ -384,12 +466,10 @@
 				<ComponentRef Id="Website.url" />
 			</Feature>
 		</Feature>
-		<!--
-		<Feature Id="uninstall" Title="Uninstall shortcut" Level="1" Description="Adds uninstall link to the Programs menu (in addition to the Control Panel which is always available)." AllowAdvertise="no">
+
+		<Feature Id="uninstall" Title="Uninstall shortcut" Level="1" Description="Adds the uninstall shortcut to the Programs menu (in addition to the Control Panel which is always available)." AllowAdvertise="no">
 			<ComponentRef Id="uninstall.lnk" />
 		</Feature>
-		-->
-		<?endif?>
 
 	</Product>
 </Wix>
