@@ -59,6 +59,7 @@ CCI:: "Champions' Interlace", 160x192, 2 frames, compressed.
 CHR:: "Blazing Paddles" font, mono.
 CIN:: "Champions' Interlace", 160x192 or 160x200, 2 frames.
 CPR:: "Trzmiel", 320x192, mono, compressed.
+DIN:: 320x192, 10 colors, 2 frames.
 DLM:: "Dir Logo Maker", 11x16 characters, mono.
 DRG:: "Atari CAD", 320x160, mono.
 FNT:: Standard 8x8 font, mono.
@@ -73,10 +74,13 @@ HIP:: "Hard Interlace Picture", 160x200, grayscale, 2 frames.
 HPM:: "Grass' Slideshow", 160x192, 4 colors, compressed.
 HR:: 256x239, 3 colors, 2 frames.
 HR2:: 320x200, 5 colors, 2 frames.
+ICN:: "ICE CIN", 160x192, 80 colors, 2 frames.
 IGE:: "Interlace Graphics Editor", 128x96, 16 colors, 2 frames.
+IMN:: "ICE MIN", 160x192, 80 colors, 2 frames.
 ING:: "ING 15", 160x200, 7 colors, 2 frames.
 INP:: 160x200, 7 colors, 2 frames.
 INT:: "INT95a", up to 160x239, 16 colors, 2 frames.
+IP2:: "ICE PCIN+", 160x192, 45 colors, 2 frames.
 IPC:: "ICE PCIN", 160x192, 35 colors, 2 frames.
 IST:: "Interlace Studio", 160x200, 2 frames.
 JGP:: "Jet Graphics Planner", 8x16 tiles, 4 colors.
@@ -143,10 +147,10 @@ PI3:: "DEGAS", 640x400, mono.
 SPC:: "Spectrum 512", 320x199, 512 colors, compressed.
 SPS:: "Spectrum 512 (Smooshed)" , 320x199, 512 colors, compressed.
 SPU:: "Spectrum 512", 320x199, 512 colors.
-TNY:: "Tiny Stuff", compressed.
 TN1:: "Tiny Stuff", 320x200, 16 colors, compressed.
 TN2:: "Tiny Stuff", 640x200, 4 colors, compressed.
 TN3:: "Tiny Stuff", 640x400, mono, compressed.
+TNY:: "Tiny Stuff", compressed.
 
 Atari Falcon
 ~~~~~~~~~~~~

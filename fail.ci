@@ -2215,6 +2215,12 @@ public class FAIL
 			GtiaColors[i == 0 ? 8 : 3 + i] = content[contentOffset + i * contentStride] & 0xfe;
 	}
 
+	void SetBakPF0123(byte[] content, int contentOffset)
+	{
+		for (int i = 0; i < 5; i++)
+			GtiaColors[i == 0 ? 8 : 3 + i] = content[contentOffset + i] & 0xfe;
+	}
+
 	void SetPF012Bak(byte[] content, int contentOffset)
 	{
 		for (int i = 0; i < 4; i++)
@@ -2366,13 +2372,17 @@ public class FAIL
 
 	void DecodeAtari8Gr12Line(byte[] characters, int charactersOffset, byte[] font, int fontOffset, byte[] frame, int frameOffset)
 	{
+		frameOffset -= GtiaLeftSkip;
 		for (int y = 0; y < 8; y++) {
-			for (int x = 0; x < Width; x++) {
+			int x;
+			for (x = GtiaLeftSkip; x < Width; x++) {
 				int ch = characters[charactersOffset + (x >> 3)];
 				int c = font[fontOffset + ((ch & 0x7f) << 3) + y] >> (~x & 6) & 3;
 				int gr12Registers = ch >= 0x80 ? 0x7548 : 0x6548;
 				frame[frameOffset + x] = GtiaColors[gr12Registers >> (c << 2) & 0xf] & 0xfe;
 			}
+			for ( ; x < Width + GtiaLeftSkip; x++)
+				frame[frameOffset + x] = GtiaColors[8];
 			frameOffset += Width;
 		}
 	}
@@ -4000,31 +4010,104 @@ public class FAIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	void DecodeIce(byte[] content, int contentOffset, byte[] frame1, byte[] screen2)
+	{
+		int screen2Offset = 0;
+		for (int row = 0; row < 24; row++) {
+			int charactersOffset = (contentOffset & 1023) + 16384 + row * 40;
+			int fontOffset = contentOffset + (row / 3 << 11);
+			DecodeAtari8Gr12Line(content, charactersOffset, content, fontOffset, frame1, row * (320 * 8));
+			for (int y = 0; y < 8; y++) {
+				for (int x = 0; x < 40; x++) {
+					int ch = content[charactersOffset + x] & 0x7f; // inverse disabled in CHACTL
+					screen2[screen2Offset++] = content[(fontOffset ^ 1024) + (ch << 3) + y];
+				}
+			}
+		}
+	}
+
 	bool DecodeIpc(byte[] content, int contentLength)
 	{
 		if (contentLength != 17354 || content[0] != 1)
 			return false;
+		SetSize(320, 192, FAILResolution.Xe2x1);
+		GtiaLeftSkip = 1;
+		byte[320 * 192] frame1;
+		byte[40 * 192] screen2;
+		SetPF0123Bak(content, 5);
+		GtiaColors[8] = content[1] & 0xfe;
+		DecodeIce(content, 10, frame1, screen2);
+		byte[320 * 192] frame2;
 		SetGtiaColors(content, 1);
+		DecodeAtari8Gr10(screen2, 0, frame2, 0, 320, 192);
+		return ApplyAtari8PaletteBlend(frame1, frame2);
+	}
+
+	bool DecodeIp2(byte[] content, int contentLength)
+	{
+		if (contentLength != 17358 || content[0] != 1)
+			return false;
+		SetSize(320, 192, FAILResolution.Xe2x1);
+		GtiaLeftSkip = 1;
+		byte[320 * 192] frame1;
+		byte[40 * 192] screen2;
+		GtiaColors[8] = content[1] & 0xfe;
+		GtiaColors[4] = content[5] & 0xfe;
+		GtiaColors[5] = content[7] & 0xfe;
+		GtiaColors[6] = content[9] & 0xfe;
+		GtiaColors[7] = content[11] & 0xfe;
+		DecodeIce(content, 14, frame1, screen2);
+		byte[320 * 192] frame2;
+		for (int i = 0; i < 4; i++) {
+			GtiaColors[i] = content[1 + i] & 0xfe;
+			SetGtiaColor(4 + i, content[6 + i * 2]);
+		}
+		SetGtiaColor(8, content[13]);
+		DecodeAtari8Gr10(screen2, 0, frame2, 0, 320, 192);
+		return ApplyAtari8PaletteBlend(frame1, frame2);
+	}
+
+	bool DecodeImn(byte[] content, int contentLength)
+	{
+		if (contentLength != 17350 || content[0] != 1)
+			return false;
 		SetSize(320, 192, FAILResolution.Xe2x1);
 		byte[320 * 192] frame1;
+		byte[40 * 192] screen2;
+		SetBakPF0123(content, 1);
+		DecodeIce(content, 6, frame1, screen2);
 		byte[320 * 192] frame2;
-		for (int y = 0; y < 192; y++) {
-			frame2[y * 320] = frame1[y * 320 + 319] = content[1] & 0xfe;
-			for (int x = 0; x < 320; x++) {
-				int ch = content[16394 + (y >> 3) * 40 + (x >> 3)];
-				int gr12col = ch >= 0x80 ? 0x7540 : 0x6540;
-				int fontOffset = 10 + (y / 24 << 11) + ((ch & 0x7f) << 3) + (y & 7);
-				int i;
-				if (x >= 1) {
-					i = content[fontOffset] >> (~x & 6) & 3;
-					frame1[y * 320 + x - 1] = GtiaColors[gr12col >> (i << 2) & 0xf];
-				}
-				if (x < 319) {
-					i = content[fontOffset + 1024] >> (~x & 4) & 0xf;
-					frame2[y * 320 + x + 1] = GtiaColors[i];
-				}
-			}
-		}
+		DecodeAtari8Gr9(screen2, 0, 40, frame2, 0, 320, 320, 192);
+		return ApplyAtari8PaletteBlend(frame1, frame2);
+	}
+
+	bool DecodeIcn(byte[] content, int contentLength)
+	{
+		if (contentLength != 17350 || content[0] != 1)
+			return false;
+		SetSize(320, 192, FAILResolution.Xe2x1);
+		byte[320 * 192] frame1;
+		byte[40 * 192] screen2;
+		SetBakPF0123(content, 1);
+		DecodeIce(content, 6, frame1, screen2);
+		byte[320 * 192] frame2;
+		DecodeAtari8Gr11(screen2, 0, frame2, 0, 320, 192);
+		return ApplyAtari8PaletteBlend(frame1, frame2);
+	}
+
+	bool DecodeDin(byte[] content, int contentLength)
+	{
+		if (contentLength != 17351 || content[0] != 3)
+			return false;
+		SetSize(320, 192, FAILResolution.Xe1x1);
+		byte[320 * 192] frame1;
+		byte[40 * 192] screen2;
+		SetBakPF0123(content, 2);
+		GtiaColors[8] = content[1] & 0xfe;
+		DecodeIce(content, 7 + 1024, frame1, screen2); // GR. 0 font, GR. 12 font
+		byte[320 * 192] frame2;
+		SetPF21(content, 1);
+		DecodeAtari8Gr8(screen2, 0, frame2);
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
@@ -4525,6 +4608,7 @@ public class FAIL
 		case PACKED_EXT("DG1"):
 		case PACKED_EXT("DGC"):
 		case PACKED_EXT("DGU"):
+		case PACKED_EXT("DIN"):
 		case PACKED_EXT("DLM"):
 		case PACKED_EXT("DOO"):
 		case PACKED_EXT("DPH"):
@@ -4548,10 +4632,13 @@ public class FAIL
 		case PACKED_EXT("BL1"):
 		case PACKED_EXT("BL2"):
 		case PACKED_EXT("BL3"):
+		case PACKED_EXT("ICN"):
 		case PACKED_EXT("IGE"):
+		case PACKED_EXT("IMN"):
 		case PACKED_EXT("ING"):
 		case PACKED_EXT("INP"):
 		case PACKED_EXT("INT"):
+		case PACKED_EXT("IP2"):
 		case PACKED_EXT("IPC"):
 		case PACKED_EXT("IST"):
 		case PACKED_EXT("JGP"):
@@ -4686,6 +4773,8 @@ public class FAIL
 		case PACKED_EXT("DG1"):
 		case PACKED_EXT("DGU"):
 			return DecodeDgu(content, contentLength);
+		case PACKED_EXT("DIN"):
+			return DecodeDin(content, contentLength);
 		case PACKED_EXT("DLM"):
 			return DecodeDlm(content, contentLength);
 		case PACKED_EXT("DOO"):
@@ -4724,6 +4813,8 @@ public class FAIL
 			return DecodeHr(content, contentLength);
 		case PACKED_EXT("HR2"):
 			return DecodeHr2(content, contentLength);
+		case PACKED_EXT("ICN"):
+			return DecodeIcn(content, contentLength);
 		case PACKED_EXT("IFF"):
 		case PACKED_EXT("BL1"):
 		case PACKED_EXT("BL2"):
@@ -4731,12 +4822,16 @@ public class FAIL
 			return DecodeIff(content, contentLength);
 		case PACKED_EXT("IGE"):
 			return DecodeIge(content, contentLength);
+		case PACKED_EXT("IMN"):
+			return DecodeImn(content, contentLength);
 		case PACKED_EXT("ING"):
 		case PACKED_EXT("INP"):
 			return DecodeInp(content, contentLength);
 		case PACKED_EXT("INT"):
 			return DecodeInt(content, contentLength)
 				|| DecodeInp(content, contentLength);
+		case PACKED_EXT("IP2"):
+			return DecodeIp2(content, contentLength);
 		case PACKED_EXT("IPC"):
 			return DecodeIpc(content, contentLength);
 		case PACKED_EXT("IST"):

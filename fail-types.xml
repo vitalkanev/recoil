@@ -34,6 +34,7 @@
 	<type ext="dgc" acronym="DuneGraph Compressed" />
 	<type ext="dgp" acronym="DiGiPaint" />
 	<type ext="dgu" acronym="DuneGraph Uncompressed" />
+	<type ext="din" />
 	<type ext="dlm" acronym="Dir Logo Maker" />
 	<type ext="doo" acronym="DOOdle" />
 	<type ext="dph" acronym="DelmPaint High resolution" />
@@ -55,12 +56,15 @@
 	<type ext="hpm" />
 	<type ext="hr" />
 	<type ext="hr2" />
+	<type ext="icn" />
 	<type ext="iff" acronym="Interchange File Format" />
 	<type ext="ige" acronym="Interlace Graphics Editor" />
 	<type ext="ilc" />
+	<type ext="imn" />
 	<type ext="ing" />
 	<type ext="inp" />
 	<type ext="int" />
+	<type ext="ip2" />
 	<type ext="ipc" />
 	<type ext="ist" acronym="Interlace STudio" />
 	<type ext="jgp" acronym="Jet Graphics Planner" />
