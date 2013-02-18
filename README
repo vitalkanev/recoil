@@ -134,6 +134,7 @@ CA3:: "CrackArt", 640x400, mono, compressed.
 CPT:: "Canvas", compressed.
 DOO:: "Doodle", 640x400, mono.
 GFB:: "DeskPic".
+ICN:: "DEGAS Elite" icon, mono.
 IFF:: "Interchange File Format", compressed.
 NEO:: "NEOchrome".
 PAC:: "STAD", 640x400, mono, compressed.

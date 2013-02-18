@@ -911,6 +911,82 @@ class BlazingPaddlesBoundingBox
 	}
 }
 
+class IcnParser
+{
+	byte[] Content;
+	int ContentOffset;
+	int ContentLength;
+
+	bool SkipWhitespace()
+	{
+		bool got = false;
+		while (ContentOffset < ContentLength) {
+			switch (Content[ContentOffset]) {
+			case ' ':
+			case '\t':
+			case '\r':
+			case '\n':
+				ContentOffset++;
+				got = true;
+				break;
+			case '/':
+				if (ContentOffset + 3 >= ContentLength || Content[ContentOffset + 1] != '*')
+					return false;
+				ContentOffset += 3;
+				do {
+					if (++ContentOffset > ContentLength)
+						return false; // error: unclosed comment
+				} while (Content[ContentOffset - 2] != '*' || Content[ContentOffset - 1] != '/');
+				got = true;
+				break;
+			default:
+				return got;
+			}
+		}
+		return true;
+	}
+
+	bool Expect(string s)
+	{
+		if (!SkipWhitespace())
+			return false;
+		int length = s.Length;
+		for (int i = 0; i < length; i++)
+			if (Content[ContentOffset++] != s[i])
+				return false;
+		return true;
+	}
+
+	int ParseHex()
+	{
+		if (!Expect("0x"))
+			return -1;
+		int r = 0;
+		for (; ContentOffset < ContentLength; ContentOffset++) {
+			int c = Content[ContentOffset];
+			if (c >= '0' && c <= '9')
+				c -= '0';
+			else if (c >= 'A' && c <= 'F')
+				c -= 'A' - 10;
+			else if (c >= 'a' && c <= 'f')
+				c -= 'a' - 10;
+			else
+				return r;
+			if (r >> 12 != 0)
+				return -1; // 16-bit overflow
+			r = r << 4 | c;
+		}
+		return r;
+	}
+
+	int ParseDefine(string s)
+	{
+		if (!Expect("#define") || !Expect(s))
+			return -1;
+		return ParseHex();
+	}
+}
+
 public class FAIL
 {
 	/// FAIL version - major part.
@@ -1724,6 +1800,42 @@ public class FAIL
 			// This clever formula just computes the byte-by-byte averages.
 			Pixels[i] = (rgb1 & rgb2) + ((rgb1 ^ rgb2) >> 1 & 0x7f7f7f);
 		}
+		return true;
+	}
+
+	bool DecodeStIcn(byte[] content, int contentLength)
+	{
+		IcnParser() parser;
+		parser.Content = content;
+		parser.ContentOffset = 0;
+		parser.ContentLength = contentLength;
+		int width = parser.ParseDefine("ICON_W");
+		if (width <= 0 || width >= MaxWidth)
+			return false;
+		int height = parser.ParseDefine("ICON_H");
+		if (height <= 0 || height >= MaxHeight)
+			return false;
+		int size = parser.ParseDefine("ICONSIZE");
+		if (size != (width + 0xf >> 4) * height)
+			return false;
+		if (!parser.Expect("int") || !parser.Expect("image[ICONSIZE]")
+		 || !parser.Expect("=") || !parser.Expect("{"))
+			return false;
+		byte[MaxWidth / 8 * MaxHeight] bitmap;
+		for (int i = 0; ; ) {
+			int value = parser.ParseHex();
+			if (value < 0)
+				return false;
+			bitmap[i * 2] = value >> 8;
+			bitmap[i * 2 + 1] = value.LowByte;
+			if (++i >= size)
+				break;
+			if (parser.ContentOffset >= contentLength || content[parser.ContentOffset++] != ',')
+				return false;
+		}
+		if (!parser.Expect("};"))
+			return false;
+		DecodeBlackAndWhite(bitmap, 0, width + 0xf & ~0xf, height, FAILResolution.St1x1);
 		return true;
 	}
 
@@ -4081,7 +4193,7 @@ public class FAIL
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
-	bool DecodeIcn(byte[] content, int contentLength)
+	bool DecodeAtari8Icn(byte[] content, int contentLength)
 	{
 		if (contentLength != 17350 || content[0] != 1)
 			return false;
@@ -4814,7 +4926,8 @@ public class FAIL
 		case PACKED_EXT("HR2"):
 			return DecodeHr2(content, contentLength);
 		case PACKED_EXT("ICN"):
-			return DecodeIcn(content, contentLength);
+			return DecodeStIcn(content, contentLength)
+				|| DecodeAtari8Icn(content, contentLength);
 		case PACKED_EXT("IFF"):
 		case PACKED_EXT("BL1"):
 		case PACKED_EXT("BL2"):
