@@ -2484,17 +2484,13 @@ public class FAIL
 
 	void DecodeAtari8Gr12Line(byte[] characters, int charactersOffset, byte[] font, int fontOffset, byte[] frame, int frameOffset)
 	{
-		frameOffset -= GtiaLeftSkip;
 		for (int y = 0; y < 8; y++) {
-			int x;
-			for (x = GtiaLeftSkip; x < Width; x++) {
+			for (int x = 0; x < Width; x++) {
 				int ch = characters[charactersOffset + (x >> 3)];
 				int c = font[fontOffset + ((ch & 0x7f) << 3) + y] >> (~x & 6) & 3;
 				int gr12Registers = ch >= 0x80 ? 0x7548 : 0x6548;
 				frame[frameOffset + x] = GtiaColors[gr12Registers >> (c << 2) & 0xf] & 0xfe;
 			}
-			for ( ; x < Width + GtiaLeftSkip; x++)
-				frame[frameOffset + x] = GtiaColors[8];
 			frameOffset += Width;
 		}
 	}
@@ -4087,6 +4083,7 @@ public class FAIL
 				int ch = content[9 + 8192 + (y >> 3) * 40 + (x >> 3)];
 				int c;
 				switch (content[fontOffset + ((ch & 0x7f) << 3) + (y & 7)] >> (~x & 6) & 3) {
+				default: // just to make csc and javac not complain about uninitialized "c"
 				case 0:
 					// Sprites are 4x width, arranged next to each other in the following order:
 					// P0 M0 P1 M1 P2 M2 P3 M3
@@ -4124,9 +4121,10 @@ public class FAIL
 
 	void DecodeIce(byte[] content, int contentOffset, byte[] frame1, byte[] screen2)
 	{
+		SetSize(320, 192, contentOffset >= 16 ? FAILResolution.Xe1x1 : FAILResolution.Xe2x1);
 		int screen2Offset = 0;
 		for (int row = 0; row < 24; row++) {
-			int charactersOffset = (contentOffset & 1023) + 16384 + row * 40;
+			int charactersOffset = (contentOffset & 15) + 16384 + row * 40;
 			int fontOffset = contentOffset + (row / 3 << 11);
 			DecodeAtari8Gr12Line(content, charactersOffset, content, fontOffset, frame1, row * (320 * 8));
 			for (int y = 0; y < 8; y++) {
@@ -4142,14 +4140,16 @@ public class FAIL
 	{
 		if (contentLength != 17354 || content[0] != 1)
 			return false;
-		SetSize(320, 192, FAILResolution.Xe2x1);
-		GtiaLeftSkip = 1;
 		byte[320 * 192] frame1;
 		byte[40 * 192] screen2;
 		SetPF0123Bak(content, 5);
 		GtiaColors[8] = content[1] & 0xfe;
 		DecodeIce(content, 10, frame1, screen2);
 		byte[320 * 192] frame2;
+		// In the original viewer, GR. 12 is scrolled horizontally one pixel to the right.
+		// Here, I move GR. 10 to the right.
+		// This can't be done on the Atari as it doesn't support scrolling GR. 10 by half a pixel.
+		GtiaLeftSkip = 2;
 		SetGtiaColors(content, 1);
 		DecodeAtari8Gr10(screen2, 0, frame2, 0, 320, 192);
 		return ApplyAtari8PaletteBlend(frame1, frame2);
@@ -4159,8 +4159,6 @@ public class FAIL
 	{
 		if (contentLength != 17358 || content[0] != 1)
 			return false;
-		SetSize(320, 192, FAILResolution.Xe2x1);
-		GtiaLeftSkip = 1;
 		byte[320 * 192] frame1;
 		byte[40 * 192] screen2;
 		GtiaColors[8] = content[1] & 0xfe;
@@ -4170,6 +4168,7 @@ public class FAIL
 		GtiaColors[7] = content[11] & 0xfe;
 		DecodeIce(content, 14, frame1, screen2);
 		byte[320 * 192] frame2;
+		GtiaLeftSkip = 2; // see the comment in DecodeIpc
 		for (int i = 0; i < 4; i++) {
 			GtiaColors[i] = content[1 + i] & 0xfe;
 			SetGtiaColor(4 + i, content[6 + i * 2]);
@@ -4183,7 +4182,6 @@ public class FAIL
 	{
 		if (contentLength != 17350 || content[0] != 1)
 			return false;
-		SetSize(320, 192, FAILResolution.Xe2x1);
 		byte[320 * 192] frame1;
 		byte[40 * 192] screen2;
 		SetBakPF0123(content, 1);
@@ -4197,7 +4195,6 @@ public class FAIL
 	{
 		if (contentLength != 17350 || content[0] != 1)
 			return false;
-		SetSize(320, 192, FAILResolution.Xe2x1);
 		byte[320 * 192] frame1;
 		byte[40 * 192] screen2;
 		SetBakPF0123(content, 1);
@@ -4211,7 +4208,6 @@ public class FAIL
 	{
 		if (contentLength != 17351 || content[0] != 3)
 			return false;
-		SetSize(320, 192, FAILResolution.Xe1x1);
 		byte[320 * 192] frame1;
 		byte[40 * 192] screen2;
 		SetBakPF0123(content, 2);
