@@ -232,6 +232,7 @@ static const struct Format {
 	{ "TRP", "EggPaint; 65536 colors" },
 	{ "TRU", "IndyPaint; 65536 colors" },
 	{ "WND", "Blazing Paddles window; up to 160x192, 4 colors" },
+	{ "VZI", "160x200, grayscale, 2 frames" },
 	{ "XLP", "XL-Paint; 160x192 or 160x200, 7 colors, 2 frames, compressed" }
 };
 

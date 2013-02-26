@@ -114,6 +114,7 @@ SHP:: "Movie Maker" shapes, 160x96, 4 colors.
 SPC:: "The Graphics Magician Picture Painter", 160x192, 128 colors.
 SXS:: 16x16 font, mono.
 TIP:: "Taquart Interlace Picture", up to 160x119, 2 frames.
+VZI:: 160x200, grayscale, 2 frames.
 WND:: "Blazing Paddles" window, up to 160x192, 4 colors.
 XLP:: "XL-Paint", 160x192 or 160x200, 7 colors, 2 frames, compressed.
 

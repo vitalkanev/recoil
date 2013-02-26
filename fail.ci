@@ -2385,15 +2385,12 @@ public class FAIL
 
 	void DecodeAtari8Gr9(byte[] content, int contentOffset, int contentStride, byte[] frame, int frameOffset, int frameStride, int width, int height)
 	{
-		frameOffset -= GtiaLeftSkip;
 		for (int y = 0; y < height; y++) {
-			int x;
-			for (x = GtiaLeftSkip; x < width; x++) {
-				int c = content[contentOffset + (x >> 3)] >> (~x & 4) & 0x0f;
+			for (int x = 0; x < width; x++) {
+				int i = x + GtiaLeftSkip;
+				int c = i < 0 || i >= width ? 0 : content[contentOffset + (i >> 3)] >> (~i & 4) & 0x0f;
 				frame[frameOffset + x] = GtiaColors[8] | c;
 			}
-			for ( ; x < width + GtiaLeftSkip; x++)
-				frame[frameOffset + x] = GtiaColors[8];
 			contentOffset += contentStride;
 			frameOffset += frameStride;
 		}
@@ -3567,6 +3564,20 @@ public class FAIL
 		default:
 			return false;
 		}
+	}
+
+	bool DecodeVzi(byte[] content, int contentLength)
+	{
+		if (contentLength != 16000)
+			return false;
+		SetSize(320, 200, FAILResolution.Xe2x1);
+		byte[320 * 200] frame1;
+		GtiaLeftSkip = -1;
+		DecodeAtari8Gr9(content, 0, 40, frame1, 0, 320, 320, 200);
+		GtiaLeftSkip = 1;
+		byte[320 * 200] frame2;
+		DecodeAtari8Gr9(content, 8000, 40, frame2, 0, 320, 320, 200);
+		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
 	bool DecodeRm(byte[] content, int contentLength, int mode, FAILResolution resolution)
@@ -4798,6 +4809,7 @@ public class FAIL
 		case PACKED_EXT("TNY"):
 		case PACKED_EXT("TRP"):
 		case PACKED_EXT("TRU"):
+		case PACKED_EXT("VZI"):
 		case PACKED_EXT("WND"):
 		case PACKED_EXT("XLP"):
 			return true;
@@ -5036,6 +5048,8 @@ public class FAIL
 			return DecodeTrp(content, contentLength);
 		case PACKED_EXT("TRU"):
 			return DecodeTru(content, contentLength);
+		case PACKED_EXT("VZI"):
+			return DecodeVzi(content, contentLength);
 		case PACKED_EXT("WND"):
 			return DecodeWnd(content, contentLength);
 		case PACKED_EXT("XLP"):
