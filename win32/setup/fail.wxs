@@ -249,6 +249,15 @@
 							<Class Id="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Context="InprocServer32" Description="FAIL Thumbnail Handler" ThreadingModel="both" />
 						</File>
 						<RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Approved" Name="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Value="FAIL Thumbnail Handler" Type="string" Action="write" />
+					</Component>
+					<Component Id="thumbfailXP.reg" Win64="no">
+						<Condition>VersionNT &lt; 600</Condition>
+						<?foreach EXT in $(var.FAIL_EXTS)?>
+							<RegistryValue Root="HKCR" Key=".$(var.EXT)\ShellEx\{bb2e617c-0920-11d1-9a0b-00c04fc2d6c1}" Value="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Type="string" Action="write" />
+						<?endforeach?>
+					</Component>
+					<Component Id="thumbfailVista.reg" Win64="no">
+						<Condition>VersionNT &gt;= 600</Condition>
 						<?foreach EXT in $(var.FAIL_EXTS)?>
 							<RegistryValue Root="HKCR" Key=".$(var.EXT)\ShellEx\{e357fccd-a995-4576-b01f-234630154e96}" Value="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Type="string" Action="write" />
 						<?endforeach?>
@@ -259,6 +268,15 @@
 								<Class Id="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Context="InprocServer32" Description="FAIL Thumbnail Handler" ThreadingModel="both" />
 							</File>
 							<RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Approved" Name="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Value="FAIL Thumbnail Handler" Type="string" Action="write" />
+						</Component>
+						<Component Id="thumbfail64XP.reg" Win64="yes">
+							<Condition>VersionNT &lt; 600</Condition>
+							<?foreach EXT in $(var.FAIL_EXTS)?>
+								<RegistryValue Root="HKCR" Key=".$(var.EXT)\ShellEx\{bb2e617c-0920-11d1-9a0b-00c04fc2d6c1}" Value="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Type="string" Action="write" />
+							<?endforeach?>
+						</Component>
+						<Component Id="thumbfail64Vista.reg" Win64="yes">
+							<Condition>VersionNT &gt;= 600</Condition>
 							<?foreach EXT in $(var.FAIL_EXTS)?>
 								<RegistryValue Root="HKCR" Key=".$(var.EXT)\ShellEx\{e357fccd-a995-4576-b01f-234630154e96}" Value="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Type="string" Action="write" />
 							<?endforeach?>
@@ -421,7 +439,7 @@
 			</Feature>
 		</Feature>
 
-		<Feature Id="imagemagick32" Title="ImageMagick coder" Level="0" ConfigurableDirectory="IMCODERS.DIR" Description="Image coder for ImageMagick." AllowAdvertise="no">
+		<Feature Id="imagemagick32" Title="ImageMagick 32-bit coder" Level="0" ConfigurableDirectory="IMCODERS.DIR" Description="Image coder for 32-bit ImageMagick." AllowAdvertise="no">
 			<Condition Level="1">IMCODERS.DIR AND CODER.XML</Condition>
 			<ComponentRef Id="IM_MOD_RL_fail_.dll" />
 		</Feature>
@@ -433,10 +451,14 @@
 		<?endif?>
 
 		<Feature Id="thumbfail" Title="Windows thumbnail provider" Level="0" ConfigurableDirectory="FAIL.DIR" Description="Shows thumbnails in Windows Explorer." AllowAdvertise="no">
-			<Condition Level="1">VersionNT &gt;= 600</Condition><!-- Vista+ -->
+			<Condition Level="1">VersionNT &gt;= 500</Condition><!-- Windows 2000 or newer -->
 			<ComponentRef Id="thumbfail.dll" />
+			<ComponentRef Id="thumbfailXP.reg" />
+			<ComponentRef Id="thumbfailVista.reg" />
 			<?if $(sys.BUILDARCH) = x64?>
 				<ComponentRef Id="thumbfail64.dll" />
+				<ComponentRef Id="thumbfail64XP.reg" />
+				<ComponentRef Id="thumbfail64Vista.reg" />
 			<?endif?>
 		</Feature>
 

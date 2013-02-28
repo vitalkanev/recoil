@@ -21,28 +21,53 @@
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+/* There are two separate implementations for different Windows versions:
+   IPersistFile+IExtractImage for Windows 2000 and XP.
+   IInitializeWithStream+IThumbnailProvider for Windows Vista+
+   (even though the Windows 2000/XP interfaces could work). */
+
 #include <windows.h>
 #include <malloc.h>
+#include <objidl.h>
 
-#ifdef _MSC_VER
+#undef INTERFACE
 
-#include <thumbcache.h>
+#ifdef __MINGW64__
 
-#else // MinGW
+#include <shobjidl.h>
 
+#else
+// missing just in 32-bit MinGW
+
+#define IEIFLAG_CACHE 2
+
+#define INTERFACE IExtractImage
+DECLARE_INTERFACE_(IExtractImage, IUnknown)
+{
+	STDMETHOD(QueryInterface)(THIS_ REFIID, PVOID *) PURE;
+	STDMETHOD_(ULONG, AddRef)(THIS) PURE;
+	STDMETHOD_(ULONG, Release)(THIS) PURE;
+	STDMETHOD(GetLocation)(THIS_ LPWSTR, DWORD, DWORD *, const SIZE *, DWORD, DWORD *) PURE;
+	STDMETHOD(Extract)(THIS_ HBITMAP *) PURE;
+};
 #undef INTERFACE
 
 static const IID IID_IInitializeWithStream =
 	{ 0xb824b49d, 0x22ac, 0x4161, { 0xac, 0x8a, 0x99, 0x16, 0xe8, 0xfa, 0x3f, 0x7f } };
 #define INTERFACE IInitializeWithStream
-DECLARE_INTERFACE_(IInitializeWithStream,IUnknown)
+DECLARE_INTERFACE_(IInitializeWithStream, IUnknown)
 {
-	STDMETHOD(QueryInterface)(THIS_ REFIID,PVOID*) PURE;
-	STDMETHOD_(ULONG,AddRef)(THIS) PURE;
-	STDMETHOD_(ULONG,Release)(THIS) PURE;
-	STDMETHOD(Initialize)(THIS_ IStream *pstream,DWORD grfMode) PURE;
+	STDMETHOD(QueryInterface)(THIS_ REFIID, PVOID *) PURE;
+	STDMETHOD_(ULONG, AddRef)(THIS) PURE;
+	STDMETHOD_(ULONG, Release)(THIS) PURE;
+	STDMETHOD(Initialize)(THIS_ IStream *, DWORD) PURE;
 };
 #undef INTERFACE
+
+#endif
+
+const IID IID_IExtractImage =
+	{ 0xbb2e617c, 0x0920, 0x11d1, { 0x9a, 0x0b, 0x00, 0xc0, 0x4f, 0xc2, 0xd6, 0xc1 } };
 
 enum WTS_ALPHATYPE
 {
@@ -56,14 +81,12 @@ static const IID IID_IThumbnailProvider =
 #define INTERFACE IThumbnailProvider
 DECLARE_INTERFACE_(IThumbnailProvider, IUnknown)
 {
-	STDMETHOD(QueryInterface)(THIS_ REFIID,PVOID*) PURE;
-	STDMETHOD_(ULONG,AddRef)(THIS) PURE;
-	STDMETHOD_(ULONG,Release)(THIS) PURE;
-	STDMETHOD(GetThumbnail)(THIS_ UINT cx,HBITMAP *phbmp,WTS_ALPHATYPE *pdwAlpha) PURE;
+	STDMETHOD(QueryInterface)(THIS_ REFIID, PVOID *) PURE;
+	STDMETHOD_(ULONG, AddRef)(THIS) PURE;
+	STDMETHOD_(ULONG, Release)(THIS) PURE;
+	STDMETHOD(GetThumbnail)(THIS_ UINT, HBITMAP *, WTS_ALPHATYPE *) PURE;
 };
 #undef INTERFACE
-
-#endif
 
 #include "fail.h"
 
@@ -100,12 +123,50 @@ static void DllRelease(void)
 static const GUID CLSID_FAILThumbProvider =
 	{ 0x3c450d81, 0xb6bd, 0x4d8c, { 0x92, 0x3c, 0xfc, 0x65, 0x9a, 0xbb, 0x27, 0xd3 } };
 
-class CFAILThumbProvider : public IInitializeWithStream, public IThumbnailProvider
+class CFAILThumbProvider : IPersistFile, IExtractImage, IInitializeWithStream, IThumbnailProvider
 {
 	LONG m_cRef;
 	IStream *m_pstream;
 	FAIL *m_pFail;
+	WCHAR m_filename[MAX_PATH];
+	int m_contentLen;
 	unsigned char m_content[FAIL_MAX_CONTENT_LENGTH];
+
+	HRESULT Decode(LPCWSTR pszFilename, HBITMAP *phBitmap)
+	{
+		// filename to ASCII
+		int cch = lstrlenW(pszFilename) + 1;
+		char *filename = (char *) alloca(cch * 2);
+		if (filename == NULL)
+			return E_OUTOFMEMORY;
+		if (WideCharToMultiByte(CP_ACP, 0, pszFilename, -1, filename, cch, NULL, NULL) <= 0)
+			return HRESULT_FROM_WIN32(GetLastError());
+
+		// decode
+		if (!FAIL_Decode(m_pFail, filename, m_content, m_contentLen))
+			return E_FAIL;
+		int width = FAIL_GetWidth(m_pFail);
+		int height = FAIL_GetHeight(m_pFail);
+		const int *pixels = FAIL_GetPixels(m_pFail);
+
+		// convert to bitmap
+		BITMAPINFO bmi = {};
+		bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
+		bmi.bmiHeader.biWidth = width;
+		bmi.bmiHeader.biHeight = -height;
+		bmi.bmiHeader.biPlanes = 1;
+		bmi.bmiHeader.biBitCount = 32;
+		bmi.bmiHeader.biCompression = BI_RGB;
+		int *pBits;
+		HBITMAP hbmp = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, reinterpret_cast<void **>(&pBits), NULL, 0);
+		if (hbmp == NULL)
+			return E_OUTOFMEMORY;
+		int pixels_count = width * height;
+		for (int i = 0; i < pixels_count; i++)
+			pBits[i] = pixels[i] | 0xff000000;
+		*phBitmap = hbmp;
+		return S_OK;
+	}
 
 public:
 
@@ -113,6 +174,7 @@ public:
 	{
 		DllAddRef();
 		m_pFail = FAIL_New();
+		m_filename[0] = '\0';
 	}
 
 	virtual ~CFAILThumbProvider()
@@ -126,13 +188,23 @@ public:
 
 	STDMETHODIMP QueryInterface(REFIID riid, void **ppv)
 	{
-		if (riid == IID_IUnknown || riid == IID_IThumbnailProvider) {
-			*ppv = (IThumbnailProvider *) this;
+		if (riid == IID_IUnknown || riid == IID_IPersistFile) {
+			*ppv = (IPersistFile *) this;
+			AddRef();
+			return S_OK;
+		}
+		if (riid == IID_IExtractImage) {
+			*ppv = (IExtractImage *) this;
 			AddRef();
 			return S_OK;
 		}
 		if (riid == IID_IInitializeWithStream) {
 			*ppv = (IInitializeWithStream *) this;
+			AddRef();
+			return S_OK;
+		}
+		if (riid == IID_IThumbnailProvider) {
+			*ppv = (IThumbnailProvider *) this;
 			AddRef();
 			return S_OK;
 		}
@@ -151,6 +223,73 @@ public:
 		if (r == 0)
 			delete this;
 		return r;
+	}
+
+	// IPersistFile
+
+	STDMETHODIMP GetClassID(CLSID *pClassID)
+	{
+		*pClassID = CLSID_FAILThumbProvider;
+		return S_OK;
+	}
+
+	STDMETHODIMP IsDirty()
+	{
+		return S_FALSE;
+	}
+
+	STDMETHODIMP Load(LPCOLESTR pszFileName, DWORD dwMode)
+	{
+		if (m_pFail == NULL)
+			return E_OUTOFMEMORY;
+		m_filename[0] = '\0';
+		int cbFileName = (lstrlenW(pszFileName) + 1) * sizeof(WCHAR);
+		if (cbFileName > (int) sizeof(m_filename))
+			return E_FAIL;
+
+		HANDLE fh = CreateFileW(pszFileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+		if (fh == INVALID_HANDLE_VALUE)
+			return HRESULT_FROM_WIN32(GetLastError());
+		if (!ReadFile(fh, m_content, sizeof(m_content), (LPDWORD) &m_contentLen, NULL)) {
+			HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
+			CloseHandle(fh);
+			return hr;
+		}
+		CloseHandle(fh);
+
+		memcpy(m_filename, pszFileName, cbFileName);
+		return S_OK;
+	}
+
+	STDMETHODIMP Save(LPCOLESTR pszFileName, BOOL fRemember)
+	{
+		return E_NOTIMPL;
+	}
+
+	STDMETHODIMP SaveCompleted(LPCOLESTR pszFileName)
+	{
+		return S_OK;
+	}
+
+	STDMETHODIMP GetCurFile(LPOLESTR *ppszFileName)
+	{
+		return E_NOTIMPL;
+	}
+
+	// IExtractImage
+
+	STDMETHODIMP GetLocation(LPWSTR pszPathBuffer, DWORD cchMax, DWORD *pdwPriority, const SIZE *prgSize, DWORD pdwRecClrDepth, DWORD *pdwFlags)
+	{
+		if (pszPathBuffer != NULL)
+			lstrcpynW(pszPathBuffer, m_filename, cchMax);
+		if (pdwFlags != NULL)
+			*pdwFlags = IEIFLAG_CACHE;
+		return S_OK;
+	}
+
+	STDMETHODIMP Extract(HBITMAP *phBmpImage)
+	{
+		return Decode(m_filename, phBmpImage);
 	}
 
 	// IInitializeWithStream
@@ -178,53 +317,23 @@ public:
 		HRESULT hr = m_pstream->Stat(&statstg, STATFLAG_DEFAULT);
 		if (FAILED(hr))
 			return hr;
-		int cch = lstrlenW(statstg.pwcsName) + 1;
-		char *filename = (char *) alloca(cch * 2);
-		if (filename == NULL) {
-			CoTaskMemFree(statstg.pwcsName);
-			return E_OUTOFMEMORY;
-		}
-		if (WideCharToMultiByte(CP_ACP, 0, statstg.pwcsName, -1, filename, cch, NULL, NULL) <= 0) {
-			CoTaskMemFree(statstg.pwcsName);
-			return HRESULT_FROM_WIN32(GetLastError());
-		}
-		CoTaskMemFree(statstg.pwcsName);
 
 		// get contents
-		int content_len;
-		hr = m_pstream->Read(m_content, sizeof(m_content), (ULONG *) &content_len);
-		if (FAILED(hr))
+		hr = m_pstream->Read(m_content, sizeof(m_content), (ULONG *) &m_contentLen);
+		if (FAILED(hr)) {
+			CoTaskMemFree(statstg.pwcsName);
 			return hr;
+		}
 
 		// decode
-		if (!FAIL_Decode(m_pFail, filename, m_content, content_len))
-			return E_FAIL;
-		int width = FAIL_GetWidth(m_pFail);
-		int height = FAIL_GetHeight(m_pFail);
-		const int *pixels = FAIL_GetPixels(m_pFail);
-
-		// convert to bitmap
-		BITMAPINFO bmi = {};
-		bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
-		bmi.bmiHeader.biWidth = width;
-		bmi.bmiHeader.biHeight = -height;
-		bmi.bmiHeader.biPlanes = 1;
-		bmi.bmiHeader.biBitCount = 32;
-		bmi.bmiHeader.biCompression = BI_RGB;
-		BYTE *pBits;
-		HBITMAP hbmp = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, reinterpret_cast<void **>(&pBits), NULL, 0);
-		if (hbmp == NULL)
-			return E_OUTOFMEMORY;
-		int pixels_count = width * height;
-		for (int i = 0; i < pixels_count; i++)
-			((int *) pBits)[i] = pixels[i] | 0xff000000;
-		*phbmp = hbmp;
+		hr = Decode(statstg.pwcsName, phbmp);
+		CoTaskMemFree(statstg.pwcsName);
 		*pdwAlpha = WTSAT_RGB;
-		return S_OK;
+		return hr;
 	}
 };
 
-class CFAILThumbProviderFactory : public IClassFactory
+class CFAILThumbProviderFactory : IClassFactory
 {
 public:
 
@@ -256,7 +365,7 @@ public:
 		*ppv = NULL;
 		if (punkOuter != NULL)
 			return CLASS_E_NOAGGREGATION;
-		IThumbnailProvider *punk = new CFAILThumbProvider;
+		CFAILThumbProvider *punk = new CFAILThumbProvider;
 		if (punk == NULL)
 			return E_OUTOFMEMORY;
 		HRESULT hr = punk->QueryInterface(riid, ppv);
@@ -279,6 +388,17 @@ STDAPI_(BOOL) DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 	if (dwReason == DLL_PROCESS_ATTACH)
 		g_hDll = hInstance;
 	return TRUE;
+}
+
+static BOOL RegisterCLSID(HKEY hk1, LPCSTR subkey)
+{
+	HKEY hk2;
+	if (RegCreateKeyEx(hk1, subkey, 0, NULL, 0, KEY_WRITE, NULL, &hk2, NULL) != ERROR_SUCCESS)
+		return FALSE;
+	static const char CLSID_FAILThumbProvider_str2[] = CLSID_FAILThumbProvider_str;
+	BOOL ok = RegSetValueEx(hk2, NULL, 0, REG_SZ, (CONST BYTE *) CLSID_FAILThumbProvider_str2, sizeof(CLSID_FAILThumbProvider_str2)) == ERROR_SUCCESS;
+	RegCloseKey(hk2);
+	return ok;
 }
 
 STDAPI __declspec(dllexport) DllRegisterServer(void)
@@ -306,17 +426,12 @@ STDAPI __declspec(dllexport) DllRegisterServer(void)
 	for (int i = 0; i < N_EXTS; i++) {
 		if (RegCreateKeyEx(HKEY_CLASSES_ROOT, extensions[i], 0, NULL, 0, KEY_WRITE, NULL, &hk1, NULL) != ERROR_SUCCESS)
 			return E_FAIL;
-		if (RegCreateKeyEx(hk1, "ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}", 0, NULL, 0, KEY_WRITE, NULL, &hk2, NULL) != ERROR_SUCCESS) {
+		if (!RegisterCLSID(hk1, "ShellEx\\{bb2e617c-0920-11d1-9a0b-00c04fc2d6c1}") // IPersistFile+IExtractImage
+		 || !RegisterCLSID(hk1, "ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}")) // IInitializeWithStream+IThumbnailProvider
+		{
 			RegCloseKey(hk1);
 			return E_FAIL;
 		}
-		static const char CLSID_FAILThumbProvider_str2[] = CLSID_FAILThumbProvider_str;
-		if (RegSetValueEx(hk2, NULL, 0, REG_SZ, (CONST BYTE *) CLSID_FAILThumbProvider_str2, sizeof(CLSID_FAILThumbProvider_str2)) != ERROR_SUCCESS) {
-			RegCloseKey(hk2);
-			RegCloseKey(hk1);
-			return E_FAIL;
-		}
-		RegCloseKey(hk2);
 		RegCloseKey(hk1);
 	}
 
@@ -340,7 +455,8 @@ STDAPI __declspec(dllexport) DllUnregisterServer(void)
 	}
 	for (int i = 0; i < N_EXTS; i++) {
 		if (RegOpenKeyEx(HKEY_CLASSES_ROOT, extensions[i], 0, DELETE, &hk1) == ERROR_SUCCESS) {
-			RegDeleteKey(hk1, "ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}");
+			RegDeleteKey(hk1, "ShellEx\\{bb2e617c-0920-11d1-9a0b-00c04fc2d6c1}"); // IPersistFile+IExtractImage
+			RegDeleteKey(hk1, "ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}"); // IInitializeWithStream+IThumbnailProvider
 			RegCloseKey(hk1);
 		}
 		RegDeleteKey(HKEY_CLASSES_ROOT, extensions[i]);

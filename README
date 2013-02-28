@@ -20,7 +20,7 @@ Currently the project includes:
 
 - fail2png - portable command-line converter to PNG files
 - FAILWin - viewer for Windows
-- thumbnail providers for Windows Explorer (Windows Vista and newer) and GNOME (Linux)
+- thumbnail providers for Windows Explorer and GNOME (Linux)
 - plugin for http://www.xnview.com[XnView]
 - (de)coder for http://www.imagemagick.org/[ImageMagick]
 - plugin for http://www.nyam.pe.kr/[Imagine]
