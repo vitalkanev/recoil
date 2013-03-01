@@ -117,7 +117,7 @@
 	<type ext="tn3" acronym="TiNy stuff" />
 	<type ext="trp" />
 	<type ext="tru" />
-	<type ext="vzi" />
+	<type ext="vzi" acronym="VertiZontal Interlacing" />
 	<type ext="wnd" />
 	<type ext="xlp" acronym="XL-Paint" />
 </fail-types>
