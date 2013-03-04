@@ -31,6 +31,15 @@ function onDrop(e)
 	dragHelper(e);
 	openFile(e.dataTransfer.files[0]);
 }
+
+function fullScreen()
+{
+	var canvas = document.getElementById("canvas");
+	if (canvas.webkitRequestFullScreen)
+		canvas.webkitRequestFullScreen();
+	else if (canvas.mozRequestFullScreen)
+		canvas.mozRequestFullScreen();
+}
 </script>
 
 Select file: <input type="file" onchange="openFile(this.files[0])" />
@@ -39,6 +48,7 @@ Select file: <input type="file" onchange="openFile(this.files[0])" />
 <canvas id="canvas" width="1" height="1"></canvas>
 <div id="status"></div>
 </div>
+<input type="button" id="fullScreenButton" value="Fullscreen" onclick="fullScreen()" style="display: none"></input>
 ++++
 
 ifdef::failwww[]

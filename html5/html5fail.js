@@ -49,4 +49,7 @@ function fail2canvas(filename, content)
 
 	var status = document.getElementById("status");
 	status.innerHTML = fail.getPlatform() + ", " + fail.getOriginalWidth() + "x" + fail.getOriginalHeight();
+
+	if (canvas.webkitRequestFullScreen || canvas.mozRequestFullScreen)
+		document.getElementById("fullScreenButton").style.display = "";
 }
