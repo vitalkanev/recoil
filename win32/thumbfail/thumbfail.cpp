@@ -27,7 +27,6 @@
    (even though the Windows 2000/XP interfaces could work). */
 
 #include <windows.h>
-#include <malloc.h>
 #include <objidl.h>
 
 #undef INTERFACE
@@ -128,18 +127,16 @@ class CFAILThumbProvider : IPersistFile, IExtractImage, IInitializeWithStream, I
 	LONG m_cRef;
 	IStream *m_pstream;
 	FAIL *m_pFail;
-	WCHAR m_filename[MAX_PATH];
+	LPWSTR m_filename;
 	int m_contentLen;
 	unsigned char m_content[FAIL_MAX_CONTENT_LENGTH];
 
 	HRESULT Decode(LPCWSTR pszFilename, HBITMAP *phBitmap)
 	{
 		// filename to ASCII
-		int cch = lstrlenW(pszFilename) + 1;
-		char *filename = (char *) alloca(cch * 2);
-		if (filename == NULL)
-			return E_OUTOFMEMORY;
-		if (WideCharToMultiByte(CP_ACP, 0, pszFilename, -1, filename, cch, NULL, NULL) <= 0)
+		int cbFilename = WideCharToMultiByte(CP_ACP, 0, pszFilename, -1, NULL, 0, NULL, NULL);
+		char filename[cbFilename];
+		if (WideCharToMultiByte(CP_ACP, 0, pszFilename, -1, filename, cbFilename, NULL, NULL) <= 0)
 			return HRESULT_FROM_WIN32(GetLastError());
 
 		// decode
@@ -158,7 +155,7 @@ class CFAILThumbProvider : IPersistFile, IExtractImage, IInitializeWithStream, I
 		bmi.bmiHeader.biBitCount = 32;
 		bmi.bmiHeader.biCompression = BI_RGB;
 		int *pBits;
-		HBITMAP hbmp = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, reinterpret_cast<void **>(&pBits), NULL, 0);
+		HBITMAP hbmp = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void **) &pBits, NULL, 0);
 		if (hbmp == NULL)
 			return E_OUTOFMEMORY;
 		int pixels_count = width * height;
@@ -170,19 +167,18 @@ class CFAILThumbProvider : IPersistFile, IExtractImage, IInitializeWithStream, I
 
 public:
 
-	CFAILThumbProvider() : m_cRef(1), m_pstream(NULL)
+	CFAILThumbProvider() : m_cRef(1), m_pstream(NULL), m_filename(NULL)
 	{
 		DllAddRef();
 		m_pFail = FAIL_New();
-		m_filename[0] = '\0';
 	}
 
-	virtual ~CFAILThumbProvider()
+	~CFAILThumbProvider()
 	{
 		if (m_pstream != NULL)
 			m_pstream->Release();
-		if (m_pFail != NULL)
-			FAIL_Delete(m_pFail);
+		free(m_filename);
+		FAIL_Delete(m_pFail);
 		DllRelease();
 	}
 
@@ -242,14 +238,12 @@ public:
 	{
 		if (m_pFail == NULL)
 			return E_OUTOFMEMORY;
-		m_filename[0] = '\0';
-		int cbFileName = (lstrlenW(pszFileName) + 1) * sizeof(WCHAR);
-		if (cbFileName > (int) sizeof(m_filename))
-			return E_FAIL;
 
 		HANDLE fh = CreateFileW(pszFileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 		if (fh == INVALID_HANDLE_VALUE)
 			return HRESULT_FROM_WIN32(GetLastError());
+		free(m_filename);
+		m_filename = NULL;
 		if (!ReadFile(fh, m_content, sizeof(m_content), (LPDWORD) &m_contentLen, NULL)) {
 			HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
 			CloseHandle(fh);
@@ -257,7 +251,10 @@ public:
 		}
 		CloseHandle(fh);
 
-		memcpy(m_filename, pszFileName, cbFileName);
+		m_filename = _wcsdup(pszFileName);
+		if (m_filename == NULL)
+			return E_OUTOFMEMORY;
+
 		return S_OK;
 	}
 
@@ -280,6 +277,8 @@ public:
 
 	STDMETHODIMP GetLocation(LPWSTR pszPathBuffer, DWORD cchMax, DWORD *pdwPriority, const SIZE *prgSize, DWORD pdwRecClrDepth, DWORD *pdwFlags)
 	{
+		if (m_filename == NULL)
+			return E_UNEXPECTED;
 		if (pszPathBuffer != NULL)
 			lstrcpynW(pszPathBuffer, m_filename, cchMax);
 		if (pdwFlags != NULL)
@@ -289,6 +288,8 @@ public:
 
 	STDMETHODIMP Extract(HBITMAP *phBmpImage)
 	{
+		if (m_filename == NULL)
+			return E_UNEXPECTED;
 		return Decode(m_filename, phBmpImage);
 	}
 
