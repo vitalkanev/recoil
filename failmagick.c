@@ -181,6 +181,8 @@ static const struct Format {
 	{ "INT", "INT95a; up to 160x239, 16 colors, 2 frames" },
 	{ "IP2", "ICE PCIN+; 160x192, 45 colors, 2 frames" },
 	{ "IPC", "ICE PCIN; 160x192, 35 colors, 2 frames" },
+	{ "IR2", "Super IRG 2; 160x192, 25 colors, 2 frames" },
+	{ "IRG", "Super IRG; 160x192, 15 colors, 2 frames" },
 	{ "IST", "Interlace Studio; 160x200, 2 frames" },
 	{ "JGP", "Jet Graphics Planner; 8x16 tiles, 4 colors" },
 	{ "MAX", "XL-Paint MAX; 160x192, 2 frames, compressed" },

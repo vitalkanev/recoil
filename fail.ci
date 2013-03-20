@@ -2345,6 +2345,12 @@ public class FAIL
 			GtiaColors[4 + i] = content[contentOffset + i] & 0xfe;
 	}
 
+	void SetPF0123Even(byte[] content, int contentOffset)
+	{
+		for (int i = 0; i < 4; i++)
+			GtiaColors[4 + i] = content[contentOffset + i * 2] & 0xfe;
+	}
+
 	void DecodeAtari8Gr8(byte[] content, int contentOffset, byte[] frame)
 	{
 		byte[2] colors;
@@ -2490,6 +2496,12 @@ public class FAIL
 			}
 			frameOffset += Width;
 		}
+	}
+
+	void DecodeAtari8Gr12(byte[] content, int charactersOffset, int fontOffset, byte[] frame)
+	{
+		for (int row = 0; row < 24; row++)
+			DecodeAtari8Gr12Line(content, charactersOffset + row * 40, content, fontOffset + (row / 3 << 11), frame, row * (320 * 8));
 	}
 
 	void DecodeAtari8Player(byte[] content, int contentOffset, int color, byte[] frame, int frameOffset, int height)
@@ -4230,6 +4242,34 @@ public class FAIL
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
+	bool DecodeIrg(byte[] content, int contentLength)
+	{
+		if (contentLength != 18310 || content[0] != 1)
+			return false;
+		SetSize(320, 192, FAILResolution.Xe2x1);
+		byte[320 * 192] frame1;
+		SetBakPF0123(content, 1);
+		DecodeAtari8Gr12(content, 6 + 16384, 6, frame1);
+		byte[320 * 192] frame2;
+		DecodeAtari8Gr12(content, 6 + 16384 + 960, 6 + 1024, frame2);
+		return ApplyAtari8PaletteBlend(frame1, frame2);
+	}
+
+	bool DecodeIr2(byte[] content, int contentLength)
+	{
+		if (contentLength != 18314 || content[0] != 1)
+			return false;
+		SetSize(320, 192, FAILResolution.Xe2x1);
+		byte[320 * 192] frame1;
+		GtiaColors[8] = content[1] & 0xfe;
+		SetPF0123Even(content, 2);
+		DecodeAtari8Gr12(content, 10 + 16384, 10, frame1);
+		byte[320 * 192] frame2;
+		SetPF0123Even(content, 3);
+		DecodeAtari8Gr12(content, 10 + 16384 + 960, 10 + 1024, frame2);
+		return ApplyAtari8PaletteBlend(frame1, frame2);
+	}
+
 	void DecodeRgbScreen(byte[] screens, int screensOffset, int color, byte[] frame)
 	{
 		if (Resolution == FAILResolution.Xe4x1) {
@@ -4759,6 +4799,8 @@ public class FAIL
 		case PACKED_EXT("INT"):
 		case PACKED_EXT("IP2"):
 		case PACKED_EXT("IPC"):
+		case PACKED_EXT("IR2"):
+		case PACKED_EXT("IRG"):
 		case PACKED_EXT("IST"):
 		case PACKED_EXT("JGP"):
 		case PACKED_EXT("MAX"):
@@ -4955,6 +4997,10 @@ public class FAIL
 			return DecodeIp2(content, contentLength);
 		case PACKED_EXT("IPC"):
 			return DecodeIpc(content, contentLength);
+		case PACKED_EXT("IR2"):
+			return DecodeIr2(content, contentLength);
+		case PACKED_EXT("IRG"):
+			return DecodeIrg(content, contentLength);
 		case PACKED_EXT("IST"):
 			return DecodeIst(content, contentLength);
 		case PACKED_EXT("JGP"):
