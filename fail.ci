@@ -2810,8 +2810,8 @@ public class FAIL
 			unpacked[7682] = 0x58;
 			unpacked[7683] = 0x7e;
 			break;
-		case 0x05: // FATHER.HPM
-		default: // just in case
+		// case 0x05: // FATHER.HPM
+		default:
 			unpacked[7680] = 0x00;
 			unpacked[7681] = 0x04;
 			unpacked[7682] = 0x08;
@@ -4106,7 +4106,6 @@ public class FAIL
 				int ch = content[9 + 8192 + (y >> 3) * 40 + (x >> 3)];
 				int c;
 				switch (content[fontOffset + ((ch & 0x7f) << 3) + (y & 7)] >> (~x & 6) & 3) {
-				default: // just to make csc and javac not complain about uninitialized "c"
 				case 0:
 					// Sprites are 4x width, arranged next to each other in the following order:
 					// P0 M0 P1 M1 P2 M2 P3 M3
@@ -4132,7 +4131,7 @@ public class FAIL
 				case 2:
 					c = 5;
 					break;
-				case 3:
+				default: // case 3:
 					c = 6 + (ch >> 7);
 					break;
 				}
