@@ -994,7 +994,7 @@ public class FAIL
 	/// FAIL version - minor part.
 	public const int VersionMinor = 0;
 	/// FAIL version - micro part.
-	public const int VersionMicro = 0;
+	public const int VersionMicro = 1;
 	/// FAIL version as a string.
 	public const string Version = VersionMajor + "." + VersionMinor + "." + VersionMicro;
 

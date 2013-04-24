@@ -105,8 +105,8 @@ Unless you specify the `-o`/`--output` option, the output filename will be
 constructed from the input filename with the extension changed to `png`.
 
 
-Building fail2png, XnView plugin, ImageMagick coder, Imagine plugin and FAILWin on Windows
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Building fail2png, XnView/ImageMagick/Imagine/Windows Explorer plugins and FAILWin on Windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Download http://www.mingw.org/[MinGW] and install binutils, core compiler,
 w32api and MinGW Make.

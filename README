@@ -203,6 +203,13 @@ You may submit bugs http://sourceforge.net/p/fail/bugs/[here] (log in required).
 History
 -------
 
+FAIL 2.0.1 (2013-04-24)::
+
+Added Atari 8-bit formats: IP2, IMN, ICN, DIN, IRG, IR2, VZI.
+Added "DEGAS Elite" icon (ICN). Fixed decoding of IPC.
+Thumbnail provider implemented for Windows 2000/XP.
+Fullscreen mode in HTML 5.
+
 FAIL 2.0.0 (2013-02-15)::
 
 Library rewritten from C to the http://cito.sourceforge.net/[Ć programming language].
