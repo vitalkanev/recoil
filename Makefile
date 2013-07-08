@@ -1,13 +1,13 @@
 PREFIX = /usr/local
-ifneq ($(strip $(shell which MagickCore-config)),)
-MAGICK_VERSION     := $(strip $(shell MagickCore-config --version))
+MAGICK_VERSION     := $(shell MagickCore-config --version 2>/dev/null)
+ifdef MAGICK_VERSION
 MAGICK_CFLAGS      := $(shell MagickCore-config --cflags --cppflags) -fPIC
 MAGICK_LDFLAGS     := $(shell MagickCore-config --ldflags)
 MAGICK_LIBS        := $(shell MagickCore-config --libs)
 MAGICK_PREFIX      := $(shell MagickCore-config --prefix)
 MAGICK_CODER_PATH  := $(wildcard $(MAGICK_PREFIX)/lib/ImageMagick-$(word 1,$(MAGICK_VERSION))/modules-$(word 2,$(MAGICK_VERSION))/coders)
 MAGICK_CONFIG_PATH := $(wildcard $(shell MagickCore-config --exec-prefix)/etc/ImageMagick)
-CAN_INSTALL_MAGICK := $(and $(MAGICK_VERSION),$(MAGICK_CODER_PATH),$(MAGICK_CONFIG_PATH))
+CAN_INSTALL_MAGICK := $(and $(MAGICK_CODER_PATH),$(MAGICK_CONFIG_PATH))
 endif
 
 CITO = cito
@@ -25,7 +25,7 @@ all: fail2png $(if $(CAN_INSTALL_MAGICK),fail.so)
 fail2png: fail2png.c pngsave.c pngsave.h fail.c fail.h
 	$(CC) $(CFLAGS) fail2png.c pngsave.c fail.c -lpng -lz -lm -o $@
 
-ifneq ($(CAN_INSTALL_MAGICK),)
+ifdef CAN_INSTALL_MAGICK
 fail.so: failmagick.c fail.c fail.h
 ifdef MAGICK_INCLUDE_PATH
 	$(CC) $(CFLAGS) $(MAGICK_CFLAGS) -I"$(MAGICK_INCLUDE_PATH)" failmagick.c fail.c \
@@ -61,7 +61,7 @@ install-fail2png: fail2png
 uninstall-fail2png:
 	rm -f $(PREFIX)/bin/fail2png
 
-ifneq ($(CAN_INSTALL_MAGICK),)
+ifdef CAN_INSTALL_MAGICK
 install-magick: fail.so
 ifdef MAGICK_INCLUDE_PATH
 	perl addcoders.pl $(FORMATS) <$(MAGICK_CONFIG_PATH)/coder.xml >coder.xml.new; \
