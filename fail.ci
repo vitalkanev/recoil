@@ -36,6 +36,18 @@ enum FAILResolution
 	Amiga1x1
 }
 
+enum IceFrameMode
+{
+	Gr0,
+	Gr0Gtia9,
+	Gr0Gtia10,
+	Gr0Gtia11,
+	Gr12,
+	Gr12Gtia9,
+	Gr12Gtia10,
+	Gr12Gtia11
+}
+
 /// Readable in-memory stream of bits, most-significant bit first.
 class BitStream
 {
@@ -2351,15 +2363,22 @@ public class FAIL
 			GtiaColors[4 + i] = content[contentOffset + i * 2] & 0xfe;
 	}
 
-	void DecodeAtari8Gr8(byte[] content, int contentOffset, byte[] frame)
+	void DecodeAtari8Gr8(byte[] content, int contentOffset, byte[] frame, int frameOffset, int height)
 	{
 		byte[2] colors;
 		colors[0] = GtiaColors[6];
 		colors[1] = GtiaColors[6] & 0xf0 | GtiaColors[5] & 0x0e;
-		int pixelsLength = Width * Height;
-		for (int i = 0; i < pixelsLength; i++) {
-			int c = content[contentOffset + (i >> 3)] >> (~i & 7) & 1;
-			frame[i] = colors[c];
+		frameOffset -= GtiaLeftSkip;
+		for (int y = 0; y < height; y++) {
+			int x;
+			for (x = GtiaLeftSkip; x < Width; x++) {
+				int c = content[contentOffset + (x >> 3)] >> (~x & 7) & 1;
+				frame[frameOffset + x] = colors[c];
+			}
+			for ( ; x < Width + GtiaLeftSkip; x++)
+				frame[frameOffset + x] = GtiaColors[8];
+			contentOffset += Width >> 3;
+			frameOffset += Width;
 		}
 	}
 
@@ -2492,16 +2511,10 @@ public class FAIL
 				int ch = characters[charactersOffset + (x >> 3)];
 				int c = font[fontOffset + ((ch & 0x7f) << 3) + y] >> (~x & 6) & 3;
 				int gr12Registers = ch >= 0x80 ? 0x7548 : 0x6548;
-				frame[frameOffset + x] = GtiaColors[gr12Registers >> (c << 2) & 0xf] & 0xfe;
+				frame[frameOffset + x] = GtiaColors[gr12Registers >> (c << 2) & 0xf];
 			}
 			frameOffset += Width;
 		}
-	}
-
-	void DecodeAtari8Gr12(byte[] content, int charactersOffset, int fontOffset, byte[] frame)
-	{
-		for (int row = 0; row < 24; row++)
-			DecodeAtari8Gr12Line(content, charactersOffset + row * 40, content, fontOffset + (row / 3 << 11), frame, row * (320 * 8));
 	}
 
 	void DecodeAtari8Player(byte[] content, int contentOffset, int color, byte[] frame, int frameOffset, int height)
@@ -2562,7 +2575,7 @@ public class FAIL
 		GtiaColors[5] = 0x0e;
 		int contentOffset = GetAtari8ExecutableOffset(content, contentLength);
 		byte[320 * 240] frame;
-		DecodeAtari8Gr8(content, contentOffset, frame);
+		DecodeAtari8Gr8(content, contentOffset, frame, 0, Height);
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -2579,7 +2592,7 @@ public class FAIL
 		GtiaColors[6] = 0x00;
 		GtiaColors[5] = 0x0e;
 		byte[512 * 256] frame;
-		DecodeAtari8Gr8(content, 0, frame);
+		DecodeAtari8Gr8(content, 0, frame, 0, 256);
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -2595,7 +2608,7 @@ public class FAIL
 		byte[320 * 200] frame;
 		GtiaColors[6] = 0x0c;
 		GtiaColors[5] = 0x02;
-		DecodeAtari8Gr8(content, 3, frame);
+		DecodeAtari8Gr8(content, 3, frame, 0, height);
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -2610,7 +2623,7 @@ public class FAIL
 		GtiaColors[5] = 0x00;
 		SetSize(320, 192, FAILResolution.Xe1x1);
 		byte[320 * 192] frame;
-		DecodeAtari8Gr8(unpacked, 0, frame);
+		DecodeAtari8Gr8(unpacked, 0, frame, 0, 192);
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -3024,9 +3037,9 @@ public class FAIL
 		GtiaColors[6] = 0x00;
 		GtiaColors[5] = 0x0e;
 		byte[256 * 239] frame1;
-		DecodeAtari8Gr8(content, 0, frame1);
+		DecodeAtari8Gr8(content, 0, frame1, 0, 239);
 		byte[256 * 239] frame2;
-		DecodeAtari8Gr8(content, 8192, frame2);
+		DecodeAtari8Gr8(content, 8192, frame2, 0, 239);
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
@@ -3199,7 +3212,7 @@ public class FAIL
 		SetSize(320, 200, FAILResolution.Xe1x1);
 		byte[320 * 200] frame1;
 		SetPF21(content, 16000);
-		DecodeAtari8Gr8(content, 0, frame1);
+		DecodeAtari8Gr8(content, 0, frame1, 0, 200);
 		byte[320 * 200] frame2;
 		SetBakPF012(content, 16002, 1);
 		DecodeAtari8Gr15(content, 8000, 40, frame2, 0, 320, 200);
@@ -3524,7 +3537,7 @@ public class FAIL
 			return ApplyAtari8Palette(frame1);
 		case 0x0f: // GR. 8
 			SetSize(width, height, FAILResolution.Xe1x1);
-			DecodeAtari8Gr8(unpacked, 0, frame1);
+			DecodeAtari8Gr8(unpacked, 0, frame1, 0, height);
 			return ApplyAtari8Palette(frame1);
 		case 0x4f: // GR. 9
 			SetSize(width, height, FAILResolution.Xe4x1);
@@ -3698,7 +3711,7 @@ public class FAIL
 		switch (content[0]) {
 		case 8:
 			SetSize(320, 192, FAILResolution.Xe1x1);
-			DecodeAtari8Gr8(content, 10, frame);
+			DecodeAtari8Gr8(content, 10, frame, 0, 192);
 			break;
 		case 9:
 			SetSize(320, 192, FAILResolution.Xe4x1);
@@ -4141,39 +4154,345 @@ public class FAIL
 		return ApplyAtari8Palette(frame);
 	}
 
-	void DecodeIce(byte[] content, int contentOffset, byte[] frame1, byte[] screen2)
+	static int Gr12GtiaNibbleToGr8(int nibble, int ch, bool gtia10)
 	{
-		SetSize(320, 192, contentOffset >= 16 ? FAILResolution.Xe1x1 : FAILResolution.Xe2x1);
-		int screen2Offset = 0;
-		for (int row = 0; row < 24; row++) {
-			int charactersOffset = (contentOffset & 15) + 16384 + row * 40;
-			int fontOffset = contentOffset + (row / 3 << 11);
-			DecodeAtari8Gr12Line(content, charactersOffset, content, fontOffset, frame1, row * (320 * 8));
-			for (int y = 0; y < 8; y++) {
-				for (int x = 0; x < 40; x++) {
-					int ch = content[charactersOffset + x] & 0x7f; // inverse disabled in CHACTL
-					screen2[screen2Offset++] = content[(fontOffset ^ 1024) + (ch << 3) + y];
-				}
-			}
+		switch (nibble) {
+		case 0:  // 000 000
+		case 1:  // 000 100
+		case 4:  // 100 000
+		case 5:  // 100 100
+			return 0;
+		case 2:  // 000 101
+		case 6:  // 100 101
+			return 1;
+		case 3:  // 000 11x
+		case 7:  // 100 11x
+			return (ch & 0x80) == 0 ? 2 : 3;
+		case 8:  // 101 000
+			return gtia10 ? 8 : 4;
+		case 9:  // 101 100
+			return 4;
+		case 10: // 101 101
+			return 5;
+		case 11: // 101 11x
+			return (ch & 0x80) == 0 ? 6 : 7;
+		case 12: // 11x 000
+			return gtia10 || (ch & 0x80) == 0 ? 8 : 12;
+		case 13: // 11x 100
+			return (ch & 0x80) == 0 ? 8 : 12;
+		case 14: // 11x 101
+			return (ch & 0x80) == 0 ? 9 : 13;
+		case 15: // 11x 11x
+			return (ch & 0x80) == 0 ? 10 : 15;
+		default:
+			// not reachable
+			return 0;
 		}
 	}
 
-	bool DecodeIpc(byte[] content, int contentLength)
+	static byte Gr12GtiaByteToGr8(int b, int ch, bool gtia10)
 	{
-		if (contentLength != 17354 || content[0] != 1)
-			return false;
+		return Gr12GtiaNibbleToGr8(b >> 4, ch, gtia10) << 4
+			| Gr12GtiaNibbleToGr8(b & 0xf, ch, gtia10);
+	}
+
+	void DecodeIceFrame(byte[] content, int charactersOffset, int fontOffset, byte[] frame, IceFrameMode mode)
+	{
+		int frameOffset = 0;
+		byte[40] bitmap;
+		for (int y = 0; y < Height; y++) {
+			for (int col = 0; col < Width >> 3; col++) {
+				const byte[4] row2char = { 0x40, 0x00, 0x20, 0x60 };
+				int ch = charactersOffset < 0
+					? row2char[y >> 3] + col // ICE font
+					: (y / 24 << 8) + content[charactersOffset + (y >> 3) * 40 + col]; // IRG/IR2/DIN/ICN/IMN/IPC/IP2 picture
+				int b = content[fontOffset + ((ch & ~0x80) << 3) + (y & 7)];
+				switch (mode) {
+				case IceFrameMode.Gr0:
+				case IceFrameMode.Gr0Gtia9:
+				case IceFrameMode.Gr0Gtia10:
+				case IceFrameMode.Gr0Gtia11:
+					bitmap[col] = b;
+					break;
+				case IceFrameMode.Gr12:
+					for (int x = col == 0 ? GtiaLeftSkip : 0; x < 8; x++) {
+						int c = b >> (~x & 6) & 3;
+						int gr12Registers = (ch & 0x80) == 0 ? 0x6548 : 0x7548;
+						frame[frameOffset + (col << 3) + x - GtiaLeftSkip] = GtiaColors[gr12Registers >> (c << 2) & 0xf];
+					}
+					break;
+				case IceFrameMode.Gr12Gtia9:
+				case IceFrameMode.Gr12Gtia11:
+					bitmap[col] = Gr12GtiaByteToGr8(b, ch, false);
+					break;
+				case IceFrameMode.Gr12Gtia10:
+					bitmap[col] = Gr12GtiaByteToGr8(b, ch, true);
+					break;
+				}
+			}
+			switch (mode) {
+			case IceFrameMode.Gr0:
+				DecodeAtari8Gr8(bitmap, 0, frame, frameOffset, 1);
+				break;
+			case IceFrameMode.Gr12:
+				for (int x = Width ; x < Width + GtiaLeftSkip; x++)
+					frame[frameOffset + x] = GtiaColors[8];
+				break;
+			case IceFrameMode.Gr0Gtia9:
+			case IceFrameMode.Gr12Gtia9:
+				DecodeAtari8Gr9(bitmap, 0, 0, frame, frameOffset, 0, Width, 1);
+				break;
+			case IceFrameMode.Gr0Gtia10:
+			case IceFrameMode.Gr12Gtia10:
+				DecodeAtari8Gr10(bitmap, 0, frame, frameOffset, 0, 1);
+				break;
+			case IceFrameMode.Gr0Gtia11:
+			case IceFrameMode.Gr12Gtia11:
+				DecodeAtari8Gr11(bitmap, 0, frame, frameOffset, 0, 1);
+				break;
+			}
+			frameOffset += Width;
+		}
+	}
+
+	bool VerifyIce(byte[] content, int contentLength, bool font, int fontLength, int imageLength, FAILResolution resolution)
+	{
+		if (font) {
+			if (contentLength != fontLength)
+				return false;
+			SetSize(256, 32, resolution);
+		}
+		else {
+			if (contentLength != imageLength || content[0] != 1)
+				return false;
+			SetSize(320, 192, resolution);
+		}
+		return true;
+	}
+
+	bool DecodeAtari8Ice(byte[] content, int contentLength, bool font, int mode)
+	{
 		byte[320 * 192] frame1;
-		byte[40 * 192] screen2;
-		SetPF0123Bak(content, 5);
-		GtiaColors[8] = content[1] & 0xfe;
-		DecodeIce(content, 10, frame1, screen2);
 		byte[320 * 192] frame2;
-		// In the original viewer, GR. 12 is scrolled horizontally one pixel to the right.
-		// Here, I move GR. 10 to the right.
-		// This can't be done on the Atari as it doesn't support scrolling GR. 10 by half a pixel.
-		GtiaLeftSkip = 2;
-		SetGtiaColors(content, 1);
-		DecodeAtari8Gr10(screen2, 0, frame2, 0, 320, 192);
+		switch (mode) {
+		case 0:
+			if (contentLength != 5 + 2048)
+				return false;
+			SetSize(256, 32, FAILResolution.Xe1x1);
+			GtiaColors[5] = content[1] & 0xfe;
+			GtiaColors[6] = content[3] & 0xfe;
+			DecodeIceFrame(content, -1, 5, frame1, IceFrameMode.Gr0);
+			GtiaColors[5] = content[2] & 0xfe;
+			GtiaColors[6] = content[4] & 0xfe;
+			DecodeIceFrame(content, -1, 5 + 1024, frame2, IceFrameMode.Gr0);
+			break;
+		case 1:
+			if (!VerifyIce(content, contentLength, font, 6 + 2048, 6 + 16384 + 2 * 960, FAILResolution.Xe2x1))
+				return false;
+			SetBakPF0123(content, 1);
+			DecodeIceFrame(content, font ? -1 : 6 + 16384, 6, frame1, IceFrameMode.Gr12);
+			DecodeIceFrame(content, font ? -1 : 6 + 16384 + 960, 6 + 1024, frame2, IceFrameMode.Gr12);
+			break;
+		case 2:
+			if (!VerifyIce(content, contentLength, font, 10 + 2048, 10 + 16384 + 2 * 960, FAILResolution.Xe2x1))
+				return false;
+			GtiaColors[8] = content[1] & 0xfe;
+			SetPF0123Even(content, 2);
+			DecodeIceFrame(content, font ? -1 : 10 + 16384, 10, frame1, IceFrameMode.Gr12);
+			SetPF0123Even(content, 3);
+			DecodeIceFrame(content, font ? -1 : 10 + 16384 + 960, 10 + 1024, frame2, IceFrameMode.Gr12);
+			break;
+		case 3:
+			if (font) {
+				if (contentLength != 7 + 2048)
+					return false;
+				SetSize(256, 32, FAILResolution.Xe1x1);
+			}
+			else {
+				if (contentLength != 7 + 16384 + 960 || content[0] != 3)
+					return false;
+				SetSize(320, 192, FAILResolution.Xe1x1);
+			}
+			SetPF21(content, 1);
+			DecodeIceFrame(content, font ? -1 : 7 + 16384, 7, frame1, IceFrameMode.Gr0);
+			SetBakPF0123(content, 2);
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIceFrame(content, font ? -1 : 7 + 16384, 7 + 1024, frame2, IceFrameMode.Gr12);
+			break;
+		case 4:
+			if (contentLength != 10 + 2048)
+				return false;
+			SetSize(256, 32, FAILResolution.Xe4x1);
+			GtiaLeftSkip = 2;
+			SetGtiaColors(content, 1);
+			DecodeIceFrame(content, -1, 10, frame1, IceFrameMode.Gr0Gtia10);
+			DecodeIceFrame(content, -1, 10 + 1024, frame2, IceFrameMode.Gr0Gtia10);
+			break;
+		case 5:
+			switch (contentLength) {
+			case 17 + 2048:
+			case 18 + 2048:
+				break;
+			default:
+				return false;
+			}
+			SetSize(256, 32, FAILResolution.Xe4x1);
+			GtiaLeftSkip = 2;
+			GtiaColors[0] = content[1] & 0xfe;
+			for (int i = 0; i < 8; i++)
+				SetGtiaColor(i + 1, content[2 + i * 2]);
+			if (contentLength == 17 + 2048) {
+				DecodeIceFrame(content, -1, 17, frame1, IceFrameMode.Gr0Gtia10);
+				for (int i = 0; i < 7; i++)
+					SetGtiaColor(i + 1, content[3 + i * 2]);
+				DecodeIceFrame(content, -1, 17 + 1024, frame2, IceFrameMode.Gr0Gtia10);
+			}
+			else {
+				DecodeIceFrame(content, -1, 18, frame1, IceFrameMode.Gr0Gtia10);
+				for (int i = 0; i < 8; i++)
+					SetGtiaColor(i + 1, content[3 + i * 2]);
+				DecodeIceFrame(content, -1, 18 + 1024, frame2, IceFrameMode.Gr0Gtia10);
+			}
+			break;
+		case 6:
+			if (contentLength != 3 + 2048)
+				return false;
+			SetSize(256, 32, FAILResolution.Xe4x1);
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIceFrame(content, -1, 3, frame1, IceFrameMode.Gr0Gtia9);
+			GtiaColors[8] = content[2] & 0xfe;
+			DecodeIceFrame(content, -1, 3 + 1024, frame2, IceFrameMode.Gr0Gtia9);
+			break;
+		case 7:
+			if (contentLength != 3 + 2048)
+				return false;
+			SetSize(256, 32, FAILResolution.Xe4x1);
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIceFrame(content, -1, 3, frame1, IceFrameMode.Gr0Gtia11);
+			GtiaColors[8] = content[2] & 0xfe;
+			DecodeIceFrame(content, -1, 3 + 1024, frame2, IceFrameMode.Gr0Gtia11);
+			break;
+		case 8:
+			if (contentLength != 10 + 2048)
+				return false;
+			SetSize(256, 32, FAILResolution.Xe2x1);
+			GtiaLeftSkip = 1;
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIceFrame(content, -1, 10, frame1, IceFrameMode.Gr0Gtia9);
+			SetGtiaColors(content, 1);
+			DecodeIceFrame(content, -1, 10 + 1024, frame2, IceFrameMode.Gr0Gtia10);
+			break;
+		case 9:
+			if (contentLength != 10 + 2048)
+				return false;
+			SetSize(256, 32, FAILResolution.Xe2x1);
+			GtiaLeftSkip = 1;
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIceFrame(content, -1, 10, frame1, IceFrameMode.Gr0Gtia11);
+			GtiaColors[0] = 0x00;
+			SetPM123PF0123Bak(content, 2);
+			DecodeIceFrame(content, -1, 10 + 1024, frame2, IceFrameMode.Gr0Gtia10);
+			break;
+		case 10:
+			if (contentLength != 3 + 2048)
+				return false;
+			SetSize(256, 32, FAILResolution.Xe4x1);
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIceFrame(content, -1, 3, frame1, IceFrameMode.Gr0Gtia9);
+			GtiaColors[8] = content[2] & 0xfe;
+			DecodeIceFrame(content, -1, 3 + 1024, frame2, IceFrameMode.Gr0Gtia11);
+			break;
+		case 11:
+			if (contentLength != 3 + 2048)
+				return false;
+			SetSize(256, 32, FAILResolution.Xe1x1);
+			GtiaColors[6] = 0x00;
+			GtiaColors[5] = content[2] & 0xfe;
+			DecodeIceFrame(content, -1, 3, frame1, IceFrameMode.Gr0);
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIceFrame(content, -1, 3 + 1024, frame2, IceFrameMode.Gr0Gtia11);
+			break;
+		case 12:
+			if (contentLength != 3 + 2048)
+				return false;
+			SetSize(256, 32, FAILResolution.Xe1x1);
+			SetPF21(content, 1);
+			DecodeIceFrame(content, -1, 3, frame1, IceFrameMode.Gr0);
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIceFrame(content, -1, 3 + 1024, frame2, IceFrameMode.Gr0Gtia9);
+			break;
+		case 13:
+			if (contentLength != 11 + 2048)
+				return false;
+			SetSize(256, 32, FAILResolution.Xe1x1);
+			GtiaLeftSkip = 1;
+			SetPF21(content, 1);
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIceFrame(content, -1, 11, frame1, IceFrameMode.Gr0);
+			GtiaColors[0] = content[1] & 0xfe;
+			SetPM123PF0123Bak(content, 3);
+			DecodeIceFrame(content, -1, 11 + 1024, frame2, IceFrameMode.Gr0Gtia10);
+			break;
+		case 14:
+			if (contentLength != 6 + 2048)
+				return false;
+			SetSize(256, 32, FAILResolution.Xe2x1);
+			SetBakPF0123(content, 1);
+			DecodeIceFrame(content, -1, 6, frame1, IceFrameMode.Gr12);
+			DecodeIceFrame(content, -1, 6 + 1024, frame2, IceFrameMode.Gr12Gtia11);
+			break;
+		case 15:
+			if (contentLength != 6 + 2048)
+				return false;
+			SetSize(256, 32, FAILResolution.Xe2x1);
+			SetBakPF0123(content, 1);
+			DecodeIceFrame(content, -1, 6, frame1, IceFrameMode.Gr12);
+			DecodeIceFrame(content, -1, 6 + 1024, frame2, IceFrameMode.Gr12Gtia9);
+			break;
+		case 16:
+			if (contentLength != 10 + 2048)
+				return false;
+			SetSize(256, 32, FAILResolution.Xe2x1);
+			GtiaLeftSkip = 1;
+			SetGtiaColors(content, 1);
+			DecodeIceFrame(content, -1, 10 + 1024, frame2, IceFrameMode.Gr12Gtia10);
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIceFrame(content, -1, 10, frame1, IceFrameMode.Gr12);
+			break;
+		case 17:
+			if (!VerifyIce(content, contentLength, font, 6 + 2048, 6 + 16384 + 960, FAILResolution.Xe2x1))
+				return false;
+			SetBakPF0123(content, 1);
+			DecodeIceFrame(content, font ? -1 : 6 + 16384, 6, frame1, IceFrameMode.Gr12);
+			DecodeIceFrame(content, font ? -1 : 6 + 16384, 6 + 1024, frame2, IceFrameMode.Gr0Gtia11);
+			break;
+		case 18:
+			if (!VerifyIce(content, contentLength, font, 6 + 2048, 6 + 16384 + 960, FAILResolution.Xe2x1))
+				return false;
+			SetBakPF0123(content, 1);
+			DecodeIceFrame(content, font ? -1 : 6 + 16384, 6, frame1, IceFrameMode.Gr12);
+			DecodeIceFrame(content, font ? -1 : 6 + 16384, 6 + 1024, frame2, IceFrameMode.Gr0Gtia9);
+			break;
+		case 19:
+			if (!VerifyIce(content, contentLength, font, 10 + 2048, 10 + 16384 + 960, FAILResolution.Xe2x1))
+				return false;
+			if (font)
+				GtiaLeftSkip = 1;
+			SetPF0123Bak(content, 5);
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIceFrame(content, font ? -1 : 10 + 16384, 10, frame1, IceFrameMode.Gr12);
+			if (!font) {
+				// In the original viewer, GR. 12 is scrolled horizontally one pixel to the right.
+				// Here, I move GR. 10 to the right.
+				// This can't be done on the Atari as it doesn't support scrolling GR. 10 by half a pixel.
+				GtiaLeftSkip = 2;
+			}
+			SetGtiaColors(content, 1);
+			DecodeIceFrame(content, font ? -1 : 10 + 16384, 10 + 1024, frame2, IceFrameMode.Gr0Gtia10);
+			break;
+		default:
+			return false;
+		}
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
@@ -4181,91 +4500,22 @@ public class FAIL
 	{
 		if (contentLength != 17358 || content[0] != 1)
 			return false;
-		byte[320 * 192] frame1;
-		byte[40 * 192] screen2;
+		SetSize(320, 192, FAILResolution.Xe2x1);
 		GtiaColors[8] = content[1] & 0xfe;
 		GtiaColors[4] = content[5] & 0xfe;
 		GtiaColors[5] = content[7] & 0xfe;
 		GtiaColors[6] = content[9] & 0xfe;
 		GtiaColors[7] = content[11] & 0xfe;
-		DecodeIce(content, 14, frame1, screen2);
-		byte[320 * 192] frame2;
-		GtiaLeftSkip = 2; // see the comment in DecodeIpc
+		byte[320 * 192] frame1;
+		DecodeIceFrame(content, 14 + 16384, 14, frame1, IceFrameMode.Gr12);
+		GtiaLeftSkip = 2; // see the comment for case 19 in DecodeAtari8Ice
 		for (int i = 0; i < 4; i++) {
 			GtiaColors[i] = content[1 + i] & 0xfe;
 			SetGtiaColor(4 + i, content[6 + i * 2]);
 		}
 		SetGtiaColor(8, content[13]);
-		DecodeAtari8Gr10(screen2, 0, frame2, 0, 320, 192);
-		return ApplyAtari8PaletteBlend(frame1, frame2);
-	}
-
-	bool DecodeImn(byte[] content, int contentLength)
-	{
-		if (contentLength != 17350 || content[0] != 1)
-			return false;
-		byte[320 * 192] frame1;
-		byte[40 * 192] screen2;
-		SetBakPF0123(content, 1);
-		DecodeIce(content, 6, frame1, screen2);
 		byte[320 * 192] frame2;
-		DecodeAtari8Gr9(screen2, 0, 40, frame2, 0, 320, 320, 192);
-		return ApplyAtari8PaletteBlend(frame1, frame2);
-	}
-
-	bool DecodeAtari8Icn(byte[] content, int contentLength)
-	{
-		if (contentLength != 17350 || content[0] != 1)
-			return false;
-		byte[320 * 192] frame1;
-		byte[40 * 192] screen2;
-		SetBakPF0123(content, 1);
-		DecodeIce(content, 6, frame1, screen2);
-		byte[320 * 192] frame2;
-		DecodeAtari8Gr11(screen2, 0, frame2, 0, 320, 192);
-		return ApplyAtari8PaletteBlend(frame1, frame2);
-	}
-
-	bool DecodeDin(byte[] content, int contentLength)
-	{
-		if (contentLength != 17351 || content[0] != 3)
-			return false;
-		byte[320 * 192] frame1;
-		byte[40 * 192] screen2;
-		SetBakPF0123(content, 2);
-		GtiaColors[8] = content[1] & 0xfe;
-		DecodeIce(content, 7 + 1024, frame1, screen2); // GR. 0 font, GR. 12 font
-		byte[320 * 192] frame2;
-		SetPF21(content, 1);
-		DecodeAtari8Gr8(screen2, 0, frame2);
-		return ApplyAtari8PaletteBlend(frame1, frame2);
-	}
-
-	bool DecodeIrg(byte[] content, int contentLength)
-	{
-		if (contentLength != 18310 || content[0] != 1)
-			return false;
-		SetSize(320, 192, FAILResolution.Xe2x1);
-		byte[320 * 192] frame1;
-		SetBakPF0123(content, 1);
-		DecodeAtari8Gr12(content, 6 + 16384, 6, frame1);
-		byte[320 * 192] frame2;
-		DecodeAtari8Gr12(content, 6 + 16384 + 960, 6 + 1024, frame2);
-		return ApplyAtari8PaletteBlend(frame1, frame2);
-	}
-
-	bool DecodeIr2(byte[] content, int contentLength)
-	{
-		if (contentLength != 18314 || content[0] != 1)
-			return false;
-		SetSize(320, 192, FAILResolution.Xe2x1);
-		byte[320 * 192] frame1;
-		GtiaColors[8] = content[1] & 0xfe;
-		SetPF0123Even(content, 2);
-		DecodeAtari8Gr12(content, 10 + 16384, 10, frame1);
-		byte[320 * 192] frame2;
-		SetPF0123Even(content, 3);
-		DecodeAtari8Gr12(content, 10 + 16384 + 960, 10 + 1024, frame2);
+		DecodeIceFrame(content, 14 + 16384, 14 + 1024, frame2, IceFrameMode.Gr0Gtia10);
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
@@ -4786,11 +5036,12 @@ public class FAIL
 		case PACKED_EXT("HPM"):
 		case PACKED_EXT("HR"):
 		case PACKED_EXT("HR2"):
+		case PACKED_EXT("ICE"):
+		case PACKED_EXT("ICN"):
 		case PACKED_EXT("IFF"):
 		case PACKED_EXT("BL1"):
 		case PACKED_EXT("BL2"):
 		case PACKED_EXT("BL3"):
-		case PACKED_EXT("ICN"):
 		case PACKED_EXT("IGE"):
 		case PACKED_EXT("IMN"):
 		case PACKED_EXT("ING"):
@@ -4935,7 +5186,7 @@ public class FAIL
 		case PACKED_EXT("DGU"):
 			return DecodeDgu(content, contentLength);
 		case PACKED_EXT("DIN"):
-			return DecodeDin(content, contentLength);
+			return DecodeAtari8Ice(content, contentLength, false, 3);
 		case PACKED_EXT("DLM"):
 			return DecodeDlm(content, contentLength);
 		case PACKED_EXT("DOO"):
@@ -4974,9 +5225,11 @@ public class FAIL
 			return DecodeHr(content, contentLength);
 		case PACKED_EXT("HR2"):
 			return DecodeHr2(content, contentLength);
+		case PACKED_EXT("ICE"):
+			return contentLength > 2048 && DecodeAtari8Ice(content, contentLength, true, content[0]);
 		case PACKED_EXT("ICN"):
 			return DecodeStIcn(content, contentLength)
-				|| DecodeAtari8Icn(content, contentLength);
+				|| DecodeAtari8Ice(content, contentLength, false, 17);
 		case PACKED_EXT("IFF"):
 		case PACKED_EXT("BL1"):
 		case PACKED_EXT("BL2"):
@@ -4985,7 +5238,7 @@ public class FAIL
 		case PACKED_EXT("IGE"):
 			return DecodeIge(content, contentLength);
 		case PACKED_EXT("IMN"):
-			return DecodeImn(content, contentLength);
+			return DecodeAtari8Ice(content, contentLength, false, 18);
 		case PACKED_EXT("ING"):
 		case PACKED_EXT("INP"):
 			return DecodeInp(content, contentLength);
@@ -4995,11 +5248,11 @@ public class FAIL
 		case PACKED_EXT("IP2"):
 			return DecodeIp2(content, contentLength);
 		case PACKED_EXT("IPC"):
-			return DecodeIpc(content, contentLength);
+			return DecodeAtari8Ice(content, contentLength, false, 19);
 		case PACKED_EXT("IR2"):
-			return DecodeIr2(content, contentLength);
+			return DecodeAtari8Ice(content, contentLength, false, 2);
 		case PACKED_EXT("IRG"):
-			return DecodeIrg(content, contentLength);
+			return DecodeAtari8Ice(content, contentLength, false, 1);
 		case PACKED_EXT("IST"):
 			return DecodeIst(content, contentLength);
 		case PACKED_EXT("JGP"):

@@ -56,6 +56,7 @@
 	<type ext="hpm" />
 	<type ext="hr" />
 	<type ext="hr2" />
+	<type ext="ice" acronym="Interlace Character Editor" />
 	<type ext="icn" />
 	<type ext="iff" acronym="Interchange File Format" />
 	<type ext="ige" acronym="Interlace Graphics Editor" />

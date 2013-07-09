@@ -172,6 +172,7 @@ static const struct Format {
 	{ "HPM", "Grass' Slideshow; 160x192, 4 colors, compressed" },
 	{ "HR", "256x239, 3 colors, 2 frames" },
 	{ "HR2", "320x200, 5 colors, 2 frames" },
+	{ "ICE", "Interlace Character Editor font, 2 frames" },
 	{ "ICN", "DEGAS Elite Icon or ICE CIN" },
 	{ "IGE", "Interlace Graphics Editor; 128x96, 16 colors, 2 frames" },
 	{ "ILC", "80x192, 256 colors, 2 frames" },
