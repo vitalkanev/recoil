@@ -4433,8 +4433,9 @@ public class FAIL
 				return false;
 			SetSize(256, 32, FAILResolution.Xe2x1);
 			SetBakPF0123(content, 1);
-			DecodeIceFrame(content, -1, 6, frame1, IceFrameMode.Gr12);
 			DecodeIceFrame(content, -1, 6 + 1024, frame2, IceFrameMode.Gr12Gtia11);
+			GtiaColors[8] = 0x00;
+			DecodeIceFrame(content, -1, 6, frame1, IceFrameMode.Gr12);
 			break;
 		case 15:
 			if (contentLength != 6 + 2048)
@@ -4458,8 +4459,9 @@ public class FAIL
 			if (!VerifyIce(content, contentLength, font, 6 + 2048, 6 + 16384 + 960, FAILResolution.Xe2x1))
 				return false;
 			SetBakPF0123(content, 1);
-			DecodeIceFrame(content, font ? -1 : 6 + 16384, 6, frame1, IceFrameMode.Gr12);
 			DecodeIceFrame(content, font ? -1 : 6 + 16384, 6 + 1024, frame2, IceFrameMode.Gr0Gtia11);
+			GtiaColors[8] = 0x00;
+			DecodeIceFrame(content, font ? -1 : 6 + 16384, 6, frame1, IceFrameMode.Gr12);
 			break;
 		case 18:
 			if (!VerifyIce(content, contentLength, font, 6 + 2048, 6 + 16384 + 960, FAILResolution.Xe2x1))
