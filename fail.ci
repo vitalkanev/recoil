@@ -4420,10 +4420,14 @@ public class FAIL
 			if (contentLength != 11 + 2048)
 				return false;
 			SetSize(256, 32, FAILResolution.Xe1x1);
-			GtiaLeftSkip = 1;
 			SetPF21(content, 1);
 			GtiaColors[8] = content[1] & 0xfe;
 			DecodeIceFrame(content, -1, 11, frame1, IceFrameMode.Gr0);
+			// In the original viewer, first frame is scrolled horizontally one pixel to the right.
+			// Here, I move GR. 10 to the left.
+			// This can't be done on the Atari as it doesn't support scrolling GR. 10 by half a pixel.
+			// I apply same technique to ICE modes 16, 19 and IP2.
+			GtiaLeftSkip = 2;
 			GtiaColors[0] = content[1] & 0xfe;
 			SetPM123PF0123Bak(content, 3);
 			DecodeIceFrame(content, -1, 11 + 1024, frame2, IceFrameMode.Gr0Gtia10);
@@ -4449,9 +4453,10 @@ public class FAIL
 			if (contentLength != 10 + 2048)
 				return false;
 			SetSize(256, 32, FAILResolution.Xe2x1);
-			GtiaLeftSkip = 1;
+			GtiaLeftSkip = 2;
 			SetGtiaColors(content, 1);
 			DecodeIceFrame(content, -1, 10 + 1024, frame2, IceFrameMode.Gr12Gtia10);
+			GtiaLeftSkip = 0;
 			GtiaColors[8] = content[1] & 0xfe;
 			DecodeIceFrame(content, -1, 10, frame1, IceFrameMode.Gr12);
 			break;
@@ -4473,17 +4478,10 @@ public class FAIL
 		case 19:
 			if (!VerifyIce(content, contentLength, font, 10 + 2048, 10 + 16384 + 960, FAILResolution.Xe2x1))
 				return false;
-			if (font)
-				GtiaLeftSkip = 1;
 			SetPF0123Bak(content, 5);
 			GtiaColors[8] = content[1] & 0xfe;
 			DecodeIceFrame(content, font ? -1 : 10 + 16384, 10, frame1, IceFrameMode.Gr12);
-			if (!font) {
-				// In the original viewer, GR. 12 is scrolled horizontally one pixel to the right.
-				// Here, I move GR. 10 to the right.
-				// This can't be done on the Atari as it doesn't support scrolling GR. 10 by half a pixel.
-				GtiaLeftSkip = 2;
-			}
+			GtiaLeftSkip = 2;
 			SetGtiaColors(content, 1);
 			DecodeIceFrame(content, font ? -1 : 10 + 16384, 10 + 1024, frame2, IceFrameMode.Gr0Gtia10);
 			break;
@@ -4505,7 +4503,7 @@ public class FAIL
 		GtiaColors[7] = content[11] & 0xfe;
 		byte[320 * 192] frame1;
 		DecodeIceFrame(content, 14 + 16384, 14, frame1, IceFrameMode.Gr12);
-		GtiaLeftSkip = 2; // see the comment for case 19 in DecodeAtari8Ice
+		GtiaLeftSkip = 2; // see the comment in DecodeAtari8Ice
 		for (int i = 0; i < 4; i++) {
 			GtiaColors[i] = content[1 + i] & 0xfe;
 			SetGtiaColor(4 + i, content[6 + i * 2]);
