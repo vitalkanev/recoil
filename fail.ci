@@ -4329,13 +4329,8 @@ public class FAIL
 			DecodeIceFrame(content, -1, 10 + 1024, frame2, IceFrameMode.Gr0Gtia10);
 			break;
 		case 5:
-			switch (contentLength) {
-			case 17 + 2048:
-			case 18 + 2048:
-				break;
-			default:
+			if (contentLength != 17 + 2048 && contentLength != 18 + 2048)
 				return false;
-			}
 			SetSize(256, 32, FAILResolution.Xe4x1);
 			GtiaLeftSkip = 2;
 			GtiaColors[0] = content[1] & 0xfe;
