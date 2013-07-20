@@ -61,6 +61,7 @@
 	<type ext="iff" acronym="Interchange File Format" />
 	<type ext="ige" acronym="Interlace Graphics Editor" />
 	<type ext="ilc" />
+	<type ext="img" />
 	<type ext="imn" />
 	<type ext="ing" />
 	<type ext="inp" />
@@ -122,5 +123,6 @@
 	<type ext="tru" />
 	<type ext="vzi" acronym="VertiZontal Interlacing" />
 	<type ext="wnd" />
+	<type ext="ximg" />
 	<type ext="xlp" acronym="XL-Paint" />
 </fail-types>

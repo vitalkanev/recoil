@@ -140,6 +140,7 @@ DOO:: "Doodle", 640x400, mono.
 GFB:: "DeskPic".
 ICN:: "DEGAS Elite" icon, mono.
 IFF:: "Interchange File Format", compressed.
+IMG:: "GEM Bit Image", compressed.
 NEO:: "NEOchrome".
 PAC:: "STAD", 640x400, mono, compressed.
 PC1:: "DEGAS Elite", 320x200, 16 colors, compressed.
@@ -156,6 +157,7 @@ TN1:: "Tiny Stuff", 320x200, 16 colors, compressed.
 TN2:: "Tiny Stuff", 640x200, 4 colors, compressed.
 TN3:: "Tiny Stuff", 640x400, mono, compressed.
 TNY:: "Tiny Stuff", compressed.
+XIMG:: "Extended GEM Bit Image", compressed.
 
 Atari Falcon
 ~~~~~~~~~~~~
