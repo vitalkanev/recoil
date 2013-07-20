@@ -17,7 +17,7 @@ GIT = git
 TAR = tar
 SEVENZIP = 7z a -mx=9
 CANDLE = candle -ext WixUtilExtension -nologo -o $@
-LIGHT = light -ext WixUtilExtension -nologo -o $@
+LIGHT = light -ext WixUtilExtension -nologo -o $@ -spdb
 IMAGEMAGICK_X64_INST_DIR = c:\Program Files\ImageMagick-6.8.2-Q16
 
 WIN32_BIN = fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr Xfail3.usr Xfail4.usr Xfail5.usr Xfail6.usr Xfail7.usr Xfail8.usr Xfail9.usr Xfail10.usr Xfail11.usr Xfail12.usr failwin.exe FAIL.plg
