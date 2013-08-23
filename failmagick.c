@@ -194,6 +194,7 @@ static const struct Format {
 	{ "MCS", "160x192, 9 colors" },
 	{ "MIC", "Micro Illustrator; up to 160x240, 4 colors" },
 	{ "MIS", "AtariTools-800 missile; 2x240, mono" },
+	{ "MPP", "Multi Palette Picture; up to 416x273, 1 or 2 frames" },
 	{ "NEO", "NEOchrome" },
 	{ "NLQ", "Daisy-Dot; 19x16 font, mono" },
 	{ "PAC", "STAD; 640x400, mono, compressed" },

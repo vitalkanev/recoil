@@ -93,6 +93,42 @@ class BitStream
 	}
 }
 
+class MppPaletteStream : BitStream
+{
+	int Read()
+	{
+		int rgb;
+		switch (Content[4] & 3) {
+		case 0:
+			// ST 512 colors
+			rgb = ReadBits(9);
+			// RRRGGGBBB -> 00000RRR00000GGG00000BBB
+			rgb = (rgb & 0x1c0) << 10
+				| (rgb & 0x38) << 5
+				| (rgb & 7);
+			return rgb << 5 | rgb << 2 | (rgb >> 1 & 0x030303);
+		case 1:
+			// STE 4096 colors
+			rgb = ReadBits(12);
+			// rRRRgGGGbBBB -> 0000RRRr0000GGGg0000BBBb
+			rgb = (rgb & 0x700) << 9 | (rgb & 0x870) << 5
+				| (rgb & 0x87) << 1 | (rgb & 8) >> 3;
+			return rgb << 4 | rgb;
+		case 3:
+			// STE 29791 colors
+			rgb = ReadBits(15);
+			// xyzrRRRgGGGbBBB -> 000RRRrx000GGGgy000BBBbz
+			rgb = (rgb & 0x700) << 10 | (rgb & 0x800) << 6 | (rgb & 0x4087) << 2
+				| (rgb & 0x70) << 6 | (rgb & 0x2000) >> 5
+				| (rgb & 8) >> 2 | (rgb & 0x1000) >> 12;
+			return rgb << 3 | (rgb >> 2 & 0x070707);
+		default:
+			// unreachable
+			return 0;
+		}
+	}
+}
+
 /// Readable in-memory Run-Length-Encoded stream.
 /// This class contains the compression logic.
 /// Subclasses must implement `ReadCommand()`
@@ -1312,6 +1348,19 @@ public class FAIL
 
 	// Atari ST formats.
 
+	bool ApplyBlend()
+	{
+		int pixelsLength = Width * Height;
+		Frames = 2;
+		for (int i = 0; i < pixelsLength; i++) {
+			int rgb1 = Pixels[i];
+			int rgb2 = Pixels[pixelsLength + i];
+			// This clever formula just computes the byte-by-byte averages.
+			Pixels[i] = (rgb1 & rgb2) + ((rgb1 ^ rgb2) >> 1 & 0x7f7f7f);
+		}
+		return true;
+	}
+
 	bool DecodeDoo(byte[] content, int contentLength)
 	{
 		if (contentLength != 32000)
@@ -1914,7 +1963,6 @@ public class FAIL
 			return true; // single screen
 
 		// alternating screens
-		Frames = 2;
 		rle.RepeatCount = 0; // ignore possible overrun from first picture palettes
 		byte[PcsStream.UnpackedLength] unpacked2;
 		if (!rle.UnpackPcs(unpacked2))
@@ -1928,14 +1976,119 @@ public class FAIL
 				unpacked2[i] ^= unpacked1[i];
 		}
 		DecodePcsScreen(unpacked2, 320 * 199);
+		return ApplyBlend();
+	}
 
-		for (int i = 0; i < 320 * 199; i++) {
-			int rgb1 = Pixels[i];
-			int rgb2 = Pixels[320 * 199 + i];
-			// This clever formula just computes the byte-by-byte averages.
-			Pixels[i] = (rgb1 & rgb2) + ((rgb1 ^ rgb2) >> 1 & 0x7f7f7f);
+	void DecodeMppScreen(byte[] content, int paletteOffset, int paletteLength, int pixelsOffset)
+	{
+		int mode = content[3];
+		int bitmapOffset = paletteOffset + paletteLength;
+		int[16] palette = 0;
+		MppPaletteStream() paletteStream;
+		paletteStream.Content = content;
+		paletteStream.ContentOffset = paletteOffset;
+		paletteStream.ContentLength = bitmapOffset;
+
+		for (int y = 0; y < Height; y++) {
+			// For modes 0,1,2 palette[0] is black here.
+			// No need to set it here, because it's black initially
+			// and at the end of the previous line.
+			// For mode 3 six colors remain from the previous line.
+			for (int c = mode == 3 ? 6 : 1; c < 16; c++)
+				palette[c] = paletteStream.Read();
+			const byte[4] firstChangeX = { 33, 9, 4, 69 };
+			int changeX = firstChangeX[mode];
+			int changeColor = 0;
+			for (int x = 0; x < Width; x++) {
+				if (x == changeX) {
+					// For modes 0,1,2 palette[0] is black in the last palette in line
+					// and not stored in the file.
+					// This is not the case for mode 3.
+					const byte[4] rightBorderColor = { 0x20, 0x10, 0x20, 0x7f };
+					palette[changeColor & 0xf] = changeColor == rightBorderColor[mode] ? 0 : paletteStream.Read();
+					switch (mode) {
+					case 0:
+					case 3:
+						switch (changeColor) {
+						case 15:
+							changeX += mode == 0 ? 88 : 112;
+							break;
+						case 31:
+							changeX += 12;
+							break;
+						case 37:
+							changeX += 100;
+							break;
+						default:
+							changeX += 4;
+							break;
+						}
+						break;
+					case 1:
+						changeX += (changeColor & 1) == 0 ? 4 : 16;
+						break;
+					case 2:
+						changeX += 8;
+						break;
+					}
+					changeColor++;
+				}
+
+				int offset = bitmapOffset + (x >> 1 & ~7) + (x >> 3 & 1);
+				int bit = ~x & 7;
+				int c = (content[offset] >> bit & 1)
+					| (content[offset + 2] >> bit & 1) << 1
+					| (content[offset + 4] >> bit & 1) << 2
+					| (content[offset + 6] >> bit & 1) << 3;
+				Pixels[pixelsOffset + x] = palette[c];
+			}
+			bitmapOffset += Width >> 1;
+			pixelsOffset += Width;
 		}
-		return true;
+	}
+
+	bool DecodeMpp(byte[] content, int contentLength)
+	{
+		if (contentLength < 12
+		 || content[0] != 'M' || content[1] != 'P' || content[2] != 'P')
+			return false;
+
+		int mode = content[3];
+		if (mode > 3)
+			return false;
+		int width = mode < 3 ? 320 : 416;
+		int height = mode < 3 ? 199 : 273;
+		const byte[4] modeColorsPerLine = { 52, 46, 54, 48 };
+		int paletteLength = modeColorsPerLine[mode] * height;
+		switch (content[4] & 3) {
+		case 0:
+			SetSize(width, height, FAILResolution.St1x1);
+			paletteLength *= 9;
+			break;
+		case 1:
+			SetSize(width, height, FAILResolution.Ste1x1);
+			paletteLength *= 12;
+			break;
+		case 3:
+			SetSize(width, height, FAILResolution.Ste1x1);
+			Frames = 2;
+			paletteLength *= 15;
+			break;
+		default:
+			return false;
+		}
+		paletteLength = paletteLength + 15 >> 4 << 1;
+		int paletteOffset = 12 + Get32BigEndian(content, 8);
+		int pixelsLength = width * height;
+		if (contentLength != paletteOffset + (paletteLength + (pixelsLength >> 1) << (content[4] >> 2 & 1)))
+			return false;
+
+		// alternating screens
+		DecodeMppScreen(content, paletteOffset, paletteLength, 0);
+		if ((content[4] & 4) == 0)
+			return true;
+		DecodeMppScreen(content, paletteOffset + paletteLength + (pixelsLength >> 1), paletteLength, pixelsLength);
+		return ApplyBlend();
 	}
 
 	bool DecodeStIcn(byte[] content, int contentLength)
@@ -5199,6 +5352,7 @@ public class FAIL
 		case PACKED_EXT("MGP"):
 		case PACKED_EXT("MIC"):
 		case PACKED_EXT("MIS"):
+		case PACKED_EXT("MPP"):
 		case PACKED_EXT("NEO"):
 		case PACKED_EXT("NLQ"):
 		case PACKED_EXT("PAC"):
@@ -5414,6 +5568,8 @@ public class FAIL
 			return DecodeMic(content, contentLength);
 		case PACKED_EXT("MIS"):
 			return DecodeMis(content, contentLength);
+		case PACKED_EXT("MPP"):
+			return DecodeMpp(content, contentLength);
 		case PACKED_EXT("NEO"):
 			return DecodeNeo(content, contentLength);
 		case PACKED_EXT("NLQ"):
