@@ -1,4 +1,4 @@
-VERSION = 2.0.1
+VERSION = 2.0.2
 
 CITO = cito
 FAIL_CC = mingw32-gcc -s -O2 -Wall -o $@ -I..
