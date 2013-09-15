@@ -207,10 +207,11 @@ You may submit bugs http://sourceforge.net/p/fail/bugs/[here] (log in required).
 History
 -------
 
-FAIL 2.0.2 (2013-09-??)::
+FAIL 2.0.2 (2013-09-15)::
 
 New formats: Interlace Character Editor font (ICE), GEM Bit Image (IMG),
 Multi Palette Picture (MPP).
++
 This is the last release of FAIL. But don't worry! We are just renaming our project
 to Retro Computer Image Library (RECOIL), because we are going to support formats
 from 8-bit and 16-bit machines other than Atari. Stay tuned!
