@@ -2,7 +2,7 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
 	 xmlns="http://www.freedesktop.org/standards/shared-mime-info">
 	<xsl:output method="xml" />
-	<xsl:template match="/fail-types">
+	<xsl:template match="/recoil-types">
 		<mime-info>
 			<xsl:apply-templates select="type" />
 		</mime-info>

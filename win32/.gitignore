@@ -1,7 +1,7 @@
 *.dll
 *.o
-/Xfail*.usr
-/FAIL.plg
+/Xrecoil*.usr
+/RECOIL.plg
 /COPYING.txt
 /README_Windows.html
 /README_WindowsSetup.html

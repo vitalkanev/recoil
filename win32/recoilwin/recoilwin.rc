@@ -1,30 +1,30 @@
 /*
- * failwin.rc - FAILWin GUI definition
+ * recoilwin.rc - RECOILWin GUI definition
  *
- * Copyright (C) 2009-2012  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2013  Piotr Fusik and Adrian Matoga
  *
- * This file is part of FAIL (First Atari Image Library),
- * see http://fail.sourceforge.net
+ * This file is part of RECOIL (Retro Computer Image Library),
+ * see http://recoil.sourceforge.net
  *
- * FAIL is free software; you can redistribute it and/or modify it
+ * RECOIL is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published
  * by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
  *
- * FAIL is distributed in the hope that it will be useful,
+ * RECOIL is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with FAIL; if not, write to the Free Software Foundation, Inc.,
+ * along with RECOIL; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <windows.h>
 
-#include "fail.h"
-#include "failwin.h"
+#include "recoil.h"
+#include "recoilwin.h"
 
 IDI_APP ICON "faileye.ico"
 
@@ -106,8 +106,8 @@ IDR_ACCELERATORS ACCELERATORS
 {
 	"<?xml version=""1.0""?>"
 	"<assembly xmlns=""urn:schemas-microsoft-com:asm.v1"" manifestVersion=""1.0"">"
-	"<assemblyIdentity version=""" FAIL_VERSION ".0"" "
-		"processorArchitecture=""X86"" name=""FAILWin"" type=""win32"" />"
+	"<assemblyIdentity version=""" RECOIL_VERSION ".0"" "
+		"processorArchitecture=""X86"" name=""RECOILWin"" type=""win32"" />"
 	"<dependency><dependentAssembly>"
 	"<assemblyIdentity type=""win32"" name=""Microsoft.Windows.Common-Controls"" "
 		"version=""6.0.0.0"" processorArchitecture=""X86"" publicKeyToken=""6595b64144ccf1df"" language=""*"" />"
@@ -116,8 +116,8 @@ IDR_ACCELERATORS ACCELERATORS
 }
 
 1 VERSIONINFO
-	FILEVERSION FAIL_VERSION_MAJOR, FAIL_VERSION_MINOR, FAIL_VERSION_MICRO, 0
-	PRODUCTVERSION FAIL_VERSION_MAJOR, FAIL_VERSION_MINOR, FAIL_VERSION_MICRO, 0
+	FILEVERSION RECOIL_VERSION_MAJOR, RECOIL_VERSION_MINOR, RECOIL_VERSION_MICRO, 0
+	PRODUCTVERSION RECOIL_VERSION_MAJOR, RECOIL_VERSION_MINOR, RECOIL_VERSION_MICRO, 0
 	FILEFLAGSMASK 0x3fL
 	FILEFLAGS 0x0L
 	FILEOS 0x40004L
@@ -129,13 +129,13 @@ IDR_ACCELERATORS ACCELERATORS
 		BLOCK "040904b0"
 		{
 			VALUE "CompanyName", "Piotr Fusik and Adrian Matoga\0"
-			VALUE "FileDescription", "FAILWin\0"
-			VALUE "FileVersion", FAIL_VERSION "\0"
-			VALUE "InternalName", "failwin\0"
-			VALUE "LegalCopyright", "Copyleft " FAIL_YEARS "\0"
-			VALUE "OriginalFilename", "failwin.exe\0"
-			VALUE "ProductName", "FAIL\0"
-			VALUE "ProductVersion", FAIL_VERSION "\0"
+			VALUE "FileDescription", "RECOILWin\0"
+			VALUE "FileVersion", RECOIL_VERSION "\0"
+			VALUE "InternalName", "recoilwin\0"
+			VALUE "LegalCopyright", "Copyleft " RECOIL_YEARS "\0"
+			VALUE "OriginalFilename", "recoilwin.exe\0"
+			VALUE "ProductName", "RECOIL\0"
+			VALUE "ProductVersion", RECOIL_VERSION "\0"
 		}
 	}
 	BLOCK "VarFileInfo"

@@ -1,23 +1,23 @@
 /*
- * fail2png.c - command-line converter of Atari pictures to the PNG format
+ * recoil2png.c - command-line converter of retro computer pictures to the PNG format
  *
  * Copyright (C) 2009-2013  Piotr Fusik and Adrian Matoga
  *
- * This file is part of FAIL (First Atari Image Library),
- * see http://fail.sourceforge.net
+ * This file is part of RECOIL (Retro Computer Image Library),
+ * see http://recoil.sourceforge.net
  *
- * FAIL is free software; you can redistribute it and/or modify it
+ * RECOIL is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published
  * by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
  *
- * FAIL is distributed in the hope that it will be useful,
+ * RECOIL is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with FAIL; if not, write to the Free Software Foundation, Inc.,
+ * along with RECOIL; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
@@ -26,16 +26,16 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "fail.h"
+#include "recoil.h"
 #include "pngsave.h"
 
-static FAIL *fail = NULL;
+static RECOIL *recoil = NULL;
 static const char *output_file = NULL;
 
 static void print_help(void)
 {
 	printf(
-		"Usage: fail2png [OPTIONS] INPUTFILE...\n"
+		"Usage: recoil2png [OPTIONS] INPUTFILE...\n"
 		"Options:\n"
 		"-o FILE  --output=FILE   Set output file name\n"
 		"-p FILE  --palette=FILE  Load Atari 8-bit palette (768 bytes)\n"
@@ -48,7 +48,7 @@ static void fatal_error(const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	fprintf(stderr, "fail2png: ");
+	fprintf(stderr, "recoil2png: ");
 	vfprintf(stderr, format, args);
 	fputc('\n', stderr);
 	va_end(args);
@@ -71,14 +71,14 @@ static void load_palette(const char *filename)
 	unsigned char atari8_palette[768 + 1];
 	if (load_file(filename, atari8_palette, sizeof(atari8_palette)) != 768)
 		fatal_error("%s: palette file must be 768 bytes", filename);
-	FAIL_SetAtari8Palette(fail, atari8_palette);
+	RECOIL_SetAtari8Palette(recoil, atari8_palette);
 }
 
 static void process_file(const char *input_file)
 {
-	static unsigned char content[FAIL_MAX_CONTENT_LENGTH];
+	static unsigned char content[RECOIL_MAX_CONTENT_LENGTH];
 	int content_len = load_file(input_file, content, sizeof(content));
-	if (!FAIL_Decode(fail, input_file, content, content_len))
+	if (!RECOIL_Decode(recoil, input_file, content, content_len))
 		fatal_error("%s: file decoding error", input_file);
 
 	if (output_file == NULL) {
@@ -91,7 +91,7 @@ static void process_file(const char *input_file)
 		strcpy(output_default + (dotp == 0 ? i : dotp), ".png");
 		output_file = output_default;
 	}
-	if (!FAIL_SavePng(fail, output_file))
+	if (!RECOIL_SavePng(recoil, output_file))
 		fatal_error("cannot write %s", output_file);
 	output_file = NULL;
 }
@@ -100,9 +100,9 @@ int main(int argc, char **argv)
 {
 	cibool no_input_files = TRUE;
 	int i;
-	fail = FAIL_New();
-	if (fail == NULL)
-		fatal_error("fail2png: out of memory");
+	recoil = RECOIL_New();
+	if (recoil == NULL)
+		fatal_error("recoil2png: out of memory");
 	for (i = 1; i < argc; i++) {
 		const char *arg = argv[i];
 		if (arg[0] != '-') {
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
 		}
 		else if ((arg[1] == 'v' && arg[2] == '\0')
 			|| strcmp(arg, "--version") == 0) {
-			printf("fail2png " FAIL_VERSION "\n");
+			printf("recoil2png " RECOIL_VERSION "\n");
 			no_input_files = FALSE;
 		}
 		else

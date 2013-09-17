@@ -1,8 +1,8 @@
 *.exe
 /MANIFEST
 /README.html
-/fail2png
-/fail.so
-/fail-mime.xml
-/fail.c
-/fail.h
+/recoil2png
+/recoil.so
+/recoil-mime.xml
+/recoil.c
+/recoil.h

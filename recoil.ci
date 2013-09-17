@@ -1,26 +1,26 @@
-// fail.ci - FAIL core
+// recoil.ci - RECOIL core
 //
 // Copyright (C) 2009-2013  Piotr Fusik and Adrian Matoga
 //
-// This file is part of FAIL (First Atari Image Library),
-// see http://fail.sourceforge.net
+// This file is part of RECOIL (Retro Computer Image Library),
+// see http://recoil.sourceforge.net
 //
-// FAIL is free software; you can redistribute it and/or modify it
+// RECOIL is free software; you can redistribute it and/or modify it
 // under the terms of the GNU General Public License as published
 // by the Free Software Foundation; either version 2 of the License,
 // or (at your option) any later version.
 //
-// FAIL is distributed in the hope that it will be useful,
+// RECOIL is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty
 // of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with FAIL; if not, write to the Free Software Foundation, Inc.,
+// along with RECOIL; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 /// Platform and pixel ratio.
-enum FAILResolution
+enum RECOILResolution
 {
 	Xe1x1,
 	Xe2x1,
@@ -619,7 +619,7 @@ class CaStream : RleStream
 			return false;
 		int unpackedOffset = 0;
 		for (int block = 0; block < blocks; block++) {
-			int nextContentOffset = contentOffset + FAIL.Get32BigEndian(content, block << 2);
+			int nextContentOffset = contentOffset + RECOIL.Get32BigEndian(content, block << 2);
 			if (!UnpackCa(content, contentOffset, nextContentOffset, unpacked, unpackedOffset))
 				return false;
 			contentOffset = nextContentOffset;
@@ -1092,22 +1092,22 @@ class IcnParser
 	}
 }
 
-public class FAIL
+public class RECOIL
 {
-	/// FAIL version - major part.
-	public const int VersionMajor = 2;
-	/// FAIL version - minor part.
+	/// RECOIL version - major part.
+	public const int VersionMajor = 3;
+	/// RECOIL version - minor part.
 	public const int VersionMinor = 0;
-	/// FAIL version - micro part.
-	public const int VersionMicro = 2;
-	/// FAIL version as a string.
+	/// RECOIL version - micro part.
+	public const int VersionMicro = 0;
+	/// RECOIL version as a string.
 	public const string Version = VersionMajor + "." + VersionMinor + "." + VersionMicro;
 
-	/// Years FAIL was created in.
+	/// Years RECOIL was created in.
 	public const string Years = "2009-2013";
 
-	/// Short credits for FAIL.
-	public const string Credits = "First Atari Image Library (C) 2009-2013 Piotr Fusik and Adrian Matoga\n";
+	/// Short credits for RECOIL.
+	public const string Credits = "Retro Computer Image Library (C) 2009-2013 Piotr Fusik and Adrian Matoga\n";
 
 	/// Short license notice.
 	/// Display after the credits.
@@ -1117,13 +1117,13 @@ public class FAIL
 		"by the Free Software Foundation; either version 2 of the License,\n" +
 		"or (at your option) any later version.";
 
-	public FAIL()
+	public RECOIL()
 	{
 		SetAtari8Palette(null);
 	}
 
 	/// Maximum length of a supported input file.
-	/// You may assume that files longer than this are not supported by FAIL.
+	/// You may assume that files longer than this are not supported by RECOIL.
 	public const int MaxContentLength = 350000;
 
 	/// Maximum width of a decoded image.
@@ -1140,7 +1140,7 @@ public class FAIL
 	/// Decoded image pixels as 0xRRGGBB.
 	int[MaxPixelsLength] Pixels;
 	/// Platform and pixel ratio.
-	FAILResolution Resolution;
+	RECOILResolution Resolution;
 	/// Number of frames (normally 1; 2 or 3 for flickering pictures).
 	int Frames;
 
@@ -1170,23 +1170,23 @@ public class FAIL
 	public string GetPlatform()
 	{
 		switch (Resolution) {
-		case FAILResolution.Xe1x1:
-		case FAILResolution.Xe2x1:
-		case FAILResolution.Xe4x1:
-		case FAILResolution.Xe2x2:
-		case FAILResolution.Xe4x2:
+		case RECOILResolution.Xe1x1:
+		case RECOILResolution.Xe2x1:
+		case RECOILResolution.Xe4x1:
+		case RECOILResolution.Xe2x2:
+		case RECOILResolution.Xe4x2:
 			return "Atari 8-bit";
-		case FAILResolution.St1x1:
-		case FAILResolution.St1x2:
+		case RECOILResolution.St1x1:
+		case RECOILResolution.St1x2:
 			return "Atari ST";
-		case FAILResolution.Ste1x1:
-		case FAILResolution.Ste1x2:
+		case RECOILResolution.Ste1x1:
+		case RECOILResolution.Ste1x2:
 			return "Atari STE";
-		case FAILResolution.Falcon1x1:
+		case RECOILResolution.Falcon1x1:
 			return "Atari Falcon";
-		case FAILResolution.Portfolio1x1:
+		case RECOILResolution.Portfolio1x1:
 			return "Atari Portfolio";
-		case FAILResolution.Amiga1x1:
+		case RECOILResolution.Amiga1x1:
 			return "Amiga";
 		default:
 			throw "Unknown";
@@ -1197,11 +1197,11 @@ public class FAIL
 	public int GetOriginalWidth()
 	{
 		switch (Resolution) {
-		case FAILResolution.Xe2x1:
-		case FAILResolution.Xe2x2:
+		case RECOILResolution.Xe2x1:
+		case RECOILResolution.Xe2x2:
 			return Width >> 1;
-		case FAILResolution.Xe4x1:
-		case FAILResolution.Xe4x2:
+		case RECOILResolution.Xe4x1:
+		case RECOILResolution.Xe4x2:
 			return Width >> 2;
 		default:
 			return Width;
@@ -1212,10 +1212,10 @@ public class FAIL
 	public int GetOriginalHeight()
 	{
 		switch (Resolution) {
-		case FAILResolution.Xe2x2:
-		case FAILResolution.Xe4x2:
-		case FAILResolution.St1x2:
-		case FAILResolution.Ste1x2:
+		case RECOILResolution.Xe2x2:
+		case RECOILResolution.Xe4x2:
+		case RECOILResolution.St1x2:
+		case RECOILResolution.Ste1x2:
 			return Height >> 1;
 		default:
 			return Height;
@@ -1232,7 +1232,7 @@ public class FAIL
 	}
 
 	/// Initializes decoded image size and resolution.
-	void SetSize(int width, int height, FAILResolution resolution)
+	void SetSize(int width, int height, RECOILResolution resolution)
 	{
 		Width = width;
 		Height = height;
@@ -1246,7 +1246,7 @@ public class FAIL
 	{
 		SetSize(width, height, (bitplanes == 1 && width <= 640 && height <= 400)
 			|| (bitplanes <= 4 && width <= 320 && height <= 200)
-			? FAILResolution.St1x1 : FAILResolution.Falcon1x1);
+			? RECOILResolution.St1x1 : RECOILResolution.Falcon1x1);
 	}
 
 	/// Reads a 32-bit big endian integer from a byte array.
@@ -1271,7 +1271,7 @@ public class FAIL
 	{
 		if (contentLength != 64)
 			return false;
-		SetSize(8, 8, FAILResolution.St1x1);
+		SetSize(8, 8, RECOILResolution.St1x1);
 		for (int i = 0; i < 64; i++) {
 			switch (content[i]) {
 			case 0:
@@ -1305,7 +1305,7 @@ public class FAIL
 		}
 	}
 
-	void DecodeBlackAndWhite(byte[] content, int contentOffset, int width, int height, FAILResolution resolution)
+	void DecodeBlackAndWhite(byte[] content, int contentOffset, int width, int height, RECOILResolution resolution)
 	{
 		SetSize(width, height, resolution);
 		Atari16Palette[0] = 0xffffff;
@@ -1319,7 +1319,7 @@ public class FAIL
 	{
 		if (contentLength != 1920)
 			return false;
-		DecodeBlackAndWhite(content, 0, 240, 64, FAILResolution.Portfolio1x1);
+		DecodeBlackAndWhite(content, 0, 240, 64, RECOILResolution.Portfolio1x1);
 		return true;
 	}
 
@@ -1365,7 +1365,7 @@ public class FAIL
 	{
 		if (contentLength != 32000)
 			return false;
-		DecodeBlackAndWhite(content, 0, 640, 400, FAILResolution.St1x1);
+		DecodeBlackAndWhite(content, 0, 640, 400, RECOILResolution.St1x1);
 		return true;
 	}
 
@@ -1411,8 +1411,8 @@ public class FAIL
 		int gb = content[contentOffset + 1];
 		int rgb;
 		switch (Resolution) {
-		case FAILResolution.Ste1x1:
-		case FAILResolution.Ste1x2:
+		case RECOILResolution.Ste1x1:
+		case RECOILResolution.Ste1x2:
 			// STE 4096 colors
 			// xxxxrRRR gGGGbBBB -> 0000RRRr0000GGGg0000BBBb
 			rgb = (r & 7) << 17 | (r & 8) << 13
@@ -1448,7 +1448,7 @@ public class FAIL
 
 	bool DecodeStLow(byte[] bitmap, int bitmapOffset, byte[] palette, int paletteOffset, int width, int height)
 	{
-		SetSize(width, height, IsStePalette(palette, paletteOffset, 16) ? FAILResolution.Ste1x1 : FAILResolution.St1x1);
+		SetSize(width, height, IsStePalette(palette, paletteOffset, 16) ? RECOILResolution.Ste1x1 : RECOILResolution.St1x1);
 		SetStPalette(palette, paletteOffset, 16);
 		DecodeBitplanes(bitmap, bitmapOffset, 4, 0, width * height);
 		return true;
@@ -1456,7 +1456,7 @@ public class FAIL
 
 	void DecodeStMedium(byte[] bitmap, int bitmapOffset, byte[] palette, int paletteOffset)
 	{
-		SetSize(640, 400, IsStePalette(palette, paletteOffset, 4) ? FAILResolution.Ste1x2 : FAILResolution.St1x2);
+		SetSize(640, 400, IsStePalette(palette, paletteOffset, 4) ? RECOILResolution.Ste1x2 : RECOILResolution.St1x2);
 		SetStPalette(palette, paletteOffset, 4);
 		for (int y = 0; y < 200; y++) {
 			for (int x = 0; x < 640; x++) {
@@ -1478,7 +1478,7 @@ public class FAIL
 			DecodeStMedium(bitmap, bitmapOffset, palette, paletteOffset);
 			return true;
 		case 2:
-			DecodeBlackAndWhite(bitmap, bitmapOffset, 640, 400, FAILResolution.St1x1);
+			DecodeBlackAndWhite(bitmap, bitmapOffset, 640, 400, RECOILResolution.St1x1);
 			return true;
 		default:
 			return false;
@@ -1779,7 +1779,7 @@ public class FAIL
 	{
 		if (contentLength != 51104)
 			return false;
-		SetSize(320, 199, IsStePalette(content, 32000, 199 * 3 * 16) ? FAILResolution.Ste1x1 : FAILResolution.St1x1);
+		SetSize(320, 199, IsStePalette(content, 32000, 199 * 3 * 16) ? RECOILResolution.Ste1x1 : RECOILResolution.St1x1);
 		int pixelsOffset = 0;
 		for (int y = 0; y < 199; y++) {
 			for (int x = 0; x < 320; x++) {
@@ -1957,7 +1957,7 @@ public class FAIL
 		if (!rle.UnpackPcs(unpacked1))
 			return false;
 		// FIXME: I only check if first screen's colors are STE
-		SetSize(320, 199, IsStePalette(unpacked1, 32000, 9616) ? FAILResolution.Ste1x1 : FAILResolution.St1x1);
+		SetSize(320, 199, IsStePalette(unpacked1, 32000, 9616) ? RECOILResolution.Ste1x1 : RECOILResolution.St1x1);
 		DecodePcsScreen(unpacked1, 0);
 		if (content[4] == 0)
 			return true; // single screen
@@ -2062,15 +2062,15 @@ public class FAIL
 		int paletteLength = modeColorsPerLine[mode] * height;
 		switch (content[4] & 3) {
 		case 0:
-			SetSize(width, height, FAILResolution.St1x1);
+			SetSize(width, height, RECOILResolution.St1x1);
 			paletteLength *= 9;
 			break;
 		case 1:
-			SetSize(width, height, FAILResolution.Ste1x1);
+			SetSize(width, height, RECOILResolution.Ste1x1);
 			paletteLength *= 12;
 			break;
 		case 3:
-			SetSize(width, height, FAILResolution.Ste1x1);
+			SetSize(width, height, RECOILResolution.Ste1x1);
 			Frames = 2;
 			paletteLength *= 15;
 			break;
@@ -2123,7 +2123,7 @@ public class FAIL
 		}
 		if (!parser.Expect("};"))
 			return false;
-		DecodeBlackAndWhite(bitmap, 0, width + 0xf & ~0xf, height, FAILResolution.St1x1);
+		DecodeBlackAndWhite(bitmap, 0, width + 0xf & ~0xf, height, RECOILResolution.St1x1);
 		return true;
 	}
 
@@ -2140,7 +2140,7 @@ public class FAIL
 	void DecodeFalconPalette320(byte[] content, int bitplanesOffset, int paletteOffset, int height)
 	{
 		SetFalconPalette(content, paletteOffset);
-		SetSize(320, height, FAILResolution.Falcon1x1);
+		SetSize(320, height, RECOILResolution.Falcon1x1);
 		DecodeBitplanes(content, bitplanesOffset, 8, 0, 320 * height);
 	}
 
@@ -2215,7 +2215,7 @@ public class FAIL
 		}
 
 		SetFalconPalette(content, 10);
-		SetSize(320, 200, FAILResolution.Falcon1x1);
+		SetSize(320, 200, RECOILResolution.Falcon1x1);
 		DecodeBitplanes(unpacked, 0, 8, 0, 320 * 200);
 		return true;
 	}
@@ -2236,7 +2236,7 @@ public class FAIL
 			return false;
 		}
 		SetFalconPalette(unpacked, 0);
-		SetSize(640, 480, FAILResolution.Falcon1x1);
+		SetSize(640, 480, RECOILResolution.Falcon1x1);
 		for (int y = 0; y < 240; y++) {
 			// Combine four 320x240 quarters:
 			// 1 2
@@ -2255,7 +2255,7 @@ public class FAIL
 		int pixelsCount = width * height;
 		if (contentOffset + pixelsCount * 2 != contentLength)
 			return false;
-		SetSize(width, height, FAILResolution.Falcon1x1);
+		SetSize(width, height, RECOILResolution.Falcon1x1);
 		for (int i = 0; i < pixelsCount; i++) {
 			int rg = content[contentOffset + i * 2];
 			int gb = content[contentOffset + i * 2 + 1];
@@ -2344,7 +2344,7 @@ public class FAIL
 	{
 		int pixelsCount = width * height;
 		if (camg != 0)
-			SetSize(width, height, FAILResolution.Amiga1x1);
+			SetSize(width, height, RECOILResolution.Amiga1x1);
 		else
 			SetSizeStOrFalcon(width, height, bitplanes);
 
@@ -2549,7 +2549,7 @@ public class FAIL
 		return 0;
 	}
 
-	bool SetAtari8RawSize(byte[] content, int contentLength, FAILResolution resolution)
+	bool SetAtari8RawSize(byte[] content, int contentLength, RECOILResolution resolution)
 	{
 		int contentOffset = GetAtari8ExecutableOffset(content, contentLength);
 		int height = (contentLength - contentOffset) / 40;
@@ -2845,7 +2845,7 @@ public class FAIL
 
 	bool DecodeGr8(byte[] content, int contentLength)
 	{
-		if (!SetAtari8RawSize(content, contentLength, FAILResolution.Xe1x1))
+		if (!SetAtari8RawSize(content, contentLength, RECOILResolution.Xe1x1))
 			return false;
 		GtiaColors[6] = 0x00;
 		GtiaColors[5] = 0x0e;
@@ -2864,7 +2864,7 @@ public class FAIL
 	{
 		if (contentLength != 16384)
 			return false;
-		SetSize(512, 256, FAILResolution.Xe1x1);
+		SetSize(512, 256, RECOILResolution.Xe1x1);
 		GtiaColors[6] = 0x00;
 		GtiaColors[5] = 0x0e;
 		byte[512 * 256] frame;
@@ -2880,7 +2880,7 @@ public class FAIL
 		int height = content[2];
 		if (width == 0 || width > 320 || height == 0 || height > 200)
 			return false;
-		SetSize(width, height, FAILResolution.Xe1x1);
+		SetSize(width, height, RECOILResolution.Xe1x1);
 		byte[320 * 200] frame;
 		GtiaColors[6] = 0x0c;
 		GtiaColors[5] = 0x02;
@@ -2897,7 +2897,7 @@ public class FAIL
 			return false;
 		GtiaColors[6] = 0x0c;
 		GtiaColors[5] = 0x00;
-		SetSize(320, 192, FAILResolution.Xe1x1);
+		SetSize(320, 192, RECOILResolution.Xe1x1);
 		byte[320 * 192] frame;
 		DecodeAtari8Gr8(unpacked, 0, frame, 0, 192);
 		return ApplyAtari8Palette(frame);
@@ -2908,7 +2908,7 @@ public class FAIL
 		if (contentSize > 4804 || contentSize % 40 != 4)
 			return false;
 		int height = contentSize / 40;
-		SetSize(320, height * 2, FAILResolution.Xe2x2);
+		SetSize(320, height * 2, RECOILResolution.Xe2x2);
 		byte[320 * 240] frame;
 		SetBakPF012(content, contentOffset + contentSize - 4, 1);
 		DecodeAtari8Gr7(content, contentOffset, frame, 0, height);
@@ -2924,7 +2924,7 @@ public class FAIL
 	{
 		if (contentLength != 3206 || content[0] != 7)
 			return false;
-		SetSize(320, 160, FAILResolution.Xe2x2);
+		SetSize(320, 160, RECOILResolution.Xe2x2);
 		byte[320 * 160] frame;
 		SetPF0123Bak(content, 1);
 		DecodeAtari8Gr7(content, 6, frame, 0, 80);
@@ -2933,7 +2933,7 @@ public class FAIL
 
 	bool DecodeGr9(byte[] content, int contentLength)
 	{
-		if (!SetAtari8RawSize(content, contentLength, FAILResolution.Xe4x1))
+		if (!SetAtari8RawSize(content, contentLength, RECOILResolution.Xe4x1))
 			return false;
 		GtiaColors[8] = 0x00;
 		int contentOffset = GetAtari8ExecutableOffset(content, contentLength);
@@ -2950,7 +2950,7 @@ public class FAIL
 		a4r.ContentLength = contentLength;
 		if (!a4r.UnpackA4r())
 			return false;
-		SetSize(320, 256, FAILResolution.Xe4x1);
+		SetSize(320, 256, RECOILResolution.Xe4x1);
 		byte[320 * 256] frame;
 		GtiaColors[8] = 0x00;
 		DecodeAtari8Gr9(a4r.Unpacked, 0x5010 - A4rStream.MinAddress, 40, frame, 0, 320, 320, 256);
@@ -2959,7 +2959,7 @@ public class FAIL
 
 	bool DecodeG11(byte[] content, int contentLength)
 	{
-		if (!SetAtari8RawSize(content, contentLength, FAILResolution.Xe4x1))
+		if (!SetAtari8RawSize(content, contentLength, RECOILResolution.Xe4x1))
 			return false;
 		GtiaColors[8] = 0x06; // Atari operating system standard
 		int contentOffset = GetAtari8ExecutableOffset(content, contentLength);
@@ -2970,7 +2970,7 @@ public class FAIL
 
 	bool DecodeG10(byte[] content, int contentLength)
 	{
-		if (!SetAtari8RawSize(content, contentLength, FAILResolution.Xe4x1))
+		if (!SetAtari8RawSize(content, contentLength, RECOILResolution.Xe4x1))
 			return false;
 		int contentOffset = GetAtari8ExecutableOffset(content, contentLength);
 		if ((contentLength - contentOffset) % 40 != 9)
@@ -2992,7 +2992,7 @@ public class FAIL
 		default:
 			return false;
 		}
-		SetSize(640, 192, FAILResolution.Xe4x1);
+		SetSize(640, 192, RECOILResolution.Xe4x1);
 		GtiaColors[8] = 0x00;
 		byte[640 * 192] frame;
 		DecodeAtari8Gr9(content, 0, 40, frame, 0, 640, 320, 192);
@@ -3038,7 +3038,7 @@ public class FAIL
 		int height = contentLength / 40;
 		if (height == 0 || height > 240)
 			return false;
-		SetSize(320, height, FAILResolution.Xe2x1);
+		SetSize(320, height, RECOILResolution.Xe2x1);
 		byte[320 * 240] frame;
 		DecodeAtari8Gr15(content, 0, 40, frame, 0, 320, height);
 		return ApplyAtari8Palette(frame);
@@ -3115,7 +3115,7 @@ public class FAIL
 	{
 		byte[7680] unpacked;
 		if (KoalaStream.UnpackKoalaWrapped(content, contentLength, unpacked, 7680)) {
-			SetSize(320, 192, FAILResolution.Xe2x1);
+			SetSize(320, 192, RECOILResolution.Xe2x1);
 			SetPF0123Bak(content, 13);
 			byte[320 * 192] frame;
 			DecodeAtari8Gr15(unpacked, 0, 40, frame, 0, 320, 192);
@@ -3144,7 +3144,7 @@ public class FAIL
 		int height = content[1];
 		if (contentStride > 40 || height == 0 || height > 192 || contentStride * height > 3070)
 			return false;
-		SetSize(contentStride << 3, height, FAILResolution.Xe2x1);
+		SetSize(contentStride << 3, height, RECOILResolution.Xe2x1);
 		byte[320 * 192] frame;
 		// Blazing Paddles default colors
 		GtiaColors[8] = 0x00;
@@ -3180,7 +3180,7 @@ public class FAIL
 	{
 		if (contentLength != 241)
 			return false;
-		SetSize(16, 240, FAILResolution.Xe2x1);
+		SetSize(16, 240, RECOILResolution.Xe2x1);
 		byte[16 * 240] frame = 0;
 		DecodeAtari8Player(content, 1, content[0], frame, 0, 240);
 		return ApplyAtari8Palette(frame);
@@ -3191,7 +3191,7 @@ public class FAIL
 		if (contentLength != 61 && contentLength != 241)
 			return false;
 		const int width = 2 * 2;
-		SetSize(width, 240, FAILResolution.Xe2x1);
+		SetSize(width, 240, RECOILResolution.Xe2x1);
 		byte[width * 240] frame;
 		for (int y = 0; y < 240; y++) {
 			int b = content[1 + (y >> 2)] >> ((~y & 3) << 1);
@@ -3206,7 +3206,7 @@ public class FAIL
 		if (contentLength != 964)
 			return false;
 		const int width = 4 * (8 + At800SpriteGap) * 2;
-		SetSize(width, 240, FAILResolution.Xe2x1);
+		SetSize(width, 240, RECOILResolution.Xe2x1);
 		byte[width * 240] frame = 0;
 		DecodeAt800Players(content, frame);
 		return ApplyAtari8Palette(frame);
@@ -3217,7 +3217,7 @@ public class FAIL
 		if (contentLength != 244)
 			return false;
 		const int width = 4 * (2 + At800SpriteGap) * 2;
-		SetSize(width, 240, FAILResolution.Xe2x1);
+		SetSize(width, 240, RECOILResolution.Xe2x1);
 		byte[width * 240] frame = 0;
 		DecodeAt800Missiles(content, 4, frame, 0);
 		return ApplyAtari8Palette(frame);
@@ -3228,7 +3228,7 @@ public class FAIL
 		if (contentLength != 1204)
 			return false;
 		const int width = 4 * (8 + At800SpriteGap + 2 + At800SpriteGap) * 2;
-		SetSize(width, 240, FAILResolution.Xe2x1);
+		SetSize(width, 240, RECOILResolution.Xe2x1);
 		byte[width * 240] frame = 0;
 		DecodeAt800Players(content, frame);
 		DecodeAt800Missiles(content, 964, frame, 4 * (8 + At800SpriteGap) * 2);
@@ -3260,12 +3260,12 @@ public class FAIL
 		const int horizontalGap = 2;
 		const int verticalGap = 2;
 		if (rows == 1)
-			SetSize(totalShapes * (8 + horizontalGap << 1), height, FAILResolution.Xe2x1);
+			SetSize(totalShapes * (8 + horizontalGap << 1), height, RECOILResolution.Xe2x1);
 		else {
 			int totalHeight = rows * height + (rows - 1) * verticalGap;
 			if (totalHeight > MaxHeight)
 				return false;
-			SetSize(320, totalHeight, FAILResolution.Xe2x1);
+			SetSize(320, totalHeight, RECOILResolution.Xe2x1);
 		}
 
 		byte[320 * MaxHeight] frame = 0;
@@ -3295,7 +3295,7 @@ public class FAIL
 			return false;
 		const int frameGap = 2;
 		int frameWidth = 8 + gap + frameGap << 1;
-		SetSize(frames * frameWidth, height, FAILResolution.Xe2x1);
+		SetSize(frames * frameWidth, height, RECOILResolution.Xe2x1);
 		byte[(16 + frameGap) * 2 * 16 * 48] frame = 0;
 
 		for (int f = 0; f < frames; f++) {
@@ -3309,7 +3309,7 @@ public class FAIL
 	{
 		if (contentLength != 16384)
 			return false;
-		SetSize(256, 239, FAILResolution.Xe1x1);
+		SetSize(256, 239, RECOILResolution.Xe1x1);
 		GtiaColors[6] = 0x00;
 		GtiaColors[5] = 0x0e;
 		byte[256 * 239] frame1;
@@ -3324,7 +3324,7 @@ public class FAIL
 	{
 		if (contentLength < 16004)
 			return false;
-		SetSize(320, 200, FAILResolution.Xe2x1);
+		SetSize(320, 200, RECOILResolution.Xe2x1);
 		SetBakPF012(content, 16000, 1);
 		byte[320 * 200] frame1;
 		DecodeAtari8Gr15(content, 0, 40, frame1, 0, 320, 200);
@@ -3340,7 +3340,7 @@ public class FAIL
 		 || content[2] != 0xf6 || content[3] != 0xa3 || content[4] != 0xff || content[5] != 0xbb
 		 || content[6] != 0xff || content[7] != 0x5f)
 			return false;
-		SetSize(256, 96, FAILResolution.Xe2x1);
+		SetSize(256, 96, RECOILResolution.Xe2x1);
 		byte[256 * 96] frame1;
 		SetBakPF012(content, 8, 1);
 		DecodeAtari8Gr15(content, 0x10, 32, frame1, 0, 256, 96);
@@ -3363,7 +3363,7 @@ public class FAIL
 		 || 18 + contentStride * height * 2 != contentLength)
 			return false;
 		int width = contentStride << 3;
-		SetSize(width, height, FAILResolution.Xe2x1);
+		SetSize(width, height, RECOILResolution.Xe2x1);
 		byte[320 * 239] frame1;
 		SetBakPF012(content, 10, 1);
 		DecodeAtari8Gr15(content, 18, contentStride, frame1, 0, width, height);
@@ -3377,7 +3377,7 @@ public class FAIL
 	{
 		if (contentLength != 17184)
 			return false;
-		SetSize(320, 200, FAILResolution.Xe2x1);
+		SetSize(320, 200, RECOILResolution.Xe2x1);
 		byte[320 * 200] frame1;
 		byte[320 * 200] frame2;
 		for (int y = 0; y < 200; y++) {
@@ -3390,7 +3390,7 @@ public class FAIL
 
 	bool DecodeGr15Blend(byte[] content, int bitmapOffset, int colorsOffset, int height)
 	{
-		SetSize(320, height, FAILResolution.Xe2x1);
+		SetSize(320, height, RECOILResolution.Xe2x1);
 		byte[320 * 200] frame1;
 		SetPF012Bak(content, colorsOffset);
 		DecodeAtari8Gr15(content, bitmapOffset, 80, frame1, 0, 640, height >> 1);
@@ -3448,7 +3448,7 @@ public class FAIL
 			colorsOffset = 0;
 		}
 
-		SetSize(320, height, FAILResolution.Xe2x1);
+		SetSize(320, height, RECOILResolution.Xe2x1);
 		SetPF012Bak(content, colorsOffset);
 		byte[320 * 200] frame1;
 		DecodeAtari8Gr15(unpacked, 0, 40, frame1, 0, 320, height);
@@ -3469,7 +3469,7 @@ public class FAIL
 		if (!rle.Unpack(unpacked, 0, 40, 15360))
 			return false;
 
-		SetSize(320, 192, FAILResolution.Xe2x1);
+		SetSize(320, 192, RECOILResolution.Xe2x1);
 		byte[320 * 192] frame1;
 		byte[320 * 192] frame2;
 		for (int y = 0; y < 192; y++) {
@@ -3485,7 +3485,7 @@ public class FAIL
 	{
 		if (contentLength != 16006)
 			return false;
-		SetSize(320, 200, FAILResolution.Xe1x1);
+		SetSize(320, 200, RECOILResolution.Xe1x1);
 		byte[320 * 200] frame1;
 		SetPF21(content, 16000);
 		DecodeAtari8Gr8(content, 0, frame1, 0, 200);
@@ -3500,7 +3500,7 @@ public class FAIL
 	{
 		if (contentLength != 7680 && contentLength != 7720)
 			return false;
-		SetSize(320, 192, FAILResolution.Xe4x2);
+		SetSize(320, 192, RECOILResolution.Xe4x2);
 		byte[320 * 192] frame;
 		GtiaColors[8] = 0x00;
 		DecodeAtari8Gr9(content, 40, 80, frame, 320, 640, 320, 96);
@@ -3513,7 +3513,7 @@ public class FAIL
 	{
 		if (contentLength != 7680 && contentLength != 7684)
 			return false;
-		SetSize(320, 192, FAILResolution.Xe4x2);
+		SetSize(320, 192, RECOILResolution.Xe4x2);
 		byte[320 * 192] frame;
 		GtiaColors[8] = 0x00;
 		DecodeAtari8Gr9(content, 3840, 40, frame, 320, 640, 320, 96);
@@ -3536,7 +3536,7 @@ public class FAIL
 		default:
 			return false;
 		}
-		SetSize(320, 192, FAILResolution.Xe4x1);
+		SetSize(320, 192, RECOILResolution.Xe4x1);
 		GtiaColors[8] = 0x00;
 		byte[320 * 192] frame1;
 		DecodeAtari8Gr9(content, 0, 80, frame1, 0, 640, 320, 96);
@@ -3604,7 +3604,7 @@ public class FAIL
 			int height = frameLength / 40;
 			if (height > 240)
 				return false;
-			SetSize(320, height, FAILResolution.Xe2x1);
+			SetSize(320, height, RECOILResolution.Xe2x1);
 			GtiaLeftSkip = 1;
 			SetGtiaColors(gr10Colors, 0);
 			DecodeAtari8Gr10(content, 6, frame1, 0, 320, height);
@@ -3616,7 +3616,7 @@ public class FAIL
 			int height = contentLength / 80;
 			if (height > 240)
 				return false;
-			SetSize(320, height, FAILResolution.Xe2x1);
+			SetSize(320, height, RECOILResolution.Xe2x1);
 			GtiaLeftSkip = 1;
 			GtiaColors[8] = 0x00;
 			DecodeAtari8Gr9(content, 0, 40, frame1, 0, 320, 320, height);
@@ -3645,7 +3645,7 @@ public class FAIL
 		 || contentLength != 9 + 3 * frameLength)
 			return false;
 
-		SetSize(width << 1, height << 1, FAILResolution.Xe2x2);
+		SetSize(width << 1, height << 1, RECOILResolution.Xe2x2);
 		GtiaLeftSkip = 1;
 		const byte[] colors = { 0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e, 0x00 };
 		SetGtiaColors(colors, 0);
@@ -3676,7 +3676,7 @@ public class FAIL
 		default:
 			return false;
 		}
-		SetSize(320, height, FAILResolution.Xe2x1);
+		SetSize(320, height, RECOILResolution.Xe2x1);
 		byte[320 * 200] frame1;
 		byte[320 * 200] frame2;
 		for (int y = 0; y < height; y++) {
@@ -3808,33 +3808,33 @@ public class FAIL
 		byte[320 * 239] frame2;
 		switch (content[7]) {
 		case 0x0e: // GR. 15
-			SetSize(width, height, FAILResolution.Xe2x1);
+			SetSize(width, height, RECOILResolution.Xe2x1);
 			DecodeAtari8Gr15(unpacked, 0, contentStride, frame1, 0, width, height);
 			return ApplyAtari8Palette(frame1);
 		case 0x0f: // GR. 8
-			SetSize(width, height, FAILResolution.Xe1x1);
+			SetSize(width, height, RECOILResolution.Xe1x1);
 			DecodeAtari8Gr8(unpacked, 0, frame1, 0, height);
 			return ApplyAtari8Palette(frame1);
 		case 0x4f: // GR. 9
-			SetSize(width, height, FAILResolution.Xe4x1);
+			SetSize(width, height, RECOILResolution.Xe4x1);
 			DecodeAtari8Gr9(unpacked, 0, contentStride, frame1, 0, width, width, height);
 			return ApplyAtari8Palette(frame1);
 		case 0x8f: // GR. 10
-			SetSize(width, height, FAILResolution.Xe4x1);
+			SetSize(width, height, RECOILResolution.Xe4x1);
 			GtiaLeftSkip = 2;
 			DecodeAtari8Gr10(unpacked, 0, frame1, 0, width, height);
 			return ApplyAtari8Palette(frame1);
 		case 0xcf: // GR. 11
-			SetSize(width, height, FAILResolution.Xe4x1);
+			SetSize(width, height, RECOILResolution.Xe4x1);
 			DecodeAtari8Gr11(content, 0, frame1, 0, width, height);
 			return ApplyAtari8Palette(frame1);
 		case 0x1e: // GR. 15 blend with one palette
-			SetSize(width, height, FAILResolution.Xe2x1);
+			SetSize(width, height, RECOILResolution.Xe2x1);
 			DecodeAtari8Gr15(unpacked, 0, contentStride, frame1, 0, width, height);
 			DecodeAtari8Gr15(unpacked, height * contentStride, contentStride, frame2, 0, width, height);
 			return ApplyAtari8PaletteBlend(frame1, frame2);
 		case 0x10: // GR. 15 blend with different palettes
-			SetSize(width, height, FAILResolution.Xe2x1);
+			SetSize(width, height, RECOILResolution.Xe2x1);
 			SetBakPF012(content, 28 + textLength, 1);
 			DecodeAtari8Gr15(unpacked, 0, contentStride << 1, frame1, 0, width << 1, height >> 1);
 			SetBakPF012(content, 24 + textLength, 1);
@@ -3844,14 +3844,14 @@ public class FAIL
 			DecodeAtari8Gr15(unpacked, (height + 1) * contentStride, contentStride << 1, frame2, width, width << 1, height >> 1);
 			return ApplyAtari8PaletteBlend(frame1, frame2);
 		case 0x20: // HIP, RIP
-			SetSize(width, height, FAILResolution.Xe2x1);
+			SetSize(width, height, RECOILResolution.Xe2x1);
 			GtiaLeftSkip = 1;
 			DecodeAtari8Gr10(unpacked, 0, frame1, 0, width, height);
 			GtiaColors[8] = 0x00;
 			DecodeAtari8Gr9(unpacked, height * contentStride, contentStride, frame2, 0, width, width, height);
 			return ApplyAtari8PaletteBlend(frame1, frame2);
 		case 0x30: // Multi RIP
-			SetSize(width, height, FAILResolution.Xe2x1);
+			SetSize(width, height, RECOILResolution.Xe2x1);
 			GtiaLeftSkip = 1;
 			GtiaColors[0] = 0x00;
 			int colorsOffset = height * contentStride << 1;
@@ -3871,7 +3871,7 @@ public class FAIL
 	{
 		if (contentLength != 16000)
 			return false;
-		SetSize(320, 200, FAILResolution.Xe2x1);
+		SetSize(320, 200, RECOILResolution.Xe2x1);
 		byte[320 * 200] frame1;
 		GtiaLeftSkip = -1;
 		DecodeAtari8Gr9(content, 0, 40, frame1, 0, 320, 320, 200);
@@ -3881,7 +3881,7 @@ public class FAIL
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
-	bool DecodeRm(byte[] content, int contentLength, int mode, FAILResolution resolution)
+	bool DecodeRm(byte[] content, int contentLength, int mode, RECOILResolution resolution)
 	{
 		byte[7680] unpacked;
 		int colorsOffset;
@@ -3986,24 +3986,24 @@ public class FAIL
 		byte[320 * 192] frame;
 		switch (content[0]) {
 		case 8:
-			SetSize(320, 192, FAILResolution.Xe1x1);
+			SetSize(320, 192, RECOILResolution.Xe1x1);
 			DecodeAtari8Gr8(content, 10, frame, 0, 192);
 			break;
 		case 9:
-			SetSize(320, 192, FAILResolution.Xe4x1);
+			SetSize(320, 192, RECOILResolution.Xe4x1);
 			DecodeAtari8Gr9(content, 10, 40, frame, 0, 320, 320, 192);
 			break;
 		case 10:
-			SetSize(320, 192, FAILResolution.Xe4x1);
+			SetSize(320, 192, RECOILResolution.Xe4x1);
 			GtiaLeftSkip = 2;
 			DecodeAtari8Gr10(content, 10, frame, 0, 320, 192);
 			break;
 		case 11:
-			SetSize(320, 192, FAILResolution.Xe4x1);
+			SetSize(320, 192, RECOILResolution.Xe4x1);
 			DecodeAtari8Gr11(content, 10, frame, 0, 320, 192);
 			break;
 		case 15:
-			SetSize(320, 192, FAILResolution.Xe2x1);
+			SetSize(320, 192, RECOILResolution.Xe2x1);
 			DecodeAtari8Gr15(content, 10, 40, frame, 0, 320, 192);
 			break;
 		default:
@@ -4016,7 +4016,7 @@ public class FAIL
 	{
 		if (contentLength != 17920)
 			return false;
-		SetSize(320, 192, FAILResolution.Xe1x1);
+		SetSize(320, 192, RECOILResolution.Xe1x1);
 		byte[320 * 192] frame1;
 		byte[320 * 192] frame2;
 		int col1 = 0x3c00;
@@ -4058,7 +4058,7 @@ public class FAIL
 	{
 		if (contentLength != 3845)
 			return false;
-		SetSize(320, 192, FAILResolution.Xe2x2);
+		SetSize(320, 192, RECOILResolution.Xe2x2);
 		byte[320 * 192] frame;
 		SetPF0123Bak(content, 0);
 		int rainbow = content[5];
@@ -4086,7 +4086,7 @@ public class FAIL
 		 || content[6] != 0x70 || content[7] != 0x70 || content[8] != 0x70 || content[0xb] != 0x50 || content[0x73] != 0x60 || content[0xcd] != 0x41
 		 || 0x1f18 + content[0x1f16] + (content[0x1f17] << 8) != contentLength)
 			return false;
-		SetSize(320, 192, FAILResolution.Xe2x1);
+		SetSize(320, 192, RECOILResolution.Xe2x1);
 		byte[320 * 192] frame;
 		SetBakPF012(content, 2, 1);
 		int dlOffset = 9;
@@ -4148,7 +4148,7 @@ public class FAIL
 
 	bool DecodeAtari8Font(byte[] characters, byte[] font, int fontOffset)
 	{
-		SetSize(256, 32, FAILResolution.Xe1x1);
+		SetSize(256, 32, RECOILResolution.Xe1x1);
 		byte[256 * 32] frame;
 		DecodeAtari8Gr0(characters, 32, font, fontOffset, frame);
 		return ApplyAtari8Palette(frame);
@@ -4195,7 +4195,7 @@ public class FAIL
 	{
 		if (contentLength < 19 + 90 * 4 || !IsStringAt(content, 0, "DAISY-DOT NLQ FONT") || content[18] != 0x9b)
 			return false;
-		SetSize(320, 96, FAILResolution.Xe1x1);
+		SetSize(320, 96, RECOILResolution.Xe1x1);
 		byte[320 * 96] frame = 0;
 		int contentOffset = 19;
 		for (int i = 0; i < 91; i++) {
@@ -4227,7 +4227,7 @@ public class FAIL
 		for (int i = 0; i < 16; i++)
 			characters[i] = i;
 		SetBakPF012(content, 0, 1);
-		SetSize(128, 64, FAILResolution.Xe2x1);
+		SetSize(128, 64, RECOILResolution.Xe2x1);
 		byte[128 * 64] frame;
 		for (int y = 0; y < 8; y++)
 			DecodeAtari8Gr12Line(characters, 0, content, 4 + (y << 7), frame, y << 10);
@@ -4242,7 +4242,7 @@ public class FAIL
 		for (int i = 0; i < 32; i++)
 			characters[i] = i;
 		SetGr15DefaultColors();
-		SetSize(256, 64, FAILResolution.Xe2x1);
+		SetSize(256, 64, RECOILResolution.Xe2x1);
 		byte[256 * 64] frame;
 		for (int y = 0; y < 8; y++)
 			DecodeAtari8Gr12Line(characters, 0, content, 6 + ((y & 6) << 7) + ((y & 1) << 10), frame, y << 11);
@@ -4257,7 +4257,7 @@ public class FAIL
 		for (int y = 0; y < 16; y++)
 			for (int x = 0; x < 11; x++)
 				characters[y * 11 + x] = ToAtari8Char(content[y * 16 + 5 + x]);
-		SetSize(88, 128, FAILResolution.Xe1x1);
+		SetSize(88, 128, RECOILResolution.Xe1x1);
 		byte[88 * 128] frame;
 		DecodeAtari8Gr0(characters, 11, BinaryResource("atari8.fnt"), 0, frame);
 		return ApplyAtari8Palette(frame);
@@ -4273,7 +4273,7 @@ public class FAIL
 			font[0x7d * 8 + 4 + i] = font[0x5b * 8 + i] = 0x0f;
 			font[0x7d * 8 + i] = font[0x5b * 8 + 4 + i] = 0xf0;
 		}
-		SetSize(320, 192, FAILResolution.Xe1x1);
+		SetSize(320, 192, RECOILResolution.Xe1x1);
 		byte[320 * 192] frame;
 		DecodeAtari8Gr0(content, 40, font, 0, frame);
 		return ApplyAtari8Palette(frame);
@@ -4309,7 +4309,7 @@ public class FAIL
 			}
 		}
 
-		SetSize(columns << 3, y << 3, FAILResolution.Xe1x1);
+		SetSize(columns << 3, y << 3, RECOILResolution.Xe1x1);
 		byte[maxColumns * 8 * maxRows * 8] frame;
 		DecodeAtari8Gr0(characters, maxColumns, BinaryResource("atari8.fnt"), 0, frame);
 		return ApplyAtari8Palette(frame);
@@ -4339,7 +4339,7 @@ public class FAIL
 		default:
 			return false;
 		}
-		SetSize(width * 2, 240, FAILResolution.Xe2x1);
+		SetSize(width * 2, 240, RECOILResolution.Xe2x1);
 		byte[176 * 2 * 240] frame;
 		for (int y = 0; y < 240; y++) {
 			int colorsOffset = contentLength - 5 * 240 + y;
@@ -4366,7 +4366,7 @@ public class FAIL
 		if ((contentLength & 0x3ff) != 24 + 960 + 5)
 			return false;
 		SetPF0123Bak(content, contentLength - 5);
-		SetSize(320, 192, FAILResolution.Xe2x1);
+		SetSize(320, 192, RECOILResolution.Xe2x1);
 		byte[320 * 192] frame;
 		for (int y = 0; y < 24; y++) {
 			int fontOffset = 24 + (content[y] << 10);
@@ -4387,7 +4387,7 @@ public class FAIL
 		// 960 bytes: 40x24 characters
 		// 640 bytes: missiles and four players
 		// 384 bytes: apparently unused
-		SetSize(320, 192, FAILResolution.Xe2x1);
+		SetSize(320, 192, RECOILResolution.Xe2x1);
 		byte[320 * 192] frame;
 		for (int y = 0; y < 192; y++) {
 			int fontOffset = 9 + (y / 24 << 10);
@@ -4546,7 +4546,7 @@ public class FAIL
 		}
 	}
 
-	bool VerifyIce(byte[] content, int contentLength, bool font, int fontLength, int imageLength, FAILResolution resolution)
+	bool VerifyIce(byte[] content, int contentLength, bool font, int fontLength, int imageLength, RECOILResolution resolution)
 	{
 		if (font) {
 			if (contentLength != fontLength)
@@ -4569,7 +4569,7 @@ public class FAIL
 		case 0:
 			if (contentLength != 5 + 2048)
 				return false;
-			SetSize(256, 128, FAILResolution.Xe1x1);
+			SetSize(256, 128, RECOILResolution.Xe1x1);
 			GtiaColors[5] = content[1] & 0xfe;
 			GtiaColors[6] = content[3] & 0xfe;
 			DecodeIceFrame(content, IceFontFrame1, 5, frame1, IceFrameMode.Gr0);
@@ -4578,14 +4578,14 @@ public class FAIL
 			DecodeIceFrame(content, IceFontFrame2, 5 + 1024, frame2, IceFrameMode.Gr0);
 			break;
 		case 1:
-			if (!VerifyIce(content, contentLength, font, 6 + 2048, 6 + 16384 + 2 * 960, FAILResolution.Xe2x1))
+			if (!VerifyIce(content, contentLength, font, 6 + 2048, 6 + 16384 + 2 * 960, RECOILResolution.Xe2x1))
 				return false;
 			SetBakPF0123(content, 1);
 			DecodeIceFrame(content, font ? IceFontFrame1 : 6 + 16384, 6, frame1, IceFrameMode.Gr12);
 			DecodeIceFrame(content, font ? IceFontFrame2 : 6 + 16384 + 960, 6 + 1024, frame2, IceFrameMode.Gr12);
 			break;
 		case 2:
-			if (!VerifyIce(content, contentLength, font, 10 + 2048, 10 + 16384 + 2 * 960, FAILResolution.Xe2x1))
+			if (!VerifyIce(content, contentLength, font, 10 + 2048, 10 + 16384 + 2 * 960, RECOILResolution.Xe2x1))
 				return false;
 			GtiaColors[8] = content[1] & 0xfe;
 			SetPF0123Even(content, 2);
@@ -4597,12 +4597,12 @@ public class FAIL
 			if (font) {
 				if (contentLength != 7 + 2048)
 					return false;
-				SetSize(256, 128, FAILResolution.Xe1x1);
+				SetSize(256, 128, RECOILResolution.Xe1x1);
 			}
 			else {
 				if (contentLength != 7 + 16384 + 960 || content[0] != 3)
 					return false;
-				SetSize(320, 192, FAILResolution.Xe1x1);
+				SetSize(320, 192, RECOILResolution.Xe1x1);
 			}
 			SetPF21(content, 1);
 			DecodeIceFrame(content, font ? IceFontFrame1 : 7 + 16384, 7, frame1, IceFrameMode.Gr0);
@@ -4613,7 +4613,7 @@ public class FAIL
 		case 4:
 			if (contentLength != 10 + 2048)
 				return false;
-			SetSize(256, 128, FAILResolution.Xe4x1);
+			SetSize(256, 128, RECOILResolution.Xe4x1);
 			GtiaLeftSkip = 2;
 			SetGtiaColors(content, 1);
 			DecodeIceFrame(content, IceFontFrame1, 10, frame1, IceFrameMode.Gr0Gtia10);
@@ -4622,7 +4622,7 @@ public class FAIL
 		case 5:
 			if (contentLength != 17 + 2048 && contentLength != 18 + 2048)
 				return false;
-			SetSize(256, 128, FAILResolution.Xe4x1);
+			SetSize(256, 128, RECOILResolution.Xe4x1);
 			GtiaLeftSkip = 2;
 			GtiaColors[0] = content[1] & 0xfe;
 			for (int i = 0; i < 8; i++)
@@ -4643,7 +4643,7 @@ public class FAIL
 		case 6:
 			if (contentLength != 3 + 2048)
 				return false;
-			SetSize(256, 128, FAILResolution.Xe4x1);
+			SetSize(256, 128, RECOILResolution.Xe4x1);
 			GtiaColors[8] = content[1] & 0xfe;
 			DecodeIceFrame(content, IceFontFrame1, 3, frame1, IceFrameMode.Gr0Gtia9);
 			GtiaColors[8] = content[2] & 0xfe;
@@ -4652,7 +4652,7 @@ public class FAIL
 		case 7:
 			if (contentLength != 3 + 2048)
 				return false;
-			SetSize(256, 128, FAILResolution.Xe4x1);
+			SetSize(256, 128, RECOILResolution.Xe4x1);
 			GtiaColors[8] = content[1] & 0xfe;
 			DecodeIceFrame(content, IceFontFrame1, 3, frame1, IceFrameMode.Gr0Gtia11);
 			GtiaColors[8] = content[2] & 0xfe;
@@ -4661,7 +4661,7 @@ public class FAIL
 		case 8:
 			if (contentLength != 10 + 2048)
 				return false;
-			SetSize(256, 128, FAILResolution.Xe2x1);
+			SetSize(256, 128, RECOILResolution.Xe2x1);
 			GtiaLeftSkip = 1;
 			GtiaColors[8] = content[1] & 0xfe;
 			DecodeIceFrame(content, IceFontFrame1, 10, frame1, IceFrameMode.Gr0Gtia9);
@@ -4671,7 +4671,7 @@ public class FAIL
 		case 9:
 			if (contentLength != 10 + 2048)
 				return false;
-			SetSize(256, 128, FAILResolution.Xe2x1);
+			SetSize(256, 128, RECOILResolution.Xe2x1);
 			GtiaLeftSkip = 1;
 			GtiaColors[8] = content[1] & 0xfe;
 			DecodeIceFrame(content, IceFontFrame1, 10, frame1, IceFrameMode.Gr0Gtia11);
@@ -4682,7 +4682,7 @@ public class FAIL
 		case 10:
 			if (contentLength != 3 + 2048)
 				return false;
-			SetSize(256, 128, FAILResolution.Xe4x1);
+			SetSize(256, 128, RECOILResolution.Xe4x1);
 			GtiaColors[8] = content[1] & 0xfe;
 			DecodeIceFrame(content, IceFontFrame1, 3, frame1, IceFrameMode.Gr0Gtia9);
 			GtiaColors[8] = content[2] & 0xfe;
@@ -4691,7 +4691,7 @@ public class FAIL
 		case 11:
 			if (contentLength != 3 + 2048)
 				return false;
-			SetSize(256, 128, FAILResolution.Xe1x1);
+			SetSize(256, 128, RECOILResolution.Xe1x1);
 			GtiaColors[6] = 0x00;
 			GtiaColors[5] = content[2] & 0xfe;
 			DecodeIceFrame(content, IceFontFrame1, 3, frame1, IceFrameMode.Gr0);
@@ -4701,7 +4701,7 @@ public class FAIL
 		case 12:
 			if (contentLength != 3 + 2048)
 				return false;
-			SetSize(256, 128, FAILResolution.Xe1x1);
+			SetSize(256, 128, RECOILResolution.Xe1x1);
 			SetPF21(content, 1);
 			DecodeIceFrame(content, IceFontFrame1, 3, frame1, IceFrameMode.Gr0);
 			GtiaColors[8] = content[1] & 0xfe;
@@ -4710,7 +4710,7 @@ public class FAIL
 		case 13:
 			if (contentLength != 11 + 2048)
 				return false;
-			SetSize(256, 128, FAILResolution.Xe1x1);
+			SetSize(256, 128, RECOILResolution.Xe1x1);
 			SetPF21(content, 1);
 			GtiaColors[8] = content[1] & 0xfe;
 			DecodeIceFrame(content, IceFontFrame1, 11, frame1, IceFrameMode.Gr0);
@@ -4726,7 +4726,7 @@ public class FAIL
 		case 14:
 			if (contentLength != 6 + 2048)
 				return false;
-			SetSize(256, 128, FAILResolution.Xe2x1);
+			SetSize(256, 128, RECOILResolution.Xe2x1);
 			SetBakPF0123(content, 1);
 			DecodeIceFrame(content, IceFontFrame2, 6 + 1024, frame2, IceFrameMode.Gr12Gtia11);
 			GtiaColors[8] = 0x00;
@@ -4735,7 +4735,7 @@ public class FAIL
 		case 15:
 			if (contentLength != 6 + 2048)
 				return false;
-			SetSize(256, 128, FAILResolution.Xe2x1);
+			SetSize(256, 128, RECOILResolution.Xe2x1);
 			SetBakPF0123(content, 1);
 			DecodeIceFrame(content, IceFontFrame1, 6, frame1, IceFrameMode.Gr12);
 			DecodeIceFrame(content, IceFontFrame2, 6 + 1024, frame2, IceFrameMode.Gr12Gtia9);
@@ -4743,7 +4743,7 @@ public class FAIL
 		case 16:
 			if (contentLength != 10 + 2048)
 				return false;
-			SetSize(256, 128, FAILResolution.Xe2x1);
+			SetSize(256, 128, RECOILResolution.Xe2x1);
 			GtiaLeftSkip = 2;
 			SetGtiaColors(content, 1);
 			DecodeIceFrame(content, IceFontFrame2, 10 + 1024, frame2, IceFrameMode.Gr12Gtia10);
@@ -4752,7 +4752,7 @@ public class FAIL
 			DecodeIceFrame(content, IceFontFrame1, 10, frame1, IceFrameMode.Gr12);
 			break;
 		case 17:
-			if (!VerifyIce(content, contentLength, font, 6 + 2048, 6 + 16384 + 960, FAILResolution.Xe2x1))
+			if (!VerifyIce(content, contentLength, font, 6 + 2048, 6 + 16384 + 960, RECOILResolution.Xe2x1))
 				return false;
 			SetBakPF0123(content, 1);
 			DecodeIceFrame(content, font ? IceFontFrame2 : 6 + 16384, 6 + 1024, frame2, IceFrameMode.Gr0Gtia11);
@@ -4760,14 +4760,14 @@ public class FAIL
 			DecodeIceFrame(content, font ? IceFontFrame1 : 6 + 16384, 6, frame1, IceFrameMode.Gr12);
 			break;
 		case 18:
-			if (!VerifyIce(content, contentLength, font, 6 + 2048, 6 + 16384 + 960, FAILResolution.Xe2x1))
+			if (!VerifyIce(content, contentLength, font, 6 + 2048, 6 + 16384 + 960, RECOILResolution.Xe2x1))
 				return false;
 			SetBakPF0123(content, 1);
 			DecodeIceFrame(content, font ? IceFontFrame1 : 6 + 16384, 6, frame1, IceFrameMode.Gr12);
 			DecodeIceFrame(content, font ? IceFontFrame2 : 6 + 16384, 6 + 1024, frame2, IceFrameMode.Gr0Gtia9);
 			break;
 		case 19:
-			if (!VerifyIce(content, contentLength, font, 10 + 2048, 10 + 16384 + 960, FAILResolution.Xe2x1))
+			if (!VerifyIce(content, contentLength, font, 10 + 2048, 10 + 16384 + 960, RECOILResolution.Xe2x1))
 				return false;
 			SetPF0123Bak(content, 5);
 			GtiaColors[8] = content[1] & 0xfe;
@@ -4786,7 +4786,7 @@ public class FAIL
 	{
 		if (contentLength != 17358 || content[0] != 1)
 			return false;
-		SetSize(320, 192, FAILResolution.Xe2x1);
+		SetSize(320, 192, RECOILResolution.Xe2x1);
 		GtiaColors[8] = content[1] & 0xfe;
 		GtiaColors[4] = content[5] & 0xfe;
 		GtiaColors[5] = content[7] & 0xfe;
@@ -4807,7 +4807,7 @@ public class FAIL
 
 	void DecodeRgbScreen(byte[] screens, int screensOffset, int color, byte[] frame)
 	{
-		if (Resolution == FAILResolution.Xe4x1) {
+		if (Resolution == RECOILResolution.Xe4x1) {
 			GtiaColors[8] = color;
 			DecodeAtari8Gr9(screens, screensOffset, 40, frame, 0, Width, Width, Height);
 		}
@@ -4831,10 +4831,10 @@ public class FAIL
 			return false;
 		switch (content[5 + titleLength]) {
 		case 9:
-			SetSize(width << 2, height, FAILResolution.Xe4x1);
+			SetSize(width << 2, height, RECOILResolution.Xe4x1);
 			break;
 		case 15:
-			SetSize(width << 2, height, FAILResolution.Xe2x1);
+			SetSize(width << 2, height, RECOILResolution.Xe2x1);
 			break;
 		default:
 			return false;
@@ -4958,7 +4958,7 @@ public class FAIL
 			return false;
 
 		// draw shapes
-		SetSize(width * 2, y, FAILResolution.Xe2x1);
+		SetSize(width * 2, y, RECOILResolution.Xe2x1);
 		byte[320 * 240] frame = 0;
 		for (i = 0; i < 256; i++) {
 			if (!DrawBlazingPaddlesVector(content, contentLength, frame, (ys[i] * width + xs[i]) * 2, i, startAddress))
@@ -5229,7 +5229,7 @@ public class FAIL
 			}
 		}
 
-		SetSize(320, 192, FAILResolution.Xe2x1);
+		SetSize(320, 192, RECOILResolution.Xe2x1);
 		byte[320 * 192] frame;
 		for (y = 0; y < 192; y++) {
 			const byte[4] defaultColors = { 0x00, 0x15, 0x95, 0x36 };
@@ -5262,8 +5262,8 @@ public class FAIL
 		return 0;
 	}
 
-	/// Checks whether the filename extension is supported by FAIL.
-	/// `true` doesn't necessarily mean that the file contents is valid for FAIL.
+	/// Checks whether the filename extension is supported by RECOIL.
+	/// `true` doesn't necessarily mean that the file contents is valid for RECOIL.
 	/// This function is meant to avoid reading files which are known to be
 	/// not supported (another criterium is the maximum file size, `MaxContentLength`).
 	public static bool IsOurFile(string filename)
@@ -5608,15 +5608,15 @@ public class FAIL
 		case PACKED_EXT("RIP"):
 			return DecodeRip(content, contentLength);
 		case PACKED_EXT("RM0"):
-			return DecodeRm(content, contentLength, 0, FAILResolution.Xe2x2);
+			return DecodeRm(content, contentLength, 0, RECOILResolution.Xe2x2);
 		case PACKED_EXT("RM1"):
-			return DecodeRm(content, contentLength, 1, FAILResolution.Xe4x1);
+			return DecodeRm(content, contentLength, 1, RECOILResolution.Xe4x1);
 		case PACKED_EXT("RM2"):
-			return DecodeRm(content, contentLength, 2, FAILResolution.Xe4x1);
+			return DecodeRm(content, contentLength, 2, RECOILResolution.Xe4x1);
 		case PACKED_EXT("RM3"):
-			return DecodeRm(content, contentLength, 3, FAILResolution.Xe4x1);
+			return DecodeRm(content, contentLength, 3, RECOILResolution.Xe4x1);
 		case PACKED_EXT("RM4"):
-			return DecodeRm(content, contentLength, 4, FAILResolution.Xe2x1);
+			return DecodeRm(content, contentLength, 4, RECOILResolution.Xe2x1);
 		case PACKED_EXT("SGE"):
 			return DecodeSge(content, contentLength);
 		case PACKED_EXT("SHC"):

@@ -1,4 +1,4 @@
-<fail-types>
+<recoil-types>
 	<type ext="256" />
 	<type ext="4mi" acronym="4 MIssiles" />
 	<type ext="4pl" acronym="4 PLayers" />
@@ -126,4 +126,4 @@
 	<type ext="wnd" />
 	<type ext="ximg" />
 	<type ext="xlp" acronym="XL-Paint" />
-</fail-types>
+</recoil-types>

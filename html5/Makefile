@@ -1,13 +1,13 @@
-all: fail.js html5fail.html
+all: recoil.js html5recoil.html
 
-fail.js: ../fail.ci ../atari8.fnt ../jakub.act
+recoil.js: ../recoil.ci ../atari8.fnt ../jakub.act
 	cito -o $@ -I .. $<
 
-html5fail.html: html5fail.txt
+html5recoil.html: html5recoil.txt
 	asciidoc -o - $< | sed -e "s/527bbd;/800080;/" > $@
 
 clean:
-	$(RM) fail.js html5fail.html
+	$(RM) recoil.js html5recoil.html
 
 .PHONY: all clean
 

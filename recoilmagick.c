@@ -1,27 +1,27 @@
 /*
- * failmagick.c - FAIL coder for ImageMagick
+ * recoilmagick.c - RECOIL coder for ImageMagick
  *
  * Copyright (C) 2009-2013  Piotr Fusik and Adrian Matoga
  *
- * This file is part of FAIL (First Atari Image Library),
- * see http://fail.sourceforge.net
+ * This file is part of RECOIL (Retro Computer Image Library),
+ * see http://recoil.sourceforge.net
  *
- * FAIL is free software; you can redistribute it and/or modify it
+ * RECOIL is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published
  * by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
  *
- * FAIL is distributed in the hope that it will be useful,
+ * RECOIL is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with FAIL; if not, write to the Free Software Foundation, Inc.,
+ * along with RECOIL; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "fail.h"
+#include "recoil.h"
 
 #include "magick/studio.h"
 #include "magick/blob.h"
@@ -41,17 +41,17 @@
 #include "magick/string_.h"
 #include "magick/module.h"
 
-static MagickBooleanType IsFAIL(const unsigned char *magick, const size_t length)
+static MagickBooleanType IsRECOIL(const unsigned char *magick, const size_t length)
 {
 	/* TODO: Should we really perform checks, having only seven bytes of file? */
 	return MagickTrue;
 }
 
-static Image *ReadFAILImage(const ImageInfo *image_info, ExceptionInfo *exception)
+static Image *ReadRECOILImage(const ImageInfo *image_info, ExceptionInfo *exception)
 {
-	unsigned char content[FAIL_MAX_CONTENT_LENGTH];
+	unsigned char content[RECOIL_MAX_CONTENT_LENGTH];
 	int content_len;
-	FAIL *fail;
+	RECOIL *recoil;
 	Image *image;
 	PixelPacket *q;
 	const int *pixels;
@@ -70,33 +70,33 @@ static Image *ReadFAILImage(const ImageInfo *image_info, ExceptionInfo *exceptio
 		return NULL;
 	}
 
-	content_len = ReadBlob(image, FAIL_MAX_CONTENT_LENGTH, content);
+	content_len = ReadBlob(image, RECOIL_MAX_CONTENT_LENGTH, content);
 	if (content_len < 0)
 		ThrowReaderException(CorruptImageError, "UnableToReadImageData");
-	fail = FAIL_New();
-	if (fail == NULL)
+	recoil = RECOIL_New();
+	if (recoil == NULL)
 		ThrowReaderException(ResourceLimitError, "MemoryAllocationFailed");
-	if (!FAIL_Decode(fail, image_info->filename, content, content_len)) {
-		FAIL_Delete(fail);
+	if (!RECOIL_Decode(recoil, image_info->filename, content, content_len)) {
+		RECOIL_Delete(recoil);
 		ThrowReaderException(CorruptImageError, "FileDecodingError");
 	}
 
 	image->depth = 8;
-	if (!SetImageExtent(image, FAIL_GetWidth(fail), FAIL_GetHeight(fail))) {
+	if (!SetImageExtent(image, RECOIL_GetWidth(recoil), RECOIL_GetHeight(recoil))) {
 		InheritException(exception, &image->exception);
-		FAIL_Delete(fail);
+		RECOIL_Delete(recoil);
 		(void) DestroyImageList(image);
 		return NULL;
 	}
 
 	q = QueueAuthenticPixels(image, 0, 0, image->columns, image->rows, exception);
 	if (q == NULL) {
-		FAIL_Delete(fail);
+		RECOIL_Delete(recoil);
 		(void) DestroyImageList(image);
 		return NULL;
 	}
 
-	pixels = FAIL_GetPixels(fail);
+	pixels = RECOIL_GetPixels(recoil);
 	num_pixels = image->columns * image->rows;
 	for (i = 0; i < num_pixels; i++) {
 		int rgb = pixels[i];
@@ -104,7 +104,7 @@ static Image *ReadFAILImage(const ImageInfo *image_info, ExceptionInfo *exceptio
 		q[i].green = ScaleCharToQuantum((unsigned char) (rgb >> 8));
 		q[i].blue = ScaleCharToQuantum((unsigned char) rgb);
 	}
-	FAIL_Delete(fail);
+	RECOIL_Delete(recoil);
 	SyncAuthenticPixels(image, exception);
 
 	CloseBlob(image);
@@ -249,22 +249,22 @@ static const struct Format {
 #define ModuleExport __declspec(dllexport)
 #endif
 
-ModuleExport unsigned long RegisterFAILImage(void)
+ModuleExport unsigned long RegisterRECOILImage(void)
 {
 	const struct Format *pf;
 	MagickInfo *entry;
 	for (pf = formats; pf < formats + sizeof(formats) / sizeof(formats[0]); pf++) {
 		entry = SetMagickInfo(pf->name);
-		entry->decoder = ReadFAILImage;
-		entry->magick = IsFAIL;
+		entry->decoder = ReadRECOILImage;
+		entry->magick = IsRECOIL;
 		entry->description = ConstantString(pf->description);
-		entry->module = ConstantString("FAIL");
+		entry->module = ConstantString("RECOIL");
 		RegisterMagickInfo(entry);
 	}	
 	return MagickImageCoderSignature;
 }
 
-ModuleExport void UnregisterFAILImage(void)
+ModuleExport void UnregisterRECOILImage(void)
 {
 	const struct Format *pf;
 	for (pf = formats; pf < formats + sizeof(formats) / sizeof(formats[0]); pf++)

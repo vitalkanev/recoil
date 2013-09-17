@@ -1,23 +1,23 @@
 /*
- * benchmark.c - FAIL benchmark
+ * benchmark.c - RECOIL benchmark
  *
  * Copyright (C) 2013  Piotr Fusik and Adrian Matoga
  *
- * This file is part of FAIL (First Atari Image Library),
- * see http://fail.sourceforge.net
+ * This file is part of RECOIL (Retro Computer Image Library),
+ * see http://recoil.sourceforge.net
  *
- * FAIL is free software; you can redistribute it and/or modify it
+ * RECOIL is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published
  * by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
  *
- * FAIL is distributed in the hope that it will be useful,
+ * RECOIL is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with FAIL; if not, write to the Free Software Foundation, Inc.,
+ * along with RECOIL; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
@@ -25,23 +25,23 @@
 #include <string.h>
 #include <time.h>
 
-#include "fail.h"
+#include "recoil.h"
 
 int main(int argc, char **argv)
 {
-	FAIL *fail;
+	RECOIL *recoil;
 	int i;
 	if (argc < 2) {
 		fprintf(stderr, "benchmark: no input files\n");
 		return 1;
 	}
-	fail = FAIL_New();
+	recoil = RECOIL_New();
 	for (i = 1; i < argc; i++) {
 		const char *arg = argv[i];
 		FILE *fp;
-		unsigned char content[FAIL_MAX_CONTENT_LENGTH];
+		unsigned char content[RECOIL_MAX_CONTENT_LENGTH];
 		int content_len;
-		unsigned char indexes[FAIL_MAX_PIXELS_LENGTH];
+		unsigned char indexes[RECOIL_MAX_PIXELS_LENGTH];
 		int colors;
 		clock_t start_time;
 		clock_t decode_time;
@@ -65,34 +65,34 @@ int main(int argc, char **argv)
 		fclose(fp);
 
 		start_time = clock();
-		if (!FAIL_Decode(fail, arg, content, content_len)) {
+		if (!RECOIL_Decode(recoil, arg, content, content_len)) {
 			fprintf(stderr, "benchmark: error decoding %s\n", arg);
 			return 1;
 		}
 		decode_time = clock();
-		colors = FAIL_GetColors(fail);
+		colors = RECOIL_GetColors(recoil);
 		colors_time = clock();
-		FAIL_ToPalette(fail, indexes);
+		RECOIL_ToPalette(recoil, indexes);
 		palette_time = clock();
 
-		FAIL_Decode(fail, arg, content, content_len);
+		RECOIL_Decode(recoil, arg, content, content_len);
 		decode2_time = clock();
-		FAIL_ToPalette(fail, indexes);
+		RECOIL_ToPalette(recoil, indexes);
 		palette2_time = clock();
-		if (FAIL_GetColors(fail) != colors) {
-			fprintf(stderr, "benchmark: FAIL_GetColors failed for %s\n", arg);
+		if (RECOIL_GetColors(recoil) != colors) {
+			fprintf(stderr, "benchmark: RECOIL_GetColors failed for %s\n", arg);
 			return 1;
 		}
 		colors2_time = clock();
 
 		printf("%3dx%3d %4d colors Decode=%2ld,%2ld GetColors=%2ld,%2ld ToPalette=%2ld,%2ld %s\n",
-			FAIL_GetWidth(fail), FAIL_GetHeight(fail), colors,
-			(  decode_time -    start_time) * 1000L / CLOCKS_PER_SEC, /* FAIL_Decode time */
+			RECOIL_GetWidth(recoil), RECOIL_GetHeight(recoil), colors,
+			(  decode_time -    start_time) * 1000L / CLOCKS_PER_SEC, /* RECOIL_Decode time */
 			( decode2_time -  palette_time) * 1000L / CLOCKS_PER_SEC, /* ditto, should be same */
-			(  colors_time -   decode_time) * 1000L / CLOCKS_PER_SEC, /* FAIL_GetColors time */
-			( colors2_time - palette2_time) * 1000L / CLOCKS_PER_SEC, /* FAIL_GetColors after FAIL_Palette, should be smaller */
-			(palette2_time -  decode2_time) * 1000L / CLOCKS_PER_SEC, /* FAIL_GetPalette time */
-			( palette_time -   colors_time) * 1000L / CLOCKS_PER_SEC, /* FAIL_GetPalette after FAIL_GetColors, should be smaller */
+			(  colors_time -   decode_time) * 1000L / CLOCKS_PER_SEC, /* RECOIL_GetColors time */
+			( colors2_time - palette2_time) * 1000L / CLOCKS_PER_SEC, /* RECOIL_GetColors after RECOIL_Palette, should be smaller */
+			(palette2_time -  decode2_time) * 1000L / CLOCKS_PER_SEC, /* RECOIL_GetPalette time */
+			( palette_time -   colors_time) * 1000L / CLOCKS_PER_SEC, /* RECOIL_GetPalette after RECOIL_GetColors, should be smaller */
 			arg);
 	}
 	return 0;

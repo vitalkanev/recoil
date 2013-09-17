@@ -1,16 +1,16 @@
-﻿FAIL - First Atari Image Library
-================================
+﻿RECOIL - Retro Computer Image Library
+=====================================
 
 // This file is in AsciiDoc format. It is the source for README.html.
 :Compact-Option:
 
-ifdef::failwww[]
-http://sourceforge.net/projects/fail/files/fail/[Download] |
-http://sourceforge.net/p/fail/code[Browse source code (Git)] |
-http://sourceforge.net/projects/fail/[SourceForge project page]
-endif::failwww[]
+ifdef::recoilwww[]
+http://sourceforge.net/projects/recoil/files/recoil/[Download] |
+http://sourceforge.net/p/recoil/code[Browse source code (Git)] |
+http://sourceforge.net/projects/recoil/[SourceForge project page]
+endif::recoilwww[]
 
-FAIL is a viewer of pictures in native formats of
+RECOIL is a viewer of pictures in native formats of
 http://en.wikipedia.org/wiki/Atari_8-bit_family[Atari 8-bit],
 http://en.wikipedia.org/wiki/Atari_ST[Atari ST],
 http://en.wikipedia.org/wiki/Atari_Falcon[Atari Falcon]
@@ -18,22 +18,27 @@ and http://en.wikipedia.org/wiki/Atari_Portfolio[Atari Portfolio] computers.
 
 Currently the project includes:
 
-- fail2png - portable command-line converter to PNG files
-- FAILWin - viewer for Windows
+- recoil2png - portable command-line converter to PNG files
+- RECOILWin - viewer for Windows
 - thumbnail providers for Windows Explorer and GNOME (Linux)
 - plugin for http://www.xnview.com[XnView]
 - (de)coder for http://www.imagemagick.org/[ImageMagick]
 - plugin for http://www.nyam.pe.kr/[Imagine]
-- http://fail.sourceforge.net/html5fail.html[HTML 5 based viewer]
+- http://recoil.sourceforge.net/html5recoil.html[HTML 5 based viewer]
 
-ifdef::failwww[]
-image::failwin.png["FAILWin"]
-image::thumbfail.png["Thumbnails in Windows Explorer"]
+ifdef::recoilwww[]
+image::recoilwin.png["RECOILWin"]
+image::thumbrecoil.png["Thumbnails in Windows Explorer"]
 image::nautilus.png["Thumbnails in Nautilus"]
-endif::failwww[]
+endif::recoilwww[]
 
 Supported file formats
 ----------------------
+
+Amiga
+~~~~~
+[horizontal]
+IFF:: "Interchange File Format", compressed.
 
 Atari 8-bit
 ~~~~~~~~~~~
@@ -124,6 +129,12 @@ XLP:: "XL-Paint", 160x192 or 160x200, 7 colors, 2 frames, compressed.
 NOTE: Artist, AtariGraphics, Magic Painter and Rambrandt had no default extensions, so I made them up.
 Documentation for Rambrandt suggests RM0-RM4 for the compressed files, I also use them for the raw format.
 
+Atari Portfolio
+~~~~~~~~~~~~~~~
+[horizontal]
+PGC:: 240x64, mono, compressed.
+PGF:: 240x64, mono.
+
 Atari ST
 ~~~~~~~~
 [horizontal]
@@ -173,36 +184,30 @@ PI4, PI9:: "Fuckpaint", 320x240 or 320x200, 256 colors.
 TRP:: "EggPaint", 65536 colors.
 TRU:: "IndyPaint", 65536 colors.
 
-Atari Portfolio
-~~~~~~~~~~~~~~~
-[horizontal]
-PGC:: 240x64, mono, compressed.
-PGF:: 240x64, mono.
-
 "2 frames" above means the picture is composed of two quickly alternating frames so that
 a human perceives more colors (for example black alternated with gray looks like dark gray).
 On Atari 8-bit this technique is commonly (but incorrectly) referred to as "interlace".
 Likewise, "3 frames" means three different alternating pictures and more flickering.
 
-You can find some sample files in http://fail.sourceforge.net/examples.zip[examples.zip].
+You can find some sample files in http://recoil.sourceforge.net/examples.zip[examples.zip].
 
-ifdef::failsrc[]
+ifdef::recoilsrc[]
 include::INSTALL[]
-endif::failsrc[]
+endif::recoilsrc[]
 
-ifdef::failwin[]
+ifdef::recoilwin[]
 include::win32/USAGE[]
-endif::failwin[]
+endif::recoilwin[]
 
 Feedback
 --------
 
-If you are interested in the FAIL project, please subscribe its
-https://lists.sourceforge.net/lists/listinfo/fail-users[mailing list].
+If you are interested in the RECOIL project, please subscribe its
+https://lists.sourceforge.net/lists/listinfo/recoil-users[mailing list].
 This list is for users and developers.
-Once you subscribe, you can post comments, ideas and questions about FAIL.
+Once you subscribe, you can post comments, ideas and questions about RECOIL.
 
-You may submit bugs http://sourceforge.net/p/fail/bugs/[here] (log in required).
+You may submit bugs http://sourceforge.net/p/recoil/bugs/[here] (log in required).
 
 History
 -------
@@ -301,24 +306,24 @@ Initial release.
 Authors
 -------
 
-Piotr Fusik {failwww!<fox@scene.pl>}::
+Piotr Fusik {recoilwww!<fox@scene.pl>}::
 Idea, programming.
 
-Adrian Matoga {failwww!<epi@atari8.info>}::
+Adrian Matoga {recoilwww!<epi@atari8.info>}::
 Programming.
 
-Paweł Szewczyk {failwww!<ripek@op.pl>}::
-FAILWin icon, testing.
+Paweł Szewczyk {recoilwww!<ripek@op.pl>}::
+Icons, testing.
 
-Peter Dell {failwww!<jac@wudsn.com>}::
+Peter Dell {recoilwww!<jac@wudsn.com>}::
 Testing.
 
-Sławomir Śledź {failwww!<slaves@scene.pl>}::
+Sławomir Śledź {recoilwww!<slaves@scene.pl>}::
 Testing.
 
-Monika Wesołowska {failwww!<giulio.caesar@gmail.com>}::
+Monika Wesołowska {recoilwww!<giulio.caesar@gmail.com>}::
 Testing.
 
-ifdef::failwww[]
-image::http://sflogo.sourceforge.net/sflogo.php?group_id=258474&amp;type=13["Get FAIL at SourceForge.net. Fast, secure and Free Open Source software downloads",width=120,height=30,link="http://sourceforge.net/projects/fail/"]
-endif::failwww[]
+ifdef::recoilwww[]
+image::http://sflogo.sourceforge.net/sflogo.php?group_id=258474&amp;type=13["Get RECOIL at SourceForge.net. Fast, secure and Free Open Source software downloads",width=120,height=30,link="http://sourceforge.net/projects/recoil/"]
+endif::recoilwww[]

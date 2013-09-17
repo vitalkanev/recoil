@@ -1,23 +1,23 @@
 /*
- * failwin.c - Windows API port of FAIL
+ * recoilwin.c - Windows API port of RECOIL
  *
  * Copyright (C) 2009-2013  Piotr Fusik and Adrian Matoga
  *
- * This file is part of FAIL (First Atari Image Library),
- * see http://fail.sourceforge.net
+ * This file is part of RECOIL (Retro Computer Image Library),
+ * see http://recoil.sourceforge.net
  *
- * FAIL is free software; you can redistribute it and/or modify it
+ * RECOIL is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published
  * by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
  *
- * FAIL is distributed in the hope that it will be useful,
+ * RECOIL is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with FAIL; if not, write to the Free Software Foundation, Inc.,
+ * along with RECOIL; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
@@ -27,23 +27,23 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "fail.h"
+#include "recoil.h"
 #include "pngsave.h"
-#include "failwin.h"
+#include "recoilwin.h"
 
 #define ZOOM_STEP               10
 #define ZOOM_MIN                100
 #define WINDOW_WIDTH_MIN        200
 #define WINDOW_HEIGHT_MIN       100
-#define APP_TITLE               "FAILWin"
-#define WND_CLASS_NAME          "FAILWin"
+#define APP_TITLE               "RECOILWin"
+#define WND_CLASS_NAME          "RECOILWin"
 
 static HINSTANCE hInst;
 static HWND hWnd;
 static HMENU hMenu;
 static HWND hStatus;
 
-static FAIL *fail;
+static RECOIL *recoil;
 static char image_filename[MAX_PATH] = "";
 static BOOL image_loaded = FALSE;
 
@@ -60,7 +60,7 @@ static BOOL status_bar = TRUE;
 static struct {
 	BITMAPINFOHEADER bmiHeader;
 	RGBQUAD bmiColors[256];
-	BYTE pixels[FAIL_MAX_PIXELS_LENGTH * 3];
+	BYTE pixels[RECOIL_MAX_PIXELS_LENGTH * 3];
 } bitmap;
 static BYTE *bitmap_pixels;
 
@@ -75,10 +75,11 @@ static void ShowAbout(void)
 		sizeof(MSGBOXPARAMS),
 		hWnd,
 		hInst,
-		FAIL_CREDITS
+		"Retro Computer Image Library\n"
+		"(C) " RECOIL_YEARS " Piotr Fusik and Adrian Matoga\n"
 		"FAIL icon (C) 2009 Pawel Szewczyk\n\n"
-		FAIL_COPYRIGHT,
-		APP_TITLE " " FAIL_VERSION,
+		RECOIL_COPYRIGHT,
+		APP_TITLE " " RECOIL_VERSION,
 		MB_OK | MB_USERICON,
 		MAKEINTRESOURCE(IDI_APP),
 		0,
@@ -119,18 +120,18 @@ static void UpdateText(void)
 		filename += GetPathLength(filename);
 	sprintf(buf, "%s - " APP_TITLE, filename);
 	SetWindowText(hWnd, buf);
-	frames = FAIL_GetFrames(fail);
+	frames = RECOIL_GetFrames(recoil);
 	if (image_loaded) {
-		sprintf(buf, "%s, %dx%d, %d colors, %s%d%%", FAIL_GetPlatform(fail), FAIL_GetOriginalWidth(fail), FAIL_GetOriginalHeight(fail),
-			FAIL_GetColors(fail), frames == 2 ? "2 frames, " : frames == 3 ? "3 frames, " : "", zoom);
+		sprintf(buf, "%s, %dx%d, %d colors, %s%d%%", RECOIL_GetPlatform(recoil), RECOIL_GetOriginalWidth(recoil), RECOIL_GetOriginalHeight(recoil),
+			RECOIL_GetColors(recoil), frames == 2 ? "2 frames, " : frames == 3 ? "3 frames, " : "", zoom);
 		SetWindowText(hStatus, buf);
 	}
 }
 
 static int Fit(int dest_width, int dest_height)
 {
-	int width = FAIL_GetWidth(fail);
-	int height = FAIL_GetHeight(fail);
+	int width = RECOIL_GetWidth(recoil);
+	int height = RECOIL_GetHeight(recoil);
 	if (width * dest_height < height * dest_width) {
 		show_width = MulDiv(width, dest_height, height);
 		show_height = dest_height;
@@ -190,8 +191,8 @@ static BOOL Repaint(BOOL fit_to_desktop)
 			int desktop_width = GetSystemMetrics(SM_CXFULLSCREEN);
 			int desktop_height = GetSystemMetrics(SM_CYFULLSCREEN);
 			RECT rect;
-			show_width = MulDiv(FAIL_GetWidth(fail), zoom, 100);
-			show_height = MulDiv(FAIL_GetHeight(fail), zoom, 100);
+			show_width = MulDiv(RECOIL_GetWidth(recoil), zoom, 100);
+			show_height = MulDiv(RECOIL_GetHeight(recoil), zoom, 100);
 			CalculateWindowSize();
 			if (window_width > desktop_width || window_height > desktop_height) {
 				if (!fit_to_desktop)
@@ -270,7 +271,7 @@ static BOOL LoadFile(const char *filename, BYTE *buffer, int *len)
 
 static BOOL OpenImage(BOOL show_error)
 {
-	BYTE content[FAIL_MAX_CONTENT_LENGTH];
+	BYTE content[RECOIL_MAX_CONTENT_LENGTH];
 	int content_len = sizeof(content);
 	int width;
 	int height;
@@ -288,7 +289,7 @@ static BOOL OpenImage(BOOL show_error)
 		return FALSE;
 	}
 
-	image_loaded = FAIL_Decode(fail, image_filename, content, content_len);
+	image_loaded = RECOIL_Decode(recoil, image_filename, content, content_len);
 	SetMenuEnabled(IDM_SAVEAS, image_loaded);
 	SetMenuEnabled(IDM_COPY, image_loaded);
 	SetMenuEnabled(IDM_FULLSCREEN, image_loaded);
@@ -304,10 +305,10 @@ static BOOL OpenImage(BOOL show_error)
 		}
 		return FALSE;
 	}
-	width = FAIL_GetWidth(fail);
-	height = FAIL_GetHeight(fail);
-	palette = FAIL_ToPalette(fail, bitmap.pixels + FAIL_MAX_PIXELS_LENGTH); /* an area we won't need later */
-	colors = FAIL_GetColors(fail);
+	width = RECOIL_GetWidth(recoil);
+	height = RECOIL_GetHeight(recoil);
+	palette = RECOIL_ToPalette(recoil, bitmap.pixels + RECOIL_MAX_PIXELS_LENGTH); /* an area we won't need later */
+	colors = RECOIL_GetColors(recoil);
 	SetMenuEnabled(IDM_INVERT, colors == 2);
 
 	bitmap.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -326,10 +327,10 @@ static BOOL OpenImage(BOOL show_error)
 		memcpy(bitmap.bmiColors, palette, colors * 4);
 		bitmap_pixels = (byte *) (bitmap.bmiColors + colors);
 		for (y = 0; y < height; y++)
-			memcpy(bitmap_pixels + (height - 1 - y) * width, bitmap.pixels + FAIL_MAX_PIXELS_LENGTH + y * width, width);
+			memcpy(bitmap_pixels + (height - 1 - y) * width, bitmap.pixels + RECOIL_MAX_PIXELS_LENGTH + y * width, width);
 	}
 	else {
-		const int *pixels = FAIL_GetPixels(fail);
+		const int *pixels = RECOIL_GetPixels(recoil);
 		int y;
 		bitmap.bmiHeader.biSizeImage = sizeof(BITMAPINFOHEADER) + width * height * 3;
 		bitmap.bmiHeader.biClrUsed = 0;
@@ -371,7 +372,7 @@ static void SelectAndOpenImage(void)
 		NULL,
 		0,
 		NULL,
-		"Select Atari picture",
+		"Select picture",
 		OFN_ENABLESIZING | OFN_EXPLORER | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST,
 		0,
 		0,
@@ -408,8 +409,8 @@ static BOOL GetSiblingFile(char *filename, int dir)
 		return FALSE;
 	do {
 		if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0
-		 && wfd.nFileSizeHigh == 0 && wfd.nFileSizeLow <= FAIL_MAX_CONTENT_LENGTH
-		 && FAIL_IsOurFile(wfd.cFileName)
+		 && wfd.nFileSizeHigh == 0 && wfd.nFileSizeLow <= RECOIL_MAX_CONTENT_LENGTH
+		 && RECOIL_IsOurFile(wfd.cFileName)
 		 && ((dir & 1) == 0 || _stricmp(wfd.cFileName, filename + path_len) * dir > 0)
 		 && (best[0] == '\0' || (_stricmp(wfd.cFileName, best) ^ dir) < 0))
 			strcpy(best, wfd.cFileName);
@@ -473,7 +474,7 @@ static void SelectAndSaveImage(void)
 	if (fullscreen)
 		ShowCursor(TRUE);
 	if (GetSaveFileName(&ofn)) {
-		if (!FAIL_SavePng(fail, png_filename))
+		if (!RECOIL_SavePng(recoil, png_filename))
 			ShowError("Error writing file");
 	}
 	if (fullscreen)
@@ -492,7 +493,7 @@ static BOOL OpenPalette(const char *filename)
 		ShowError("Invalid file length - must be 768 bytes");
 		return FALSE;
 	}
-	FAIL_SetAtari8Palette(fail, atari8_palette);
+	RECOIL_SetAtari8Palette(recoil, atari8_palette);
 	return TRUE;
 }
 
@@ -556,7 +557,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 				rect.bottom -= GetStatusBarHeight();
 				x = rect.right > show_width ? (rect.right - show_width) >> 1 : 0;
 				y = rect.bottom > show_height ? (rect.bottom - show_height) >> 1 : 0;
-				StretchDIBits(hdc, x, y, show_width, show_height, 0, 0, FAIL_GetWidth(fail), FAIL_GetHeight(fail),
+				StretchDIBits(hdc, x, y, show_width, show_height, 0, 0, RECOIL_GetWidth(recoil), RECOIL_GetHeight(recoil),
 					bitmap_pixels, (CONST BITMAPINFO *) &bitmap, DIB_RGB_COLORS, SRCCOPY);
 			}
 			EndPaint(hWnd, &ps);
@@ -605,7 +606,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			SelectAndOpenPalette();
 			break;
 		case IDM_USEPALETTE:
-			FAIL_SetAtari8Palette(fail, NULL);
+			RECOIL_SetAtari8Palette(recoil, NULL);
 			UseExternalPalette(FALSE);
 			break;
 		case IDM_EXIT:
@@ -707,7 +708,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	hWnd = FindWindow(WND_CLASS_NAME, NULL);
 	if (hWnd != NULL) {
-		/* an instance of FAILWin is already running */
+		/* an instance of RECOILWin is already running */
 		if (*pb != '\0') {
 			/* pass the filename */
 			COPYDATASTRUCT cds = { 'O', (DWORD) (pe + 1 - pb), pb };
@@ -722,8 +723,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 0;
 	}
 
-	fail = FAIL_New();
-	if (fail == NULL)
+	recoil = RECOIL_New();
+	if (recoil == NULL)
 		return 1;
 
 	hInst = hInstance;

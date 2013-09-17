@@ -7,8 +7,8 @@ Compilation instructions
 Required tools
 ~~~~~~~~~~~~~~
 
-FAIL is written in the Ć programming language.
-Official releases include translation of FAIL to C,
+RECOIL is written in the Ć programming language.
+Official releases include translation of RECOIL to C,
 so you only need a C compiler and Make utility.
 For other cases (Git or JavaScript)
 you'll need http://cito.sourceforge.net[cito].
@@ -30,12 +30,12 @@ and build instructions.
 Getting officially released source code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you want to compile an official release of FAIL, download source distribution
-(`fail-*.tar.gz`) and uncompress it to a directory of your choice.
+If you want to compile an official release of RECOIL, download source distribution
+(`recoil-*.tar.gz`) and uncompress it to a directory of your choice.
 
 On Unix-like systems:
 --------------------------------------------------------------------------------
-tar zxf fail-*.tar.gz
+tar zxf recoil-*.tar.gz
 --------------------------------------------------------------------------------
 
 On Windows you may use http://7-zip.org[7-Zip].
@@ -47,34 +47,34 @@ Getting latest source code
 Alternatively you may get the latest version from the Git repository.
 To do this using a command-line Git client:
 --------------------------------------------------------------------------------
-git clone git://git.code.sf.net/p/fail/code fail-code
+git clone git://git.code.sf.net/p/recoil/code recoil-code
 --------------------------------------------------------------------------------
 
-This will fetch the latest code to a new directory called `fail-code`.
+This will fetch the latest code to a new directory called `recoil-code`.
 
 
-Building fail2png, GNOME thumbnailer and ImageMagick coder on Unix-like systems
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Building recoil2png, GNOME thumbnailer and ImageMagick coder on Unix-like systems
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-From your shell prompt navigate to the directory which contains `fail.ci`.
+From your shell prompt navigate to the directory which contains `recoil.ci`.
 
 Review the contents of `Makefile` and run:
 --------------------------------------------------------------------------------
 make
 --------------------------------------------------------------------------------
 
-To install fail2png under `PREFIX`, run:
+To install recoil2png under `PREFIX`, run:
 --------------------------------------------------------------------------------
-make install-fail2png
+make install-recoil2png
 --------------------------------------------------------------------------------
 
-To install GNOME thumbnailer and fail2png, run:
+To install GNOME thumbnailer and recoil2png, run:
 --------------------------------------------------------------------------------
 make install-thumbnailer
 --------------------------------------------------------------------------------
 
 After you restart your system, Nautilus windows should display thumbnails
-of Atari images.
+of retro computer images.
 
 Installation of the ImageMagick coder requires that you have complete source
 distribution of ImageMagick. Current version of the ImageMagick coder has been
@@ -86,27 +86,27 @@ make install-magick MAGICK_INCLUDE_PATH=/path/to/im/sources
 --------------------------------------------------------------------------------
 
 To verify the installation, try to open some
-http://fail.sourceforge.net/examples.zip[example files]:
+http://recoil.sourceforge.net/examples.zip[example files]:
 --------------------------------------------------------------------------------
 display COYOTE.RIP
 --------------------------------------------------------------------------------
 
 You can also install all components at the same time, for example:
 --------------------------------------------------------------------------------
-make install PREFIX=/opt/fail MAGICK_INCLUDE_PATH=/src/ImageMagick-6.7.4-0
+make install PREFIX=/opt/recoil MAGICK_INCLUDE_PATH=/src/ImageMagick-6.7.4-0
 --------------------------------------------------------------------------------
 
 
-Using fail2png
-~~~~~~~~~~~~~~
+Using recoil2png
+~~~~~~~~~~~~~~~~
 
 Run the program from command line to see the syntax.
 Unless you specify the `-o`/`--output` option, the output filename will be
 constructed from the input filename with the extension changed to `png`.
 
 
-Building fail2png, XnView/ImageMagick/Imagine/Windows Explorer plugins and FAILWin on Windows
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Building recoil2png, XnView/ImageMagick/Imagine/Windows Explorer plugins and RECOILWin on Windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Download http://www.mingw.org/[MinGW] and install binutils, core compiler,
 w32api and MinGW Make.

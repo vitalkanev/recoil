@@ -1,23 +1,23 @@
 /*
- * thumbfail.cpp - Windows thumbnail provider for FAIL
+ * thumbrecoil.cpp - Windows thumbnail provider for RECOIL
  *
  * Copyright (C) 2011-2013  Piotr Fusik and Adrian Matoga
  *
- * This file is part of FAIL (First Atari Image Library),
- * see http://fail.sourceforge.net
+ * This file is part of RECOIL (Retro Computer Image Library),
+ * see http://recoil.sourceforge.net
  *
- * FAIL is free software; you can redistribute it and/or modify it
+ * RECOIL is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published
  * by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
  *
- * FAIL is distributed in the hope that it will be useful,
+ * RECOIL is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with FAIL; if not, write to the Free Software Foundation, Inc.,
+ * along with RECOIL; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
@@ -87,7 +87,7 @@ DECLARE_INTERFACE_(IThumbnailProvider, IUnknown)
 };
 #undef INTERFACE
 
-#include "fail.h"
+#include "recoil.h"
 
 static const char extensions[][6] =
 	{ ".256", ".4mi", ".4pl", ".4pm", ".a4r", ".acs", ".agp", ".all", ".ap2", ".ap3",
@@ -118,18 +118,18 @@ static void DllRelease(void)
 	InterlockedDecrement(&g_cRef);
 }
 
-#define CLSID_FAILThumbProvider_str "{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}"
-static const GUID CLSID_FAILThumbProvider =
+#define CLSID_RECOILThumbProvider_str "{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}"
+static const GUID CLSID_RECOILThumbProvider =
 	{ 0x3c450d81, 0xb6bd, 0x4d8c, { 0x92, 0x3c, 0xfc, 0x65, 0x9a, 0xbb, 0x27, 0xd3 } };
 
-class CFAILThumbProvider : IPersistFile, IExtractImage, IInitializeWithStream, IThumbnailProvider
+class CRECOILThumbProvider : IPersistFile, IExtractImage, IInitializeWithStream, IThumbnailProvider
 {
 	LONG m_cRef;
 	IStream *m_pstream;
-	FAIL *m_pFail;
+	RECOIL *m_pRecoil;
 	LPWSTR m_filename;
 	int m_contentLen;
-	unsigned char m_content[FAIL_MAX_CONTENT_LENGTH];
+	unsigned char m_content[RECOIL_MAX_CONTENT_LENGTH];
 
 	HRESULT Decode(LPCWSTR pszFilename, HBITMAP *phBitmap)
 	{
@@ -140,11 +140,11 @@ class CFAILThumbProvider : IPersistFile, IExtractImage, IInitializeWithStream, I
 			return HRESULT_FROM_WIN32(GetLastError());
 
 		// decode
-		if (!FAIL_Decode(m_pFail, filename, m_content, m_contentLen))
+		if (!RECOIL_Decode(m_pRecoil, filename, m_content, m_contentLen))
 			return E_FAIL;
-		int width = FAIL_GetWidth(m_pFail);
-		int height = FAIL_GetHeight(m_pFail);
-		const int *pixels = FAIL_GetPixels(m_pFail);
+		int width = RECOIL_GetWidth(m_pRecoil);
+		int height = RECOIL_GetHeight(m_pRecoil);
+		const int *pixels = RECOIL_GetPixels(m_pRecoil);
 
 		// convert to bitmap
 		BITMAPINFO bmi = {};
@@ -167,18 +167,18 @@ class CFAILThumbProvider : IPersistFile, IExtractImage, IInitializeWithStream, I
 
 public:
 
-	CFAILThumbProvider() : m_cRef(1), m_pstream(NULL), m_filename(NULL)
+	CRECOILThumbProvider() : m_cRef(1), m_pstream(NULL), m_filename(NULL)
 	{
 		DllAddRef();
-		m_pFail = FAIL_New();
+		m_pRecoil = RECOIL_New();
 	}
 
-	~CFAILThumbProvider()
+	~CRECOILThumbProvider()
 	{
 		if (m_pstream != NULL)
 			m_pstream->Release();
 		free(m_filename);
-		FAIL_Delete(m_pFail);
+		RECOIL_Delete(m_pRecoil);
 		DllRelease();
 	}
 
@@ -225,7 +225,7 @@ public:
 
 	STDMETHODIMP GetClassID(CLSID *pClassID)
 	{
-		*pClassID = CLSID_FAILThumbProvider;
+		*pClassID = CLSID_RECOILThumbProvider;
 		return S_OK;
 	}
 
@@ -236,7 +236,7 @@ public:
 
 	STDMETHODIMP Load(LPCOLESTR pszFileName, DWORD dwMode)
 	{
-		if (m_pFail == NULL)
+		if (m_pRecoil == NULL)
 			return E_OUTOFMEMORY;
 
 		HANDLE fh = CreateFileW(pszFileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
@@ -310,7 +310,7 @@ public:
 	{
 		if (m_pstream == NULL)
 			return E_UNEXPECTED;
-		if (m_pFail == NULL)
+		if (m_pRecoil == NULL)
 			return E_OUTOFMEMORY;
 
 		// get filename
@@ -334,7 +334,7 @@ public:
 	}
 };
 
-class CFAILThumbProviderFactory : IClassFactory
+class CRECOILThumbProviderFactory : IClassFactory
 {
 public:
 
@@ -366,7 +366,7 @@ public:
 		*ppv = NULL;
 		if (punkOuter != NULL)
 			return CLASS_E_NOAGGREGATION;
-		CFAILThumbProvider *punk = new CFAILThumbProvider;
+		CRECOILThumbProvider *punk = new CRECOILThumbProvider;
 		if (punk == NULL)
 			return E_OUTOFMEMORY;
 		HRESULT hr = punk->QueryInterface(riid, ppv);
@@ -396,8 +396,8 @@ static BOOL RegisterCLSID(HKEY hk1, LPCSTR subkey)
 	HKEY hk2;
 	if (RegCreateKeyEx(hk1, subkey, 0, NULL, 0, KEY_WRITE, NULL, &hk2, NULL) != ERROR_SUCCESS)
 		return FALSE;
-	static const char CLSID_FAILThumbProvider_str2[] = CLSID_FAILThumbProvider_str;
-	BOOL ok = RegSetValueEx(hk2, NULL, 0, REG_SZ, (CONST BYTE *) CLSID_FAILThumbProvider_str2, sizeof(CLSID_FAILThumbProvider_str2)) == ERROR_SUCCESS;
+	static const char CLSID_RECOILThumbProvider_str2[] = CLSID_RECOILThumbProvider_str;
+	BOOL ok = RegSetValueEx(hk2, NULL, 0, REG_SZ, (CONST BYTE *) CLSID_RECOILThumbProvider_str2, sizeof(CLSID_RECOILThumbProvider_str2)) == ERROR_SUCCESS;
 	RegCloseKey(hk2);
 	return ok;
 }
@@ -405,7 +405,7 @@ static BOOL RegisterCLSID(HKEY hk1, LPCSTR subkey)
 STDAPI __declspec(dllexport) DllRegisterServer(void)
 {
 	HKEY hk1;
-	if (RegCreateKeyEx(HKEY_CLASSES_ROOT, "CLSID\\" CLSID_FAILThumbProvider_str, 0, NULL, 0, KEY_WRITE, NULL, &hk1, NULL) != ERROR_SUCCESS)
+	if (RegCreateKeyEx(HKEY_CLASSES_ROOT, "CLSID\\" CLSID_RECOILThumbProvider_str, 0, NULL, 0, KEY_WRITE, NULL, &hk1, NULL) != ERROR_SUCCESS)
 		return E_FAIL;
 	HKEY hk2;
 	if (RegCreateKeyEx(hk1, "InProcServer32", 0, NULL, 0, KEY_WRITE, NULL, &hk2, NULL) != ERROR_SUCCESS) {
@@ -438,8 +438,8 @@ STDAPI __declspec(dllexport) DllRegisterServer(void)
 
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Approved", 0, KEY_SET_VALUE, &hk1) != ERROR_SUCCESS)
 		return E_FAIL;
-	static const char szDescription[] = "FAIL Thumbnail Handler";
-	if (RegSetValueEx(hk1, CLSID_FAILThumbProvider_str, 0, REG_SZ, (CONST BYTE *) szDescription, sizeof(szDescription)) != ERROR_SUCCESS) {
+	static const char szDescription[] = "RECOIL Thumbnail Handler";
+	if (RegSetValueEx(hk1, CLSID_RECOILThumbProvider_str, 0, REG_SZ, (CONST BYTE *) szDescription, sizeof(szDescription)) != ERROR_SUCCESS) {
 		RegCloseKey(hk1);
 		return E_FAIL;
 	}
@@ -451,7 +451,7 @@ STDAPI __declspec(dllexport) DllUnregisterServer(void)
 {
 	HKEY hk1;
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Approved", 0, KEY_SET_VALUE, &hk1) == ERROR_SUCCESS) {
-		RegDeleteValue(hk1, CLSID_FAILThumbProvider_str);
+		RegDeleteValue(hk1, CLSID_RECOILThumbProvider_str);
 		RegCloseKey(hk1);
 	}
 	for (int i = 0; i < N_EXTS; i++) {
@@ -462,8 +462,8 @@ STDAPI __declspec(dllexport) DllUnregisterServer(void)
 		}
 		RegDeleteKey(HKEY_CLASSES_ROOT, extensions[i]);
 	}
-	RegDeleteKey(HKEY_CLASSES_ROOT, "CLSID\\" CLSID_FAILThumbProvider_str "\\InProcServer32");
-	RegDeleteKey(HKEY_CLASSES_ROOT, "CLSID\\" CLSID_FAILThumbProvider_str);
+	RegDeleteKey(HKEY_CLASSES_ROOT, "CLSID\\" CLSID_RECOILThumbProvider_str "\\InProcServer32");
+	RegDeleteKey(HKEY_CLASSES_ROOT, "CLSID\\" CLSID_RECOILThumbProvider_str);
 	return S_OK;
 }
 
@@ -471,8 +471,8 @@ STDAPI __declspec(dllexport) DllGetClassObject(REFCLSID rclsid, REFIID riid, LPV
 {
 	if (ppv == NULL)
 		return E_INVALIDARG;
-	if (rclsid == CLSID_FAILThumbProvider) {
-		static CFAILThumbProviderFactory g_ClassFactory;
+	if (rclsid == CLSID_RECOILThumbProvider) {
+		static CRECOILThumbProviderFactory g_ClassFactory;
 		return g_ClassFactory.QueryInterface(riid, ppv);
 	}
 	*ppv = NULL;

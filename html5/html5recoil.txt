@@ -1,21 +1,21 @@
-FAIL - First Atari Image Library
-================================
+RECOIL - Retro Computer Image Library
+=====================================
 
 link:/[Home]
 
-This page decodes pictures in formats native to Atari computers.
+This page decodes pictures in formats native to retro computers.
 Decoding takes place in your browser, nothing is sent to a server.
 You can http://caniuse.com/filereader[check] if your browser is modern enough.
 
 ++++
-<script type="text/javascript" src="fail.js"> </script>
-<script type="text/javascript" src="html5fail.js"> </script>
+<script type="text/javascript" src="recoil.js"> </script>
+<script type="text/javascript" src="html5recoil.js"> </script>
 <script type="text/javascript">
 function openFile(file)
 {
 	var reader = new FileReader();
 	reader.onload = function (e) {
-		fail2canvas(file.name, new Uint8Array(e.target.result));
+		recoil2canvas(file.name, new Uint8Array(e.target.result));
 	};
 	reader.readAsArrayBuffer(file);
 }
@@ -51,6 +51,6 @@ Select file: <input type="file" onchange="openFile(this.files[0])" />
 <input type="button" id="fullScreenButton" value="Fullscreen" onclick="fullScreen()" style="display: none"></input>
 ++++
 
-ifdef::failwww[]
-image::http://sflogo.sourceforge.net/sflogo.php?group_id=258474&amp;type=13["Get FAIL at SourceForge.net. Fast, secure and Free Open Source software downloads",width=120,height=30,link="http://sourceforge.net/projects/fail/"]
-endif::failwww[]
+ifdef::recoilwww[]
+image::http://sflogo.sourceforge.net/sflogo.php?group_id=258474&amp;type=13["Get RECOIL at SourceForge.net. Fast, secure and Free Open Source software downloads",width=120,height=30,link="http://sourceforge.net/projects/recoil/"]
+endif::recoilwww[]

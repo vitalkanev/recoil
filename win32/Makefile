@@ -1,13 +1,13 @@
-VERSION = 2.0.2
+VERSION = 3.0.0
 
 CITO = cito
-FAIL_CC = mingw32-gcc -s -O2 -Wall -o $@ -I..
-FAIL_CC_DLL = $(FAIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
-FAIL_GPP = mingw32-g++ -static -s -O2 -Wall -o $@ -I..
+RECOIL_CC = mingw32-gcc -s -O2 -Wall -o $@ -I..
+RECOIL_CC_DLL = $(RECOIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
+RECOIL_GPP = mingw32-g++ -static -s -O2 -Wall -o $@ -I..
 WINDRES = windres -o $@
-X64_FAIL_CC = x86_64-w64-mingw32-gcc -s -O2 -Wall -o $@ -I..
-X64_FAIL_CC_DLL = $(X64_FAIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
-X64_FAIL_GPP = x86_64-w64-mingw32-g++ -static -s -O2 -Wall -o $@ -I..
+X64_RECOIL_CC = x86_64-w64-mingw32-gcc -s -O2 -Wall -o $@ -I..
+X64_RECOIL_CC_DLL = $(X64_RECOIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
+X64_RECOIL_GPP = x86_64-w64-mingw32-g++ -static -s -O2 -Wall -o $@ -I..
 X64_WINDRES = x86_64-w64-mingw32-windres -o $@
 RM = rm -f
 UNIX2DOS = unix2dos
@@ -20,43 +20,43 @@ CANDLE = candle -ext WixUtilExtension -nologo -o $@
 LIGHT = light -ext WixUtilExtension -nologo -o $@ -spdb
 IMAGEMAGICK_X64_INST_DIR = c:\Program Files\ImageMagick-6.8.2-Q16
 
-WIN32_BIN = fail2png.exe IM_MOD_RL_fail_.dll Xfail1.usr Xfail2.usr Xfail3.usr Xfail4.usr Xfail5.usr Xfail6.usr Xfail7.usr Xfail8.usr Xfail9.usr Xfail10.usr Xfail11.usr Xfail12.usr failwin.exe FAIL.plg
+WIN32_BIN = recoil2png.exe IM_MOD_RL_recoil_.dll Xrecoil1.usr Xrecoil2.usr Xrecoil3.usr Xrecoil4.usr Xrecoil5.usr Xrecoil6.usr Xrecoil7.usr Xrecoil8.usr Xrecoil9.usr Xrecoil10.usr Xrecoil11.usr Xrecoil12.usr recoilwin.exe RECOIL.plg
 
-all: $(WIN32_BIN) thumbfail.dll
+all: $(WIN32_BIN) thumbrecoil.dll
 
-fail2png.exe: ../fail2png.c ../pngsave.c ../pngsave.h ../fail.c ../fail.h
-	$(FAIL_CC) ../fail2png.c ../pngsave.c ../fail.c -static -lpng -lz
+recoil2png.exe: ../recoil2png.c ../pngsave.c ../pngsave.h ../recoil.c ../recoil.h
+	$(RECOIL_CC) ../recoil2png.c ../pngsave.c ../recoil.c -static -lpng -lz
 
-IM_MOD_RL_fail_.dll: ../failmagick.c ../fail.c ../fail.h
-	$(FAIL_CC_DLL) ../failmagick.c ../fail.c -lCORE_RL_magick_
+IM_MOD_RL_recoil_.dll: ../recoilmagick.c ../recoil.c ../recoil.h
+	$(RECOIL_CC_DLL) ../recoilmagick.c ../recoil.c -lCORE_RL_magick_
  
-x64/IM_MOD_RL_fail_.dll: ../failmagick.c ../fail.c ../fail.h
+x64/IM_MOD_RL_recoil_.dll: ../recoilmagick.c ../recoil.c ../recoil.h
 	test -d x64 || mkdir x64
-	$(X64_FAIL_CC_DLL) ../failmagick.c ../fail.c -I"$(IMAGEMAGICK_X64_INST_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_X64_INST_DIR)"
+	$(X64_RECOIL_CC_DLL) ../recoilmagick.c ../recoil.c -I"$(IMAGEMAGICK_X64_INST_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_X64_INST_DIR)"
 
-Xfail1.usr Xfail2.usr Xfail3.usr Xfail4.usr Xfail5.usr Xfail6.usr Xfail7.usr Xfail8.usr Xfail9.usr Xfail10.usr Xfail11.usr Xfail12.usr: xnview/Xfail.c ../fail.c ../fail.h
-	$(FAIL_CC_DLL) "-DXNVIEW_FAIL_EXT=\"$(word $(@:Xfail%.usr=%),rip;gr8;mic;hip;tip;int;inp;apc;ap3;hr;hr2 pic;cpr;cin;cci;fnt;sxs;gr9;plm;ilc;mcp;ghg mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb mgp;wnd;chr;shp;mbg;fwa;rm0;rm1;rm2;rm3;rm4 xlp;max;shc;all;app;sge;dlm;bkg;g09;bg9;apv spc;apl;gr7;g10;g11;art;drg;agp;pla;mis;4pl 4mi;4pm;pgf;pgc;pi1;pi2;pi3;pc1;pc2;pc3;neo doo;spu;tny;tn1;tn2;tn3;ca1;ca2;ca3;ing;pac sps;gfb;pi4;pi9;dgu;dg1;trp;tru;god;ftc;del dph;ipc;nlq;pmd;acs;pcs;hpm;mcs;a4r;dc1;dgc cpt;iff;bl1;bl2;bl3;bru;ip2;imn;icn;din;vzi irg;ir2;ice;img;ximg;mpp)\"" \
-		xnview/Xfail.c ../fail.c
+Xrecoil1.usr Xrecoil2.usr Xrecoil3.usr Xrecoil4.usr Xrecoil5.usr Xrecoil6.usr Xrecoil7.usr Xrecoil8.usr Xrecoil9.usr Xrecoil10.usr Xrecoil11.usr Xrecoil12.usr: xnview/Xrecoil.c ../recoil.c ../recoil.h
+	$(RECOIL_CC_DLL) "-DXNVIEW_RECOIL_EXT=\"$(word $(@:Xrecoil%.usr=%),rip;gr8;mic;hip;tip;int;inp;apc;ap3;hr;hr2 pic;cpr;cin;cci;fnt;sxs;gr9;plm;ilc;mcp;ghg mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb mgp;wnd;chr;shp;mbg;fwa;rm0;rm1;rm2;rm3;rm4 xlp;max;shc;all;app;sge;dlm;bkg;g09;bg9;apv spc;apl;gr7;g10;g11;art;drg;agp;pla;mis;4pl 4mi;4pm;pgf;pgc;pi1;pi2;pi3;pc1;pc2;pc3;neo doo;spu;tny;tn1;tn2;tn3;ca1;ca2;ca3;ing;pac sps;gfb;pi4;pi9;dgu;dg1;trp;tru;god;ftc;del dph;ipc;nlq;pmd;acs;pcs;hpm;mcs;a4r;dc1;dgc cpt;iff;bl1;bl2;bl3;bru;ip2;imn;icn;din;vzi irg;ir2;ice;img;ximg;mpp)\"" \
+		xnview/Xrecoil.c ../recoil.c
 
-failwin.exe: failwin/failwin.c failwin/failwin.h failwin/failwin-res.o ../pngsave.c ../pngsave.h ../fail.c ../fail.h
-	$(FAIL_CC) -Wl,-subsystem,windows failwin/failwin.c failwin/failwin-res.o ../pngsave.c ../fail.c -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng -lz
+recoilwin.exe: recoilwin/recoilwin.c recoilwin/recoilwin.h recoilwin/recoilwin-res.o ../pngsave.c ../pngsave.h ../recoil.c ../recoil.h
+	$(RECOIL_CC) -Wl,-subsystem,windows recoilwin/recoilwin.c recoilwin/recoilwin-res.o ../pngsave.c ../recoil.c -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng -lz
 
-failwin/failwin-res.o: failwin/failwin.rc failwin/failwin.h faileye.ico ../fail.h
-	$(WINDRES) -I .. failwin/failwin.rc
+recoilwin/recoilwin-res.o: recoilwin/recoilwin.rc recoilwin/recoilwin.h faileye.ico ../recoil.h
+	$(WINDRES) -I .. recoilwin/recoilwin.rc
 
-thumbfail.dll: thumbfail/thumbfail.cpp ../fail.c ../fail.h
-	$(FAIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbfail/thumbfail.cpp ../fail.c -lgdi32 -lole32 -luuid
+thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../recoil.c ../recoil.h
+	$(RECOIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbrecoil/thumbrecoil.cpp ../recoil.c -lgdi32 -lole32 -luuid
 
-x64/thumbfail.dll: thumbfail/thumbfail.cpp ../fail.c ../fail.h
+x64/thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../recoil.c ../recoil.h
 	test -d x64 || mkdir x64
-	$(X64_FAIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbfail/thumbfail.cpp ../fail.c -lgdi32 -lole32 -luuid
+	$(X64_RECOIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbrecoil/thumbrecoil.cpp ../recoil.c -lgdi32 -lole32 -luuid
 
-FAIL.plg: imagine/failimagine.c ../fail.c ../fail.h
-	$(FAIL_CC_DLL) imagine/failimagine.c ../fail.c
+RECOIL.plg: imagine/recoilimagine.c ../recoil.c ../recoil.h
+	$(RECOIL_CC_DLL) imagine/recoilimagine.c ../recoil.c
 
-x64/FAIL.plg64: imagine/failimagine.c ../fail.c ../fail.h
+x64/RECOIL.plg64: imagine/recoilimagine.c ../recoil.c ../recoil.h
 	test -d x64 || mkdir x64
-	$(X64_FAIL_CC_DLL) imagine/failimagine.c ../fail.c
+	$(X64_RECOIL_CC_DLL) imagine/recoilimagine.c ../recoil.c
 
 # http://www.cmcrossroads.com/article/rules-multiple-outputs-gnu-make
 %.c %.h: %.ci ../atari8.fnt ../jakub.act
@@ -66,55 +66,55 @@ COPYING.txt: ../COPYING
 	$(UNIX2DOS) <$< >$@
 
 ../README.html: ../README ../INSTALL
-	$(ASCIIDOC_START) -a failsrc ../README $(ASCIIDOC_END)
+	$(ASCIIDOC_START) -a recoilsrc ../README $(ASCIIDOC_END)
 
 README_Windows.html: ../README USAGE
-	$(ASCIIDOC_START) -a failwin ../README $(ASCIIDOC_END)
+	$(ASCIIDOC_START) -a recoilwin ../README $(ASCIIDOC_END)
 
 README_WindowsSetup.html: ../README USAGE
 	$(ASCIIDOC_START) ../README $(ASCIIDOC_END)
 
-setup: ../../fail-$(VERSION)-win32.msi
+setup: ../../recoil-$(VERSION)-win32.msi
 
-../../fail-$(VERSION)-win32.msi: setup/fail.wixobj faileye.ico setup/license.rtf setup/Website.url README_WindowsSetup.html $(WIN32_BIN) thumbfail.dll
+../../recoil-$(VERSION)-win32.msi: setup/recoil.wixobj faileye.ico setup/license.rtf setup/Website.url README_WindowsSetup.html $(WIN32_BIN) thumbrecoil.dll
 	$(LIGHT) -ext WixUIExtension -sice:ICE69 $<
 
-setup/fail.wixobj: setup/fail.wxs
+setup/recoil.wixobj: setup/recoil.wxs
 	$(CANDLE) -dVERSION=$(VERSION) $<
 
-x64-setup: ../../fail-$(VERSION)-win64.msi
+x64-setup: ../../recoil-$(VERSION)-win64.msi
 
-../../fail-$(VERSION)-win64.msi: x64/fail.wixobj faileye.ico setup/license.rtf setup/Website.url README_WindowsSetup.html $(WIN32_BIN) thumbfail.dll x64/thumbfail.dll x64/IM_MOD_RL_fail_.dll x64/FAIL.plg64
+../../recoil-$(VERSION)-win64.msi: x64/recoil.wixobj faileye.ico setup/license.rtf setup/Website.url README_WindowsSetup.html $(WIN32_BIN) thumbrecoil.dll x64/thumbrecoil.dll x64/IM_MOD_RL_recoil_.dll x64/RECOIL.plg64
 	$(LIGHT) -ext WixUIExtension -sice:ICE69 -sice:ICE80 -b setup $<
 
-x64/fail.wixobj: setup/fail.wxs
+x64/recoil.wixobj: setup/recoil.wxs
 	test -d x64 || mkdir x64
 	$(CANDLE) -arch x64 -dVERSION=$(VERSION) $<
 
 ../MANIFEST:
 	test -e ../.git && ( \
 		($(GIT) ls-tree -r --name-only --full-tree master | grep -vF .gitignore \
-			&& echo MANIFEST && echo README.html && echo fail.c && echo fail.h) | sort >$@; \
+			&& echo MANIFEST && echo README.html && echo recoil.c && echo recoil.h) | sort >$@; \
 	)
 
-srcdist: ../MANIFEST ../README.html ../fail.c ../fail.h
-	$(RM) ../../fail-$(VERSION).tar.gz
-	cd .. && $(TAR) -c --numeric-owner --owner=0 --group=0 --mode=644 -T MANIFEST --transform=s,,fail-$(VERSION)/, | $(SEVENZIP) -tgzip -si ../fail-$(VERSION).tar.gz
+srcdist: ../MANIFEST ../README.html ../recoil.c ../recoil.h
+	$(RM) ../../recoil-$(VERSION).tar.gz
+	cd .. && $(TAR) -c --numeric-owner --owner=0 --group=0 --mode=644 -T MANIFEST --transform=s,,recoil-$(VERSION)/, | $(SEVENZIP) -tgzip -si ../recoil-$(VERSION).tar.gz
 
-dist: srcdist ../../fail-$(VERSION)-win32.zip setup x64-setup
+dist: srcdist ../../recoil-$(VERSION)-win32.zip setup x64-setup
 
-../../fail-$(VERSION)-win32.zip: COPYING.txt README_Windows.html $(WIN32_BIN)
-	$(RM) ../../fail-$(VERSION)-win32.zip
-	$(SEVENZIP) -tzip ../../fail-$(VERSION)-win32.zip COPYING.txt README_Windows.html $(WIN32_BIN)
+../../recoil-$(VERSION)-win32.zip: COPYING.txt README_Windows.html $(WIN32_BIN)
+	$(RM) ../../recoil-$(VERSION)-win32.zip
+	$(SEVENZIP) -tzip ../../recoil-$(VERSION)-win32.zip COPYING.txt README_Windows.html $(WIN32_BIN)
 
 www: ../../www/index.html
 
 ../../www/index.html: ../README
-	$(ASCIIDOC_START) -a failwww ../README $(ASCIIDOC_END)
+	$(ASCIIDOC_START) -a recoilwww ../README $(ASCIIDOC_END)
 
 clean:
-	$(RM) $(WIN32_BIN) thumbfail.dll failwin/failwin-res.o COPYING.txt \
-		../README.html README_Windows.html README_WindowsSetup.html setup/fail.wixobj x64/fail.wixobj x64/IM_MOD_RL_fail_.dll x64/thumbfail.dll x64/FAIL.plg64
+	$(RM) $(WIN32_BIN) thumbrecoil.dll recoilwin/recoilwin-res.o COPYING.txt \
+		../README.html README_Windows.html README_WindowsSetup.html setup/recoil.wixobj x64/recoil.wixobj x64/IM_MOD_RL_recoil_.dll x64/thumbrecoil.dll x64/RECOIL.plg64
 
 .PHONY: all clean setup x64-setup ../MANIFEST srcdist dist www
 
