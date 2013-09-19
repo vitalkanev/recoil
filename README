@@ -187,6 +187,7 @@ TRU:: "IndyPaint", 65536 colors.
 ZX Spectrum
 ~~~~~~~~~~~
 [horizontal]
+IMG:: "GigaScreen", 256x192, 2 frames.
 SCR:: 256x192, 15 colors.
 
 "2 frames" above means the picture is composed of two quickly alternating frames so that

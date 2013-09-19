@@ -176,7 +176,7 @@ static const struct Format {
 	{ "ICN", "DEGAS Elite Icon or ICE CIN" },
 	{ "IGE", "Interlace Graphics Editor; 128x96, 16 colors, 2 frames" },
 	{ "ILC", "80x192, 256 colors, 2 frames" },
-	{ "IMG", "GEM Bit Image; compressed" },
+	{ "IMG", "GEM Bit Image or ZX Spectrum GigaScreen" },
 	{ "IMN", "ICE MIN; 160x192, 80 colors, 2 frames" },
 	{ "ING", "ING 15; 160x200, 7 colors, 2 frames" },
 	{ "INP", "160x200, 7 colors, 2 frames" },

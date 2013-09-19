@@ -1270,6 +1270,19 @@ public class RECOIL
 		return true;
 	}
 
+	bool ApplyBlend()
+	{
+		int pixelsLength = Width * Height;
+		Frames = 2;
+		for (int i = 0; i < pixelsLength; i++) {
+			int rgb1 = Pixels[i];
+			int rgb2 = Pixels[pixelsLength + i];
+			// This clever formula just computes the byte-by-byte averages.
+			Pixels[i] = (rgb1 & rgb2) + ((rgb1 ^ rgb2) >> 1 & 0x7f7f7f);
+		}
+		return true;
+	}
+
 	bool DecodeBru(byte[] content, int contentLength)
 	{
 		if (contentLength != 64)
@@ -1351,14 +1364,13 @@ public class RECOIL
 
 	// ZX Spectrum formats.
 
-	void DecodeZx(byte[] content, int attributeOffset)
+	void DecodeZx(byte[] content, int bitmapOffset, int attributeOffset, int pixelsOffset)
 	{
-		SetSize(256, 192, RECOILResolution.Zx1x1);
 		for (int y = 0; y < 192; y++) {
 			for (int x = 0; x < 256; x++) {
 				// x=CCCCCBBB, y=AARRRLLL -> o=AALLLRRRCCCCC
 				int offset = (y & 0xc0) << 5 | (y & 7) << 8 | (y & 0x38) << 2 | x >> 3;
-				int c = content[offset] >> (~x & 7) & 1;
+				int c = content[bitmapOffset + offset] >> (~x & 7) & 1;
 				if (attributeOffset >= 0) {
 					// o=AARRRCCCCC
 					offset = (y & 0xf8) << 2 | x >> 3;
@@ -1386,7 +1398,7 @@ public class RECOIL
 				}
 				else if (c != 0)
 					c = 0xffffff;
-				Pixels[(y << 8) + x] = c;
+				Pixels[pixelsOffset + (y << 8) + x] = c;
 			}
 		}
 	}
@@ -1395,31 +1407,30 @@ public class RECOIL
 	{
 		switch (contentLength) {
 		case 6144:
-			DecodeZx(content, -1);
+			SetSize(256, 192, RECOILResolution.Zx1x1);
+			DecodeZx(content, 0, -1, 0);
 			return true;
 		case 6912:
 		case 6913: // border color - ignore
-			DecodeZx(content, 0x1800);
+			SetSize(256, 192, RECOILResolution.Zx1x1);
+			DecodeZx(content, 0, 0x1800, 0);
 			return true;
 		default:
 			return false;
 		}
 	}
 
-	// Atari ST formats.
-
-	bool ApplyBlend()
+	bool DecodeZxImg(byte[] content, int contentLength)
 	{
-		int pixelsLength = Width * Height;
-		Frames = 2;
-		for (int i = 0; i < pixelsLength; i++) {
-			int rgb1 = Pixels[i];
-			int rgb2 = Pixels[pixelsLength + i];
-			// This clever formula just computes the byte-by-byte averages.
-			Pixels[i] = (rgb1 & rgb2) + ((rgb1 ^ rgb2) >> 1 & 0x7f7f7f);
-		}
-		return true;
+		if (contentLength != 13824)
+			return false;
+		SetSize(256, 192, RECOILResolution.Zx1x1);
+		DecodeZx(content, 0, 0x1800, 0);
+		DecodeZx(content, 0x1b00, 0x3300, 256 * 192);
+		return ApplyBlend();
 	}
+
+	// Atari ST formats.
 
 	bool DecodeDoo(byte[] content, int contentLength)
 	{
@@ -1776,7 +1787,7 @@ public class RECOIL
 		return DecodeSt(unpacked, 0, content, 0, content[33]);
 	}
 
-	bool DecodeImg(byte[] content, int contentLength)
+	bool DecodeStImg(byte[] content, int contentLength)
 	{
 		// TODO: content[1] == 3
 		if (contentLength < 17 || content[0] != 0 || content[1] != 1 || content[4] != 0)
@@ -5591,8 +5602,10 @@ public class RECOIL
 		case PACKED_EXT("IGE"):
 			return DecodeIge(content, contentLength);
 		case PACKED_EXT("IMG"):
+			return DecodeStImg(content, contentLength)
+				|| DecodeZxImg(content, contentLength);
 		case PACKED_EXT("XIMG"):
-			return DecodeImg(content, contentLength);
+			return DecodeStImg(content, contentLength);
 		case PACKED_EXT("IMN"):
 			return DecodeAtari8Ice(content, contentLength, false, 18);
 		case PACKED_EXT("ING"):
