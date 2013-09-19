@@ -192,6 +192,7 @@ static const struct Format {
 	{ "MCH", "Graph2Font; up to 176x240, 128 colors" },
 	{ "MCP", "McPainter; 160x200, 16 colors, 2 frames" },
 	{ "MCS", "160x192, 9 colors" },
+	{ "MG8", "MultiArtist; 256x192, 2 frames" },
 	{ "MIC", "Micro Illustrator; up to 160x240, 4 colors" },
 	{ "MIS", "AtariTools-800 missile; 2x240, mono" },
 	{ "MPP", "Multi Palette Picture; up to 416x273, 1 or 2 frames" },

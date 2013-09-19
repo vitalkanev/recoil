@@ -1430,6 +1430,18 @@ public class RECOIL
 		return ApplyBlend();
 	}
 
+	bool DecodeMg8(byte[] content, int contentLength)
+	{
+		if (contentLength != 14080
+		 || content[0] != 'M' || content[1] != 'G' || content[2] != 'H'
+		 || content[3] != 1 || content[4] != 8)
+			return false;
+		SetSize(256, 192, RECOILResolution.Zx1x1);
+		DecodeZx(content, 0x100, 0x3100, 0);
+		DecodeZx(content, 0x1900, 0x3400, 256 * 192);
+		return ApplyBlend();
+	}
+
 	// Atari ST formats.
 
 	bool DecodeDoo(byte[] content, int contentLength)
@@ -5420,6 +5432,7 @@ public class RECOIL
 		case PACKED_EXT("MCH"):
 		case PACKED_EXT("MCP"):
 		case PACKED_EXT("MCS"):
+		case PACKED_EXT("MG8"):
 		case PACKED_EXT("MGP"):
 		case PACKED_EXT("MIC"):
 		case PACKED_EXT("MIS"):
@@ -5636,6 +5649,8 @@ public class RECOIL
 			return DecodeMcp(content, contentLength);
 		case PACKED_EXT("MCS"):
 			return DecodeMcs(content, contentLength);
+		case PACKED_EXT("MG8"):
+			return DecodeMg8(content, contentLength);
 		case PACKED_EXT("MGP"):
 			return DecodeMgp(content, contentLength);
 		case PACKED_EXT("MIC"):
