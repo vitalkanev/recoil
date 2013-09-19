@@ -33,7 +33,8 @@ enum RECOILResolution
 	Ste1x2,
 	Falcon1x1,
 	Portfolio1x1,
-	Amiga1x1
+	Amiga1x1,
+	Zx1x1
 }
 
 enum IceFrameMode
@@ -1188,6 +1189,8 @@ public class RECOIL
 			return "Atari Portfolio";
 		case RECOILResolution.Amiga1x1:
 			return "Amiga";
+		case RECOILResolution.Zx1x1:
+			return "ZX Spectrum";
 		default:
 			throw "Unknown";
 		}
@@ -1344,6 +1347,63 @@ public class RECOIL
 			unpacked[unpackedOffset] = b;
 		}
 		return DecodePgf(unpacked, 1920);
+	}
+
+	// ZX Spectrum formats.
+
+	void DecodeZx(byte[] content, int attributeOffset)
+	{
+		SetSize(256, 192, RECOILResolution.Zx1x1);
+		for (int y = 0; y < 192; y++) {
+			for (int x = 0; x < 256; x++) {
+				// x=CCCCCBBB, y=AARRRLLL -> o=AALLLRRRCCCCC
+				int offset = (y & 0xc0) << 5 | (y & 7) << 8 | (y & 0x38) << 2 | x >> 3;
+				int c = content[offset] >> (~x & 7) & 1;
+				if (attributeOffset >= 0) {
+					// o=AARRRCCCCC
+					offset = (y & 0xf8) << 2 | x >> 3;
+					int a = content[attributeOffset + offset];
+					c = c == 0 ? a >> 3 & 0xf : (a >> 3 & 8) | (a & 7);
+					const int[16] palette = {
+						0x000000,
+						0x0000cd,
+						0xcd0000,
+						0xcd00cd,
+						0x00cd00,
+						0x00cdcd,
+						0xcdcd00,
+						0xcdcdcd,
+						0x000000,
+						0x0000ff,
+						0xff0000,
+						0xff00ff,
+						0x00ff00,
+						0x00ffff,
+						0xffff00,
+						0xffffff
+					};
+					c = palette[c];
+				}
+				else if (c != 0)
+					c = 0xffffff;
+				Pixels[(y << 8) + x] = c;
+			}
+		}
+	}
+
+	bool DecodeScr(byte[] content, int contentLength)
+	{
+		switch (contentLength) {
+		case 6144:
+			DecodeZx(content, -1);
+			return true;
+		case 6912:
+		case 6913: // border color - ignore
+			DecodeZx(content, 0x1800);
+			return true;
+		default:
+			return false;
+		}
 	}
 
 	// Atari ST formats.
@@ -5379,6 +5439,7 @@ public class RECOIL
 		case PACKED_EXT("RM2"):
 		case PACKED_EXT("RM3"):
 		case PACKED_EXT("RM4"):
+		case PACKED_EXT("SCR"):
 		case PACKED_EXT("SGE"):
 		case PACKED_EXT("SHC"):
 		case PACKED_EXT("SHP"):
@@ -5617,6 +5678,8 @@ public class RECOIL
 			return DecodeRm(content, contentLength, 3, RECOILResolution.Xe4x1);
 		case PACKED_EXT("RM4"):
 			return DecodeRm(content, contentLength, 4, RECOILResolution.Xe2x1);
+		case PACKED_EXT("SCR"):
+			return DecodeScr(content, contentLength);
 		case PACKED_EXT("SGE"):
 			return DecodeSge(content, contentLength);
 		case PACKED_EXT("SHC"):

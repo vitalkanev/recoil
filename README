@@ -184,6 +184,11 @@ PI4, PI9:: "Fuckpaint", 320x240 or 320x200, 256 colors.
 TRP:: "EggPaint", 65536 colors.
 TRU:: "IndyPaint", 65536 colors.
 
+ZX Spectrum
+~~~~~~~~~~~
+[horizontal]
+SCR:: 256x192, 15 colors.
+
 "2 frames" above means the picture is composed of two quickly alternating frames so that
 a human perceives more colors (for example black alternated with gray looks like dark gray).
 On Atari 8-bit this technique is commonly (but incorrectly) referred to as "interlace".
