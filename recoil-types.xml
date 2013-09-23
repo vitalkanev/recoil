@@ -60,6 +60,7 @@
 	<type ext="ice" acronym="Interlace Character Editor" />
 	<type ext="icn" />
 	<type ext="iff" acronym="Interchange File Format" />
+	<type ext="ifl" />
 	<type ext="ige" acronym="Interlace Graphics Editor" />
 	<type ext="ilc" />
 	<type ext="img" />

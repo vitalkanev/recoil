@@ -1364,7 +1364,7 @@ public class RECOIL
 
 	// ZX Spectrum formats.
 
-	void DecodeZx(byte[] content, int bitmapOffset, int attributeOffset, int pixelsOffset)
+	void DecodeZx(byte[] content, int bitmapOffset, int attributeOffset, int log2AttributeLines, int pixelsOffset)
 	{
 		for (int y = 0; y < 192; y++) {
 			for (int x = 0; x < 256; x++) {
@@ -1373,7 +1373,7 @@ public class RECOIL
 					: x ^ y) & 1;
 				if (attributeOffset >= 0) {
 					// o=AARRRCCCCC
-					int a = content[attributeOffset + ((y & 0xf8) << 2) + (x >> 3)];
+					int a = content[attributeOffset + (y >> log2AttributeLines << 5) + (x >> 3)];
 					c = c == 0 ? a >> 3 & 0xf : (a >> 3 & 8) | (a & 7);
 					const int[16] palette = {
 						0x000000,
@@ -1407,16 +1407,25 @@ public class RECOIL
 		switch (contentLength) {
 		case 6144:
 			SetSize(256, 192, RECOILResolution.Zx1x1);
-			DecodeZx(content, 0, -1, 0);
+			DecodeZx(content, 0, -1, 3, 0);
 			return true;
 		case 6912:
 		case 6913: // border color - ignore
 			SetSize(256, 192, RECOILResolution.Zx1x1);
-			DecodeZx(content, 0, 0x1800, 0);
+			DecodeZx(content, 0, 0x1800, 3, 0);
 			return true;
 		default:
 			return false;
 		}
+	}
+
+	bool DecodeIfl(byte[] content, int contentLength)
+	{
+		if (contentLength != 9216)
+			return false;
+		SetSize(256, 192, RECOILResolution.Zx1x1);
+		DecodeZx(content, 0, 0x1800, 1, 0);
+		return true;
 	}
 
 	bool DecodeZxImg(byte[] content, int contentLength)
@@ -1424,8 +1433,8 @@ public class RECOIL
 		if (contentLength != 13824)
 			return false;
 		SetSize(256, 192, RECOILResolution.Zx1x1);
-		DecodeZx(content, 0, 0x1800, 0);
-		DecodeZx(content, 0x1b00, 0x3300, 256 * 192);
+		DecodeZx(content, 0, 0x1800, 3, 0);
+		DecodeZx(content, 0x1b00, 0x3300, 3, 256 * 192);
 		return ApplyBlend();
 	}
 
@@ -1436,8 +1445,8 @@ public class RECOIL
 		 || content[3] != 1 || content[4] != 8)
 			return false;
 		SetSize(256, 192, RECOILResolution.Zx1x1);
-		DecodeZx(content, 0x100, 0x3100, 0);
-		DecodeZx(content, 0x1900, 0x3400, 256 * 192);
+		DecodeZx(content, 0x100, 0x3100, 3, 0);
+		DecodeZx(content, 0x1900, 0x3400, 3, 256 * 192);
 		return ApplyBlend();
 	}
 
@@ -1446,7 +1455,7 @@ public class RECOIL
 		if (contentLength != 768)
 			return false;
 		SetSize(256, 192, RECOILResolution.Zx1x1);
-		DecodeZx(content, -1, 0, 0);
+		DecodeZx(content, -1, 0, 3, 0);
 		return true;
 	}
 
@@ -5441,6 +5450,7 @@ public class RECOIL
 		case PACKED_EXT("ICE"):
 		case PACKED_EXT("ICN"):
 		case PACKED_EXT("IFF"):
+		case PACKED_EXT("IFL"):
 		case PACKED_EXT("BL1"):
 		case PACKED_EXT("BL2"):
 		case PACKED_EXT("BL3"):
@@ -5644,6 +5654,8 @@ public class RECOIL
 		case PACKED_EXT("BL2"):
 		case PACKED_EXT("BL3"):
 			return DecodeIff(content, contentLength);
+		case PACKED_EXT("IFL"):
+			return DecodeIfl(content, contentLength);
 		case PACKED_EXT("IGE"):
 			return DecodeIge(content, contentLength);
 		case PACKED_EXT("IMG"):

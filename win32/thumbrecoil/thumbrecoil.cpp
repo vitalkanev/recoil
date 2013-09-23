@@ -96,13 +96,14 @@ static const char extensions[][6] =
 	  ".dc1", ".del", ".dg1", ".dgc", ".dgp", ".dgu", ".din", ".dlm", ".doo", ".dph",
 	  ".drg", ".esc", ".fnt", ".ftc", ".fwa", ".g09", ".g10", ".g11", ".gfb", ".ghg",
 	  ".god", ".gr7", ".gr8", ".gr9", ".hip", ".hpm", ".hr",  ".hr2", ".ice", ".icn",
-	  ".iff", ".ige", ".ilc", ".img", ".imn", ".ing", ".inp", ".int", ".ip2", ".ipc",
-	  ".ir2", ".irg", ".ist", ".jgp", ".max", ".mbg", ".mch", ".mcp", ".mcs", ".mg8",
-	  ".mgp", ".mic", ".mis", ".mpp", ".neo", ".nlq", ".pac", ".pc1", ".pc2", ".pc3",
-	  ".pcs", ".pgc", ".pgf", ".pi1", ".pi2", ".pi3", ".pi4", ".pi9", ".pic", ".pla",
-	  ".plm", ".pmd", ".pzm", ".raw", ".rgb", ".rip", ".rm0", ".rm1", ".rm2", ".rm3",
-	  ".rm4", ".scr", ".sge", ".shc", ".shp", ".spc", ".sps", ".spu", ".sxs", ".tip",
-	  ".tn1", ".tn2", ".tn3", ".tny", ".trp", ".tru", ".vzi", ".wnd", ".ximg", ".xlp" };
+	  ".iff", ".ifl", ".ige", ".ilc", ".img", ".imn", ".ing", ".inp", ".int", ".ip2",
+	  ".ipc", ".ir2", ".irg", ".ist", ".jgp", ".max", ".mbg", ".mch", ".mcp", ".mcs",
+	  ".mg8", ".mgp", ".mic", ".mis", ".mpp", ".neo", ".nlq", ".pac", ".pc1", ".pc2",
+	  ".pc3", ".pcs", ".pgc", ".pgf", ".pi1", ".pi2", ".pi3", ".pi4", ".pi9", ".pic",
+	  ".pla", ".plm", ".pmd", ".pzm", ".raw", ".rgb", ".rip", ".rm0", ".rm1", ".rm2",
+	  ".rm3", ".rm4", ".scr", ".sge", ".shc", ".shp", ".spc", ".sps", ".spu", ".sxs",
+	  ".tip", ".tn1", ".tn2", ".tn3", ".tny", ".trp", ".tru", ".vzi", ".wnd", ".ximg",
+	  ".xlp" };
 #define N_EXTS (int) (sizeof(extensions) / sizeof(extensions[0]))
 
 static HINSTANCE g_hDll;

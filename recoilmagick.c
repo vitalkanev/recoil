@@ -175,6 +175,7 @@ static const struct Format {
 	{ "HR2", "320x200, 5 colors, 2 frames" },
 	{ "ICE", "Interlace Character Editor font, 2 frames" },
 	{ "ICN", "DEGAS Elite Icon or ICE CIN" },
+	{ "IFL", "ZX Spectrum Multicolor 8x2; 256x192, 15 colors" },
 	{ "IGE", "Interlace Graphics Editor; 128x96, 16 colors, 2 frames" },
 	{ "ILC", "80x192, 256 colors, 2 frames" },
 	{ "IMG", "GEM Bit Image or ZX Spectrum GigaScreen" },
