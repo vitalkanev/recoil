@@ -187,6 +187,7 @@ TRU:: "IndyPaint", 65536 colors.
 ZX Spectrum
 ~~~~~~~~~~~
 [horizontal]
+ATR:: Attributes, 256x192, 15 colors.
 IMG:: "GigaScreen", 256x192, 2 frames.
 MG8:: "MultiArtist", 256x192, 2 frames.
 RGB:: 256x192, 8 colors, 3 frames.

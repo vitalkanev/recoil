@@ -1368,13 +1368,12 @@ public class RECOIL
 	{
 		for (int y = 0; y < 192; y++) {
 			for (int x = 0; x < 256; x++) {
-				// x=CCCCCBBB, y=AARRRLLL -> o=AALLLRRRCCCCC
-				int offset = (y & 0xc0) << 5 | (y & 7) << 8 | (y & 0x38) << 2 | x >> 3;
-				int c = content[bitmapOffset + offset] >> (~x & 7) & 1;
+				int c = (bitmapOffset >= 0
+					? content[bitmapOffset + ((y & 0xc0) << 5) + ((y & 7) << 8) + ((y & 0x38) << 2) + (x >> 3)] >> (~x & 7) // x=CCCCCBBB, y=AARRRLLL -> o=AALLLRRRCCCCC
+					: x ^ y) & 1;
 				if (attributeOffset >= 0) {
 					// o=AARRRCCCCC
-					offset = (y & 0xf8) << 2 | x >> 3;
-					int a = content[attributeOffset + offset];
+					int a = content[attributeOffset + ((y & 0xf8) << 2) + (x >> 3)];
 					c = c == 0 ? a >> 3 & 0xf : (a >> 3 & 8) | (a & 7);
 					const int[16] palette = {
 						0x000000,
@@ -1440,6 +1439,15 @@ public class RECOIL
 		DecodeZx(content, 0x100, 0x3100, 0);
 		DecodeZx(content, 0x1900, 0x3400, 256 * 192);
 		return ApplyBlend();
+	}
+
+	bool DecodeAtr(byte[] content, int contentLength)
+	{
+		if (contentLength != 768)
+			return false;
+		SetSize(256, 192, RECOILResolution.Zx1x1);
+		DecodeZx(content, -1, 0, 0);
+		return true;
 	}
 
 	bool DecodeZxRgb(byte[] content, int contentLength)
@@ -5392,6 +5400,7 @@ public class RECOIL
 		case PACKED_EXT("APL"):
 		case PACKED_EXT("APP"):
 		case PACKED_EXT("ART"):
+		case PACKED_EXT("ATR"):
 		case PACKED_EXT("BG9"):
 		case PACKED_EXT("G09"):
 		case PACKED_EXT("BKG"):
@@ -5554,6 +5563,8 @@ public class RECOIL
 			return DecodeArtDirector(content, contentLength)
 				|| DecodeAtari8Artist(content, contentLength)
 				|| DecodeAsciiArtEditor(content, contentLength);
+		case PACKED_EXT("ATR"):
+			return DecodeAtr(content, contentLength);
 		case PACKED_EXT("BG9"):
 		case PACKED_EXT("G09"):
 			return DecodeG09(content, contentLength);

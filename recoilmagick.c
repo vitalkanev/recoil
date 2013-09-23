@@ -130,6 +130,7 @@ static const struct Format {
 	{ "APP", "80x192, 256 colors, 2 frames, compressed" },
 	{ "APV", "80x192, 256 colors, 2 frames" },
 	{ "ART", "Art Director or Ascii-Art Editor or Artist by David Eaton" },
+	{ "ATR", "ZX Spectrum attributes" },
 	{ "BG9", "160x192, 16-level grayscale" },
 	{ "BKG", "Movie Maker background; 160x96, 4 colors" },
 	{ "BL1", "DEGAS Elite block; 16 colors" },
