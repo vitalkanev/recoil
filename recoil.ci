@@ -1438,15 +1438,32 @@ public class RECOIL
 		return ApplyBlend();
 	}
 
-	bool DecodeMg8(byte[] content, int contentLength)
+	bool DecodeMg(byte[] content, int contentLength)
 	{
-		if (contentLength != 14080
+		if (contentLength < 14080
 		 || content[0] != 'M' || content[1] != 'G' || content[2] != 'H'
-		 || content[3] != 1 || content[4] != 8)
+		 || content[3] != 1)
+			return false;
+		int log2AttributeLines;
+		// this should match filename extension, but let's rely on file content
+		switch (content[4]) {
+		case 2:
+			log2AttributeLines = 1;
+			break;
+		case 4:
+			log2AttributeLines = 2;
+			break;
+		case 8:
+			log2AttributeLines = 3;
+			break;
+		default:
+			return false;
+		}
+		if (contentLength != 256 + 2 * 6144 + (2 * 6144 >> log2AttributeLines))
 			return false;
 		SetSize(256, 192, RECOILResolution.Zx1x1);
-		DecodeZx(content, 0x100, 0x3100, 3, 0);
-		DecodeZx(content, 0x1900, 0x3400, 3, 256 * 192);
+		DecodeZx(content, 0x100, 0x3100, log2AttributeLines, 0);
+		DecodeZx(content, 0x1900, 0x3100 + (6144 >> log2AttributeLines), log2AttributeLines, 256 * 192);
 		return ApplyBlend();
 	}
 
@@ -1472,7 +1489,7 @@ public class RECOIL
 				for (int frame = 0; frame < 3; frame++) {
 					c <<= 8;
 					if ((content[frame * 0x1800 + offset] >> (~x & 7) & 1) != 0)
-						c |= 0xff;
+						c |= 0xff; // probably too bright, but 0x55 seems too dark?
 				}
 				Pixels[(y << 8) + x] = c;
 			}
@@ -5472,6 +5489,8 @@ public class RECOIL
 		case PACKED_EXT("MCH"):
 		case PACKED_EXT("MCP"):
 		case PACKED_EXT("MCS"):
+		case PACKED_EXT("MG2"):
+		case PACKED_EXT("MG4"):
 		case PACKED_EXT("MG8"):
 		case PACKED_EXT("MGP"):
 		case PACKED_EXT("MIC"):
@@ -5693,8 +5712,10 @@ public class RECOIL
 			return DecodeMcp(content, contentLength);
 		case PACKED_EXT("MCS"):
 			return DecodeMcs(content, contentLength);
+		case PACKED_EXT("MG2"):
+		case PACKED_EXT("MG4"):
 		case PACKED_EXT("MG8"):
-			return DecodeMg8(content, contentLength);
+			return DecodeMg(content, contentLength);
 		case PACKED_EXT("MGP"):
 			return DecodeMgp(content, contentLength);
 		case PACKED_EXT("MIC"):
