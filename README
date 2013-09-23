@@ -189,6 +189,7 @@ ZX Spectrum
 [horizontal]
 IMG:: "GigaScreen", 256x192, 2 frames.
 MG8:: "MultiArtist", 256x192, 2 frames.
+RGB:: 256x192, 8 colors, 3 frames.
 SCR:: 256x192, 15 colors.
 
 "2 frames" above means the picture is composed of two quickly alternating frames so that

@@ -1442,6 +1442,27 @@ public class RECOIL
 		return ApplyBlend();
 	}
 
+	bool DecodeZxRgb(byte[] content, int contentLength)
+	{
+		if (contentLength != 18432)
+			return false;
+		SetSize(256, 192, RECOILResolution.Zx1x1);
+		Frames = 3;
+		for (int y = 0; y < 192; y++) {
+			for (int x = 0; x < 256; x++) {
+				int offset = (y & 0xc0) << 5 | (y & 7) << 8 | (y & 0x38) << 2 | x >> 3;
+				int c = 0;
+				for (int frame = 0; frame < 3; frame++) {
+					c <<= 8;
+					if ((content[frame * 0x1800 + offset] >> (~x & 7) & 1) != 0)
+						c |= 0xff;
+				}
+				Pixels[(y << 8) + x] = c;
+			}
+		}
+		return true;
+	}
+
 	// Atari ST formats.
 
 	bool DecodeDoo(byte[] content, int contentLength)
@@ -4888,7 +4909,7 @@ public class RECOIL
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
-	void DecodeRgbScreen(byte[] screens, int screensOffset, int color, byte[] frame)
+	void DecodeAtari8RgbScreen(byte[] screens, int screensOffset, int color, byte[] frame)
 	{
 		if (Resolution == RECOILResolution.Xe4x1) {
 			GtiaColors[8] = color;
@@ -4903,7 +4924,7 @@ public class RECOIL
 		}
 	}
 
-	bool DecodeRgb(byte[] content, int contentLength)
+	bool DecodeAtari8Rgb(byte[] content, int contentLength)
 	{
 		if (contentLength < 9 || !IsStringAt(content, 0, "RGB1"))
 			return false;
@@ -4947,11 +4968,11 @@ public class RECOIL
 		}
 
 		byte[320 * 192] frame1;
-		DecodeRgbScreen(screens, 0, 0x30, frame1);
+		DecodeAtari8RgbScreen(screens, 0, 0x30, frame1);
 		byte[320 * 192] frame2;
-		DecodeRgbScreen(screens, 40 * 192, 0xc0, frame2);
+		DecodeAtari8RgbScreen(screens, 40 * 192, 0xc0, frame2);
 		byte[320 * 192] frame3;
-		DecodeRgbScreen(screens, 2 * 40 * 192, 0x70, frame3);
+		DecodeAtari8RgbScreen(screens, 2 * 40 * 192, 0x70, frame3);
 		return ApplyAtari8PaletteBlend3(frame1, frame2, frame3);
 	}
 
@@ -5693,7 +5714,8 @@ public class RECOIL
 		case PACKED_EXT("RAW"):
 			return DecodeRaw(content, contentLength);
 		case PACKED_EXT("RGB"):
-			return DecodeRgb(content, contentLength);
+			return DecodeAtari8Rgb(content, contentLength)
+				|| DecodeZxRgb(content, contentLength);
 		case PACKED_EXT("RIP"):
 			return DecodeRip(content, contentLength);
 		case PACKED_EXT("RM0"):

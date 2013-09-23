@@ -216,7 +216,7 @@ static const struct Format {
 	{ "PMD", "PMG Designer by Henryk Karpowicz" },
 	{ "PZM", "EscalPaint; 80x192, 256 colors, 2 frames" },
 	{ "RAW", "XL-Paint MAX; 160x192, 16 colors, 2 frames" },
-	{ "RGB", "ColorViewSquash; up to 160x192; 3 frames" },
+	{ "RGB", "Atari 8-bit or ZX Spectrum; 3 frames" },
 	{ "RIP", "Rocky Interlace Picture; up to 320x239, 1 or 2 frames" },
 	{ "RM0", "Rambrandt; 160x96, 99 colors" },
 	{ "RM1", "Rambrandt; 80x192, 256 colors" },

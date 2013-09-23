@@ -102,7 +102,7 @@
 	<type ext="pmd" acronym="PMg Designer" />
 	<type ext="pzm" />
 	<type ext="raw" />
-	<type ext="rgb" />
+	<type ext="rgb" acronym="Red Green Blue" />
 	<type ext="rip" acronym="Rocky Interlace Picture" />
 	<type ext="rm0" />
 	<type ext="rm1" />
