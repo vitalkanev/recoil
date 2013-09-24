@@ -191,6 +191,7 @@ static const struct Format {
 	{ "JGP", "Jet Graphics Planner; 8x16 tiles, 4 colors" },
 	{ "MAX", "XL-Paint MAX; 160x192, 2 frames, compressed" },
 	{ "MBG", "Mad Designer; 512x256, mono" },
+	{ "MC", "Multicolor 8x1; 256x192, 15 colors" },
 	{ "MCH", "Graph2Font; up to 176x240, 128 colors" },
 	{ "MCP", "McPainter; 160x200, 16 colors, 2 frames" },
 	{ "MCS", "160x192, 9 colors" },

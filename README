@@ -190,6 +190,7 @@ ZX Spectrum
 ATR:: Attributes, 256x192, 15 colors.
 IFL:: Multicolor 8x2, 256x192, 15 colors.
 IMG:: "GigaScreen", 256x192, 2 frames.
+MC:: Multicolor 8x1, 256x192, 15 colors.
 MG2:: "MultiArtist", 256x192, 2 frames.
 MG4:: "MultiArtist", 256x192, 2 frames.
 MG8:: "MultiArtist", 256x192, 2 frames.

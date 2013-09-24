@@ -1364,13 +1364,27 @@ public class RECOIL
 
 	// ZX Spectrum formats.
 
+	const int ZxBitmapCheckerboard = -2;
+	const int ZxBitmapLinear = -1;
+
 	void DecodeZx(byte[] content, int bitmapOffset, int attributeOffset, int log2AttributeLines, int pixelsOffset)
 	{
 		for (int y = 0; y < 192; y++) {
 			for (int x = 0; x < 256; x++) {
-				int c = (bitmapOffset >= 0
-					? content[bitmapOffset + ((y & 0xc0) << 5) + ((y & 7) << 8) + ((y & 0x38) << 2) + (x >> 3)] >> (~x & 7) // x=CCCCCBBB, y=AARRRLLL -> o=AALLLRRRCCCCC
-					: x ^ y) & 1;
+				int c;
+				switch (bitmapOffset) {
+				case ZxBitmapCheckerboard:
+					c = x ^ y;
+					break;
+				case ZxBitmapLinear:
+					c = content[y << 5 | x >> 3] >> (~x & 7);
+					break;
+				default:
+					// x=CCCCCBBB, y=AARRRLLL -> o=AALLLRRRCCCCC
+					c = content[bitmapOffset + ((y & 0xc0) << 5) + ((y & 7) << 8) + ((y & 0x38) << 2) + (x >> 3)] >> (~x & 7);
+					break;
+				}
+				c &= 1;
 				if (attributeOffset >= 0) {
 					// o=AARRRCCCCC
 					int a = content[attributeOffset + (y >> log2AttributeLines << 5) + (x >> 3)];
@@ -1428,6 +1442,15 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeMc(byte[] content, int contentLength)
+	{
+		if (contentLength != 12288)
+			return false;
+		SetSize(256, 192, RECOILResolution.Zx1x1);
+		DecodeZx(content, ZxBitmapLinear, 0x1800, 0, 0);
+		return true;
+	}
+
 	bool DecodeZxImg(byte[] content, int contentLength)
 	{
 		if (contentLength != 13824)
@@ -1472,7 +1495,7 @@ public class RECOIL
 		if (contentLength != 768)
 			return false;
 		SetSize(256, 192, RECOILResolution.Zx1x1);
-		DecodeZx(content, -1, 0, 3, 0);
+		DecodeZx(content, ZxBitmapCheckerboard, 0, 3, 0);
 		return true;
 	}
 
@@ -5486,6 +5509,7 @@ public class RECOIL
 		case PACKED_EXT("JGP"):
 		case PACKED_EXT("MAX"):
 		case PACKED_EXT("MBG"):
+		case PACKED_EXT("MC"):
 		case PACKED_EXT("MCH"):
 		case PACKED_EXT("MCP"):
 		case PACKED_EXT("MCS"):
@@ -5706,6 +5730,8 @@ public class RECOIL
 			return DecodeMax(content, contentLength);
 		case PACKED_EXT("MBG"):
 			return DecodeMbg(content, contentLength);
+		case PACKED_EXT("MC"):
+			return DecodeMc(content, contentLength);
 		case PACKED_EXT("MCH"):
 			return DecodeMch(content, contentLength);
 		case PACKED_EXT("MCP"):

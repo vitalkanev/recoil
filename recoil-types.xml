@@ -76,6 +76,7 @@
 	<type ext="jgp" acronym="Jet Graphics Planner" />
 	<type ext="max" />
 	<type ext="mbg" />
+	<type ext="mc" acronym="MultiColor" />
 	<type ext="mch" />
 	<type ext="mcp" acronym="MCPainter" />
 	<type ext="mcs" />
