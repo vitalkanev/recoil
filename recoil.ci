@@ -1367,8 +1367,9 @@ public class RECOIL
 	const int ZxBitmapCheckerboard = -2;
 	const int ZxBitmapLinear = -1;
 
-	const int ZxAttributesNone = -2;
-	const int ZxAttributesMg1 = -1;
+	const int ZxAttributesNone = -3;
+	const int ZxAttributesMg1 = -2;
+	const int ZxAttributesTimex = -1;
 	const int ZxAttributes8x1 = 0;
 	const int ZxAttributes8x2 = 1;
 	const int ZxAttributes8x4 = 2;
@@ -1418,7 +1419,8 @@ public class RECOIL
 				}
 				else {
 					int a;
-					if (attributesMode == ZxAttributesMg1) {
+					switch (attributesMode) {
+					case ZxAttributesMg1:
 						// MG1 file format:
 						// 0x0000 hdr
 						// 0x0100 scr1
@@ -1433,10 +1435,14 @@ public class RECOIL
 							a = (attributesOffset == 0x4900 ? 0x3100 - 8 : 0x3d00 - 8) + (y << 4);
 						else
 							a = attributesOffset + (y >> 3 << 4) - 16;
-					}
-					else {
+						break;
+					case ZxAttributesTimex:
+						a = attributesOffset + ((y & 0xc0) << 5) + ((y & 7) << 8) + ((y & 0x38) << 2);
+						break;
+					default:
 						// linear 8x1, 8x2, 8x4, 8x8
 						a = attributesOffset + (y >> attributesMode << 5);
+						break;
 					}
 					a = content[a + col];
 					c = c == 0 ? a >> 3 & 0xf : (a >> 3 & 8) | (a & 7);
@@ -1458,6 +1464,10 @@ public class RECOIL
 		case 6913: // border color - ignore
 			SetSize(256, 192, RECOILResolution.Zx1x1);
 			DecodeZx(content, 0, 0x1800, ZxAttributes8x8, 0);
+			return true;
+		case 12288:
+			SetSize(256, 192, RECOILResolution.Zx1x1);
+			DecodeZx(content, 0, 0x1800, ZxAttributesTimex, 0);
 			return true;
 		default:
 			return false;
