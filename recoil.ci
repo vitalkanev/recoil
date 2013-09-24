@@ -1367,50 +1367,81 @@ public class RECOIL
 	const int ZxBitmapCheckerboard = -2;
 	const int ZxBitmapLinear = -1;
 
-	void DecodeZx(byte[] content, int bitmapOffset, int attributeOffset, int log2AttributeLines, int pixelsOffset)
+	const int ZxAttributesNone = -2;
+	const int ZxAttributesMg1 = -1;
+	const int ZxAttributes8x1 = 0;
+	const int ZxAttributes8x2 = 1;
+	const int ZxAttributes8x4 = 2;
+	const int ZxAttributes8x8 = 3;
+
+	void DecodeZx(byte[] content, int bitmapOffset, int attributesOffset, int attributesMode, int pixelsOffset)
 	{
 		for (int y = 0; y < 192; y++) {
 			for (int x = 0; x < 256; x++) {
+				int col = x >> 3;
+				const int[16] palette = {
+					0x000000,
+					0x0000cd,
+					0xcd0000,
+					0xcd00cd,
+					0x00cd00,
+					0x00cdcd,
+					0xcdcd00,
+					0xcdcdcd,
+					0x000000,
+					0x0000ff,
+					0xff0000,
+					0xff00ff,
+					0x00ff00,
+					0x00ffff,
+					0xffff00,
+					0xffffff
+				};
 				int c;
 				switch (bitmapOffset) {
 				case ZxBitmapCheckerboard:
 					c = x ^ y;
 					break;
 				case ZxBitmapLinear:
-					c = content[y << 5 | x >> 3] >> (~x & 7);
+					c = content[y << 5 | col] >> (~x & 7);
 					break;
 				default:
 					// x=CCCCCBBB, y=AARRRLLL -> o=AALLLRRRCCCCC
-					c = content[bitmapOffset + ((y & 0xc0) << 5) + ((y & 7) << 8) + ((y & 0x38) << 2) + (x >> 3)] >> (~x & 7);
+					c = content[bitmapOffset + ((y & 0xc0) << 5) + ((y & 7) << 8) + ((y & 0x38) << 2) + col] >> (~x & 7);
 					break;
 				}
 				c &= 1;
-				if (attributeOffset >= 0) {
-					// o=AARRRCCCCC
-					int a = content[attributeOffset + (y >> log2AttributeLines << 5) + (x >> 3)];
+				if (attributesMode == ZxAttributesNone) {
+					// black and white
+					if (c != 0)
+						c = 0xffffff;
+				}
+				else {
+					int a;
+					if (attributesMode == ZxAttributesMg1) {
+						// MG1 file format:
+						// 0x0000 hdr
+						// 0x0100 scr1
+						// 0x1900 scr2
+						// 0x3100 att1 8x1, 16 columns (8..23) * 192 rows
+						// 0x3d00 att2 8x1, 16 columns (8..23) * 192 rows
+						// 0x4900 att1 8x8, 16 columns (0..7,24..31) * 24 rows
+						// 0x4a80 att2 8x8, 16 columns (0..7,24..31) * 24 rows
+						if (col < 8)
+							a = attributesOffset + (y >> 3 << 4);
+						else if (col < 24)
+							a = (attributesOffset == 0x4900 ? 0x3100 - 8 : 0x3d00 - 8) + (y << 4);
+						else
+							a = attributesOffset + (y >> 3 << 4) - 16;
+					}
+					else {
+						// linear 8x1, 8x2, 8x4, 8x8
+						a = attributesOffset + (y >> attributesMode << 5);
+					}
+					a = content[a + col];
 					c = c == 0 ? a >> 3 & 0xf : (a >> 3 & 8) | (a & 7);
-					const int[16] palette = {
-						0x000000,
-						0x0000cd,
-						0xcd0000,
-						0xcd00cd,
-						0x00cd00,
-						0x00cdcd,
-						0xcdcd00,
-						0xcdcdcd,
-						0x000000,
-						0x0000ff,
-						0xff0000,
-						0xff00ff,
-						0x00ff00,
-						0x00ffff,
-						0xffff00,
-						0xffffff
-					};
 					c = palette[c];
 				}
-				else if (c != 0)
-					c = 0xffffff;
 				Pixels[pixelsOffset + (y << 8) + x] = c;
 			}
 		}
@@ -1421,12 +1452,12 @@ public class RECOIL
 		switch (contentLength) {
 		case 6144:
 			SetSize(256, 192, RECOILResolution.Zx1x1);
-			DecodeZx(content, 0, -1, 3, 0);
+			DecodeZx(content, 0, -1, ZxAttributesNone, 0);
 			return true;
 		case 6912:
 		case 6913: // border color - ignore
 			SetSize(256, 192, RECOILResolution.Zx1x1);
-			DecodeZx(content, 0, 0x1800, 3, 0);
+			DecodeZx(content, 0, 0x1800, ZxAttributes8x8, 0);
 			return true;
 		default:
 			return false;
@@ -1438,7 +1469,7 @@ public class RECOIL
 		if (contentLength != 9216)
 			return false;
 		SetSize(256, 192, RECOILResolution.Zx1x1);
-		DecodeZx(content, 0, 0x1800, 1, 0);
+		DecodeZx(content, 0, 0x1800, ZxAttributes8x2, 0);
 		return true;
 	}
 
@@ -1447,7 +1478,7 @@ public class RECOIL
 		if (contentLength != 12288)
 			return false;
 		SetSize(256, 192, RECOILResolution.Zx1x1);
-		DecodeZx(content, ZxBitmapLinear, 0x1800, 0, 0);
+		DecodeZx(content, ZxBitmapLinear, 0x1800, ZxAttributes8x1, 0);
 		return true;
 	}
 
@@ -1456,8 +1487,8 @@ public class RECOIL
 		if (contentLength != 13824)
 			return false;
 		SetSize(256, 192, RECOILResolution.Zx1x1);
-		DecodeZx(content, 0, 0x1800, 3, 0);
-		DecodeZx(content, 0x1b00, 0x3300, 3, 256 * 192);
+		DecodeZx(content, 0, 0x1800, ZxAttributes8x8, 0);
+		DecodeZx(content, 0x1b00, 0x3300, ZxAttributes8x8, 256 * 192);
 		return ApplyBlend();
 	}
 
@@ -1467,26 +1498,33 @@ public class RECOIL
 		 || content[0] != 'M' || content[1] != 'G' || content[2] != 'H'
 		 || content[3] != 1)
 			return false;
-		int log2AttributeLines;
+		int attributesMode;
 		// this should match filename extension, but let's rely on file content
 		switch (content[4]) {
+		case 1:
+			if (contentLength != 19456)
+				return false;
+			SetSize(256, 192, RECOILResolution.Zx1x1);
+			DecodeZx(content, 0x100, 0x4900, ZxAttributesMg1, 0);
+			DecodeZx(content, 0x1900, 0x4a80, ZxAttributesMg1, 256 * 192);
+			return ApplyBlend();
 		case 2:
-			log2AttributeLines = 1;
+			attributesMode = ZxAttributes8x2;
 			break;
 		case 4:
-			log2AttributeLines = 2;
+			attributesMode = ZxAttributes8x4;
 			break;
 		case 8:
-			log2AttributeLines = 3;
+			attributesMode = ZxAttributes8x8;
 			break;
 		default:
 			return false;
 		}
-		if (contentLength != 256 + 2 * 6144 + (2 * 6144 >> log2AttributeLines))
+		if (contentLength != 256 + 2 * 6144 + (2 * 6144 >> attributesMode))
 			return false;
 		SetSize(256, 192, RECOILResolution.Zx1x1);
-		DecodeZx(content, 0x100, 0x3100, log2AttributeLines, 0);
-		DecodeZx(content, 0x1900, 0x3100 + (6144 >> log2AttributeLines), log2AttributeLines, 256 * 192);
+		DecodeZx(content, 0x100, 0x3100, attributesMode, 0);
+		DecodeZx(content, 0x1900, 0x3100 + (6144 >> attributesMode), attributesMode, 256 * 192);
 		return ApplyBlend();
 	}
 
@@ -1495,7 +1533,7 @@ public class RECOIL
 		if (contentLength != 768)
 			return false;
 		SetSize(256, 192, RECOILResolution.Zx1x1);
-		DecodeZx(content, ZxBitmapCheckerboard, 0, 3, 0);
+		DecodeZx(content, ZxBitmapCheckerboard, 0, ZxAttributes8x8, 0);
 		return true;
 	}
 
@@ -5541,6 +5579,7 @@ public class RECOIL
 		case PACKED_EXT("MCH"):
 		case PACKED_EXT("MCP"):
 		case PACKED_EXT("MCS"):
+		case PACKED_EXT("MG1"):
 		case PACKED_EXT("MG2"):
 		case PACKED_EXT("MG4"):
 		case PACKED_EXT("MG8"):
@@ -5770,6 +5809,7 @@ public class RECOIL
 			return DecodeMcp(content, contentLength);
 		case PACKED_EXT("MCS"):
 			return DecodeMcs(content, contentLength);
+		case PACKED_EXT("MG1"):
 		case PACKED_EXT("MG2"):
 		case PACKED_EXT("MG4"):
 		case PACKED_EXT("MG8"):

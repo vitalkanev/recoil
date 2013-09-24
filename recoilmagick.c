@@ -198,6 +198,7 @@ static const struct Format {
 	{ "MCH", "Graph2Font; up to 176x240, 128 colors" },
 	{ "MCP", "McPainter; 160x200, 16 colors, 2 frames" },
 	{ "MCS", "160x192, 9 colors" },
+	{ "MG1", "MultiArtist; 256x192, 2 frames" },
 	{ "MG2", "MultiArtist; 256x192, 2 frames" },
 	{ "MG4", "MultiArtist; 256x192, 2 frames" },
 	{ "MG8", "MultiArtist; 256x192, 2 frames" },

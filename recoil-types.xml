@@ -83,6 +83,7 @@
 	<type ext="mch" />
 	<type ext="mcp" acronym="MCPainter" />
 	<type ext="mcs" />
+	<type ext="mg1" />
 	<type ext="mg2" />
 	<type ext="mg4" />
 	<type ext="mg8" />
