@@ -1520,6 +1520,31 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeCh8(byte[] content, int contentLength)
+	{
+		int height;
+		switch (contentLength) {
+		case 768:
+			height = 24;
+			break;
+		case 2048:
+			height = 64;
+			break;
+		default:
+			return false;
+		}
+		SetSize(256, height, RECOILResolution.Zx1x1);
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < 256; x++) {
+				int c = content[((y & ~7) << 5) | (x & ~7) | (y & 7)] >> (~x & 7) & 1;
+				if (c != 0)
+					c = 0xffffff;
+				Pixels[(y << 8) + x] = c;
+			}
+		}
+		return true;
+	}
+
 	// Atari ST formats.
 
 	bool DecodeDoo(byte[] content, int contentLength)
@@ -5458,6 +5483,9 @@ public class RECOIL
 		case PACKED_EXT("CA2"):
 		case PACKED_EXT("CA3"):
 		case PACKED_EXT("CCI"):
+		case PACKED_EXT("CH4"):
+		case PACKED_EXT("CH6"):
+		case PACKED_EXT("CH8"):
 		case PACKED_EXT("CHR"):
 		case PACKED_EXT("CIN"):
 		case PACKED_EXT("CPR"):
@@ -5631,6 +5659,10 @@ public class RECOIL
 			return DecodeCa(content, contentLength);
 		case PACKED_EXT("CCI"):
 			return DecodeCci(content, contentLength);
+		case PACKED_EXT("CH4"):
+		case PACKED_EXT("CH6"):
+		case PACKED_EXT("CH8"):
+			return DecodeCh8(content, contentLength);
 		case PACKED_EXT("CHR"):
 			return DecodeChr(content, contentLength);
 		case PACKED_EXT("CIN"):

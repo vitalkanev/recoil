@@ -188,6 +188,9 @@ ZX Spectrum
 ~~~~~~~~~~~
 [horizontal]
 ATR:: Attributes, 256x192, 15 colors.
+CH4:: 4x8 font, mono.
+CH6:: 6x8 font, mono.
+CH8:: 8x8 font, mono.
 IFL:: Multicolor 8x2, 256x192, 15 colors.
 IMG:: "GigaScreen", 256x192, 2 frames.
 MC:: Multicolor 8x1, 256x192, 15 colors.

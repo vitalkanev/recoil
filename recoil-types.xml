@@ -25,6 +25,9 @@
 	<type ext="ca2" acronym="CrackArt" />
 	<type ext="ca3" acronym="CrackArt" />
 	<type ext="cci" acronym="Compressed Champions' Interlace" />
+	<type ext="ch4" />
+	<type ext="ch6" />
+	<type ext="ch8" />
 	<type ext="chr" />
 	<type ext="cin" acronym="Champions' INterlace" />
 	<type ext="cpr" />
