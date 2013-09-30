@@ -1,4 +1,4 @@
-<recoil-types>
+﻿<recoil-types>
 	<type ext="256" />
 	<type ext="4mi" acronym="4 MIssiles" />
 	<type ext="4pl" acronym="4 PLayers" />
@@ -77,6 +77,7 @@
 	<type ext="irg" />
 	<type ext="ist" acronym="Interlace STudio" />
 	<type ext="jgp" acronym="Jet Graphics Planner" />
+	<type ext="leo" acronym="Larka Edytor Obiektów" />
 	<type ext="max" />
 	<type ext="mbg" />
 	<type ext="mc" acronym="MultiColor" />

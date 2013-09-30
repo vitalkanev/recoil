@@ -192,6 +192,7 @@ static const struct Format {
 	{ "IRG", "Super IRG; 160x192, 15 colors, 2 frames" },
 	{ "IST", "Interlace Studio; 160x200, 2 frames" },
 	{ "JGP", "Jet Graphics Planner; 8x16 tiles, 4 colors" },
+	{ "LEO", "Larka Edytor Obiektow trybu $4+; 8x16 tiles, 5 colors" },
 	{ "MAX", "XL-Paint MAX; 160x192, 2 frames, compressed" },
 	{ "MBG", "Mad Designer; 512x256, mono" },
 	{ "MC", "Multicolor 8x1; 256x192, 15 colors" },
