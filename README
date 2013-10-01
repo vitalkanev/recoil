@@ -38,6 +38,7 @@ Supported file formats
 Amiga
 ~~~~~
 [horizontal]
+ACBM:: "Amiga Continuous Bitmap".
 IFF:: "Interchange File Format", compressed.
 
 Atari 8-bit

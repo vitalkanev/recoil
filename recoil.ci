@@ -5584,10 +5584,11 @@ public class RECOIL
 		case PACKED_EXT("ICE"):
 		case PACKED_EXT("ICN"):
 		case PACKED_EXT("IFF"):
-		case PACKED_EXT("IFL"):
+		case PACKED_EXT("ACBM"):
 		case PACKED_EXT("BL1"):
 		case PACKED_EXT("BL2"):
 		case PACKED_EXT("BL3"):
+		case PACKED_EXT("IFL"):
 		case PACKED_EXT("IGE"):
 		case PACKED_EXT("IMG"):
 		case PACKED_EXT("XIMG"):
@@ -5793,6 +5794,7 @@ public class RECOIL
 			return DecodeStIcn(content, contentLength)
 				|| DecodeAtari8Ice(content, contentLength, false, 17);
 		case PACKED_EXT("IFF"):
+		case PACKED_EXT("ACBM"):
 		case PACKED_EXT("BL1"):
 		case PACKED_EXT("BL2"):
 		case PACKED_EXT("BL3"):
