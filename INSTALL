@@ -126,3 +126,17 @@ From the command prompt navigate to the `html5` directory and run:
 --------------------------------------------------------------------------------
 make
 --------------------------------------------------------------------------------
+
+
+Building Android application
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Install http://developer.android.com/sdk/[Android SDK] with an Android platform.
+Edit the paths at the top of `android/Makefile` so that they point to your installed SDK.
+
+Make sure http://cito.sourceforge.net[cito] is on your PATH.
+
+From the command prompt navigate to the `android` directory and run:
+--------------------------------------------------------------------------------
+make
+--------------------------------------------------------------------------------

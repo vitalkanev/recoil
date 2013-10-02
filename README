@@ -11,10 +11,12 @@ http://sourceforge.net/projects/recoil/[SourceForge project page]
 endif::recoilwww[]
 
 RECOIL is a viewer of pictures in native formats of
+http://en.wikipedia.org/wiki/Amiga[Amiga],
 http://en.wikipedia.org/wiki/Atari_8-bit_family[Atari 8-bit],
+http://en.wikipedia.org/wiki/Atari_Portfolio[Atari Portfolio],
 http://en.wikipedia.org/wiki/Atari_ST[Atari ST],
 http://en.wikipedia.org/wiki/Atari_Falcon[Atari Falcon]
-and http://en.wikipedia.org/wiki/Atari_Portfolio[Atari Portfolio] computers.
+and http://en.wikipedia.org/wiki/ZX_Spectrum[ZX Spectrum] computers.
 
 Currently the project includes:
 
@@ -24,6 +26,7 @@ Currently the project includes:
 - plugin for http://www.xnview.com[XnView]
 - (de)coder for http://www.imagemagick.org/[ImageMagick]
 - plugin for http://www.nyam.pe.kr/[Imagine]
+- application for Android
 - http://recoil.sourceforge.net/html5recoil.html[HTML 5 based viewer]
 
 ifdef::recoilwww[]
