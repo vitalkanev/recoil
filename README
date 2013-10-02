@@ -202,6 +202,7 @@ MG4:: "MultiArtist", 256x192, 2 frames.
 MG8:: "MultiArtist", 256x192, 2 frames.
 RGB:: 256x192, 8 colors, 3 frames.
 SCR:: 256x192, 15 colors.
+ZXP:: "ZX-Paintbrush", 256x192, 15 colors.
 
 "2 frames" above means the picture is composed of two quickly alternating frames so that
 a human perceives more colors (for example black alternated with gray looks like dark gray).

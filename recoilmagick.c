@@ -252,7 +252,8 @@ static const struct Format {
 	{ "WND", "Blazing Paddles window; up to 160x192, 4 colors" },
 	{ "VZI", "VertiZontal Interlacing; 160x200, grayscale, 2 frames" },
 	{ "XIMG", "Extended GEM Bit Image; compressed" },
-	{ "XLP", "XL-Paint; 160x192 or 160x200, 7 colors, 2 frames, compressed" }
+	{ "XLP", "XL-Paint; 160x192 or 160x200, 7 colors, 2 frames, compressed" },
+	{ "ZXP", "ZX-Paintbrush; 256x192, 15 colors" }
 };
 
 /* Workaround for MagickCore.h: it omits __declspec(dllexport) for MinGW.

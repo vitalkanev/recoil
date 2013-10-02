@@ -49,6 +49,60 @@ enum IceFrameMode
 	Gr12Gtia11
 }
 
+class ZxpStream
+{
+	byte[] Content;
+	int ContentOffset;
+	int ContentLength;
+
+	int ReadChar()
+	{
+		if (ContentOffset >= ContentLength)
+			return -1;
+		int c = Content[ContentOffset++];
+		// ZXP is CRLF. We support LF just in case.
+		if (c == '\r' && ContentOffset < ContentLength && Content[ContentOffset++] == '\n')
+			return '\n';
+		return c;
+	}
+
+	bool IsEof()
+	{
+		return ContentOffset >= ContentLength;
+	}
+
+	int ReadHexDigit()
+	{
+		// ZX-Paintbrush outputs uppercase, SCRplus outputs lowercase
+		switch (ReadChar()) {
+		case '0': return 0;
+		case '1': return 1;
+		case '2': return 2;
+		case '3': return 3;
+		case '4': return 4;
+		case '5': return 5;
+		case '6': return 6;
+		case '7': return 7;
+		case '8': return 8;
+		case '9': return 9;
+		case 'A':
+		case 'a': return 10;
+		case 'B':
+		case 'b': return 11;
+		case 'C':
+		case 'c': return 12;
+		case 'D':
+		case 'd': return 13;
+		case 'E':
+		case 'e': return 14;
+		case 'F':
+		case 'f': return 15;
+		default:
+			return -1;
+		}
+	}
+}
+
 /// Readable in-memory stream of bits, most-significant bit first.
 class BitStream
 {
@@ -1590,6 +1644,74 @@ public class RECOIL
 				Pixels[(y << 8) + x] = c;
 			}
 		}
+		return true;
+	}
+
+	bool DecodeZxp(byte[] content, int contentLength)
+	{
+		if (contentLength < 51889 - 219 || !IsStringAt(content, 0, "ZX-Paintbrush "))
+			return false;
+		int contentOffset = 14;
+		if (IsStringAt(content, 14, "extended "))
+			contentOffset = 23;
+		if (!IsStringAt(content, contentOffset, "image"))
+			return false;
+		ZxpStream() s;
+		s.Content = content;
+		s.ContentOffset = contentOffset + 5;
+		s.ContentLength = contentLength;
+		if (s.ReadChar() != '\n' || s.ReadChar() != '\n')
+			return false;
+
+		byte[12288] scr;
+		for (int y = 0; y < 192; y++) {
+			int b = 0;
+			for (int x = 0; x < 256; x++) {
+				int bit = ~x & 7;
+				switch (s.ReadChar()) {
+				case '*':
+				case '0':
+					break;
+				case '1':
+					b |= 1 << bit;
+					break;
+				default:
+					return false;
+				}
+				if (bit == 0) {
+					scr[(y << 5) | (x >> 3)] = b;
+					b = 0;
+				}
+			}
+			if (s.ReadChar() != '\n')
+				return false;
+		}
+		if (s.ReadChar() != '\n')
+			return false;
+
+		for (int y = 0; y < 192; y++) {
+			if (y == 24 && s.IsEof()) {
+				SetSize(256, 192, RECOILResolution.Zx1x1);
+				DecodeZx(scr, ZxBitmapLinear, 0x1800, ZxAttributes8x8, 0);
+				return true;
+			}
+			for (int x = 0; x < 32; x++) {
+				int hi = s.ReadHexDigit();
+				if (hi < 0)
+					return false;
+				int lo = s.ReadHexDigit();
+				if (lo < 0)
+					return false;
+				scr[0x1800 + (y << 5) + x] = (hi << 4) + lo;
+				if (s.ReadChar() != (x < 31 ? ' ' : '\n'))
+					return false;
+			}
+		}
+
+		if (!s.IsEof())
+			return false;
+		SetSize(256, 192, RECOILResolution.Zx1x1);
+		DecodeZx(scr, ZxBitmapLinear, 0x1800, ZxAttributes8x1, 0);
 		return true;
 	}
 
@@ -5661,6 +5783,7 @@ public class RECOIL
 		case PACKED_EXT("VZI"):
 		case PACKED_EXT("WND"):
 		case PACKED_EXT("XLP"):
+		case PACKED_EXT("ZXP"):
 			return true;
 		default:
 			return false;
@@ -5937,6 +6060,8 @@ public class RECOIL
 			return DecodeWnd(content, contentLength);
 		case PACKED_EXT("XLP"):
 			return DecodeXlp(content, contentLength);
+		case PACKED_EXT("ZXP"):
+			return DecodeZxp(content, contentLength);
 		default:
 			return false;
 		}

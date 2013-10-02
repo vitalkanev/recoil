@@ -139,4 +139,5 @@
 	<type ext="wnd" />
 	<type ext="ximg" />
 	<type ext="xlp" acronym="XL-Paint" />
+	<type ext="zxp" acronym="ZX-Paintbrush" />
 </recoil-types>
