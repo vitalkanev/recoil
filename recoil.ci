@@ -1418,7 +1418,8 @@ public class RECOIL
 
 	// ZX Spectrum formats.
 
-	const int ZxBitmapCheckerboard = -2;
+	const int ZxBitmapCheckerboard = -3;
+	const int ZxBitmapHlr = -2;
 	const int ZxBitmapLinear = -1;
 
 	const int ZxAttributesNone = -3;
@@ -1456,6 +1457,9 @@ public class RECOIL
 				switch (bitmapOffset) {
 				case ZxBitmapCheckerboard:
 					c = x ^ y;
+					break;
+				case ZxBitmapHlr:
+					c = content[0x54 + (y & 7)] >> (~x & 7);
 					break;
 				case ZxBitmapLinear:
 					c = content[y << 5 | col] >> (~x & 7);
@@ -1599,6 +1603,18 @@ public class RECOIL
 		SetSize(256, 192, RECOILResolution.Zx1x1);
 		DecodeZx(content, ZxBitmapCheckerboard, 0, ZxAttributes8x8, 0);
 		return true;
+	}
+
+	bool DecodeHlr(byte[] content, int contentLength)
+	{
+		// The 84-byte "header" contains code to display the picture. Here we check just a few bytes
+		if (contentLength != 1628 || content[0] != 0x76 || content[1] != 0xaf || content[2] != 0xd3 || content[3] != 0xfe
+		 || content[4] != 0x21 || content[5] != 0x00 || content[6] != 0x58)
+			return false;
+		SetSize(256, 192, RECOILResolution.Zx1x1);
+		DecodeZx(content, ZxBitmapHlr, 0x5c, ZxAttributes8x8, 0);
+		DecodeZx(content, ZxBitmapHlr, 0x35c, ZxAttributes8x8, 256 * 192);
+		return ApplyBlend();
 	}
 
 	bool DecodeZxRgb(byte[] content, int contentLength)
@@ -5700,6 +5716,7 @@ public class RECOIL
 		case PACKED_EXT("GR8"):
 		case PACKED_EXT("GR9"):
 		case PACKED_EXT("HIP"):
+		case PACKED_EXT("HLR"):
 		case PACKED_EXT("HPM"):
 		case PACKED_EXT("HR"):
 		case PACKED_EXT("HR2"):
@@ -5905,6 +5922,8 @@ public class RECOIL
 			return DecodeGr9(content, contentLength);
 		case PACKED_EXT("HIP"):
 			return DecodeHip(content, contentLength);
+		case PACKED_EXT("HLR"):
+			return DecodeHlr(content, contentLength);
 		case PACKED_EXT("HPM"):
 			return DecodeHpm(content, contentLength);
 		case PACKED_EXT("HR"):

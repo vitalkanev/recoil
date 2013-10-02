@@ -95,16 +95,16 @@ static const char extensions[][6] =
 	  ".bl2", ".bl3", ".bru", ".ca1", ".ca2", ".ca3", ".cci", ".ch4", ".ch6", ".ch8",
 	  ".chr", ".cin", ".cpr", ".cpt", ".dc1", ".del", ".dg1", ".dgc", ".dgp", ".dgu",
 	  ".din", ".dlm", ".doo", ".dph", ".drg", ".esc", ".fnt", ".ftc", ".fwa", ".g09",
-	  ".g10", ".g11", ".gfb", ".ghg", ".god", ".gr7", ".gr8", ".gr9", ".hip", ".hpm",
-	  ".hr",  ".hr2", ".ice", ".icn", ".iff", ".ifl", ".ige", ".ilc", ".img", ".imn",
-	  ".ing", ".inp", ".int", ".ip2", ".ipc", ".ir2", ".irg", ".ist", ".jgp", ".leo",
-	  ".max", ".mbg", ".mc",  ".mch", ".mcp", ".mcs", ".mg1", ".mg2", ".mg4", ".mg8",
-	  ".mgp", ".mic", ".mis", ".mpp", ".neo", ".nlq", ".pac", ".pc1", ".pc2", ".pc3",
-	  ".pcs", ".pgc", ".pgf", ".pi1", ".pi2", ".pi3", ".pi4", ".pi9", ".pic", ".pla",
-	  ".plm", ".pmd", ".pzm", ".raw", ".rgb", ".rip", ".rm0", ".rm1", ".rm2", ".rm3",
-	  ".rm4", ".scr", ".sge", ".shc", ".shp", ".spc", ".sps", ".spu", ".sxs", ".tip",
-	  ".tn1", ".tn2", ".tn3", ".tny", ".trp", ".tru", ".vzi", ".wnd", ".ximg", ".xlp",
-	  ".zxp" };
+	  ".g10", ".g11", ".gfb", ".ghg", ".god", ".gr7", ".gr8", ".gr9", ".hip", ".hlr",
+	  ".hpm", ".hr",  ".hr2", ".ice", ".icn", ".iff", ".ifl", ".ige", ".ilc", ".img",
+	  ".imn", ".ing", ".inp", ".int", ".ip2", ".ipc", ".ir2", ".irg", ".ist", ".jgp",
+	  ".leo", ".max", ".mbg", ".mc",  ".mch", ".mcp", ".mcs", ".mg1", ".mg2", ".mg4",
+	  ".mg8", ".mgp", ".mic", ".mis", ".mpp", ".neo", ".nlq", ".pac", ".pc1", ".pc2",
+	  ".pc3", ".pcs", ".pgc", ".pgf", ".pi1", ".pi2", ".pi3", ".pi4", ".pi9", ".pic",
+	  ".pla", ".plm", ".pmd", ".pzm", ".raw", ".rgb", ".rip", ".rm0", ".rm1", ".rm2",
+	  ".rm3", ".rm4", ".scr", ".sge", ".shc", ".shp", ".spc", ".sps", ".spu", ".sxs",
+	  ".tip", ".tn1", ".tn2", ".tn3", ".tny", ".trp", ".tru", ".vzi", ".wnd", ".ximg",
+	  ".xlp", ".zxp" };
 #define N_EXTS (int) (sizeof(extensions) / sizeof(extensions[0]))
 
 static HINSTANCE g_hDll;
