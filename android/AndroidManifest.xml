@@ -96,6 +96,7 @@
 				<data android:pathPattern=".*\\.irg" />
 				<data android:pathPattern=".*\\.ist" />
 				<data android:pathPattern=".*\\.jgp" />
+				<data android:pathPattern=".*\\.lbm" />
 				<data android:pathPattern=".*\\.leo" />
 				<data android:pathPattern=".*\\.max" />
 				<data android:pathPattern=".*\\.mbg" />

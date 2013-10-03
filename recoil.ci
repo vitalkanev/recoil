@@ -5727,6 +5727,7 @@ public class RECOIL
 		case PACKED_EXT("BL1"):
 		case PACKED_EXT("BL2"):
 		case PACKED_EXT("BL3"):
+		case PACKED_EXT("LBM"):
 		case PACKED_EXT("IFL"):
 		case PACKED_EXT("IGE"):
 		case PACKED_EXT("IMG"):
@@ -5940,6 +5941,7 @@ public class RECOIL
 		case PACKED_EXT("BL1"):
 		case PACKED_EXT("BL2"):
 		case PACKED_EXT("BL3"):
+		case PACKED_EXT("LBM"):
 			return DecodeIff(content, contentLength);
 		case PACKED_EXT("IFL"):
 			return DecodeIfl(content, contentLength);

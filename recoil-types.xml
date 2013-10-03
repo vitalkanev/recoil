@@ -79,6 +79,7 @@
 	<type ext="irg" />
 	<type ext="ist" acronym="Interlace STudio" />
 	<type ext="jgp" acronym="Jet Graphics Planner" />
+	<type ext="lbm" />
 	<type ext="leo" acronym="Larka Edytor Obiektów" />
 	<type ext="max" />
 	<type ext="mbg" />

@@ -42,7 +42,7 @@ Amiga
 ~~~~~
 [horizontal]
 ACBM:: "Amiga Continuous Bitmap".
-IFF:: "Interchange File Format", compressed.
+IFF, LBM:: "Interchange File Format" / "Interleaved Bitmap", compressed.
 
 Atari 8-bit
 ~~~~~~~~~~~
