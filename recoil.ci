@@ -2674,13 +2674,13 @@ public class RECOIL
 		return DecodeFalconTrueColorVariable(content, contentLength, 4, 256);
 	}
 
-	void DecodeHam(byte[] unpacked, int width, int height, int bitplanes)
+	void DecodeHam(byte[] unpacked, int bitplanes)
 	{
 		int holdBits = bitplanes > 6 ? 6 : 4;
 		int i = 0;
-		for (int y = 0; y < height; y++) {
+		for (int y = 0; y < Height; y++) {
 			int rgb = Atari16Palette[0];
-			for (int x = 0; x < width; x++) {
+			for (int x = 0; x < Width; x++) {
 				int offset = (i >> 3 & ~1) * bitplanes + (i >> 3 & 1);
 				int bit = ~i & 7;
 				int c = 0;
@@ -2712,14 +2712,8 @@ public class RECOIL
 		}
 	}
 
-	void DecodeIffUnpacked(byte[] unpacked, int width, int height, int bitplanes, int colors, int camg)
+	void DecodeIffUnpacked(byte[] unpacked, int bitplanes, int colors, int camg)
 	{
-		int pixelsCount = width * height;
-		if (camg != 0)
-			SetSize(width, height, RECOILResolution.Amiga1x1);
-		else
-			SetSizeStOrFalcon(width, height, bitplanes);
-
 		if (bitplanes <= 8) {
 			if (colors == 0) {
 				// grayscale
@@ -2737,15 +2731,16 @@ public class RECOIL
 			}
 			if ((camg & 0x800) != 0) {
 				// Amiga Hold-And-Modify
-				DecodeHam(unpacked, width, height, bitplanes);
+				DecodeHam(unpacked, bitplanes);
 			}
 			else {
 				// palette
-				DecodeBitplanes(unpacked, 0, bitplanes, 0, pixelsCount);
+				DecodeBitplanes(unpacked, 0, bitplanes, 0, Width * Height);
 			}
 		}
 		else {
 			// 24-bit or 32-bit true color
+			int pixelsCount = Width * Height;
 			for (int i = 0; i < pixelsCount; i++) {
 				int offset = (i >> 3 & ~1) * bitplanes + (i >> 3 & 1);
 				int bit = ~i & 7;
@@ -2840,6 +2835,7 @@ public class RECOIL
 						}
 						rle.ContentOffset = nextContentOffset;
 					}
+					SetSizeStOrFalcon(width, height, bitplanes);
 				}
 				else {
 					PackBitsStream() rle;
@@ -2866,8 +2862,9 @@ public class RECOIL
 							}
 						}
 					}
+					SetSize(width, height, RECOILResolution.Amiga1x1);
 				}
-				DecodeIffUnpacked(unpacked, width, height, bitplanes, colors, camg);
+				DecodeIffUnpacked(unpacked, bitplanes, colors, camg);
 				return true;
 			}
 			else if (IsStringAt(content, contentOffset, "ABIT")) {
@@ -2881,7 +2878,8 @@ public class RECOIL
 							unpacked[unpackedOffset + x] = content[contentOffset++];
 					}
 				}
-				DecodeIffUnpacked(unpacked, width, height, bitplanes, colors, camg);
+				SetSize(width, height, RECOILResolution.Amiga1x1);
+				DecodeIffUnpacked(unpacked, bitplanes, colors, camg);
 				return true;
 			}
 			contentOffset += 8 + (chunkLength + 1 & ~1); // round up to even bytes
