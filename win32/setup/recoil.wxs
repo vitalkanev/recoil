@@ -252,7 +252,7 @@
 					</Component>
 					<Component Id="thumbrecoilXP.reg" Win64="no">
 						<Condition>VersionNT &lt; 600</Condition>
-						<?foreach EXT in $(var.recoil_EXTS)?>
+						<?foreach EXT in $(var.RECOIL_EXTS)?>
 							<RegistryValue Root="HKCR" Key=".$(var.EXT)\ShellEx\{bb2e617c-0920-11d1-9a0b-00c04fc2d6c1}" Value="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Type="string" Action="write" />
 						<?endforeach?>
 					</Component>
