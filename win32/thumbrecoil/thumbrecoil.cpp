@@ -40,6 +40,8 @@
 
 #define IEIFLAG_CACHE 2
 
+const IID IID_IExtractImage =
+	{ 0xbb2e617c, 0x0920, 0x11d1, { 0x9a, 0x0b, 0x00, 0xc0, 0x4f, 0xc2, 0xd6, 0xc1 } };
 #define INTERFACE IExtractImage
 DECLARE_INTERFACE_(IExtractImage, IUnknown)
 {
@@ -64,9 +66,6 @@ DECLARE_INTERFACE_(IInitializeWithStream, IUnknown)
 #undef INTERFACE
 
 #endif
-
-const IID IID_IExtractImage =
-	{ 0xbb2e617c, 0x0920, 0x11d1, { 0x9a, 0x0b, 0x00, 0xc0, 0x4f, 0xc2, 0xd6, 0xc1 } };
 
 enum WTS_ALPHATYPE
 {
@@ -175,7 +174,7 @@ public:
 		m_pRecoil = RECOIL_New();
 	}
 
-	~CRECOILThumbProvider()
+	virtual ~CRECOILThumbProvider()
 	{
 		if (m_pstream != NULL)
 			m_pstream->Release();
