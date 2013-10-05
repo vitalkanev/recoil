@@ -213,6 +213,10 @@
 			</Property>
 		<?endif?>
 
+		<Property Id="PAINTDOTNET.DIR">
+			<RegistrySearch Id="paintdotnet.dir" Root="HKLM" Key="SOFTWARE\Paint.NET" Name="TARGETDIR" Type="directory" />
+		</Property>
+
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="$(var.PROGRAM_FILES_FOLDER)">
 				<Directory Id="RECOIL.DIR" Name="RECOIL">
@@ -369,6 +373,14 @@
 						</Component>
 					<?endif?>
 				</Directory>
+
+				<Directory Id="PAINTDOTNET.DIR" Name="Paint.NET">
+					<Directory Id="PAINTDOTNETFILETYPES.DIR" Name="FileTypes">
+						<Component Id="RecoilPaintDotNet.dll">
+							<File Name="RecoilPaintDotNet.dll" Source="RecoilPaintDotNet.dll" Checksum="yes" KeyPath="yes" />
+						</Component>
+					</Directory>
+				</Directory>
 			</Directory>
 
 			<Directory Id="ProgramMenuFolder" Name="Programs">
@@ -472,6 +484,11 @@
 				</Feature>
 			</Feature>
 		<?endif?>
+
+		<Feature Id="paintdotnet" Title="Paint.NET plugin" Level="9" ConfigurableDirectory="PAINTDOTNETFILETYPES.DIR" Description="Plugin for Paint.NET" AllowAdvertise="no">
+			<Condition Level="1">PAINTDOTNET.DIR</Condition>
+			<ComponentRef Id="RecoilPaintDotNet.dll" />
+		</Feature>
 
 		<Feature Id="docs" Title="Documentation" Level="1" ConfigurableDirectory="RECOIL.DIR" Description="Documentation file." AllowAdvertise="no">
 			<ComponentRef Id="README_WindowsSetup.html" />

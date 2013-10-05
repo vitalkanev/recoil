@@ -5639,7 +5639,7 @@ public class RECOIL
 	static int GetPackedExt(string filename)
 	{
 		int ext = 0;
-		for (int i = filename.Length; --i > 0; ) {
+		for (int i = filename.Length; --i >= 0; ) {
 			int c = filename[i];
 			if (c == '.')
 				return ext | 0x20202020;

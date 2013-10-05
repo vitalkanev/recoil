@@ -9,6 +9,7 @@ X64_RECOIL_CC = x86_64-w64-mingw32-gcc -s -O2 -Wall -o $@ -I..
 X64_RECOIL_CC_DLL = $(X64_RECOIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
 X64_RECOIL_GPP = x86_64-w64-mingw32-g++ -static -s -O2 -Wall -o $@ -I..
 X64_WINDRES = x86_64-w64-mingw32-windres -o $@
+CSC = C:/Windows/Microsoft.NET/Framework/v3.5/csc.exe -nologo -o+ -out:$@
 RM = rm -f
 UNIX2DOS = unix2dos
 ASCIIDOC_START = asciidoc -o -
@@ -19,8 +20,9 @@ SEVENZIP = 7z a -mx=9
 CANDLE = candle -ext WixUtilExtension -nologo -o $@
 LIGHT = light -ext WixUtilExtension -nologo -o $@ -spdb
 IMAGEMAGICK_X64_INST_DIR = c:\Program Files\ImageMagick-6.8.2-Q16
+PAINT_NET_DIR = c:\Program Files\Paint.NET
 
-WIN32_BIN = recoil2png.exe IM_MOD_RL_recoil_.dll Xrecoil1.usr Xrecoil2.usr Xrecoil3.usr Xrecoil4.usr Xrecoil5.usr Xrecoil6.usr Xrecoil7.usr Xrecoil8.usr Xrecoil9.usr Xrecoil10.usr Xrecoil11.usr Xrecoil12.usr Xrecoil13.usr recoilwin.exe RECOIL.plg
+WIN32_BIN = recoil2png.exe IM_MOD_RL_recoil_.dll Xrecoil1.usr Xrecoil2.usr Xrecoil3.usr Xrecoil4.usr Xrecoil5.usr Xrecoil6.usr Xrecoil7.usr Xrecoil8.usr Xrecoil9.usr Xrecoil10.usr Xrecoil11.usr Xrecoil12.usr Xrecoil13.usr recoilwin.exe RECOIL.plg RecoilPaintDotNet.dll
 
 all: $(WIN32_BIN) thumbrecoil.dll
 
@@ -57,6 +59,12 @@ RECOIL.plg: imagine/recoilimagine.c ../recoil.c ../recoil.h
 x64/RECOIL.plg64: imagine/recoilimagine.c ../recoil.c ../recoil.h
 	test -d x64 || mkdir x64
 	$(X64_RECOIL_CC_DLL) imagine/recoilimagine.c ../recoil.c
+
+RecoilPaintDotNet.dll: paint.net/RecoilPaintDotNet.cs paint.net/RECOIL.cs
+	$(CSC) -t:library paint.net\\RecoilPaintDotNet.cs paint.net\\RECOIL.cs -r:"$(PAINT_NET_DIR)\PaintDotNet.Base.dll" -r:"$(PAINT_NET_DIR)\PaintDotNet.Data.dll"
+
+paint.net/RECOIL.cs: ../recoil.ci ../atari8.fnt ../jakub.act
+	$(CITO) -o $@ -I .. -n Recoil $<
 
 # http://www.cmcrossroads.com/article/rules-multiple-outputs-gnu-make
 %.c %.h: %.ci ../atari8.fnt ../jakub.act
@@ -114,7 +122,7 @@ www: ../../www/index.html
 
 clean:
 	$(RM) $(WIN32_BIN) thumbrecoil.dll recoilwin/recoilwin-res.o COPYING.txt \
-		../README.html README_Windows.html README_WindowsSetup.html setup/recoil.wixobj x64/recoil.wixobj x64/IM_MOD_RL_recoil_.dll x64/thumbrecoil.dll x64/RECOIL.plg64
+		../README.html README_Windows.html README_WindowsSetup.html setup/recoil.wixobj x64/recoil.wixobj x64/IM_MOD_RL_recoil_.dll x64/thumbrecoil.dll x64/RECOIL.plg64 RecoilPaintDotNet.dll
 
 .PHONY: all clean setup x64-setup ../MANIFEST srcdist dist www
 

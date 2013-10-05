@@ -10,7 +10,7 @@ Required tools
 RECOIL is written in the Ć programming language.
 Official releases include translation of RECOIL to C,
 so you only need a C compiler and Make utility.
-For other cases (Git or JavaScript)
+For other cases (Git, Paint.NET, HTML 5 or Android)
 you'll need http://cito.sourceforge.net[cito].
 
 
@@ -114,6 +114,19 @@ w32api and MinGW Make.
 From the command prompt navigate to the `win32` directory and run:
 --------------------------------------------------------------------------------
 mingw32-make
+--------------------------------------------------------------------------------
+
+
+Building Paint.NET plugin on Windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Install .NET Framework 3.5, Paint.NET and MinGW Make.
+
+Make sure http://cito.sourceforge.net[cito] is on your PATH.
+
+From the command prompt navigate to the `win32` directory and run:
+--------------------------------------------------------------------------------
+mingw32-make RecoilPaintDotNet.dll
 --------------------------------------------------------------------------------
 
 
