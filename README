@@ -15,7 +15,8 @@ http://en.wikipedia.org/wiki/Amiga[Amiga],
 http://en.wikipedia.org/wiki/Atari_8-bit_family[Atari 8-bit],
 http://en.wikipedia.org/wiki/Atari_Portfolio[Atari Portfolio],
 http://en.wikipedia.org/wiki/Atari_ST[Atari ST],
-http://en.wikipedia.org/wiki/Atari_Falcon[Atari Falcon]
+http://en.wikipedia.org/wiki/Atari_Falcon[Atari Falcon],
+http://en.wikipedia.org/wiki/Commodore_64[Commodore 64]
 and http://en.wikipedia.org/wiki/ZX_Spectrum[ZX Spectrum] computers.
 
 Currently the project includes:
@@ -189,6 +190,38 @@ GOD:: "GodPaint", 65536 colors.
 PI4, PI9:: "Fuckpaint", 320x240 or 320x200, 256 colors.
 TRP:: "EggPaint", 65536 colors.
 TRU:: "IndyPaint", 65536 colors.
+
+C64
+~~~
+[horizontal]
+ART:: "Art Studio", 320x200, 16 colors.
+CDU:: "CDU-Paint", 160x200, 16 colors.
+CHE:: "Cheese", 160x200, 16 colors.
+CWG:: "Create with Garfield", 160x200, 16 colors.
+DD:: "Doodle", 320x200, 16 colors.
+DOL:: "Dolphin Ed", 160x200, 16 colors.
+DRZ:: "Drazpaint", 160x200, 16 colors.
+FGS:: "Fun Graphics Machine", 320x200, mono.
+FPT:: "Face Painter", 160x200, 16 colors.
+GCD:: "Gigacad", 320x200, mono.
+GIG:: "Gigapaint", 160x200, 16 colors.
+GIH:: "Gigapaint", 320x200, mono.
+HBM, HIR:: Hires-Bitmap, 320x200, mono.
+HED:: "Hi-Eddi", 320x200, 16 colors.
+IPH:: "Interpaint", 320x200, 16 colors.
+IPT:: "Interpaint", 160x200, 16 colors.
+ISM:: "Image System", 160x200, 16 colors.
+KOA:: "Koala Painter", 160x200, 16 colors.
+MIL:: "Micro Illustrator", 160x200, 16 colors.
+MON:: "Mono Magic", 320x200, mono.
+OCP:: "Advanced Art Studio", 160x200, 16 colors.
+P64:: "Picasso 64", 160x200, 16 colors.
+PI:: "Blazing Paddles", 160x200, 16 colors.
+PMG:: "Paint Magic", 160x200, 16 colors.
+RP:: "Rainbow Painter", 160x200, 16 colors.
+RPM:: "Run Paint", 160x200, 16 colors.
+SAR:: "Saracen Paint", 160x200, 16 colors.
+VID:: "Vidcom 64", 160x200, 16 colors.
 
 ZX Spectrum
 ~~~~~~~~~~~
