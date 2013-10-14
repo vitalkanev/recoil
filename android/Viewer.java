@@ -24,44 +24,38 @@
 package net.sf.recoil;
 
 import android.app.Activity;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.widget.ImageView;
+import android.widget.Gallery;
 import android.widget.Toast;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.File;
 import java.io.IOException;
-import java.util.zip.ZipFile;
+import java.util.ArrayList;
 
 public class Viewer extends Activity
 {
-	/**
-	 * Reads bytes from the stream into the byte array
-	 * until end of stream or array is full.
-	 * @param is source stream
-	 * @param b output array
-	 * @return number of bytes read
-	 */
-	private static int readAndClose(InputStream is, byte[] b) throws IOException
+	private String filename;
+
+	private String getParent(String path)
 	{
-		int got = 0;
-		int len = b.length;
-		try {
-			while (got < len) {
-				int i = is.read(b, got, len - got);
-				if (i <= 0)
-					break;
-				got += i;
-			}
+		int i = path.lastIndexOf('/');
+		if (i < 0) {
+			filename = path;
+			return "";
 		}
-		finally {
-			is.close();
-		}
-		return got;
+		filename = path.substring(i + 1);
+		return path.substring(0, i + 1);
 	}
 
-	private void showError(int messageId)
+	private Uri getParent(Uri uri)
+	{
+		String path = uri.getFragment();
+		if (path != null)
+			return uri.buildUpon().fragment(getParent(path)).build();
+		return Uri.fromFile(new File(getParent(uri.getPath())));
+	}
+
+	void showError(int messageId)
 	{
 		Toast.makeText(this, messageId, Toast.LENGTH_SHORT).show();
 	}
@@ -72,53 +66,20 @@ public class Viewer extends Activity
 		super.onCreate(savedInstanceState);
 		setTitle(R.string.viewing_title);
 
-		// Read file
-		byte[] content = new byte[RECOIL.MAX_CONTENT_LENGTH];
-		int contentLength;
 		Uri uri = getIntent().getData();
-		String filename = uri.getPath();
+		Uri baseUri = getParent(uri);
+		ArrayList<String> files;
 		try {
-			if (FileUtil.isZip(filename)) {
-				ZipFile zip = new ZipFile(filename);
-				try {
-					filename = uri.getFragment();
-					InputStream is = zip.getInputStream(zip.getEntry(filename));
-					contentLength = readAndClose(is, content);
-				}
-				finally {
-					zip.close();
-				}
-			}
-			else {
-				InputStream is = new FileInputStream(filename);
-				contentLength = readAndClose(is, content);
-			}
+			files = FileUtil.list(baseUri, null);
 		}
 		catch (IOException ex) {
-			showError(R.string.error_reading_file);
+			showError(R.string.error_listing_files);
 			return;
 		}
 
-		// Decode
-		RECOIL recoil = new RECOIL();
-		if (!recoil.decode(filename, content, contentLength)) {
-			showError(R.string.invalid_file);
-			return;
-		}
-		int[] pixels = recoil.getPixels();
-		int width = recoil.getWidth();
-		int height = recoil.getHeight();
-
-		// Set alpha
-		int pixelsLength = width * height;
-		for (int i = 0; i < pixelsLength; i++)
-			pixels[i] |= 0xff000000;
-
-		// Display
-		Bitmap bitmap = Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888);
-		bitmap.setHasAlpha(false);
-		ImageView imageView = new ImageView(this);
-		imageView.setImageBitmap(bitmap);
-		setContentView(imageView);
+		Gallery gallery = new Gallery(this);
+		gallery.setAdapter(new GalleryAdapter(this, baseUri, files));
+		gallery.setSelection(files.indexOf(filename));
+		setContentView(gallery);
 	}
 }
