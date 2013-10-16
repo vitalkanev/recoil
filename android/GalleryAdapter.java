@@ -28,6 +28,7 @@ import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Gallery;
 import android.widget.ImageView;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -122,6 +123,7 @@ class GalleryAdapter extends BaseAdapter
 		Bitmap bitmap = Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888);
 		bitmap.setHasAlpha(false);
 		ImageView imageView = convertView instanceof ImageView ? (ImageView) convertView : new ImageView(viewer);
+		imageView.setLayoutParams(new Gallery.LayoutParams(Gallery.LayoutParams.MATCH_PARENT, Gallery.LayoutParams.MATCH_PARENT));
 		imageView.setImageBitmap(bitmap);
 		return imageView;
 	}
