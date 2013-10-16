@@ -55,11 +55,6 @@ public class Viewer extends Activity
 		return Uri.fromFile(new File(getParent(uri.getPath())));
 	}
 
-	void showError(int messageId)
-	{
-		Toast.makeText(this, messageId, Toast.LENGTH_SHORT).show();
-	}
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -73,7 +68,7 @@ public class Viewer extends Activity
 			files = FileUtil.list(baseUri, null);
 		}
 		catch (IOException ex) {
-			showError(R.string.error_listing_files);
+			Toast.makeText(this, R.string.error_listing_files, Toast.LENGTH_SHORT).show();
 			return;
 		}
 

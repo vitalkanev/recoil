@@ -30,6 +30,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Gallery;
 import android.widget.ImageView;
+import android.widget.TextView;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.IOException;
@@ -74,6 +75,13 @@ class GalleryAdapter extends BaseAdapter
 		return got;
 	}
 
+	private View getErrorView(int resource, String filename)
+	{
+		TextView textView = (TextView) viewer.getLayoutInflater().inflate(R.layout.error, null);
+		textView.setText(viewer.getString(resource, filename));
+		return textView;
+	}
+
 	public View getView(int position, View convertView, ViewGroup parent)
 	{
 		Uri uri = FileUtil.buildUri(baseUri, files.get(position));
@@ -100,16 +108,13 @@ class GalleryAdapter extends BaseAdapter
 			}
 		}
 		catch (IOException ex) {
-			viewer.showError(R.string.error_reading_file);
-			return null;
+			return getErrorView(R.string.error_reading_file, filename);
 		}
 
 		// Decode
 		RECOIL recoil = new RECOIL();
-		if (!recoil.decode(filename, content, contentLength)) {
-			viewer.showError(R.string.invalid_file);
-			return null;
-		}
+		if (!recoil.decode(filename, content, contentLength))
+			return getErrorView(R.string.error_decoding_file, filename);
 		int[] pixels = recoil.getPixels();
 		int width = recoil.getWidth();
 		int height = recoil.getHeight();

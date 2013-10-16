@@ -45,7 +45,7 @@ abstract class FileUtil
 	private static void listDirectory(File dir, TreeSet<String> directories, ArrayList<String> files) throws IOException
 	{
 		File[] entries = dir.listFiles();
-		if (files == null)
+		if (entries == null)
 			throw new FileNotFoundException();
 		for (File entry : entries) {
 			String name = entry.getName();
