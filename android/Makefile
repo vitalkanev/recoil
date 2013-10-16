@@ -17,6 +17,9 @@ all: $(ANDROID_RELEASE)
 install-dev: $(ANDROID_RELEASE)
 	$(ADB) -d install -r $(ANDROID_RELEASE)
 
+log-dev:
+	$(ADB) -d logcat
+
 $(ANDROID_RELEASE): AndroidRECOIL-unaligned.apk
 	$(ZIPALIGN) -f 4 $< $@
 
@@ -48,6 +51,6 @@ clean:
 	$(RM) *.apk classes.dex
 	rm -rf classes java raw
 
-.PHONY: all install-dev clean
+.PHONY: all install-dev log-dev clean
 
 .DELETE_ON_ERROR:
