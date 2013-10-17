@@ -72,7 +72,8 @@ public class Viewer extends Activity
 			return;
 		}
 
-		Gallery gallery = new Gallery(this);
+		Gallery gallery = (Gallery) getLayoutInflater().inflate(R.layout.gallery, null);
+		gallery.setHorizontalFadingEdgeEnabled(false);
 		gallery.setAdapter(new GalleryAdapter(this, baseUri, files));
 		gallery.setSelection(files.indexOf(filename));
 		setContentView(gallery);
