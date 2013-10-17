@@ -48,6 +48,8 @@ public class FileSelector extends ListActivity
 		if (uri == null)
 			uri = Uri.parse("file:///");
 
+		setTitle(getString(R.string.selector_title, uri.getPath()));
+
 		ArrayList<String> files;
 		TreeSet<String> directories = new TreeSet<String>();
 		try {
