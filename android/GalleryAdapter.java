@@ -34,20 +34,15 @@ import android.widget.TextView;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.zip.ZipFile;
 
 class GalleryAdapter extends BaseAdapter
 {
 	private final Viewer viewer;
-	private final Uri baseUri;
-	private final ArrayList<String> files;
 
-	GalleryAdapter(Viewer viewer, Uri baseUri, ArrayList<String> files)
+	GalleryAdapter(Viewer viewer)
 	{
 		this.viewer = viewer;
-		this.baseUri = baseUri;
-		this.files = files;
 	}
 
 	/**
@@ -84,7 +79,7 @@ class GalleryAdapter extends BaseAdapter
 
 	public View getView(int position, View convertView, ViewGroup parent)
 	{
-		Uri uri = FileUtil.buildUri(baseUri, files.get(position));
+		Uri uri = viewer.getUri(position);
 
 		// Read file
 		byte[] content = new byte[RECOIL.MAX_CONTENT_LENGTH];
@@ -145,6 +140,6 @@ class GalleryAdapter extends BaseAdapter
 
 	public int getCount()
 	{
-		return files.size();
+		return viewer.getFileCount();
 	}
 }

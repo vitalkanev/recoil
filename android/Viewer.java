@@ -26,46 +26,66 @@ package net.sf.recoil;
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Gallery;
 import android.widget.Toast;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class Viewer extends Activity
+public class Viewer extends Activity implements AdapterView.OnItemSelectedListener
 {
-	private String filename;
+	private Uri baseUri;
+	private ArrayList<String> filenames;
 
-	private String getParent(String path)
+	private String split(Uri uri)
 	{
-		int i = path.lastIndexOf('/');
-		if (i < 0) {
-			filename = path;
-			return "";
-		}
-		filename = path.substring(i + 1);
-		return path.substring(0, i + 1);
+		String filename = uri.getFragment();
+		if (filename == null)
+			filename = uri.getPath();
+
+		int i = filename.lastIndexOf('/') + 1;
+		// nice hack - the following substrings do what we want if there is no slash
+		String path = filename.substring(0, i);
+		filename = filename.substring(i);
+
+		if (uri.getFragment() == null)
+			baseUri = Uri.fromFile(new File(path));
+		else
+			baseUri = uri.buildUpon().fragment(path).build();
+		return filename;
 	}
 
-	private Uri getParent(Uri uri)
+	int getFileCount()
 	{
-		String path = uri.getFragment();
-		if (path != null)
-			return uri.buildUpon().fragment(getParent(path)).build();
-		return Uri.fromFile(new File(getParent(uri.getPath())));
+		return filenames.size();
+	}
+
+	Uri getUri(int position)
+	{
+		return FileUtil.buildUri(baseUri, filenames.get(position));
+	}
+
+	public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
+	{
+		setTitle(getString(R.string.viewing_title, filenames.get(position)));
+	}
+
+	public void onNothingSelected(AdapterView<?> parent)
+	{
+		// can we ever get here?
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		setTitle(R.string.viewing_title);
 
 		Uri uri = getIntent().getData();
-		Uri baseUri = getParent(uri);
-		ArrayList<String> files;
+		String filename = split(uri);
 		try {
-			files = FileUtil.list(baseUri, null);
+			filenames = FileUtil.list(baseUri, null);
 		}
 		catch (IOException ex) {
 			Toast.makeText(this, R.string.error_listing_files, Toast.LENGTH_SHORT).show();
@@ -74,8 +94,9 @@ public class Viewer extends Activity
 
 		Gallery gallery = (Gallery) getLayoutInflater().inflate(R.layout.gallery, null);
 		gallery.setHorizontalFadingEdgeEnabled(false);
-		gallery.setAdapter(new GalleryAdapter(this, baseUri, files));
-		gallery.setSelection(files.indexOf(filename));
+		gallery.setAdapter(new GalleryAdapter(this));
+		gallery.setOnItemSelectedListener(this);
+		gallery.setSelection(filenames.indexOf(filename));
 		setContentView(gallery);
 	}
 }
