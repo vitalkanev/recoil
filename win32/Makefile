@@ -101,7 +101,7 @@ x64/recoil.wixobj: setup/recoil.wxs
 
 ../MANIFEST:
 	test -e ../.git && ( \
-		($(GIT) ls-tree -r --name-only --full-tree master | grep -vF .gitignore \
+		($(GIT) --git-dir=../.git ls-files | grep -vF .gitignore \
 			&& echo MANIFEST && echo README.html && echo recoil.c && echo recoil.h) | sort >$@; \
 	)
 
