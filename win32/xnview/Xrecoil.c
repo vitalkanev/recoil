@@ -28,6 +28,10 @@
 
 #include "recoil.h"
 
+#ifndef XNVIEW_RECOIL_EXTS
+#include "formats.h"
+#endif
+
 #define API __stdcall
 #define DLL_EXPORT __declspec(dllexport)
 
@@ -63,10 +67,6 @@ DLL_EXPORT void API gfpSavePictureExit(void * ptr);
 }
 #endif
 
-#ifndef XNVIEW_RECOIL_EXT
-#define XNVIEW_RECOIL_EXT "rip;gr8;mic;hip;tip;int;inp;apc;ap3;gr9;pic;cpr;cin;cci;fnt;sxs;hr;plm;ilc;mcp;ghg;hr2;mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb;mgp;wnd;chr;shp;mbg;fwa;rm0;rm1;rm2;rm3;rm4;xlp;max;shc;all;app;sge;dlm;bkg;g09;bg9;apv;spc;apl;gr7;g10;g11;art;drg;agp;pla;mis;4pl;4mi;4pm;pgf;pgc;pi1;pi2;pi3;pc1;pc2;pc3;neo;doo;spu;tny;tn1;tn2;tn3;ca1;ca2;ca3;ing;pac;sps;gfb;pi4;pi9;dgu;dg1;trp;tru;god;ftc;del;dph;ipc;nlq;pmd;acs;pcs;hpm;mcs;a4r;dc1;dgc;cpt;iff;bl1;bl2;bl3;bru;ip2;imn;icn;din;vzi;irg;ir2;ice;img;ximg;mpp;mc;mg1;mg2;mg4;mg8;scr;atr;ifl;ch4;ch6;ch8;leo;acbm;zxp;hlr;lbm;cdu;che;cwg;dd;dol;drz;fgs;fpt;gcd;gih;hbm;hir;iph;ipt;ism;koa;mil;mon;ocp;p64;pi;pmg;rp;sar;vid"
-#endif
-
 static size_t strlcpy(char *dst, const char *src, size_t size)
 {
 	int i;
@@ -84,7 +84,7 @@ DLL_EXPORT BOOL API gfpGetPluginInfo(DWORD version, LPSTR label, INT label_max_s
 		return FALSE;
 
 	strlcpy(label, "Retro Computer Image Library", label_max_size);
-	strlcpy(extension, XNVIEW_RECOIL_EXT, extension_max_size);
+	strlcpy(extension, XNVIEW_RECOIL_EXTS, extension_max_size);
 	*support = GFP_READ;
 
 	return TRUE;

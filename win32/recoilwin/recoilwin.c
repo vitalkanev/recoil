@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include "recoil.h"
+#include "formats.h"
 #include "pngsave.h"
 #include "recoilwin.h"
 
@@ -358,15 +359,7 @@ static void SelectAndOpenImage(void)
 		sizeof(OPENFILENAME),
 		NULL,
 		0,
-		"All supported\0*.256;*.4mi;*.4pl;*.4pm;*.a4r;*.acbm;*.acs;*.agp;*.all;*.ap2;*.ap3;*.apc;*.apl;*.app;*.apv;*.art;*.atr;*.bg9;*.bkg;*.bl1;*.bl2;*.bl3;*.bru;*.ca1;*.ca2;*.ca3;*.cci;*.cdu;*.ch4;*.ch6;*.ch8;*.che;*.chr;*.cin;*.cpr;*.cpt;*.cwg;*.dc1;*.dd;*.del;*.dg1;*.dgc;*.dgp;*.dgu;*.din;*.dlm;*.dol;*.doo;*.dph;*.drg;*.drz;*.esc;*.fgs;*.fnt;*.fpt;*.ftc;*.fwa;*.g09;*.g10;*.g11;*.gcd;*.gfb;*.ghg;*.gig;*.gih;*.god;*.gr7;*.gr8;*.gr9;*.hbm;*.hed;*.hip;*.hir;*.hlr;*.hpm;*.hr;*.hr2;*.ice;*.icn;*.iff;*.ifl;*.ige;*.ilc;*.img;*.imn;*.ing;*.inp;*.int;*.ip2;*.ipc;*.iph;*.ipt;*.ir2;*.irg;*.ism;*.ist;*.jgp;*.koa;*.lbm;*.leo;*.max;*.mbg;*.mc;*.mch;*.mcp;*.mcs;*.mg1;*.mg2;*.mg4;*.mg8;*.mgp;*.mic;*.mil;*.mis;*.mon;*.mpp;*.neo;*.nlq;*.ocp;*.p64;*.pac;*.pc1;*.pc2;*.pc3;*.pcs;*.pgc;*.pgf;*.pi;*.pi1;*.pi2;*.pi3;*.pi4;*.pi9;*.pic;*.pla;*.plm;*.pmd;*.pmg;*.pzm;*.raw;*.rgb;*.rip;*.rm0;*.rm1;*.rm2;*.rm3;*.rm4;*.rp;*.rpm;*.sar;*.scr;*.sge;*.shc;*.shp;*.spc;*.sps;*.spu;*.sxs;*.tip;*.tn1;*.tn2;*.tn3;*.tny;*.trp;*.tru;*.vid;*.vzi;*.wnd;*.ximg;*.xlp;*.zxp\0"
-		"Amiga\0*.acbm;*.iff;*.lbm\0"
-		"Atari 8-bit\0*.256;*.4mi;*.4pl;*.4pm;*.a4r;*.acs;*.agp;*.all;*.ap2;*.ap3;*.apc;*.apl;*.app;*.apv;*.art;*.bg9;*.bkg;*.cci;*.chr;*.cin;*.cpr;*.dgp;*.din;*.dlm;*.drg;*.esc;*.fnt;*.fwa;*.g09;*.g10;*.g11;*.ghg;*.gr7;*.gr8;*.gr9;*.hip;*.hpm;*.hr;*.hr2;*.ice;*.icn;*.ige;*.ilc;*.imn;*.ing;*.inp;*.int;*.ip2;*.ipc;*.ir2;*.irg;*.ist;*.jgp;*.leo;*.max;*.mbg;*.mch;*.mcp;*.mcs;*.mgp;*.mic;*.mis;*.nlq;*.pic;*.pla;*.plm;*.pmd;*.pzm;*.raw;*.rgb;*.rip;*.rm0;*.rm1;*.rm2;*.rm3;*.rm4;*.sge;*.shc;*.shp;*.spc;*.sxs;*.tip;*.vzi;*.wnd;*.xlp\0"
-		"Atari Portfolio\0*.pgc;*.pgf\0"
-		"Atari ST\0*.art;*.bl1;*.bl2;*.bl3;*.bru;*.ca1;*.ca2;*.ca3;*.cpt;*.doo;*.gfb;*.icn;*.iff;*.img;*.mpp;*.neo;*.pac;*.pc1;*.pc2;*.pc3;*.pcs;*.pi1;*.pi2;*.pi3;*.spc;*.sps;*.spu;*.tn1;*.tn2;*.tn3;*.tny;*.ximg\0"
-		"Atari Falcon\0*.dc1;*.del;*.dg1;*.dgc;*.dgu;*.dph;*.ftc;*.god;*.pi4;*.pi9;*.trp;*.tru\0"
-		"Commodore 64\0*.art;*.cdu;*.che;*.cwg;*.dd;*.dol;*.drz;*.fgs;*.fpt;*.gcd;*.gih;*.hbm;*.hed;*.hir;*.iph;*.ipt;*.ism;*.koa;*.mil;*.mon;*.ocp;*.p64;*.pi;*.pmg;*.rp;*.rpm;*.sar;*.vid\0"
-		"ZX Spectrum\0*.atr;*.ch4;*.ch6;*.ch8;*.hlr;*.ifl;*.img;*.mc;*.mg1;*.mg2;*.mg4;*.mg8;*.rgb;*.scr;*.zxp\0"
-		"\0",
+		RECOILWIN_FILTERS,
 		NULL,
 		0,
 		1,

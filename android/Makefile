@@ -47,8 +47,11 @@ AndroidRECOIL-resources.apk: AndroidManifest.xml res/drawable/icon.png res/layou
 raw/net/sf/recoil/%: ../%
 	mkdir -p $(@D) && cp $< $@
 
+AndroidManifest.xml: AndroidManifest.xsl ../formats.xml
+	xsltproc -o $@ AndroidManifest.xsl ../formats.xml
+
 clean:
-	$(RM) *.apk classes.dex
+	$(RM) *.apk classes.dex AndroidManifest.xml
 	rm -rf classes java raw
 
 .PHONY: all install-dev log-dev clean
