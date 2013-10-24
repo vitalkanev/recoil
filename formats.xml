@@ -145,6 +145,7 @@
 		<format name="Create with Garfield" width="160" height="200" colors="16"><ext>CWG</ext></format>
 		<format name="Doodle" width="320" height="200" colors="16"><ext>DD</ext></format>
 		<format name="Dolphin Ed" width="160" height="200" colors="16"><ext>DOL</ext></format>
+		<format name="Drazlace" width="160" height="200" frames="2"><ext>DRL</ext></format>
 		<format name="Drazpaint" width="160" height="200" colors="16"><ext>DRZ</ext></format>
 		<format name="Fun Graphics Machine" width="320" height="200" colors="2"><ext>FGS</ext></format>
 		<format name="Face Painter" width="160" height="200" colors="16"><ext>FPT</ext></format>
@@ -157,6 +158,7 @@
 		<format name="Interpaint" width="160" height="200" colors="16"><ext>IPT</ext></format>
 		<format name="Image System" width="160" height="200" colors="16"><ext>ISM</ext></format>
 		<format name="Koala Painter" width="160" height="200" colors="16"><ext>KOA</ext></format>
+		<format name="Truepaint" width="160" height="200" frames="2"><ext>MCI</ext></format>
 		<format name="Micro Illustrator" width="160" height="200" colors="16"><ext>MIL</ext></format>
 		<format name="Mono Magic" width="320" height="200" colors="2"><ext>MON</ext></format>
 		<format name="Advanced Art Studio" width="160" height="200" colors="16"><ext>OCP</ext></format>

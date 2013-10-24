@@ -1775,9 +1775,8 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodeC64Multicolor(byte[] content, int bitmapOffset, int videoMatrixOffset, int colorOffset, int background)
+	void DecodeC64MulticolorFrame(byte[] content, int bitmapOffset, int videoMatrixOffset, int colorOffset, int background, int pixelsOffset)
 	{
-		SetSize(320, 200, RECOILResolution.C642x1);
 		for (int y = 0; y < 200; y++) {
 			for (int x = 0; x < 320; x++) {
 				int offset = (y & ~7) * 40 + (x & ~7) + (y & 7);
@@ -1793,9 +1792,15 @@ public class RECOIL
 					c = colorOffset < 0 ? content[-colorOffset] : content[colorOffset + (offset >> 3)];
 					break;
 				}
-				Pixels[y * 320 + x] = C64Palette[c & 0xf];
+				Pixels[pixelsOffset + y * 320 + x] = C64Palette[c & 0xf];
 			}
 		}
+	}
+
+	bool DecodeC64Multicolor(byte[] content, int bitmapOffset, int videoMatrixOffset, int colorOffset, int background)
+	{
+		SetSize(320, 200, RECOILResolution.C642x1);
+		DecodeC64MulticolorFrame(content, bitmapOffset, videoMatrixOffset, colorOffset, background, 0);
 		return true;
 	}
 
@@ -1852,6 +1857,13 @@ public class RECOIL
 			return false;
 		}
 		return DecodeC64Multicolor(content, 0x802, 0x402, 2, content[0x7ea]);
+	}
+
+	bool DecodeC64MulticolorBlend(byte[] content, int bitmap1Offset, int videoMatrix1Offset, int bitmap2Offset, int videoMatrix2Offset, int colorOffset, int background)
+	{
+		DecodeC64Multicolor(content, bitmap1Offset, videoMatrix1Offset, colorOffset, background);
+		DecodeC64MulticolorFrame(content, bitmap2Offset, videoMatrix2Offset, colorOffset, background, 320 * 200);
+		return ApplyBlend();
 	}
 
 	// Atari ST formats.
@@ -5852,6 +5864,7 @@ public class RECOIL
 		case PACKED_EXT("DOO"):
 		case PACKED_EXT("DPH"):
 		case PACKED_EXT("DRG"):
+		case PACKED_EXT("DRL"):
 		case PACKED_EXT("DRZ"):
 		case PACKED_EXT("FNT"):
 		case PACKED_EXT("FPT"):
@@ -5910,6 +5923,7 @@ public class RECOIL
 		case PACKED_EXT("MBG"):
 		case PACKED_EXT("MC"):
 		case PACKED_EXT("MCH"):
+		case PACKED_EXT("MCI"):
 		case PACKED_EXT("MCP"):
 		case PACKED_EXT("MCS"):
 		case PACKED_EXT("MG1"):
@@ -6082,6 +6096,8 @@ public class RECOIL
 			return DecodeDph(content, contentLength);
 		case PACKED_EXT("DRG"):
 			return DecodeDrg(content, contentLength);
+		case PACKED_EXT("DRL"):
+			return contentLength == 18242 && DecodeC64MulticolorBlend(content, 0x802, 0x402, 0x2802, 0x402, 2, content[0x2742]);
 		case PACKED_EXT("DRZ"):
 			return contentLength == 10051 && DecodeC64Multicolor(content, 0x802, 0x402, 2, content[0x2742]);
 		case PACKED_EXT("FNT"):
@@ -6188,6 +6204,8 @@ public class RECOIL
 			return DecodeMc(content, contentLength);
 		case PACKED_EXT("MCH"):
 			return DecodeMch(content, contentLength);
+		case PACKED_EXT("MCI"):
+			return contentLength == 19434 && DecodeC64MulticolorBlend(content, 0x402, 2, 0x2402, 0x4402, 0x4802, content[0x3ea]);
 		case PACKED_EXT("MCP"):
 			return DecodeMcp(content, contentLength);
 		case PACKED_EXT("MCS"):
