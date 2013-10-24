@@ -4760,6 +4760,27 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeSif(byte[] content, int contentLength)
+	{
+		if (contentLength != 2048)
+			return false;
+		SetSize(256, 32, RECOILResolution.Xe2x1);
+		GtiaColors[4] = 0x4c;
+		GtiaColors[5] = 0xcc;
+		GtiaColors[6] = 0x8c;
+		GtiaColors[8] = 0x00;
+		byte[256 * 32] frame1;
+		byte[256 * 32] frame2;
+		byte[32] characters;
+		for (int i = 0; i < 32; i++)
+			characters[i] = i;
+		for (int y = 0; y < 4; y++) {
+			DecodeAtari8Gr12Line(characters, 0, content, y << 8, frame1, y << 11);
+			DecodeAtari8Gr12Line(characters, 0, content, 1024 + (y << 8), frame2, y << 11);
+		}
+		return ApplyAtari8PaletteBlend(frame1, frame2);
+	}
+
 	bool DecodeDlm(byte[] content, int contentLength)
 	{
 		if (contentLength != 256)
@@ -5936,6 +5957,7 @@ public class RECOIL
 		case PACKED_EXT("SGE"):
 		case PACKED_EXT("SHC"):
 		case PACKED_EXT("SHP"):
+		case PACKED_EXT("SIF"):
 		case PACKED_EXT("SPC"):
 		case PACKED_EXT("SPS"):
 		case PACKED_EXT("SPU"):
@@ -6253,6 +6275,8 @@ public class RECOIL
 			return DecodeShc(content, contentLength);
 		case PACKED_EXT("SHP"):
 			return DecodeShp(content, contentLength);
+		case PACKED_EXT("SIF"):
+			return DecodeSif(content, contentLength);
 		case PACKED_EXT("SPC"):
 			return DecodeStSpc(content, contentLength)
 				|| DecodeAtari8Spc(content, contentLength);

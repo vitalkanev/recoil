@@ -126,6 +126,7 @@ SGE:: "Semi-Graphic logos Editor", 40x24 characters, mono.
 SHC:: "SAMAR Hi-res Interlace with Map of Colours", 320x192, 2 frames.
 SHP:: "Blazing Paddles" shape table, mono.
 SHP:: "Movie Maker" shapes, 160x96, 4 colors.
+SIF:: "Super-IRG" 4x8 font, 4 colors, 2 frames.
 SPC:: "The Graphics Magician Picture Painter", 160x192, 128 colors.
 SXS:: 16x16 font, mono.
 TIP:: "Taquart Interlace Picture", up to 160x119, 2 frames.
