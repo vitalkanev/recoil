@@ -13,15 +13,28 @@
 		<format name="AtariTools-800 font" tileWidth="4" tileHeight="8" colors="4"><ext>ACS</ext></format>
 		<format name="AtariTools-800 graphic"><ext>AGP</ext></format>
 		<format name="Graph" width="160" height="192" colors="5"><ext>ALL</ext></format>
-		<format width="80" height="192" colors="256" frames="2"><ext>AP3</ext><ext>APV</ext><ext name="DigiPaint">DGP</ext><ext name="EscalPaint">ESC</ext><ext>ILC</ext><ext>PZM</ext></format>
-		<format width="80" height="96" colors="256"><ext name="Any Point, Any Color">APC</ext><ext name="Plama 256">PLM</ext></format>
+		<format width="80" height="192" colors="256" frames="2">
+			<ext>AP3</ext>
+			<ext>APV</ext>
+			<ext name="DigiPaint">DGP</ext>
+			<ext name="EscalPaint">ESC</ext>
+			<ext>ILC</ext>
+			<ext>PZM</ext>
+		</format>
+		<format width="80" height="96" colors="256">
+			<ext name="Any Point, Any Color">APC</ext>
+			<ext name="Plama 256">PLM</ext>
+		</format>
 		<format name="Atari Player Editor" colors="4"><ext>APL</ext></format>
 		<format width="80" height="192" colors="256" frames="2" compressed="yes"><ext>APP</ext></format>
 		<format name="Ascii-Art Editor" maxWidth="64" maxHeight="24" unit="characters" colors="2">
 			<!-- I only see up to 40x21 in the editor, but the sample file SIANO.ART is bigger --><ext>ART</ext>
 		</format>
 		<format name="Artist by David Eaton" width="160" height="80" colors="4"><ext>ART</ext></format>
-		<format width="160" height="192" grayscale="16"><ext>BG9</ext><ext>G09</ext></format>
+		<format width="160" height="192" grayscale="16">
+			<ext>BG9</ext>
+			<ext>G09</ext>
+		</format>
 		<format name="Movie Maker background" width="160" height="96" colors="4"><ext>BKG</ext></format>
 		<format name="Champions' Interlace" width="160" height="192" frames="2" compressed="yes"><ext>CCI</ext></format>
 		<format name="Blazing Paddles font" colors="2"><ext>CHR</ext></format>
@@ -128,39 +141,58 @@
 		<format name="Extended GEM Bit Image" compressed="yes"><ext>XIMG</ext></format>
 	</platform>
 	<platform name="Atari Falcon">
-		<format name="DuneGraph" width="320" height="200" colors="256" compressed="yes"><ext>DC1</ext><ext>DGC</ext></format>
+		<format name="DuneGraph" width="320" height="200" colors="256" compressed="yes">
+			<ext>DC1</ext>
+			<ext>DGC</ext>
+		</format>
 		<format name="DelmPaint" width="320" height="240" colors="256" compressed="yes"><ext>DEL</ext></format>
-		<format name="DuneGraph" width="320" height="200" colors="256"><ext>DG1</ext><ext>DGU</ext></format>
+		<format name="DuneGraph" width="320" height="200" colors="256">
+			<ext>DG1</ext>
+			<ext>DGU</ext>
+		</format>
 		<format name="DelmPaint" width="640" height="480" colors="256" compressed="yes"><ext>DPH</ext></format>
 		<format name="Falcon True Color" width="384" height="240" colors="65536"><ext>FTC</ext></format>
 		<format name="GodPaint" colors="65536"><ext>GOD</ext></format>
-		<format name="Fuckpaint" width="320" maxHeight="240" colors="256"><ext>PI4</ext><ext>PI9</ext></format>
+		<format name="Fuckpaint" width="320" maxHeight="240" colors="256">
+			<ext>PI4</ext>
+			<ext>PI9</ext>
+		</format>
 		<format name="EggPaint" colors="65536"><ext>TRP</ext></format>
 		<format name="IndyPaint" colors="65536"><ext>TRU</ext></format>
 	</platform>
 	<platform name="Commodore 64">
+		<format name="Amica Paint" width="160" height="200" colors="16" compressed="yes"><ext>AMI</ext></format>
 		<format name="Art Studio" width="320" height="200" colors="16"><ext>ART</ext></format>
 		<format name="CDU-Paint" width="160" height="200" colors="16"><ext>CDU</ext></format>
 		<format name="Cheese" width="160" height="200" colors="16"><ext>CHE</ext></format>
 		<format name="Create with Garfield" width="160" height="200" colors="16"><ext>CWG</ext></format>
 		<format name="Doodle" width="320" height="200" colors="16"><ext>DD</ext></format>
 		<format name="Dolphin Ed" width="160" height="200" colors="16"><ext>DOL</ext></format>
-		<format name="Drazlace" width="160" height="200" frames="2"><ext>DRL</ext></format>
+		<format name="Drazlace" width="160" height="200" frames="2" compressed="optionally"><ext>DRL</ext></format>
 		<format name="Drazpaint" width="160" height="200" colors="16"><ext>DRZ</ext></format>
-		<format name="Fun Graphics Machine" width="320" height="200" colors="2"><ext>FGS</ext></format>
 		<format name="Face Painter" width="160" height="200" colors="16"><ext>FPT</ext></format>
-		<format name="Gigacad" width="320" height="200" colors="2"><ext>GCD</ext></format>
-		<format name="Gigapaint" width="160" height="200" colors="16"><ext>GIG</ext></format>
-		<format name="Gigapaint" width="320" height="200" colors="2"><ext>GIH</ext></format>
-		<format name="Hires-Bitmap" width="320" height="200" colors="2"><ext>HBM</ext><ext>HIR</ext></format>
+		<format width="320" height="200" colors="2">
+			<ext name="Gigacad">GCD</ext>
+			<ext name="Mono Magic">MON</ext>
+		</format>
+		<format name="Koala Painter" width="320" height="200" colors="16" compressed="yes"><ext>GG</ext></format>
+		<format name="Hires-Bitmap" width="320" height="200" colors="2">
+			<ext>HIR</ext>
+			<ext>HBM</ext>
+			<ext name="Gigapaint">GIH</ext>
+			<ext name="Fun Graphics Machine">FGS</ext>
+		</format>
 		<format name="Hi-Eddi" width="320" height="200" colors="16"><ext>HED</ext></format>
 		<format name="Interpaint" width="320" height="200" colors="16"><ext>IPH</ext></format>
 		<format name="Interpaint" width="160" height="200" colors="16"><ext>IPT</ext></format>
 		<format name="Image System" width="160" height="200" colors="16"><ext>ISM</ext></format>
-		<format name="Koala Painter" width="160" height="200" colors="16"><ext>KOA</ext></format>
+		<format name="Doodle" width="320" height="200" colors="16" compressed="yes"><ext>JJ</ext></format>
+		<format width="160" height="200" colors="16">
+			<ext name="Gigapaint">GIG</ext>
+			<ext name="Koala Painter">KOA</ext>
+		</format>
 		<format name="Truepaint" width="160" height="200" frames="2"><ext>MCI</ext></format>
 		<format name="Micro Illustrator" width="160" height="200" colors="16"><ext>MIL</ext></format>
-		<format name="Mono Magic" width="320" height="200" colors="2"><ext>MON</ext></format>
 		<format name="Advanced Art Studio" width="160" height="200" colors="16"><ext>OCP</ext></format>
 		<format name="Picasso 64" width="160" height="200" colors="16"><ext>P64</ext></format>
 		<format name="Blazing Paddles" width="160" height="200" colors="16"><ext>PI</ext></format>

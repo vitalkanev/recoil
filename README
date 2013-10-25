@@ -195,6 +195,7 @@ TRU:: "IndyPaint", 65536 colors.
 C64
 ~~~
 [horizontal]
+AMI:: "Amica Paint", 160x200, 16 colors, compressed.
 ART:: "Art Studio", 320x200, 16 colors.
 CDU:: "CDU-Paint", 160x200, 16 colors.
 CHE:: "Cheese", 160x200, 16 colors.
@@ -206,6 +207,7 @@ DRZ:: "Drazpaint", 160x200, 16 colors.
 FGS:: "Fun Graphics Machine", 320x200, mono.
 FPT:: "Face Painter", 160x200, 16 colors.
 GCD:: "Gigacad", 320x200, mono.
+GG:: "Koala Painter", 160x200, 16 colors, compressed.
 GIG:: "Gigapaint", 160x200, 16 colors.
 GIH:: "Gigapaint", 320x200, mono.
 HBM, HIR:: Hires-Bitmap, 320x200, mono.
@@ -213,6 +215,7 @@ HED:: "Hi-Eddi", 320x200, 16 colors.
 IPH:: "Interpaint", 320x200, 16 colors.
 IPT:: "Interpaint", 160x200, 16 colors.
 ISM:: "Image System", 160x200, 16 colors.
+JJ:: "Doodle", 320x200, 16 colors, compressed.
 KOA:: "Koala Painter", 160x200, 16 colors.
 MCI:: "Truepaint", 160x200, 2 frames.
 MIL:: "Micro Illustrator", 160x200, 16 colors.

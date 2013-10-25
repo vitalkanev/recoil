@@ -255,6 +255,53 @@ abstract class RleStream : BitStream
 			}
 		}
 	}
+
+	bool UnpackC64(byte[] unpacked, int unpackedLength)
+	{
+		unpacked[0] = Content[0];
+		unpacked[1] = Content[1];
+		return Unpack(unpacked, 2, 1, unpackedLength - 2) && ReadRle() < 0;
+	}
+}
+
+class C64KoalaStream : RleStream
+{
+	override bool ReadCommand()
+	{
+		int b = ReadByte();
+		if (b < 0)
+			return false;
+		if (b == 0xfe) {
+			RepeatValue = ReadByte();
+			RepeatCount = ReadByte();
+		}
+		else {
+			RepeatValue = b;
+			RepeatCount = 1;
+		}
+		return true;
+	}
+}
+
+class DrlStream : RleStream
+{
+	int Escape;
+
+	override bool ReadCommand()
+	{
+		int b = ReadByte();
+		if (b < 0)
+			return false;
+		if (b == Escape) {
+			RepeatCount = ReadByte();
+			RepeatValue = ReadByte();
+		}
+		else {
+			RepeatCount = 1;
+			RepeatValue = b;
+		}
+		return true;
+	}
 }
 
 class HpmStream : RleStream
@@ -448,7 +495,7 @@ class XlpStream : RleStream
 	}
 }
 
-class KoalaStream : RleStream
+class XeKoalaStream : RleStream
 {
 	override bool ReadCommand()
 	{
@@ -476,9 +523,9 @@ class KoalaStream : RleStream
 		return true;
 	}
 
-	static bool UnpackKoala(int type, byte[] content, int contentOffset, int contentLength, byte[] unpacked, int unpackedLength)
+	static bool UnpackRaw(int type, byte[] content, int contentOffset, int contentLength, byte[] unpacked, int unpackedLength)
 	{
-		KoalaStream() rle;
+		XeKoalaStream() rle;
 		rle.Content = content;
 		rle.ContentOffset = contentOffset;
 		rle.ContentLength = contentLength;
@@ -507,7 +554,7 @@ class KoalaStream : RleStream
 		}
 	}
 
-	static bool UnpackKoalaWrapped(byte[] content, int contentLength, byte[] unpacked, int unpackedLength)
+	static bool UnpackWrapped(byte[] content, int contentLength, byte[] unpacked, int unpackedLength)
 	{
 		return contentLength >= 26
 			&& content[0] == 0xff && content[1] == 0x80 && content[2] == 0xc9 && content[3] == 0xc7
@@ -517,7 +564,7 @@ class KoalaStream : RleStream
 			&& content[9] == 0 && content[10] == 40
 			&& content[11] == 0 && content[12] == 192
 			&& content[20] == 0 && content[21] == 0
-			&& UnpackKoala(content[7], content, content[4] + 1, contentLength, unpacked, unpackedLength);
+			&& UnpackRaw(content[7], content, content[4] + 1, contentLength, unpacked, unpackedLength);
 	}
 }
 
@@ -1828,6 +1875,18 @@ public class RECOIL
 		return DecodeC64Hires(content, 2, 0x1f42);
 	}
 
+	bool DecodeJj(byte[] content, int contentLength)
+	{
+		if (contentLength < 2)
+			return false;
+		byte[9218] unpacked;
+		C64KoalaStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 2;
+		rle.ContentLength = contentLength;
+		return rle.UnpackC64(unpacked, 9218) && DecodeC64Hires(unpacked, 0x402, 2);
+	}
+
 	bool DecodePmg(byte[] content, int contentLength)
 	{
 		if (contentLength != 9332)
@@ -1847,6 +1906,18 @@ public class RECOIL
 		return DecodeC64Multicolor(content, 2, 0x1f42, 0x232a, content[0x2712]);
 	}
 
+	bool DecodeGg(byte[] content, int contentLength)
+	{
+		if (contentLength < 2)
+			return false;
+		byte[10003] unpacked;
+		C64KoalaStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 2;
+		rle.ContentLength = contentLength;
+		return rle.UnpackC64(unpacked, 10003) && DecodeKoa(unpacked, 10003);
+	}
+
 	bool DecodeDol(byte[] content, int contentLength)
 	{
 		switch (contentLength) {
@@ -1859,11 +1930,41 @@ public class RECOIL
 		return DecodeC64Multicolor(content, 0x802, 0x402, 2, content[0x7ea]);
 	}
 
+	bool DecodeAmi(byte[] content, int contentLength)
+	{
+		if (contentLength < 2)
+			return false;
+		byte[10259] unpacked;
+		DrlStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 2;
+		rle.ContentLength = contentLength;
+		rle.Escape = 0xc2;
+		return rle.UnpackC64(unpacked, 10259) && DecodeKoa(unpacked, 10003);
+	}
+
 	bool DecodeC64MulticolorBlend(byte[] content, int bitmap1Offset, int videoMatrix1Offset, int bitmap2Offset, int videoMatrix2Offset, int colorOffset, int background)
 	{
 		DecodeC64Multicolor(content, bitmap1Offset, videoMatrix1Offset, colorOffset, background);
 		DecodeC64MulticolorFrame(content, bitmap2Offset, videoMatrix2Offset, colorOffset, background, 320 * 200);
 		return ApplyBlend();
+	}
+
+	bool DecodeDrl(byte[] content, int contentLength)
+	{
+		if (contentLength > 16 && IsStringAt(content, 2, "DRAZLACE! 1.0")) {
+			byte[18242] unpacked;
+			DrlStream() rle;
+			rle.Content = content;
+			rle.ContentOffset = 16;
+			rle.ContentLength = contentLength;
+			rle.Escape = content[15];
+			return rle.UnpackC64(unpacked, 18242)
+				&& DecodeC64MulticolorBlend(unpacked, 0x802, 0x402, 0x2802, 0x402, 2, unpacked[0x2742]);
+		}
+		else if (contentLength != 18242)
+			return false;
+		return DecodeC64MulticolorBlend(content, 0x802, 0x402, 0x2802, 0x402, 2, content[0x2742]);
 	}
 
 	// Atari ST formats.
@@ -3398,7 +3499,7 @@ public class RECOIL
 		if (contentLength < 2)
 			return false;
 		byte[7680] unpacked;
-		if (!KoalaStream.UnpackKoala(content[0], content, 1, contentLength, unpacked, 7680))
+		if (!XeKoalaStream.UnpackRaw(content[0], content, 1, contentLength, unpacked, 7680))
 			return false;
 		GtiaColors[6] = 0x0c;
 		GtiaColors[5] = 0x00;
@@ -3619,7 +3720,7 @@ public class RECOIL
 	bool DecodePic(byte[] content, int contentLength)
 	{
 		byte[7680] unpacked;
-		if (KoalaStream.UnpackKoalaWrapped(content, contentLength, unpacked, 7680)) {
+		if (XeKoalaStream.UnpackWrapped(content, contentLength, unpacked, 7680)) {
 			SetSize(320, 192, RECOILResolution.Xe2x1);
 			SetPF0123Bak(content, 13);
 			byte[320 * 192] frame;
@@ -4391,7 +4492,7 @@ public class RECOIL
 		byte[7680] unpacked;
 		int colorsOffset;
 		int dliOffset;
-		if (KoalaStream.UnpackKoalaWrapped(content, contentLength - 464, unpacked, mode == 0 ? 3840 : 7680)) {
+		if (XeKoalaStream.UnpackWrapped(content, contentLength - 464, unpacked, mode == 0 ? 3840 : 7680)) {
 			// File written by a Rambrandt plugin ("DOS module").
 			// Documentation suggests RM0-RM4 extensions.
 			colorsOffset = contentLength - 464;
@@ -5821,6 +5922,7 @@ public class RECOIL
 		case PACKED_EXT("ACS"):
 		case PACKED_EXT("AGP"):
 		case PACKED_EXT("ALL"):
+		case PACKED_EXT("AMI"):
 		case PACKED_EXT("AP2"):
 		case PACKED_EXT("AP3"):
 		case PACKED_EXT("APV"):
@@ -5870,6 +5972,7 @@ public class RECOIL
 		case PACKED_EXT("FPT"):
 		case PACKED_EXT("FTC"):
 		case PACKED_EXT("FWA"):
+		case PACKED_EXT("GG"):
 		case PACKED_EXT("GHG"):
 		case PACKED_EXT("GOD"):
 		case PACKED_EXT("G10"):
@@ -5915,6 +6018,7 @@ public class RECOIL
 		case PACKED_EXT("ISM"):
 		case PACKED_EXT("IST"):
 		case PACKED_EXT("JGP"):
+		case PACKED_EXT("JJ"):
 		case PACKED_EXT("KOA"):
 		case PACKED_EXT("GIG"):
 		case PACKED_EXT("RPM"):
@@ -6020,6 +6124,8 @@ public class RECOIL
 			return DecodeAgp(content, contentLength);
 		case PACKED_EXT("ALL"):
 			return DecodeAll(content, contentLength);
+		case PACKED_EXT("AMI"):
+			return DecodeAmi(content, contentLength);
 		case PACKED_EXT("AP2"):
 			return Decode256(content, contentLength);
 		case PACKED_EXT("AP3"):
@@ -6097,7 +6203,7 @@ public class RECOIL
 		case PACKED_EXT("DRG"):
 			return DecodeDrg(content, contentLength);
 		case PACKED_EXT("DRL"):
-			return contentLength == 18242 && DecodeC64MulticolorBlend(content, 0x802, 0x402, 0x2802, 0x402, 2, content[0x2742]);
+			return DecodeDrl(content, contentLength);
 		case PACKED_EXT("DRZ"):
 			return contentLength == 10051 && DecodeC64Multicolor(content, 0x802, 0x402, 2, content[0x2742]);
 		case PACKED_EXT("FNT"):
@@ -6108,6 +6214,8 @@ public class RECOIL
 			return DecodeFtc(content, contentLength);
 		case PACKED_EXT("FWA"):
 			return DecodeFwa(content, contentLength);
+		case PACKED_EXT("GG"):
+			return DecodeGg(content, contentLength);
 		case PACKED_EXT("GHG"):
 			return DecodeGhg(content, contentLength);
 		case PACKED_EXT("GOD"):
@@ -6190,6 +6298,8 @@ public class RECOIL
 			return DecodeIst(content, contentLength);
 		case PACKED_EXT("JGP"):
 			return DecodeJgp(content, contentLength);
+		case PACKED_EXT("JJ"):
+			return DecodeJj(content, contentLength);
 		case PACKED_EXT("KOA"):
 		case PACKED_EXT("GIG"):
 		case PACKED_EXT("RPM"):

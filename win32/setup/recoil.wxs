@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 	<?define FIRST_EXT=gr8?>
-	<?define OTHER_EXTS=hip;mic;int;tip;inp;hr;gr9;pic;cpr;cin;cci;apc;plm;ap3;ilc;rip;fnt;sxs;mcp;ghg;hr2;mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb;mgp;wnd;chr;shp;mbg;fwa;rm0;rm1;rm2;rm3;rm4;xlp;max;shc;all;app;sge;dlm;bkg;g09;bg9;apv;spc;apl;gr7;g10;g11;art;drg;agp;pla;mis;4pl;4mi;4pm;pgf;pgc;pi1;pi2;pi3;pc1;pc2;pc3;neo;doo;spu;tny;tn1;tn2;tn3;ca1;ca2;ca3;ing;pac;sps;gfb;pi4;pi9;dgu;dg1;trp;tru;god;ftc;del;dph;ipc;nlq;pmd;acs;pcs;hpm;mcs;a4r;dc1;dgc;cpt;iff;bl1;bl2;bl3;bru;ip2;imn;icn;din;vzi;irg;ir2;ice;img;ximg;mpp;scr;mc;mg1;mg2;mg4;mg8;atr;ifl;ch4;ch6;ch8;leo;acbm;zxp;hlr;lbm;cdu;che;cwg;dd;dol;drz;fgs;fpt;gcd;gig;gih;hbm;hed;hir;iph;ipt;ism;koa;mil;mon;ocp;p64;pi;pmg;rp;rpm;sar;vid;sif;drl;mci?>
+	<?define OTHER_EXTS=hip;mic;int;tip;inp;hr;gr9;pic;cpr;cin;cci;apc;plm;ap3;ilc;rip;fnt;sxs;mcp;ghg;hr2;mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb;mgp;wnd;chr;shp;mbg;fwa;rm0;rm1;rm2;rm3;rm4;xlp;max;shc;all;app;sge;dlm;bkg;g09;bg9;apv;spc;apl;gr7;g10;g11;art;drg;agp;pla;mis;4pl;4mi;4pm;pgf;pgc;pi1;pi2;pi3;pc1;pc2;pc3;neo;doo;spu;tny;tn1;tn2;tn3;ca1;ca2;ca3;ing;pac;sps;gfb;pi4;pi9;dgu;dg1;trp;tru;god;ftc;del;dph;ipc;nlq;pmd;acs;pcs;hpm;mcs;a4r;dc1;dgc;cpt;iff;bl1;bl2;bl3;bru;ip2;imn;icn;din;vzi;irg;ir2;ice;img;ximg;mpp;scr;mc;mg1;mg2;mg4;mg8;atr;ifl;ch4;ch6;ch8;leo;acbm;zxp;hlr;lbm;cdu;che;cwg;dd;dol;drz;fgs;fpt;gcd;gig;gih;hbm;hed;hir;iph;ipt;ism;koa;mil;mon;ocp;p64;pi;pmg;rp;rpm;sar;vid;sif;drl;mci;ami;gg;jj?>
 	<?define RECOIL_EXTS=$(var.FIRST_EXT);$(var.OTHER_EXTS)?>
 	<?define DOUBLECLICK=Double-click Atari image file in Windows Explorer to display it in ?>
 
@@ -290,7 +290,7 @@
 
 				<Directory Id="XNVIEW.DIR" Name="XnView">
 					<Directory Id="XNVIEWPLUG.DIR" Name="PlugIns">
-						<?foreach I in 1;2;3;4;5;6;7;8;9;10;11;12;13;14;15;16?>
+						<?foreach I in 1;2;3;4;5;6;7;8;9;10;11;12;13;14;15;16;17?>
 							<Component Id="Xrecoil$(var.I).usr" Win64="no">
 								<File Name="Xrecoil$(var.I).usr" Source="Xrecoil$(var.I).usr" Checksum="yes" KeyPath="yes" />
 							</Component>
@@ -434,7 +434,7 @@
 
 		<Feature Id="xnview" Title="XnView plugin" Level="9" ConfigurableDirectory="XNVIEWPLUG.DIR" Description="Plugin for XnView." AllowAdvertise="no">
 			<Condition Level="1">XNVIEW.DIR</Condition>
-			<?foreach I in 1;2;3;4;5;6;7;8;9;10;11;12;13;14;15;16?>
+			<?foreach I in 1;2;3;4;5;6;7;8;9;10;11;12;13;14;15;16;17?>
 				<ComponentRef Id="Xrecoil$(var.I).usr" />
 			<?endforeach?>
 			<Feature Id="xnview_recoil.ext" Title="Associate file types" Level="0" Description="$(var.DOUBLECLICK) XnView." AllowAdvertise="no">
