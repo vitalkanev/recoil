@@ -73,7 +73,7 @@ CPR:: "Trzmiel", 320x192, mono, compressed.
 DIN:: 320x192, 10 colors, 2 frames.
 DLM:: "Dir Logo Maker", 11x16 characters, mono.
 DRG:: "Atari CAD", 320x160, mono.
-FNT:: Standard 8x8 font, mono.
+FNT:: 8x8 font, mono.
 FWA:: "Fun with Art", 160x192, 128 colors.
 G10:: "Graphics 10", up to 80x240, 9 colors.
 G11:: "Graphics 11", up to 80x240, 16 colors.
@@ -195,23 +195,35 @@ TRU:: "IndyPaint", 65536 colors.
 C64
 ~~~
 [horizontal]
+64C:: 8x8 font, mono.
+AFL:: "AFLI-editor v2.0" by Topaz Beerlin, 296x200, 16 colors.
 AMI:: "Amica Paint", 160x200, 16 colors, compressed.
 ART:: "Art Studio", 320x200, 16 colors.
+BFLI:: "Big FLI", 148x400, 16 colors.
+BML:: "FLI Graph 2.2" by Blackmail", 148x200, 16 colors.
 CDU:: "CDU-Paint", 160x200, 16 colors.
 CHE:: "Cheese", 160x200, 16 colors.
 CWG:: "Create with Garfield", 160x200, 16 colors.
 DD:: "Doodle", 320x200, 16 colors.
+DLP:: "Drazlace", 160x200, 2 frames, compressed.
 DOL:: "Dolphin Ed", 160x200, 16 colors.
 DRL:: "Drazlace", 160x200, 2 frames.
+DRP:: "Drazpaint", 160x200, 16 colors, compressed.
 DRZ:: "Drazpaint", 160x200, 16 colors.
+ECI:: "ECI Graphic Editor", 296x200, 2 frames.
+FFLI:: 148x200, 2 frames.
 FGS:: "Fun Graphics Machine", 320x200, mono.
+FLI:: "Flexible Line Interpratation", 148x200, 16 colors.
 FPT:: "Face Painter", 160x200, 16 colors.
+FUN, FP2:: "Funpaint", 148x200, 16 colors, compressed.
 GCD:: "Gigacad", 320x200, mono.
 GG:: "Koala Painter", 160x200, 16 colors, compressed.
 GIG:: "Gigapaint", 160x200, 16 colors.
 GIH:: "Gigapaint", 320x200, mono.
+GUN, IFL:: "Gunpaint", 148x200, 16 colors.
 HBM, HIR:: Hires-Bitmap, 320x200, mono.
 HED:: "Hi-Eddi", 320x200, 16 colors.
+HFC:: "Hires FLI" by Crest, 296x200, 16 colors.
 IPH:: "Interpaint", 320x200, 16 colors.
 IPT:: "Interpaint", 160x200, 16 colors.
 ISM:: "Image System", 160x200, 16 colors.
