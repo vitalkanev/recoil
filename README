@@ -211,6 +211,7 @@ DRL:: "Drazlace", 160x200, 2 frames.
 DRP:: "Drazpaint", 160x200, 16 colors, compressed.
 DRZ:: "Drazpaint", 160x200, 16 colors.
 ECI:: "ECI Graphic Editor", 296x200, 2 frames.
+ECP:: "ECI Graphic Editor", 296x200, 2 frames, compressed.
 FFLI:: 148x200, 2 frames.
 FGS:: "Fun Graphics Machine", 320x200, mono.
 FLI:: "Flexible Line Interpratation", 148x200, 16 colors.
@@ -262,7 +263,8 @@ ZXP:: "ZX-Paintbrush", 256x192, 15 colors.
 
 "2 frames" above means the picture is composed of two quickly alternating frames so that
 a human perceives more colors (for example black alternated with gray looks like dark gray).
-On Atari 8-bit this technique is commonly (but incorrectly) referred to as "interlace".
+On Atari 8-bit and Commodore 64 this technique is commonly (but incorrectly)
+referred to as "interlace". On ZX Spectrum it is called "gigascreen".
 Likewise, "3 frames" means three different alternating pictures and more flickering.
 
 You can find some sample files in http://recoil.sourceforge.net/examples.zip[examples.zip].

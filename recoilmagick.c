@@ -175,6 +175,7 @@ static const struct Format {
 	{ "DRP", "Drazpaint; 160x200, 16 colors, compressed" },
 	{ "DRZ", "Drazpaint; 160x200, 16 colors" },
 	{ "ECI", "ECI Graphic Editor; 296x200, 2 frames" },
+	{ "ECP", "ECI Graphic Editor; 296x200, 2 frames, compressed" },
 	{ "ESC", "EscalPaint; 80x192, 256 colors, 2 frames" },
 	{ "FFLI", "148x200, 2 frames" },
 	{ "FGS", "Fun Graphics Machine; 320x200, mono" },

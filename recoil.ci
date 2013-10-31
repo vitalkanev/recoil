@@ -2047,6 +2047,20 @@ public class RECOIL
 		return ApplyBlend();
 	}
 
+	bool DecodeEcp(byte[] content, int contentLength)
+	{
+		if (contentLength < 6)
+			return false;
+		byte[32770] unpacked;
+		DrpStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 3;
+		rle.ContentLength = contentLength;
+		rle.Escape = content[2];
+		return rle.Unpack(unpacked, 2, 1, 32768)
+			&& DecodeEci(unpacked, 32770);
+	}
+
 	bool DecodeFli(byte[] content, int contentLength)
 	{
 		if (contentLength != 17409)
@@ -6124,6 +6138,7 @@ public class RECOIL
 		case PACKED_EXT("DRZ"):
 		case PACKED_EXT("DRP"):
 		case PACKED_EXT("ECI"):
+		case PACKED_EXT("ECP"):
 		case PACKED_EXT("FFLI"):
 		case PACKED_EXT("FLI"):
 		case PACKED_EXT("FNT"):
@@ -6380,6 +6395,8 @@ public class RECOIL
 			return DecodeDrz(content, contentLength);
 		case PACKED_EXT("ECI"):
 			return DecodeEci(content, contentLength);
+		case PACKED_EXT("ECP"):
+			return DecodeEcp(content, contentLength);
 		case PACKED_EXT("FFLI"):
 			return DecodeFfli(content, contentLength);
 		case PACKED_EXT("FLI"):
