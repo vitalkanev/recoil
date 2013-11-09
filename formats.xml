@@ -36,6 +36,7 @@
 			<ext>BG9</ext>
 			<ext>G09</ext>
 		</format>
+		<format name="Bugbiter APAC239i" width="80" height="239" colors="256" frames="2"><ext>BGP</ext></format>
 		<format name="Movie Maker background" width="160" height="96" colors="4"><ext>BKG</ext></format>
 		<format name="Champions' Interlace" width="160" height="192" frames="2" compressed="yes"><ext>CCI</ext></format>
 		<format name="Blazing Paddles font" colors="2"><ext>CHR</ext></format>

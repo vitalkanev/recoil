@@ -89,6 +89,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".atr", "ZX Spectrum attributes"),
 				new RecoilFileType(".bfli", "Big FLI; 148x400, 16 colors"),
 				new RecoilFileType(".bg9", "160x192, 16-level grayscale"),
+				new RecoilFileType(".bgp", "Bugbiter APAC239i; 80x239, 256 colors, 2 frames"),
 				new RecoilFileType(".bkg", "Movie Maker background; 160x96, 4 colors"),
 				new RecoilFileType(".bl1", "DEGAS Elite block; 16 colors"),
 				new RecoilFileType(".bl2", "DEGAS Elite block; 4 colors"),

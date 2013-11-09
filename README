@@ -65,6 +65,7 @@ ART:: "Ascii-Art Editor", up to 64x24 characters, mono.
 // I only see up to 40x21 in the editor, but the sample file SIANO.ART is bigger
 ART:: "Artist" by David Eaton, 160x80, 4 colors.
 BG9, G09:: 160x192, 16-level grayscale.
+BGP:: "Bugbiter APAC239i", 80x239, 256 colors, 2 frames.
 BKG:: "Movie Maker" background, 160x96, 4 colors.
 CCI:: "Champions' Interlace", 160x192, 2 frames, compressed.
 CHR:: "Blazing Paddles" font, mono.

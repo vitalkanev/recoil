@@ -4330,6 +4330,29 @@ public class RECOIL
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
+	bool DecodeBgp(byte[] content, int contentLength)
+	{
+		if (contentLength < 0x27 + (2 + 239 * 40) * 2
+		 || !IsStringAt(content, 0, "BUGBITER_APAC239I_PICTURE_V1.0")
+		 || content[0x1e] != 0xff || content[0x1f] != 80 || content[0x20] != 239)
+			return false;
+		int textLength = content[0x25] + (content[0x26] << 8);
+		// 0x2558 == 239 * 40
+		if (contentLength != 0x27 + (2 + 239 * 40) * 2 + textLength
+		 || content[0x27 + textLength] != 0x58 || content[0x28 + textLength] != 0x25
+		 || content[0x27 + 2 + 239 * 40 + textLength] != 0x58 || content[0x28 + 2 + 239 * 40 + textLength] != 0x25)
+			return false;
+		SetSize(320, 239, RECOILResolution.Xe4x1);
+		GtiaColors[8] = 0x00;
+		byte[320 * 239] frame1;
+		DecodeAtari8Gr9(content, 0x29 + textLength, 80, frame1, 0, 640, 320, 120);
+		DecodeAtari8Gr11PalBlend(content, 0x29 + 239 * 40 + 2 + 40 + textLength, 80, frame1, 1);
+		byte[320 * 239] frame2;
+		DecodeAtari8Gr9(content, 0x29 + 40 + textLength, 80, frame2, 320, 640, 320, 119);
+		DecodeAtari8Gr11PalBlend(content, 0x29 + 239 * 40 + 2 + textLength, 80, frame2, 0);
+		return ApplyAtari8PaletteBlend(frame1, frame2);
+	}
+
 	bool DecodeApp(byte[] content, int contentLength)
 	{
 		if (contentLength < 22 + 15872 / 2 // two or more compressed bits per uncompressed nibble
@@ -6118,6 +6141,7 @@ public class RECOIL
 		case PACKED_EXT("BFLI"):
 		case PACKED_EXT("BG9"):
 		case PACKED_EXT("G09"):
+		case PACKED_EXT("BGP"):
 		case PACKED_EXT("BKG"):
 		case PACKED_EXT("BML"):
 		case PACKED_EXT("BRU"):
@@ -6351,6 +6375,8 @@ public class RECOIL
 		case PACKED_EXT("BG9"):
 		case PACKED_EXT("G09"):
 			return DecodeG09(content, contentLength);
+		case PACKED_EXT("BGP"):
+			return DecodeBgp(content, contentLength);
 		case PACKED_EXT("BKG"):
 			return DecodeBkg(content, contentLength);
 		case PACKED_EXT("BML"):

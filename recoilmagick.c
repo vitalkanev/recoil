@@ -137,6 +137,7 @@ static const struct Format {
 	{ "ATR", "ZX Spectrum attributes" },
 	{ "BFLI", "Big FLI; 148x400, 16 colors" },
 	{ "BG9", "160x192, 16-level grayscale" },
+	{ "BGP", "Bugbiter APAC239i; 80x239, 256 colors, 2 frames" },
 	{ "BKG", "Movie Maker background; 160x96, 4 colors" },
 	{ "BL1", "DEGAS Elite block; 16 colors" },
 	{ "BL2", "DEGAS Elite block; 4 colors" },
