@@ -57,7 +57,7 @@ A4R:: "Anime 4ever", 80x256, 16-level grayscale, compressed.
 ACS:: "AtariTools-800" 4x8 font, 4 colors.
 AGP:: "AtariTools-800" graphic.
 ALL:: "Graph", 160x192, 5 colors.
-AP3, APV, DGP, ESC, ILC, PZM:: "DigiPaint" / "EscalPaint", 80x192, 256 colors, 2 frames.
+AP3, APV, DGI, DGP, ILC:: "Digi Paint", 80x192, 256 colors, 2 frames.
 APC, PLM:: "Any Point, Any Color" / "Plama 256", 80x96, 256 colors.
 APL:: "Atari Player Editor", up to 16 16x48 frames, 4 colors.
 APP:: 80x192, 256 colors, 2 frames, compressed.
@@ -73,6 +73,7 @@ CPR:: "Trzmiel", 320x192, mono, compressed.
 DIN:: 320x192, 10 colors, 2 frames.
 DLM:: "Dir Logo Maker", 11x16 characters, mono.
 DRG:: "Atari CAD", 320x160, mono.
+ESC:: "EscalPaint", 80x192, 256 colors, 2 frames.
 FNT:: 8x8 font, mono.
 FWA:: "Fun with Art", 160x192, 128 colors.
 G10:: "Graphics 10", up to 80x240, 9 colors.
@@ -112,6 +113,7 @@ NLQ:: "Daisy-Dot" 19x16 font, mono.
 PIC:: "Koala MicroIllustrator", 160x192, 4 colors, compressed.
 PLA:: "AtariTools-800" player, 8x240, mono.
 PMD:: "PMG Designer" by Henryk Karpowicz.
+PZM:: "Pryzm Artist", 80x192, 256 colors, 2 frames.
 RAW:: "XL-Paint MAX", 160x192, 16 colors, 2 frames.
 RGB:: "ColorViewSquash", up to 160x192, 3 frames.
 RIP:: "Rocky Interlace Picture", up to 320x239, 1 or 2 frames.

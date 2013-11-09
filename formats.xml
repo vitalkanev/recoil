@@ -16,10 +16,11 @@
 		<format width="80" height="192" colors="256" frames="2">
 			<ext>AP3</ext>
 			<ext>APV</ext>
-			<ext name="DigiPaint">DGP</ext>
+			<ext name="Digi Paint">DGI</ext>
+			<ext name="Digi Paint">DGP</ext>
 			<ext name="EscalPaint">ESC</ext>
 			<ext>ILC</ext>
-			<ext>PZM</ext>
+			<ext name="Pryzm Artist">PZM</ext>
 		</format>
 		<format width="80" height="96" colors="256">
 			<ext name="Any Point, Any Color">APC</ext>

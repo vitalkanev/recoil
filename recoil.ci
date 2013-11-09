@@ -6091,6 +6091,7 @@ public class RECOIL
 		case PACKED_EXT("AP2"):
 		case PACKED_EXT("AP3"):
 		case PACKED_EXT("APV"):
+		case PACKED_EXT("DGI"):
 		case PACKED_EXT("DGP"):
 		case PACKED_EXT("ESC"):
 		case PACKED_EXT("ILC"):
@@ -6311,6 +6312,7 @@ public class RECOIL
 			return Decode256(content, contentLength);
 		case PACKED_EXT("AP3"):
 		case PACKED_EXT("APV"):
+		case PACKED_EXT("DGI"):
 		case PACKED_EXT("DGP"):
 		case PACKED_EXT("ESC"):
 		case PACKED_EXT("ILC"):
