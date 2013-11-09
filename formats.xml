@@ -70,6 +70,7 @@
 		<format name="Interlace Studio" width="160" height="200" frames="2"><ext>IST</ext></format>
 		<format name="Jet Graphics Planner" tileWidth="8" tileHeight="16" colors="4"><ext>JGP</ext></format>
 		<format name="Larka Edytor Obiektów trybu $4+" tileWidth="8" tileHeight="16" colors="5"><ext>LEO</ext></format>
+		<format name="Technicolor Dream luminance" width="80" height="96" grayscale="16"><ext>LUM</ext></format>
 		<format name="XL-Paint MAX" width="160" height="192" frames="2" compressed="yes"><ext>MAX</ext></format>
 		<format name="Mad Designer" width="512" height="256" colors="2"><ext>MBG</ext></format>
 		<format name="Graph2Font" maxWidth="176" height="240" colors="128"><ext>MCH</ext></format>

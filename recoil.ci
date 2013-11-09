@@ -4264,6 +4264,20 @@ public class RECOIL
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
+	// LUM file combined with COL file gives 256-color Technicolor Dream.
+	// Since we don't support decoding pairs of files, let's at least show the grayscale.
+	bool DecodeLum(byte[] content, int contentLength)
+	{
+		if (contentLength != 4766)
+			return false;
+		SetSize(320, 192, RECOILResolution.Xe4x2);
+		byte[320 * 192] frame;
+		GtiaColors[8] = 0x00;
+		DecodeAtari8Gr9(content, 6, 40, frame, 0, 640, 320, 96);
+		DecodeAtari8Gr9(content, 6, 40, frame, 320, 640, 320, 96);
+		return ApplyAtari8Palette(frame);
+	}
+
 	// APC, PLM
 	bool DecodeApc(byte[] content, int contentLength)
 	{
@@ -6201,6 +6215,7 @@ public class RECOIL
 		case PACKED_EXT("GIG"):
 		case PACKED_EXT("RPM"):
 		case PACKED_EXT("LEO"):
+		case PACKED_EXT("LUM"):
 		case PACKED_EXT("MAX"):
 		case PACKED_EXT("MBG"):
 		case PACKED_EXT("MC"):
@@ -6512,6 +6527,8 @@ public class RECOIL
 			return DecodeKoa(content, contentLength);
 		case PACKED_EXT("LEO"):
 			return DecodeLeo(content, contentLength);
+		case PACKED_EXT("LUM"):
+			return DecodeLum(content, contentLength);
 		case PACKED_EXT("MAX"):
 			return DecodeMax(content, contentLength);
 		case PACKED_EXT("MBG"):
