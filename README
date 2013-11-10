@@ -230,6 +230,7 @@ GUN, IFL:: "Gunpaint", 148x200, 16 colors.
 HBM, HIR:: Hires-Bitmap, 320x200, mono.
 HED:: "Hi-Eddi", 320x200, 16 colors.
 HFC:: "Hires FLI" by Crest, 296x200, 16 colors.
+HLF:: "Hires Interlace" by Feniks; 320x200, 2 frames.
 HPC:: "Hi-Pic Creator", 320x200, 16 colors.
 IPH:: "Interpaint", 320x200, 16 colors.
 IPT:: "Interpaint", 160x200, 16 colors.

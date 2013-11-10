@@ -208,6 +208,7 @@ static const struct Format {
 	{ "HFC", "Hires FLI by Crest; 296x200, 16 colors" },
 	{ "HIP", "Hard Interlace Picture; 160x200, grayscale, 2 frames" },
 	{ "HIR", "Hires; 320x200, mono" },
+	{ "HLF", "Hires Interlace by Feniks; 320x200, 2 frames" },
 	{ "HLR", "ZX Spectrum attributes gigascreen; 256x192, 2 frames" },
 	{ "HPC", "Hi-Pic Creator; 320x200, 16 colors" },
 	{ "HPM", "Grass' Slideshow; 160x192, 4 colors, compressed" },

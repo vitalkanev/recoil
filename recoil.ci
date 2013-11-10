@@ -2016,6 +2016,15 @@ public class RECOIL
 		return rle.UnpackC64(unpacked, 10259) && DecodeKoa(unpacked, 10003);
 	}
 
+	bool DecodeHlf(byte[] content, int contentLength)
+	{
+		if (contentLength != 24578)
+			return false;
+		DecodeC64Hires(320, content, 2, 0x2402);
+		DecodeC64HiresFrame(content, 0x4002, 0x2802, 320 * 200);
+		return ApplyBlend();
+	}
+
 	bool DecodeC64MulticolorBlend(byte[] content, int bitmap1Offset, int videoMatrix1Offset, int bitmap2Offset, int videoMatrix2Offset, int colorOffset, int background)
 	{
 		DecodeC64Multicolor(320, content, bitmap1Offset, videoMatrix1Offset, colorOffset, background);
@@ -6208,6 +6217,7 @@ public class RECOIL
 		case PACKED_EXT("FGS"):
 		case PACKED_EXT("MON"):
 		case PACKED_EXT("GCD"):
+		case PACKED_EXT("HLF"):
 		case PACKED_EXT("HLR"):
 		case PACKED_EXT("HPC"):
 		case PACKED_EXT("HPM"):
@@ -6495,6 +6505,8 @@ public class RECOIL
 		case PACKED_EXT("MON"):
 		case PACKED_EXT("GCD"):
 			return DecodeHir(content, contentLength);
+		case PACKED_EXT("HLF"):
+			return DecodeHlf(content, contentLength);
 		case PACKED_EXT("HLR"):
 			return DecodeHlr(content, contentLength);
 		case PACKED_EXT("HPC"):
