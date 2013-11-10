@@ -6206,6 +6206,7 @@ public class RECOIL
 		case PACKED_EXT("MON"):
 		case PACKED_EXT("GCD"):
 		case PACKED_EXT("HLR"):
+		case PACKED_EXT("HPC"):
 		case PACKED_EXT("HPM"):
 		case PACKED_EXT("HR"):
 		case PACKED_EXT("HR2"):
@@ -6491,6 +6492,8 @@ public class RECOIL
 			return DecodeHir(content, contentLength);
 		case PACKED_EXT("HLR"):
 			return DecodeHlr(content, contentLength);
+		case PACKED_EXT("HPC"):
+			return contentLength == 9003 && DecodeC64Hires(320, content, 2, 8002);
 		case PACKED_EXT("HPM"):
 			return DecodeHpm(content, contentLength);
 		case PACKED_EXT("HR"):

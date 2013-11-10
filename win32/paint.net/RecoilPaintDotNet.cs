@@ -160,6 +160,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".hip", "Hard Interlace Picture; 160x200, grayscale, 2 frames"),
 				new RecoilFileType(".hir", "Hires; 320x200, mono"),
 				new RecoilFileType(".hlr", "ZX Spectrum attributes gigascreen; 256x192, 2 frames"),
+				new RecoilFileType(".hpc", "Hi-Pic Creator; 320x200, 16 colors"),
 				new RecoilFileType(".hpm", "Grass' Slideshow; 160x192, 4 colors, compressed"),
 				new RecoilFileType(".hr", "256x239, 3 colors, 2 frames"),
 				new RecoilFileType(".hr2", "320x200, 5 colors, 2 frames"),

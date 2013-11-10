@@ -208,6 +208,7 @@ static const struct Format {
 	{ "HIP", "Hard Interlace Picture; 160x200, grayscale, 2 frames" },
 	{ "HIR", "Hires; 320x200, mono" },
 	{ "HLR", "ZX Spectrum attributes gigascreen; 256x192, 2 frames" },
+	{ "HPC", "Hi-Pic Creator; 320x200, 16 colors" },
 	{ "HPM", "Grass' Slideshow; 160x192, 4 colors, compressed" },
 	{ "HR", "256x239, 3 colors, 2 frames" },
 	{ "HR2", "320x200, 5 colors, 2 frames" },
