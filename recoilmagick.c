@@ -121,6 +121,7 @@ static const struct Format {
 	{ "4PM", "AtariTools-800 4 mono players and 4 mono missiles" },
 	{ "64C", "8x8 font, mono" },
 	{ "A4R", "Anime 4ever; 80x256, 16-level grayscale, compressed" },
+	{ "AAS", "Art Studio; 320x200, 16 colors" },
 	{ "ACBM", "Amiga Continuous Bitmap" },
 	{ "ACS", "AtariTools-800 4x8 font, 4 colors" },
 	{ "AFL", "AFLI-editor v2.0 by Topaz Beerlin; 296x200, 16 colors" },

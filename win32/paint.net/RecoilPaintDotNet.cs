@@ -73,6 +73,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".4pm", "AtariTools-800 4 mono players and 4 mono missiles"),
 				new RecoilFileType(".64c", "8x8 font, mono"),
 				new RecoilFileType(".a4r", "Anime 4ever; 80x256, 16-level grayscale, compressed"),
+				new RecoilFileType(".aas", "Art Studio; 320x200, 16 colors"),
 				new RecoilFileType(".acbm", "Amiga Continuous Bitmap"),
 				new RecoilFileType(".acs", "AtariTools-800 4x8 font, 4 colors"),
 				new RecoilFileType(".afl", "AFLI-editor v2.0 by Topaz Beerlin; 296x200, 16 colors"),

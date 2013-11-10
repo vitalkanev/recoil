@@ -1939,7 +1939,8 @@ public class RECOIL
 	{
 		switch (contentLength) {
 		case 9002: // IPH
-		case 9009: // ART
+		case 9003: // HPC
+		case 9009: // AAS, ART
 			break;
 		default:
 			return false;
@@ -6120,6 +6121,8 @@ public class RECOIL
 		case PACKED_EXT("4PM"):
 		case PACKED_EXT("64C"):
 		case PACKED_EXT("A4R"):
+		case PACKED_EXT("AAS"):
+		case PACKED_EXT("IPH"):
 		case PACKED_EXT("ACS"):
 		case PACKED_EXT("AFL"):
 		case PACKED_EXT("AGP"):
@@ -6228,7 +6231,6 @@ public class RECOIL
 		case PACKED_EXT("INT"):
 		case PACKED_EXT("IP2"):
 		case PACKED_EXT("IPC"):
-		case PACKED_EXT("IPH"):
 		case PACKED_EXT("IPT"):
 		case PACKED_EXT("IR2"):
 		case PACKED_EXT("IRG"):
@@ -6338,6 +6340,9 @@ public class RECOIL
 			return Decode64c(content, contentLength);
 		case PACKED_EXT("A4R"):
 			return DecodeA4r(content, contentLength);
+		case PACKED_EXT("AAS"):
+		case PACKED_EXT("IPH"):
+			return DecodeIph(content, contentLength);
 		case PACKED_EXT("ACS"):
 			return DecodeAcs(content, contentLength);
 		case PACKED_EXT("AFL"):
@@ -6493,7 +6498,7 @@ public class RECOIL
 		case PACKED_EXT("HLR"):
 			return DecodeHlr(content, contentLength);
 		case PACKED_EXT("HPC"):
-			return contentLength == 9003 && DecodeC64Hires(320, content, 2, 8002);
+			return DecodeIph(content, contentLength);
 		case PACKED_EXT("HPM"):
 			return DecodeHpm(content, contentLength);
 		case PACKED_EXT("HR"):
@@ -6534,8 +6539,6 @@ public class RECOIL
 			return DecodeIp2(content, contentLength);
 		case PACKED_EXT("IPC"):
 			return DecodeAtari8Ice(content, contentLength, false, 19);
-		case PACKED_EXT("IPH"):
-			return DecodeIph(content, contentLength);
 		case PACKED_EXT("IPT"):
 			return contentLength == 10003 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, 0); // FIXME: background in the file?
 		case PACKED_EXT("IR2"):
