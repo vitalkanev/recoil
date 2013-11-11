@@ -912,6 +912,35 @@ class VdatStream : TnyStream
 	}
 }
 
+class HimStream : RleStream
+{
+	override int ReadValue()
+	{
+		if (ContentOffset < 18)
+			return -1;
+		return Content[ContentOffset--];
+	}
+
+	override bool ReadCommand()
+	{
+		int b = ReadValue();
+		switch (b) {
+		case -1:
+			return false;
+		case 0:
+			RepeatCount = ReadValue();
+			if (RepeatCount <= 0)
+				return false;
+			RepeatValue = ReadValue();
+			return true;
+		default:
+			RepeatCount = b - 1;
+			RepeatValue = -1;
+			return true;
+		}
+	}
+}
+
 // FlashPack 2.1
 class A4rStream
 {
@@ -1848,7 +1877,7 @@ public class RECOIL
 	void DecodeC64HiresFrame(byte[] content, int bitmapOffset, int videoMatrixOffset, int pixelsOffset)
 	{
 		bool afli = Width == 320 - FliBugCharacters * 8;
-		for (int y = 0; y < 200; y++) {
+		for (int y = 0; y < Height; y++) {
 			for (int x = 0; x < Width; x++) {
 				int offset = (y & ~7) * 40 + (x & ~7) + (y & 7);
 				int c = content[bitmapOffset + offset] >> (~x & 7) & 1;
@@ -2046,6 +2075,36 @@ public class RECOIL
 		content = DrpStream.UnpackFile(content, contentLength, "DRAZLACE! 1.0", unpacked, 18242);
 		return content != null
 			&& DecodeC64MulticolorBlend(content, 0x802, 0x402, 0x2802, 0x402, 2, content[0x2742]);
+	}
+
+	bool DecodeHimUnpacked(byte[] content)
+	{
+		SetSize(320 - FliBugCharacters * 8, 192, RECOILResolution.C641x1);
+		DecodeC64HiresFrame(content, 2 + 40 * 8 + FliBugCharacters * 8, 0x2002 + 40 + FliBugCharacters, 0);
+		return true;
+	}
+
+	bool DecodeHim(byte[] content, int contentLength)
+	{
+		if (content[0] != 0 || content[1] != 0x40)
+			return false;
+		if (content[3] == 0xff)
+			return contentLength == 16385 && DecodeHimUnpacked(content);
+
+		if (content[2] + (content[3] << 8) != 0x4000 - 3 + contentLength
+		 || content[4] != 0xf2 || content[5] != 0x7f)
+			return false;
+		byte[16372] unpacked;
+		HimStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = contentLength - 1;
+		for (int unpackedOffset = 0x3ff3; unpackedOffset >= 2 + 320; unpackedOffset--) {
+			int b = rle.ReadRle();
+			if (b < 0)
+				return false;
+			unpacked[unpackedOffset] = b;
+		}
+		return DecodeHimUnpacked(unpacked);
 	}
 
 	bool DecodeEci(byte[] content, int contentLength)
@@ -6210,6 +6269,7 @@ public class RECOIL
 		case PACKED_EXT("GUN"):
 		case PACKED_EXT("HED"):
 		case PACKED_EXT("HFC"):
+		case PACKED_EXT("HIM"):
 		case PACKED_EXT("HIP"):
 		case PACKED_EXT("HIR"):
 		case PACKED_EXT("HBM"):
@@ -6496,6 +6556,8 @@ public class RECOIL
 			return contentLength == 9218 && DecodeC64Hires(320, content, 2, 0x2002);
 		case PACKED_EXT("HFC"):
 			return contentLength == 16386 && DecodeC64Hires(320 - FliBugCharacters * 8, content, 2 + FliBugCharacters * 8, 0x2002 + FliBugCharacters);
+		case PACKED_EXT("HIM"):
+			return DecodeHim(content, contentLength);
 		case PACKED_EXT("HIP"):
 			return DecodeHip(content, contentLength);
 		case PACKED_EXT("HIR"):

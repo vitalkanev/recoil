@@ -200,6 +200,7 @@
 		</format>
 		<format name="Hi-Eddi" width="320" height="200" colors="16"><ext>HED</ext></format>
 		<format name="Hires FLI by Crest" width="296" height="200" colors="16"><ext>HFC</ext></format>
+		<format name="Hires Manager by Cosmos" width="296" height="192" colors="16" compressed="optionally"><ext>HIM</ext></format>
 		<format name="Hires Interlace by Feniks" width="320" height="200" frames="2"><ext>HLF</ext></format>
 		<format name="Hi-Pic Creator" width="320" height="200" colors="16"><ext>HPC</ext></format>
 		<format name="Interpaint" width="320" height="200" colors="16"><ext>IPH</ext></format>
@@ -210,7 +211,7 @@
 			<ext name="Gigapaint">GIG</ext>
 			<ext name="Koala Painter">KOA</ext>
 		</format>
-		<format name="Truepaint" width="160" height="200" frames="2"><ext>MCI</ext></format>
+		<format name="True Paint" width="160" height="200" frames="2"><ext>MCI</ext></format>
 		<format name="Micro Illustrator" width="160" height="200" colors="16"><ext>MIL</ext></format>
 		<format name="Advanced Art Studio" width="160" height="200" colors="16"><ext>OCP</ext></format>
 		<format name="Picasso 64" width="160" height="200" colors="16"><ext>P64</ext></format>
