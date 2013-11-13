@@ -210,9 +210,9 @@ CDU:: "CDU-Paint", 160x200, 16 colors.
 CHE:: "Cheese", 160x200, 16 colors.
 CWG:: "Create with Garfield", 160x200, 16 colors.
 DD:: "Doodle", 320x200, 16 colors.
-DLP:: "Drazlace", 160x200, 2 frames, compressed.
+DLP:: "Drazlace", up to 320x200, 2 frames, compressed.
 DOL:: "Dolphin Ed", 160x200, 16 colors.
-DRL:: "Drazlace", 160x200, 2 frames.
+DRL:: "Drazlace", up to 320x200, 2 frames.
 DRP:: "Drazpaint", 160x200, 16 colors, compressed.
 DRZ:: "Drazpaint", 160x200, 16 colors.
 ECI:: "ECI Graphic Editor", 296x200, 2 frames.
@@ -221,12 +221,12 @@ FFLI:: 148x200, 2 frames.
 FGS:: "Fun Graphics Machine", 320x200, mono.
 FLI:: "Flexible Line Interpratation", 148x200, 16 colors.
 FPT:: "Face Painter", 160x200, 16 colors.
-FUN, FP2:: "Funpaint", 148x200, 16 colors, compressed.
+FUN, FP2:: "Funpaint", 296x200, 2 frames, compressed.
 GCD:: "Gigacad", 320x200, mono.
 GG:: "Koala Painter", 160x200, 16 colors, compressed.
 GIG:: "Gigapaint", 160x200, 16 colors.
 GIH:: "Gigapaint", 320x200, mono.
-GUN, IFL:: "Gunpaint", 148x200, 16 colors.
+GUN, IFL:: "Gunpaint", 296x200, 2 frames.
 HBM, HIR:: Hires-Bitmap, 320x200, mono.
 HED:: "Hi-Eddi", 320x200, 16 colors.
 HFC:: "Hires FLI" by Crest, 296x200, 16 colors.
@@ -239,7 +239,7 @@ ISM:: "Image System", 160x200, 16 colors.
 JJ:: "Doodle", 320x200, 16 colors, compressed.
 KOA:: "Koala Painter", 160x200, 16 colors.
 LP3:: "Logo Painter 3+", 160x200, 4 colors.
-MCI:: "Truepaint", 160x200, 2 frames.
+MCI:: "Truepaint", 320x200, 2 frames.
 MIL:: "Micro Illustrator", 160x200, 16 colors.
 MON:: "Mono Magic", 320x200, mono.
 OCP:: "Advanced Art Studio", 160x200, 16 colors.

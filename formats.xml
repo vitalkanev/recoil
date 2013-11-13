@@ -172,26 +172,41 @@
 			<ext>ART</ext>
 		</format>
 		<format name="Big FLI" width="148" height="200" colors="16"><ext>BFLI</ext></format>
-		<format name="FLI Graph 2.2 by Blackmail" width="148" height="200" colors="16"><ext>BML</ext><ext>FLI</ext></format>
+		<format name="FLI Graph 2.2 by Blackmail" width="148" height="200" colors="16">
+			<ext>BML</ext>
+			<ext>FLI</ext>
+		</format>
 		<format name="CDU-Paint" width="160" height="200" colors="16"><ext>CDU</ext></format>
 		<format name="Cheese" width="160" height="200" colors="16"><ext>CHE</ext></format>
 		<format name="Create with Garfield" width="160" height="200" colors="16"><ext>CWG</ext></format>
 		<format name="Doodle" width="320" height="200" colors="16"><ext>DD</ext></format>
 		<format name="Dolphin Ed" width="160" height="200" colors="16"><ext>DOL</ext></format>
-		<format name="Drazlace" width="160" height="200" frames="2" compressed="optionally"><ext>DRL</ext><ext>DLP</ext></format>
-		<format name="Drazpaint" width="160" height="200" colors="16"><ext>DRZ</ext><ext>DRP</ext></format>
+		<format name="Drazlace" maxWidth="320" height="200" frames="2" compressed="optionally">
+			<ext>DRL</ext>
+			<ext>DLP</ext>
+		</format>
+		<format name="Drazpaint" width="160" height="200" colors="16">
+			<ext>DRZ</ext>
+			<ext>DRP</ext>
+		</format>
 		<format name="ECI Graphic Editor" width="296" height="200" frames="2"><ext>ECI</ext></format>
 		<format name="ECI Graphic Editor" width="296" height="200" frames="2" compressed="yes"><ext>ECP</ext></format>
 		<format name="FFLI" width="148" height="200" frames="2"><ext>FFLI</ext></format>
 		<format name="FLI" width="148" height="200" colors="16"><ext>FLI</ext></format>
 		<format name="Face Painter" width="160" height="200" colors="16"><ext>FPT</ext></format>
-		<format name="Funpaint" width="148" height="200" colors="16" compressed="optionally"><ext>FUN</ext><ext>FP2</ext></format>
+		<format name="Funpaint" width="296" height="200" frames="2" compressed="optionally">
+			<ext>FUN</ext>
+			<ext>FP2</ext>
+		</format>
 		<format width="320" height="200" colors="2">
 			<ext name="Gigacad">GCD</ext>
 			<ext name="Mono Magic">MON</ext>
 		</format>
 		<format name="Koala Painter" width="320" height="200" colors="16" compressed="yes"><ext>GG</ext></format>
-		<format name="Gunpaint" width="148" height="200" colors="16"><ext>GUN</ext><ext>IFL</ext></format>
+		<format name="Gunpaint" width="296" height="200" frames="2">
+			<ext>GUN</ext>
+			<ext>IFL</ext>
+		</format>
 		<format name="Hires-Bitmap" width="320" height="200" colors="2">
 			<ext>HIR</ext>
 			<ext>HBM</ext>
@@ -212,7 +227,7 @@
 			<ext name="Koala Painter">KOA</ext>
 		</format>
 		<format name="Logo Painter 3+" width="160" height="200" colors="4"><ext>LP3</ext></format>
-		<format name="True Paint" width="160" height="200" frames="2"><ext>MCI</ext></format>
+		<format name="True Paint" width="320" height="200" frames="2"><ext>MCI</ext></format>
 		<format name="Micro Illustrator" width="160" height="200" colors="16"><ext>MIL</ext></format>
 		<format name="Advanced Art Studio" width="160" height="200" colors="16"><ext>OCP</ext></format>
 		<format name="Picasso 64" width="160" height="200" colors="16"><ext>P64</ext></format>

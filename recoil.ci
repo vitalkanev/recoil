@@ -1295,6 +1295,8 @@ public class RECOIL
 	/// Number of frames (normally 1; 2 or 3 for flickering pictures).
 	int Frames;
 
+	int LeftSkip;
+
 	/// Returns decoded image width.
 	public int GetWidth()
 	{
@@ -1396,7 +1398,7 @@ public class RECOIL
 		Resolution = resolution;
 		Frames = 1;
 		Colors = UnknownColors;
-		GtiaLeftSkip = 0;
+		LeftSkip = 0;
 	}
 
 	void SetSizeStOrFalcon(int width, int height, int bitplanes)
@@ -1908,37 +1910,41 @@ public class RECOIL
 		bool fli = Width == 320 - FliBugCharacters * 8;
 		bool bottomBfli = pixelsOffset != 0 && Height == 400;
 		for (int y = 0; y < 200; y++) {
+			int lineBackground;
+			if (background >= 0)
+				lineBackground = background;
+			else if (background == FunPaintBorder && y >= 100)
+				lineBackground = content[0x833a - 100 + y];
+			else if (background == GunPaintBorder && y >= 177)
+				lineBackground = content[y < 197 ? 0x47ea - 177 + y : 0x47fd];
+			else
+				lineBackground = content[y - background];
 			for (int x = 0; x < Width; x++) {
-				int offset = (y & ~7) * 40 + (x & ~7) + (y & 7);
-				if (bottomBfli)
-					offset = offset - (24 - FliBugCharacters) * 8 & 0x1fff;
-				int c = 0;
-				switch (content[bitmapOffset + offset] >> (~x & 6) & 3) {
-				case 0:
-					if (background >= 0)
-						c = background;
-					else if (background == FunPaintBorder && y >= 100)
-						c = content[0x833a - 100 + y];
-					else if (background == GunPaintBorder && y >= 177)
-						c = content[y < 197 ? 0x47ea - 177 + y : 0x47fd];
-					else
-						c = content[y - background];
-					break;
-				case 1:
-					offset >>= 3;
-					if (fli)
-						offset += (y & 7) << 10;
-					c = content[videoMatrixOffset + offset] >> 4;
-					break;
-				case 2:
-					offset >>= 3;
-					if (fli)
-						offset += (y & 7) << 10;
-					c = content[videoMatrixOffset + offset];
-					break;
-				case 3:
-					c = colorOffset < 0 ? content[-colorOffset] : content[colorOffset + (offset >> 3)];
-					break;
+				int c = lineBackground;
+				int i = x + LeftSkip;
+				if (i >= 0) {
+					int offset = (y & ~7) * 40 + (i & ~7) + (y & 7);
+					if (bottomBfli)
+						offset = offset - (24 - FliBugCharacters) * 8 & 0x1fff;
+					switch (content[bitmapOffset + offset] >> (~i & 6) & 3) {
+					case 1:
+						offset >>= 3;
+						if (fli)
+							offset += (y & 7) << 10;
+						c = content[videoMatrixOffset + offset] >> 4;
+						break;
+					case 2:
+						offset >>= 3;
+						if (fli)
+							offset += (y & 7) << 10;
+						c = content[videoMatrixOffset + offset];
+						break;
+					case 3:
+						c = colorOffset < 0 ? content[-colorOffset] : content[colorOffset + (offset >> 3)];
+						break;
+					default:
+						break;
+					}
 				}
 				Pixels[pixelsOffset + y * Width + x] = C64Palette[c & 0xf];
 			}
@@ -2054,10 +2060,14 @@ public class RECOIL
 		return ApplyBlend();
 	}
 
-	bool DecodeC64MulticolorBlend(byte[] content, int bitmap1Offset, int videoMatrix1Offset, int bitmap2Offset, int videoMatrix2Offset, int colorOffset, int background)
+	bool DecodeMci(byte[] content, int contentLength)
 	{
-		DecodeC64Multicolor(320, content, bitmap1Offset, videoMatrix1Offset, colorOffset, background);
-		DecodeC64MulticolorFrame(content, bitmap2Offset, videoMatrix2Offset, colorOffset, background, 320 * 200);
+		if (contentLength != 19434)
+			return false;
+		SetSize(320, 200, RECOILResolution.C641x1);
+		DecodeC64MulticolorFrame(content, 0x402, 2, 0x4802, content[0x3ea], 0);
+		LeftSkip = -1;
+		DecodeC64MulticolorFrame(content, 0x2402, 0x4402, 0x4802, content[0x3ea], 320 * 200);
 		return ApplyBlend();
 	}
 
@@ -2073,8 +2083,16 @@ public class RECOIL
 	{
 		byte[18242] unpacked;
 		content = DrpStream.UnpackFile(content, contentLength, "DRAZLACE! 1.0", unpacked, 18242);
-		return content != null
-			&& DecodeC64MulticolorBlend(content, 0x802, 0x402, 0x2802, 0x402, 2, content[0x2742]);
+		if (content == null)
+			return false;
+		int shift = content[0x2744];
+		if (shift > 1)
+			return false;
+		SetSize(320, 200, shift == 0 ? RECOILResolution.C642x1 : RECOILResolution.C641x1);
+		DecodeC64MulticolorFrame(content, 0x802, 0x402, 2, content[0x2742], 0);
+		LeftSkip = -shift;
+		DecodeC64MulticolorFrame(content, 0x2802, 0x402, 2, content[0x2742], 320 * 200);
+		return ApplyBlend();
 	}
 
 	bool DecodeHimUnpacked(byte[] content)
@@ -2159,14 +2177,18 @@ public class RECOIL
 	{
 		if (contentLength != 33603 || !IsStringAt(content, 0x3ea, "GUNPAINT (JZ)   "))
 			return false;
-		DecodeC64Multicolor(320 - FliBugCharacters * 8, content, 0x2002 + FliBugCharacters * 8, 2 + FliBugCharacters, 0x4002 + FliBugCharacters, GunPaintBorder);
+		SetSize(320 - FliBugCharacters * 8, 200, RECOILResolution.C641x1);
+		DecodeC64MulticolorFrame(content, 0x2002 + FliBugCharacters * 8, 2 + FliBugCharacters, 0x4002 + FliBugCharacters, GunPaintBorder, 0);
+		LeftSkip = -1;
 		DecodeC64MulticolorFrame(content, 0x6402 + FliBugCharacters * 8, 0x4402 + FliBugCharacters, 0x4002 + FliBugCharacters, GunPaintBorder, 296 * 200);
 		return ApplyBlend();
 	}
 
 	bool DecodeFunUnpacked(byte[] content)
 	{
-		DecodeC64Multicolor(320 - FliBugCharacters * 8, content, 0x2012 + FliBugCharacters * 8, 0x12 + FliBugCharacters, 0x4012 + FliBugCharacters, FunPaintBorder);
+		SetSize(320 - FliBugCharacters * 8, 200, RECOILResolution.C641x1);
+		DecodeC64MulticolorFrame(content, 0x2012 + FliBugCharacters * 8, 0x12 + FliBugCharacters, 0x4012 + FliBugCharacters, FunPaintBorder, 0);
+		LeftSkip = -1;
 		DecodeC64MulticolorFrame(content, 0x63fa + FliBugCharacters * 8, 0x43fa + FliBugCharacters, 0x4012 + FliBugCharacters, FunPaintBorder, 296 * 200);
 		return ApplyBlend();
 	}
@@ -3500,14 +3522,14 @@ public class RECOIL
 		byte[2] colors;
 		colors[0] = GtiaColors[6];
 		colors[1] = GtiaColors[6] & 0xf0 | GtiaColors[5] & 0x0e;
-		frameOffset -= GtiaLeftSkip;
+		frameOffset -= LeftSkip;
 		for (int y = 0; y < height; y++) {
 			int x;
-			for (x = GtiaLeftSkip; x < Width; x++) {
+			for (x = LeftSkip; x < Width; x++) {
 				int c = content[contentOffset + (x >> 3)] >> (~x & 7) & 1;
 				frame[frameOffset + x] = colors[c];
 			}
-			for ( ; x < Width + GtiaLeftSkip; x++)
+			for ( ; x < Width + LeftSkip; x++)
 				frame[frameOffset + x] = GtiaColors[8];
 			contentOffset += Width >> 3;
 			frameOffset += Width;
@@ -3538,13 +3560,11 @@ public class RECOIL
 		}
 	}
 
-	int GtiaLeftSkip;
-
 	void DecodeAtari8Gr9(byte[] content, int contentOffset, int contentStride, byte[] frame, int frameOffset, int frameStride, int width, int height)
 	{
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
-				int i = x + GtiaLeftSkip;
+				int i = x + LeftSkip;
 				int c = i < 0 || i >= width ? 0 : content[contentOffset + (i >> 3)] >> (~i & 4) & 0x0f;
 				frame[frameOffset + x] = GtiaColors[8] | c;
 			}
@@ -3555,15 +3575,15 @@ public class RECOIL
 
 	void DecodeAtari8Gr11(byte[] content, int contentOffset, byte[] frame, int frameOffset, int frameStride, int height)
 	{
-		frameOffset -= GtiaLeftSkip;
+		frameOffset -= LeftSkip;
 		for (int y = 0; y < height; y++) {
 			int x;
-			for (x = GtiaLeftSkip; x < Width; x++) {
+			for (x = LeftSkip; x < Width; x++) {
 				int c = content[contentOffset + (x >> 3)] << (x & 4) & 0xf0;
 				c = c == 0 ? GtiaColors[8] & 0xf0 : GtiaColors[8] | c;
 				frame[frameOffset + x] = c;
 			}
-			for ( ; x < Width + GtiaLeftSkip; x++)
+			for ( ; x < Width + LeftSkip; x++)
 				frame[frameOffset + x] = GtiaColors[8] & 0xf0;
 			contentOffset += Width >> 3;
 			frameOffset += frameStride;
@@ -3572,12 +3592,12 @@ public class RECOIL
 
 	void DecodeAtari8Gr10(byte[] content, int contentOffset, byte[] frame, int frameOffset, int frameStride, int height)
 	{
-		frameOffset += 2 - GtiaLeftSkip;
+		frameOffset += 2 - LeftSkip;
 		for (int y = 0; y < height; y++) {
 			int x;
-			for (x = GtiaLeftSkip - 2; x < 0; x++)
+			for (x = LeftSkip - 2; x < 0; x++)
 				frame[frameOffset + x] = GtiaColors[0];
-			for ( ; x < Width + GtiaLeftSkip - 2; x++) {
+			for ( ; x < Width + LeftSkip - 2; x++) {
 				int c = content[contentOffset + (x >> 3)] >> (~x & 4) & 0x0f;
 				frame[frameOffset + x] = GtiaColors[c];
 			}
@@ -3589,9 +3609,9 @@ public class RECOIL
 	void DecodeAtari8Gr11PalBlend(byte[] content, int contentOffset, int contentStride, byte[] frame, int y)
 	{
 		for ( ; y < Height; y += 2) {
-			int frameOffset = y * Width - GtiaLeftSkip;
+			int frameOffset = y * Width - LeftSkip;
 			int x;
-			for (x = GtiaLeftSkip; x < Width; x++) {
+			for (x = LeftSkip; x < Width; x++) {
 				int c = content[contentOffset + (x >> 3)] << (x & 4) & 0xf0;
 				// Average intensity from neighboring lines. This doesn't happen on real hardware,
 				// but avoids ugly aliasing with non-integer zoom factors.
@@ -3604,7 +3624,7 @@ public class RECOIL
 				if (y < Height - 1)
 					frame[frameOffset + Width + x] = c | (frame[frameOffset + Width + x] & 0x0f);
 			}
-			for ( ; x < Width + GtiaLeftSkip; x++)
+			for ( ; x < Width + LeftSkip; x++)
 				frame[frameOffset + x] = 0;
 			contentOffset += contentStride;
 		}
@@ -3831,7 +3851,7 @@ public class RECOIL
 		int contentOffset = GetAtari8ExecutableOffset(content, contentLength);
 		if ((contentLength - contentOffset) % 40 != 9)
 			return false;
-		GtiaLeftSkip = 2;
+		LeftSkip = 2;
 		SetGtiaColors(content, contentLength - 9);
 		byte[320 * 240] frame;
 		DecodeAtari8Gr10(content, contentOffset, frame, 0, 320, Height);
@@ -4498,7 +4518,7 @@ public class RECOIL
 			if (height > 240)
 				return false;
 			SetSize(320, height, RECOILResolution.Xe2x1);
-			GtiaLeftSkip = 1;
+			LeftSkip = 1;
 			SetGtiaColors(gr10Colors, 0);
 			DecodeAtari8Gr10(content, 6, frame1, 0, 320, height);
 			GtiaColors[8] = 0x00;
@@ -4510,7 +4530,7 @@ public class RECOIL
 			if (height > 240)
 				return false;
 			SetSize(320, height, RECOILResolution.Xe2x1);
-			GtiaLeftSkip = 1;
+			LeftSkip = 1;
 			GtiaColors[8] = 0x00;
 			DecodeAtari8Gr9(content, 0, 40, frame1, 0, 320, 320, height);
 			if (contentLength % 80 == 9)
@@ -4539,7 +4559,7 @@ public class RECOIL
 			return false;
 
 		SetSize(width << 1, height << 1, RECOILResolution.Xe2x2);
-		GtiaLeftSkip = 1;
+		LeftSkip = 1;
 		const byte[] colors = { 0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e, 0x00 };
 		SetGtiaColors(colors, 0);
 		byte[320 * 238] frame1;
@@ -4714,7 +4734,7 @@ public class RECOIL
 			return ApplyAtari8Palette(frame1);
 		case 0x8f: // GR. 10
 			SetSize(width, height, RECOILResolution.Xe4x1);
-			GtiaLeftSkip = 2;
+			LeftSkip = 2;
 			DecodeAtari8Gr10(unpacked, 0, frame1, 0, width, height);
 			return ApplyAtari8Palette(frame1);
 		case 0xcf: // GR. 11
@@ -4738,14 +4758,14 @@ public class RECOIL
 			return ApplyAtari8PaletteBlend(frame1, frame2);
 		case 0x20: // HIP, RIP
 			SetSize(width, height, RECOILResolution.Xe2x1);
-			GtiaLeftSkip = 1;
+			LeftSkip = 1;
 			DecodeAtari8Gr10(unpacked, 0, frame1, 0, width, height);
 			GtiaColors[8] = 0x00;
 			DecodeAtari8Gr9(unpacked, height * contentStride, contentStride, frame2, 0, width, width, height);
 			return ApplyAtari8PaletteBlend(frame1, frame2);
 		case 0x30: // Multi RIP
 			SetSize(width, height, RECOILResolution.Xe2x1);
-			GtiaLeftSkip = 1;
+			LeftSkip = 1;
 			GtiaColors[0] = 0x00;
 			int colorsOffset = height * contentStride << 1;
 			for (int y = 0; y < height; y += 2) {
@@ -4766,9 +4786,9 @@ public class RECOIL
 			return false;
 		SetSize(320, 200, RECOILResolution.Xe2x1);
 		byte[320 * 200] frame1;
-		GtiaLeftSkip = -1;
+		LeftSkip = -1;
 		DecodeAtari8Gr9(content, 0, 40, frame1, 0, 320, 320, 200);
-		GtiaLeftSkip = 1;
+		LeftSkip = 1;
 		byte[320 * 200] frame2;
 		DecodeAtari8Gr9(content, 8000, 40, frame2, 0, 320, 320, 200);
 		return ApplyAtari8PaletteBlend(frame1, frame2);
@@ -4834,7 +4854,7 @@ public class RECOIL
 
 		SetSize(320, 192, resolution);
 		if (mode == 2)
-			GtiaLeftSkip = 2;
+			LeftSkip = 2;
 		if (mode == 1)
 			GtiaColors[8] = content[colorsOffset + 8] & 0xf0;
 		else
@@ -4888,7 +4908,7 @@ public class RECOIL
 			break;
 		case 10:
 			SetSize(320, 192, RECOILResolution.Xe4x1);
-			GtiaLeftSkip = 2;
+			LeftSkip = 2;
 			DecodeAtari8Gr10(content, 10, frame, 0, 320, 192);
 			break;
 		case 11:
@@ -5438,10 +5458,10 @@ public class RECOIL
 					bitmap[col] = b;
 					break;
 				case IceFrameMode.Gr12:
-					for (int x = col == 0 ? GtiaLeftSkip : 0; x < 8; x++) {
+					for (int x = col == 0 ? LeftSkip : 0; x < 8; x++) {
 						int c = b >> (~x & 6) & 3;
 						int gr12Registers = (ch & 0x80) == 0 ? 0x6548 : 0x7548;
-						frame[frameOffset + (col << 3) + x - GtiaLeftSkip] = GtiaColors[gr12Registers >> (c << 2) & 0xf];
+						frame[frameOffset + (col << 3) + x - LeftSkip] = GtiaColors[gr12Registers >> (c << 2) & 0xf];
 					}
 					break;
 				case IceFrameMode.Gr12Gtia9:
@@ -5458,7 +5478,7 @@ public class RECOIL
 				DecodeAtari8Gr8(bitmap, 0, frame, frameOffset, 1);
 				break;
 			case IceFrameMode.Gr12:
-				for (int x = Width ; x < Width + GtiaLeftSkip; x++)
+				for (int x = Width ; x < Width + LeftSkip; x++)
 					frame[frameOffset + x] = GtiaColors[8];
 				break;
 			case IceFrameMode.Gr0Gtia9:
@@ -5546,7 +5566,7 @@ public class RECOIL
 			if (contentLength != 10 + 2048)
 				return false;
 			SetSize(256, 128, RECOILResolution.Xe4x1);
-			GtiaLeftSkip = 2;
+			LeftSkip = 2;
 			SetGtiaColors(content, 1);
 			DecodeIceFrame(content, IceFontFrame1, 10, frame1, IceFrameMode.Gr0Gtia10);
 			DecodeIceFrame(content, IceFontFrame2, 10 + 1024, frame2, IceFrameMode.Gr0Gtia10);
@@ -5555,7 +5575,7 @@ public class RECOIL
 			if (contentLength != 17 + 2048 && contentLength != 18 + 2048)
 				return false;
 			SetSize(256, 128, RECOILResolution.Xe4x1);
-			GtiaLeftSkip = 2;
+			LeftSkip = 2;
 			GtiaColors[0] = content[1] & 0xfe;
 			for (int i = 0; i < 8; i++)
 				SetGtiaColor(i + 1, content[2 + i * 2]);
@@ -5594,7 +5614,7 @@ public class RECOIL
 			if (contentLength != 10 + 2048)
 				return false;
 			SetSize(256, 128, RECOILResolution.Xe2x1);
-			GtiaLeftSkip = 1;
+			LeftSkip = 1;
 			GtiaColors[8] = content[1] & 0xfe;
 			DecodeIceFrame(content, IceFontFrame1, 10, frame1, IceFrameMode.Gr0Gtia9);
 			SetGtiaColors(content, 1);
@@ -5604,7 +5624,7 @@ public class RECOIL
 			if (contentLength != 10 + 2048)
 				return false;
 			SetSize(256, 128, RECOILResolution.Xe2x1);
-			GtiaLeftSkip = 1;
+			LeftSkip = 1;
 			GtiaColors[8] = content[1] & 0xfe;
 			DecodeIceFrame(content, IceFontFrame1, 10, frame1, IceFrameMode.Gr0Gtia11);
 			GtiaColors[0] = 0x00;
@@ -5650,7 +5670,7 @@ public class RECOIL
 			// Here, I move GR. 10 to the left.
 			// This can't be done on the Atari as it doesn't support scrolling GR. 10 by half a pixel.
 			// I apply same technique to ICE modes 16, 19 and IP2.
-			GtiaLeftSkip = 2;
+			LeftSkip = 2;
 			GtiaColors[0] = content[1] & 0xfe;
 			SetPM123PF0123Bak(content, 3);
 			DecodeIceFrame(content, IceFontFrame2, 11 + 1024, frame2, IceFrameMode.Gr0Gtia10);
@@ -5676,10 +5696,10 @@ public class RECOIL
 			if (contentLength != 10 + 2048)
 				return false;
 			SetSize(256, 128, RECOILResolution.Xe2x1);
-			GtiaLeftSkip = 2;
+			LeftSkip = 2;
 			SetGtiaColors(content, 1);
 			DecodeIceFrame(content, IceFontFrame2, 10 + 1024, frame2, IceFrameMode.Gr12Gtia10);
-			GtiaLeftSkip = 0;
+			LeftSkip = 0;
 			GtiaColors[8] = content[1] & 0xfe;
 			DecodeIceFrame(content, IceFontFrame1, 10, frame1, IceFrameMode.Gr12);
 			break;
@@ -5704,7 +5724,7 @@ public class RECOIL
 			SetPF0123Bak(content, 5);
 			GtiaColors[8] = content[1] & 0xfe;
 			DecodeIceFrame(content, font ? IceFontFrame1 : 10 + 16384, 10, frame1, IceFrameMode.Gr12);
-			GtiaLeftSkip = 2;
+			LeftSkip = 2;
 			SetGtiaColors(content, 1);
 			DecodeIceFrame(content, font ? IceFontFrame2 : 10 + 16384, 10 + 1024, frame2, IceFrameMode.Gr0Gtia10);
 			break;
@@ -5726,7 +5746,7 @@ public class RECOIL
 		GtiaColors[7] = content[11] & 0xfe;
 		byte[320 * 192] frame1;
 		DecodeIceFrame(content, 14 + 16384, 14, frame1, IceFrameMode.Gr12);
-		GtiaLeftSkip = 2; // see the comment in DecodeAtari8Ice
+		LeftSkip = 2; // see the comment in DecodeAtari8Ice
 		for (int i = 0; i < 4; i++) {
 			GtiaColors[i] = content[1 + i] & 0xfe;
 			SetGtiaColor(4 + i, content[6 + i * 2]);
@@ -6665,7 +6685,7 @@ public class RECOIL
 		case PACKED_EXT("MCH"):
 			return DecodeMch(content, contentLength);
 		case PACKED_EXT("MCI"):
-			return contentLength == 19434 && DecodeC64MulticolorBlend(content, 0x402, 2, 0x2402, 0x4402, 0x4802, content[0x3ea]);
+			return DecodeMci(content, contentLength);
 		case PACKED_EXT("MCP"):
 			return DecodeMcp(content, contentLength);
 		case PACKED_EXT("MCS"):
