@@ -2199,6 +2199,24 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeLp3(byte[] content, int contentLength)
+	{
+		if (contentLength != 4174 || content[0] != 0 || content[1] != 0x18)
+			return false;
+		// TODO: second screen?
+		SetSize(320, 200, RECOILResolution.C642x1);
+		for (int y = 0; y < 200; y++) {
+			for (int x = 0; x < 320; x++) {
+				int c = content[2 + (y >> 3) * 40 + (x >> 3)];
+				c = content[0x802 + (c << 3) + (y & 7)] >> (~x & 6) & 3;
+				const byte[4] color2offset = { 0, 2, 3, 1 };
+				c = content[2 + 0x7fb + color2offset[c]];
+				Pixels[y * 320 + x] = C64Palette[c & 0xf];
+			}
+		}
+		return true;
+	}
+
 	// Atari ST formats.
 
 	bool DecodeDoo(byte[] content, int contentLength)
@@ -6312,6 +6330,7 @@ public class RECOIL
 		case PACKED_EXT("GIG"):
 		case PACKED_EXT("RPM"):
 		case PACKED_EXT("LEO"):
+		case PACKED_EXT("LP3"):
 		case PACKED_EXT("LUM"):
 		case PACKED_EXT("MAX"):
 		case PACKED_EXT("MBG"):
@@ -6633,6 +6652,8 @@ public class RECOIL
 			return DecodeKoa(content, contentLength);
 		case PACKED_EXT("LEO"):
 			return DecodeLeo(content, contentLength);
+		case PACKED_EXT("LP3"):
+			return DecodeLp3(content, contentLength);
 		case PACKED_EXT("LUM"):
 			return DecodeLum(content, contentLength);
 		case PACKED_EXT("MAX"):

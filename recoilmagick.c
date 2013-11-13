@@ -238,6 +238,7 @@ static const struct Format {
 	{ "KOA", "Koala Painter; 160x200, 16 colors" },
 	{ "LBM", "Interleaved Bitmap" },
 	{ "LEO", "Larka Edytor Obiektow trybu $4+; 8x16 tiles, 5 colors" },
+	{ "LP3", "Logo Painter 3+; 160x200, 4 colors" },
 	{ "LUM", "Technicolor Dream luminance; 80x96, 16-level grayscale" },
 	{ "MAX", "XL-Paint MAX; 160x192, 2 frames, compressed" },
 	{ "MBG", "Mad Designer; 512x256, mono" },
