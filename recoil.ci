@@ -2086,7 +2086,7 @@ public class RECOIL
 
 	bool DecodeHim(byte[] content, int contentLength)
 	{
-		if (content[0] != 0 || content[1] != 0x40)
+		if (contentLength < 18 || content[0] != 0 || content[1] != 0x40)
 			return false;
 		if (content[3] == 0xff)
 			return contentLength == 16385 && DecodeHimUnpacked(content);
