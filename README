@@ -238,7 +238,7 @@ IPT:: "Interpaint", 160x200, 16 colors.
 ISM:: "Image System", 160x200, 16 colors.
 JJ:: "Doodle", 320x200, 16 colors, compressed.
 KOA:: "Koala Painter", 160x200, 16 colors.
-LP3:: "Logo Painter 3+", 160x200, 4 colors.
+LP3:: "Logo Painter 3+", 160x400, 4 colors.
 MCI:: "Truepaint", 320x200, 2 frames.
 MIL:: "Micro Illustrator", 160x200, 16 colors.
 MON:: "Mono Magic", 320x200, mono.
