@@ -2227,13 +2227,16 @@ public class RECOIL
 			return false;
 		// TODO: second screen?
 		SetSize(320, 200, RECOILResolution.C642x1);
+		int[4] colors;
+		colors[0] = C64Palette[content[2 + 0x7fb] & 0xf];
+		colors[1] = C64Palette[content[2 + 0x7fd] & 0xf];
+		colors[2] = C64Palette[content[2 + 0x7fe] & 0xf];
+		colors[3] = C64Palette[content[2 + 0x7fc] & 7];
 		for (int y = 0; y < 200; y++) {
 			for (int x = 0; x < 320; x++) {
 				int c = content[2 + (y >> 3) * 40 + (x >> 3)];
 				c = content[0x802 + (c << 3) + (y & 7)] >> (~x & 6) & 3;
-				const byte[4] color2offset = { 0, 2, 3, 1 };
-				c = content[2 + 0x7fb + color2offset[c]];
-				Pixels[y * 320 + x] = C64Palette[c & 0xf];
+				Pixels[y * 320 + x] = colors[c];
 			}
 		}
 		return true;
