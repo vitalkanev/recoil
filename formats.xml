@@ -226,7 +226,7 @@
 			<ext name="Gigapaint">GIG</ext>
 			<ext name="Koala Painter">KOA</ext>
 		</format>
-		<format name="Logo Painter 3+" width="160" height="400" colors="4"><ext>LP3</ext></format>
+		<format name="Logo Painter 3/3+" width="160" height="400" colors="4"><ext>LP3</ext></format>
 		<format name="True Paint" width="320" height="200" frames="2"><ext>MCI</ext></format>
 		<format name="Micro Illustrator" width="160" height="200" colors="16"><ext>MIL</ext></format>
 		<format name="Advanced Art Studio" width="160" height="200" colors="16"><ext>OCP</ext></format>

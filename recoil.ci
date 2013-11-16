@@ -2223,19 +2223,34 @@ public class RECOIL
 
 	bool DecodeLp3(byte[] content, int contentLength)
 	{
-		if (contentLength != 4174 || content[0] != 0 || content[1] != 0x18)
+		switch (contentLength) {
+		case 4098:
+		case 4174:
+			break;
+		default:
+			return false;
+		}
+		if (content[0] != 0 || content[1] != 0x18)
 			return false;
 		SetSize(320, 400, RECOILResolution.C642x1);
-		int[4] colors;
-		colors[0] = C64Palette[content[2 + 0x7fb] & 0xf];
-		colors[1] = C64Palette[content[2 + 0x7fd] & 0xf];
-		colors[2] = C64Palette[content[2 + 0x7fe] & 0xf];
-		colors[3] = C64Palette[content[2 + 0x7fc] & 7];
+		byte[4] colors;
+		if (contentLength == 4174) {
+			colors[0] = content[2 + 0x7fb] & 0xf;
+			colors[1] = content[2 + 0x7fd] & 0xf;
+			colors[2] = content[2 + 0x7fe] & 0xf;
+			colors[3] = content[2 + 0x7fc] & 7;
+		}
+		else {
+			colors[0] = 0;
+			colors[1] = 0xa;
+			colors[2] = 2;
+			colors[3] = 1;
+		}
 		for (int y = 0; y < 400; y++) {
 			for (int x = 0; x < 320; x++) {
 				int c = content[2 + (y >> 3) * 40 + (x >> 3)];
 				c = content[0x802 + (c << 3) + (y & 7)] >> (~x & 6) & 3;
-				Pixels[y * 320 + x] = colors[c];
+				Pixels[y * 320 + x] = C64Palette[colors[c]];
 			}
 		}
 		return true;
