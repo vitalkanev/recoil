@@ -214,7 +214,7 @@
 			<ext name="Fun Graphics Machine">FGS</ext>
 		</format>
 		<format name="Hi-Eddi" width="320" height="200" colors="16"><ext>HED</ext></format>
-		<format name="Hires FLI by Crest" width="296" height="200" colors="16"><ext>HFC</ext></format>
+		<format name="Hires FLI by Crest" width="296" height="112" colors="16"><ext>HFC</ext></format>
 		<format name="Hires Manager by Cosmos" width="296" height="192" colors="16" compressed="optionally"><ext>HIM</ext></format>
 		<format name="Hires Interlace by Feniks" width="320" height="200" frames="2"><ext>HLF</ext></format>
 		<format name="Hi-Pic Creator" width="320" height="200" colors="16"><ext>HPC</ext></format>

@@ -1895,13 +1895,6 @@ public class RECOIL
 		}
 	}
 
-	bool DecodeC64Hires(int width, byte[] content, int bitmapOffset, int videoMatrixOffset)
-	{
-		SetSize(width, 200, RECOILResolution.C641x1);
-		DecodeC64HiresFrame(content, bitmapOffset, videoMatrixOffset, 0);
-		return true;
-	}
-
 	const int FunPaintBorder = -0x3f5a;
 	const int GunPaintBorder = -0x3f51;
 
@@ -1967,7 +1960,9 @@ public class RECOIL
 		default:
 			return false;
 		}
-		return DecodeC64Hires(320, content, 2, -1);
+		SetSize(320, 200, RECOILResolution.C641x1);
+		DecodeC64HiresFrame(content, 2, -1, 0);
+		return true;
 	}
 
 	bool DecodeIph(byte[] content, int contentLength)
@@ -1980,7 +1975,27 @@ public class RECOIL
 		default:
 			return false;
 		}
-		return DecodeC64Hires(320, content, 2, 0x1f42);
+		SetSize(320, 200, RECOILResolution.C641x1);
+		DecodeC64HiresFrame(content, 2, 0x1f42, 0);
+		return true;
+	}
+
+	bool DecodeHed(byte[] content, int contentLength)
+	{
+		if (contentLength != 9218)
+			return false;
+		SetSize(320, 200, RECOILResolution.C641x1);
+		DecodeC64HiresFrame(content, 2, 0x2002, 0);
+		return true;
+	}
+
+	bool DecodeDd(byte[] content, int contentLength)
+	{
+		if (contentLength != 9218)
+			return false;
+		SetSize(320, 200, RECOILResolution.C641x1);
+		DecodeC64HiresFrame(content, 0x402, 2, 0);
+		return true;
 	}
 
 	bool DecodeJj(byte[] content, int contentLength)
@@ -1992,7 +2007,26 @@ public class RECOIL
 		rle.Content = content;
 		rle.ContentOffset = 2;
 		rle.ContentLength = contentLength;
-		return rle.UnpackC64(unpacked, 9218) && DecodeC64Hires(320, unpacked, 0x402, 2);
+		return rle.UnpackC64(unpacked, 9218)
+			&& DecodeDd(unpacked, 9218);
+	}
+
+	bool DecodeHfc(byte[] content, int contentLength)
+	{
+		if (contentLength != 16386)
+			return false;
+		SetSize(320 - FliBugCharacters * 8, 112, RECOILResolution.C641x1);
+		DecodeC64HiresFrame(content, 2 + FliBugCharacters * 8, 0x2002 + FliBugCharacters, 0);
+		return true;
+	}
+
+	bool DecodeAfl(byte[] content, int contentLength)
+	{
+		if (contentLength != 16385)
+			return false;
+		SetSize(320 - FliBugCharacters * 8, 200, RECOILResolution.C641x1);
+		DecodeC64HiresFrame(content, 0x2002 + FliBugCharacters * 8, 2 + FliBugCharacters, 0);
+		return true;
 	}
 
 	bool DecodePmg(byte[] content, int contentLength)
@@ -2055,7 +2089,8 @@ public class RECOIL
 	{
 		if (contentLength != 24578)
 			return false;
-		DecodeC64Hires(320, content, 2, 0x2402);
+		SetSize(320 , 200, RECOILResolution.C641x1);
+		DecodeC64HiresFrame(content, 2, 0x2402, 0);
 		DecodeC64HiresFrame(content, 0x4002, 0x2802, 320 * 200);
 		return ApplyBlend();
 	}
@@ -2129,7 +2164,8 @@ public class RECOIL
 	{
 		if (contentLength != 32770)
 			return false;
-		DecodeC64Hires(296, content, 2 + FliBugCharacters * 8, 0x2002 + FliBugCharacters);
+		SetSize(320 - FliBugCharacters * 8, 200, RECOILResolution.C641x1);
+		DecodeC64HiresFrame(content, 2 + FliBugCharacters * 8, 0x2002 + FliBugCharacters, 0);
 		DecodeC64HiresFrame(content, 0x4002 + FliBugCharacters * 8, 0x6002 + FliBugCharacters, 296 * 200);
 		return ApplyBlend();
 	}
@@ -6472,7 +6508,7 @@ public class RECOIL
 		case PACKED_EXT("ACS"):
 			return DecodeAcs(content, contentLength);
 		case PACKED_EXT("AFL"):
-			return contentLength == 16385 && DecodeC64Hires(320 - FliBugCharacters * 8, content, 0x2002 + FliBugCharacters * 8, 2 + FliBugCharacters);
+			return DecodeAfl(content, contentLength);
 		case PACKED_EXT("AGP"):
 			return DecodeAgp(content, contentLength);
 		case PACKED_EXT("ALL"):
@@ -6543,7 +6579,7 @@ public class RECOIL
 		case PACKED_EXT("DGC"):
 			return DecodeDgc(content, contentLength);
 		case PACKED_EXT("DD"):
-			return contentLength == 9218 && DecodeC64Hires(320, content, 0x402, 2);
+			return DecodeDd(content, contentLength);
 		case PACKED_EXT("DEL"):
 			return DecodeDel(content, contentLength);
 		case PACKED_EXT("DG1"):
@@ -6609,9 +6645,9 @@ public class RECOIL
 		case PACKED_EXT("GUN"):
 			return DecodeGun(content, contentLength);
 		case PACKED_EXT("HED"):
-			return contentLength == 9218 && DecodeC64Hires(320, content, 2, 0x2002);
+			return DecodeHed(content, contentLength);
 		case PACKED_EXT("HFC"):
-			return contentLength == 16386 && DecodeC64Hires(320 - FliBugCharacters * 8, content, 2 + FliBugCharacters * 8, 0x2002 + FliBugCharacters);
+			return DecodeHfc(content, contentLength);
 		case PACKED_EXT("HIM"):
 			return DecodeHim(content, contentLength);
 		case PACKED_EXT("HIP"):

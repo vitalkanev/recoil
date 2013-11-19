@@ -229,7 +229,7 @@ GIH:: "Gigapaint", 320x200, mono.
 GUN, IFL:: "Gunpaint", 296x200, 2 frames.
 HBM, HIR:: Hires-Bitmap, 320x200, mono.
 HED:: "Hi-Eddi", 320x200, 16 colors.
-HFC:: "Hires FLI" by Crest, 296x200, 16 colors.
+HFC:: "Hires FLI" by Crest, 296x112, 16 colors.
 HIM:: "Hires Manager by Cosmos, 296x192, 16 colors, compressed.
 HLF:: "Hires Interlace" by Feniks; 320x200, 2 frames.
 HPC:: "Hi-Pic Creator", 320x200, 16 colors.
