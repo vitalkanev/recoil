@@ -260,8 +260,7 @@ abstract class RleStream : BitStream
 	{
 		unpacked[0] = Content[0];
 		unpacked[1] = Content[1];
-		return Unpack(unpacked, 2, 1, unpackedLength - 2)
-			&& ReadRle() < 0;
+		return Unpack(unpacked, 2, 1, unpackedLength - 2);
 	}
 }
 
@@ -2057,7 +2056,8 @@ public class RECOIL
 		rle.Content = content;
 		rle.ContentOffset = 2;
 		rle.ContentLength = contentLength;
-		return rle.UnpackC64(unpacked, 10003) && DecodeKoa(unpacked, 10003);
+		return rle.UnpackC64(unpacked, 10003)
+			&& DecodeKoa(unpacked, 10003);
 	}
 
 	bool DecodeDol(byte[] content, int contentLength)
@@ -2082,7 +2082,8 @@ public class RECOIL
 		rle.ContentOffset = 2;
 		rle.ContentLength = contentLength;
 		rle.Escape = 0xc2;
-		return rle.UnpackC64(unpacked, 10259) && DecodeKoa(unpacked, 10003);
+		return rle.UnpackC64(unpacked, 10259)
+			&& DecodeKoa(unpacked, 10003);
 	}
 
 	bool DecodeHlf(byte[] content, int contentLength)
