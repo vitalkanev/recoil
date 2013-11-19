@@ -1990,8 +1990,14 @@ public class RECOIL
 
 	bool DecodeDd(byte[] content, int contentLength)
 	{
-		if (contentLength != 9218)
+		switch (contentLength) {
+		case 9026:
+		case 9218:
+		case 9346:
+			break;
+		default:
 			return false;
+		}
 		SetSize(320, 200, RECOILResolution.C641x1);
 		DecodeC64HiresFrame(content, 0x402, 2, 0);
 		return true;
@@ -2001,13 +2007,13 @@ public class RECOIL
 	{
 		if (contentLength < 2)
 			return false;
-		byte[9218] unpacked;
+		byte[9026] unpacked;
 		C64KoalaStream() rle;
 		rle.Content = content;
 		rle.ContentOffset = 2;
 		rle.ContentLength = contentLength;
-		return rle.UnpackC64(unpacked, 9218)
-			&& DecodeDd(unpacked, 9218);
+		return rle.UnpackC64(unpacked, 9026)
+			&& DecodeDd(unpacked, 9026);
 	}
 
 	bool DecodeHfc(byte[] content, int contentLength)
