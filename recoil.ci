@@ -1882,13 +1882,16 @@ public class RECOIL
 			for (int x = 0; x < Width; x++) {
 				int offset = (y & ~7) * 40 + (x & ~7) + (y & 7);
 				int c = content[bitmapOffset + offset] >> (~x & 7) & 1;
+				int v;
 				if (videoMatrixOffset >= 0) {
 					offset >>= 3;
 					if (afli)
 						offset += (y & 7) << 10;
-					int v = content[videoMatrixOffset + offset];
-					c = c == 0 ? v & 0xf : v >> 4;
+					v = content[videoMatrixOffset + offset];
 				}
+				else
+					v = -videoMatrixOffset;
+				c = c == 0 ? v & 0xf : v >> 4;
 				Pixels[pixelsOffset + y * Width + x] = C64Palette[c];
 			}
 		}
@@ -1960,8 +1963,18 @@ public class RECOIL
 			return false;
 		}
 		SetSize(320, 200, RECOILResolution.C641x1);
-		DecodeC64HiresFrame(content, 2, -1, 0);
+		DecodeC64HiresFrame(content, 2, -0x10, 0);
 		return true;
+	}
+
+	bool DecodeIhe(byte[] content, int contentLength)
+	{
+		if (contentLength != 16194)
+			return false;
+		SetSize(320, 200, RECOILResolution.C641x1);
+		DecodeC64HiresFrame(content, 2, -0x0c, 0);
+		DecodeC64HiresFrame(content, 0x2002, -0x0c, 320 * 200);
+		return ApplyBlend();
 	}
 
 	bool DecodeIph(byte[] content, int contentLength)
@@ -6391,6 +6404,7 @@ public class RECOIL
 		case PACKED_EXT("LBM"):
 		case PACKED_EXT("IFL"):
 		case PACKED_EXT("IGE"):
+		case PACKED_EXT("IHE"):
 		case PACKED_EXT("IMG"):
 		case PACKED_EXT("XIMG"):
 		case PACKED_EXT("IMN"):
@@ -6695,6 +6709,8 @@ public class RECOIL
 				|| DecodeZxIfl(content, contentLength);
 		case PACKED_EXT("IGE"):
 			return DecodeIge(content, contentLength);
+		case PACKED_EXT("IHE"):
+			return DecodeIhe(content, contentLength);
 		case PACKED_EXT("IMG"):
 			return DecodeStImg(content, contentLength)
 				|| DecodeZxImg(content, contentLength);

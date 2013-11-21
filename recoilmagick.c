@@ -220,6 +220,7 @@ static const struct Format {
 	{ "IFF", "Interchange File Format" },
 	{ "IFL", "C64 Gunpaint or ZX Spectrum Multicolor 8x2" },
 	{ "IGE", "Interlace Graphics Editor; 128x96, 16 colors, 2 frames" },
+	{ "IHE", "Interlace Hires Editor; 320x200, 3 colors, 2 frames" },
 	{ "ILC", "80x192, 256 colors, 2 frames" },
 	{ "IMG", "GEM Bit Image or ZX Spectrum Gigascreen" },
 	{ "IMN", "ICE MIN; 160x192, 80 colors, 2 frames" },

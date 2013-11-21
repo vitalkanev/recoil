@@ -172,6 +172,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".ifl", "C64 Gunpaint or ZX Spectrum Multicolor 8x2"),
 				new RecoilFileType(".iff", "Interchange File Format"),
 				new RecoilFileType(".ige", "Interlace Graphics Editor; 128x96, 16 colors, 2 frames"),
+				new RecoilFileType(".ihe", "Interlace Hires Editor; 320x200, 3 colors, 2 frames"),
 				new RecoilFileType(".ilc", "80x192, 256 colors, 2 frames"),
 				new RecoilFileType(".img", "GEM Bit Image or ZX Spectrum Gigascreen"),
 				new RecoilFileType(".imn", "ICE MIN; 160x192, 80 colors, 2 frames"),

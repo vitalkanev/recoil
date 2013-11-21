@@ -218,6 +218,7 @@
 		<format name="Hires Manager by Cosmos" width="296" height="192" colors="16" compressed="optionally"><ext>HIM</ext></format>
 		<format name="Hires Interlace by Feniks" width="320" height="200" frames="2"><ext>HLF</ext></format>
 		<format name="Hi-Pic Creator" width="320" height="200" colors="16"><ext>HPC</ext></format>
+		<format name="Interlace Hires Editor" width="320" height="200" colors="3" frames="2"><ext>IHE</ext></format>
 		<format name="Interpaint" width="320" height="200" colors="16"><ext>IPH</ext></format>
 		<format name="Interpaint" width="160" height="200" colors="16"><ext>IPT</ext></format>
 		<format name="Image System" width="160" height="200" colors="16"><ext>ISM</ext></format>
