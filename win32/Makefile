@@ -22,7 +22,7 @@ LIGHT = light -ext WixUtilExtension -nologo -o $@ -spdb
 IMAGEMAGICK_X64_INST_DIR = c:\Program Files\ImageMagick-6.8.2-Q16
 PAINT_NET_DIR = c:\Program Files\Paint.NET
 
-WIN32_BIN = recoil2png.exe IM_MOD_RL_recoil_.dll Xrecoil1.usr Xrecoil2.usr Xrecoil3.usr Xrecoil4.usr Xrecoil5.usr Xrecoil6.usr Xrecoil7.usr Xrecoil8.usr Xrecoil9.usr Xrecoil10.usr Xrecoil11.usr Xrecoil12.usr Xrecoil13.usr Xrecoil14.usr Xrecoil15.usr Xrecoil16.usr Xrecoil17.usr Xrecoil18.usr Xrecoil19.usr recoilwin.exe RECOIL.plg RecoilPaintDotNet.dll
+WIN32_BIN = recoil2png.exe IM_MOD_RL_recoil_.dll Xrecoil.usr recoilwin.exe RECOIL.plg RecoilPaintDotNet.dll
 
 all: $(WIN32_BIN) thumbrecoil.dll
 
@@ -36,9 +36,8 @@ x64/IM_MOD_RL_recoil_.dll: ../recoilmagick.c ../recoil.c ../recoil.h
 	test -d x64 || mkdir x64
 	$(X64_RECOIL_CC_DLL) ../recoilmagick.c ../recoil.c -I"$(IMAGEMAGICK_X64_INST_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_X64_INST_DIR)"
 
-Xrecoil1.usr Xrecoil2.usr Xrecoil3.usr Xrecoil4.usr Xrecoil5.usr Xrecoil6.usr Xrecoil7.usr Xrecoil8.usr Xrecoil9.usr Xrecoil10.usr Xrecoil11.usr Xrecoil12.usr Xrecoil13.usr Xrecoil14.usr Xrecoil15.usr Xrecoil16.usr Xrecoil17.usr Xrecoil18.usr Xrecoil19.usr: xnview/Xrecoil.c ../recoil.c ../recoil.h
-	$(RECOIL_CC_DLL) "-DXNVIEW_RECOIL_EXTS=\"$(word $(@:Xrecoil%.usr=%),rip;gr8;mic;hip;tip;int;inp;apc;ap3;hr;hr2 pic;cpr;cin;cci;fnt;sxs;gr9;plm;ilc;mcp;ghg mch;ige;256;ap2;jgp;dgp;esc;pzm;ist;raw;rgb mgp;wnd;chr;shp;mbg;fwa;rm0;rm1;rm2;rm3;rm4 xlp;max;shc;all;app;sge;dlm;bkg;g09;bg9;apv spc;apl;gr7;g10;g11;art;drg;agp;pla;mis;4pl 4mi;4pm;pgf;pgc;pi1;pi2;pi3;pc1;pc2;pc3;neo doo;spu;tny;tn1;tn2;tn3;ca1;ca2;ca3;ing;pac sps;gfb;pi4;pi9;dgu;dg1;trp;tru;god;ftc;del dph;ipc;nlq;pmd;acs;pcs;hpm;mcs;a4r;dc1;dgc cpt;iff;bl1;bl2;bl3;bru;ip2;imn;icn;din;vzi irg;ir2;ice;img;ximg;mpp;mc;mg1;mg2;mg4;mg8 scr;atr;ifl;ch4;ch6;ch8;leo;acbm;zxp;hlr;lbm cdu;che;cwg;dd;dol;drz;fgs;fpt;gcd;gig;gih hbm;hed;hir;iph;ipt;ism;koa;mil;mon;ocp;p64 pi;pmg;rp;rpm;sar;vid;sif;drl;mci;ami;gg jj;64c;afl;bfli;bml;dlp;drp;eci;ffli;fli;fp2 fun;gun;hfc;ecp;dgi;lum;bgp;hpc;aas;hlf;him lp3;ihe)\"" \
-		xnview/Xrecoil.c ../recoil.c
+Xrecoil.usr: xnview/Xrecoil.c ../formats.h ../recoil.c ../recoil.h
+	$(RECOIL_CC_DLL) xnview/Xrecoil.c ../recoil.c
 
 recoilwin.exe: recoilwin/recoilwin.c recoilwin/recoilwin.h recoilwin/recoilwin-res.o ../pngsave.c ../pngsave.h ../formats.h ../recoil.c ../recoil.h
 	$(RECOIL_CC) -Wl,-subsystem,windows recoilwin/recoilwin.c recoilwin/recoilwin-res.o ../pngsave.c ../recoil.c -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng -lz

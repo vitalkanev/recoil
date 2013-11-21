@@ -1,6 +1,6 @@
 *.dll
 *.o
-/Xrecoil*.usr
+/Xrecoil.usr
 /RECOIL.plg
 /COPYING.txt
 /README_Windows.html

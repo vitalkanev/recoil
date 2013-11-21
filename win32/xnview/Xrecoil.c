@@ -27,10 +27,7 @@
 #include <stdlib.h>
 
 #include "recoil.h"
-
-#ifndef XNVIEW_RECOIL_EXTS
 #include "formats.h"
-#endif
 
 #define API __stdcall
 #define DLL_EXPORT __declspec(dllexport)

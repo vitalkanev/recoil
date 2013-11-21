@@ -290,11 +290,9 @@
 
 				<Directory Id="XNVIEW.DIR" Name="XnView">
 					<Directory Id="XNVIEWPLUG.DIR" Name="PlugIns">
-						<?foreach I in 1;2;3;4;5;6;7;8;9;10;11;12;13;14;15;16;17;18;19?>
-							<Component Id="Xrecoil$(var.I).usr" Win64="no">
-								<File Name="Xrecoil$(var.I).usr" Source="Xrecoil$(var.I).usr" Checksum="yes" KeyPath="yes" />
-							</Component>
-						<?endforeach?>
+						<Component Id="Xrecoil.usr" Win64="no">
+							<File Name="Xrecoil.usr" Source="Xrecoil.usr" Checksum="yes" KeyPath="yes" />
+						</Component>
 					</Directory>
 					<Component Id="xnview_recoil.ext">
 						<RegistryValue Root="HKCR" Key="recoil.file" Name="XnView.Image" Type="integer" Value="1" KeyPath="yes" />
@@ -434,9 +432,7 @@
 
 		<Feature Id="xnview" Title="XnView plugin" Level="9" ConfigurableDirectory="XNVIEWPLUG.DIR" Description="Plugin for XnView." AllowAdvertise="no">
 			<Condition Level="1">XNVIEW.DIR</Condition>
-			<?foreach I in 1;2;3;4;5;6;7;8;9;10;11;12;13;14;15;16;17;18;19?>
-				<ComponentRef Id="Xrecoil$(var.I).usr" />
-			<?endforeach?>
+			<ComponentRef Id="Xrecoil.usr" />
 			<Feature Id="xnview_recoil.ext" Title="Associate file types" Level="0" Description="$(var.DOUBLECLICK) XnView." AllowAdvertise="no">
 				<Condition Level="9">XNVIEW.EXE</Condition>
 				<ComponentRef Id="xnview_recoil.ext" />
