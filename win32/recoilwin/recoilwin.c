@@ -629,7 +629,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			ZoomOut();
 			break;
 		case IDM_INVERT:
-			{
+			if (bitmap.bmiHeader.biClrUsed == 2) {
 				RGBQUAD c0 = bitmap.bmiColors[0];
 				bitmap.bmiColors[0] = bitmap.bmiColors[1];
 				bitmap.bmiColors[1] = c0;
