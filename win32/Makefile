@@ -1,6 +1,7 @@
 VERSION = 3.0.0
 
 CITO = cito
+XSLTPROC = xsltproc -o $@
 RECOIL_CC = mingw32-gcc -s -O2 -Wall -o $@ -I..
 RECOIL_CC_DLL = $(RECOIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
 RECOIL_GPP = mingw32-g++ -static -s -O2 -Wall -o $@ -I..
@@ -66,7 +67,7 @@ paint.net/RECOIL.cs: ../recoil.ci ../atari8.fnt ../jakub.act
 	$(CITO) -o $@ -I .. -n Recoil $<
 
 ../formats.h: ../formats.h.xsl ../formats.xml
-	xsltproc -o $@ ../formats.h.xsl ../formats.xml
+	$(XSLTPROC) ../formats.h.xsl ../formats.xml
 
 # http://www.cmcrossroads.com/article/rules-multiple-outputs-gnu-make
 %.c %.h: %.ci ../atari8.fnt ../jakub.act
@@ -89,15 +90,18 @@ setup: ../../recoil-$(VERSION)-win32.msi
 ../../recoil-$(VERSION)-win32.msi: setup/recoil.wixobj faileye.ico setup/license.rtf setup/Website.url README_WindowsSetup.html $(WIN32_BIN) thumbrecoil.dll
 	$(LIGHT) -ext WixUIExtension -sice:ICE69 $<
 
-setup/recoil.wixobj: setup/recoil.wxs
+setup/recoil.wixobj: setup/recoil.wxs setup/formats.wxi
 	$(CANDLE) -dVERSION=$(VERSION) $<
+
+setup/formats.wxi: setup/formats.wxi.xsl ../formats.xml
+	$(XSLTPROC) setup/formats.wxi.xsl ../formats.xml
 
 x64-setup: ../../recoil-$(VERSION)-win64.msi
 
 ../../recoil-$(VERSION)-win64.msi: x64/recoil.wixobj faileye.ico setup/license.rtf setup/Website.url README_WindowsSetup.html $(WIN32_BIN) thumbrecoil.dll x64/thumbrecoil.dll x64/IM_MOD_RL_recoil_.dll x64/RECOIL.plg64
 	$(LIGHT) -ext WixUIExtension -sice:ICE69 -sice:ICE80 -b setup $<
 
-x64/recoil.wixobj: setup/recoil.wxs
+x64/recoil.wixobj: setup/recoil.wxs setup/formats.wxi
 	test -d x64 || mkdir x64
 	$(CANDLE) -arch x64 -dVERSION=$(VERSION) $<
 
@@ -124,7 +128,7 @@ www: ../../www/index.html
 
 clean:
 	$(RM) $(WIN32_BIN) thumbrecoil.dll recoilwin/recoilwin-res.o COPYING.txt \
-		../README.html README_Windows.html README_WindowsSetup.html setup/recoil.wixobj x64/recoil.wixobj x64/IM_MOD_RL_recoil_.dll x64/thumbrecoil.dll x64/RECOIL.plg64 RecoilPaintDotNet.dll
+		../README.html README_Windows.html README_WindowsSetup.html setup/formats.wxi setup/recoil.wixobj x64/recoil.wixobj x64/IM_MOD_RL_recoil_.dll x64/thumbrecoil.dll x64/RECOIL.plg64 RecoilPaintDotNet.dll
 
 .PHONY: all clean setup x64-setup ../MANIFEST srcdist dist www
 
