@@ -3,8 +3,8 @@
 	<xsl:template match="/formats">
 		<xsl:text>/* Generated automatically from formats.xml and formats.h.xsl. Do not edit. */&#10;&#10;</xsl:text>
 		<xsl:text>#define IMAGINE_RECOIL_EXTS</xsl:text>
-		<xsl:for-each select="platform/format/ext[not(. = 	following::ext)]">
-			<xsl:sort select="." />
+		<xsl:for-each select="platform/format/ext[not(. = following::ext)]">
+			<xsl:sort />
 			<xsl:text> "</xsl:text>
 			<xsl:value-of select="." />
 			<xsl:text>\0"</xsl:text>
@@ -12,18 +12,16 @@
 		<xsl:text>&#10;&#10;</xsl:text>
 
 		<xsl:text>#define XNVIEW_RECOIL_EXTS "</xsl:text>
-		<xsl:for-each select="platform/format/ext[not(. = 	following::ext)]">
-			<xsl:sort select="." />
-			<xsl:if test="position() != 1">
-				<xsl:text>;</xsl:text>
-			</xsl:if>
+		<xsl:for-each select="platform/format/ext[not(. = following::ext)]">
+			<xsl:sort />
+			<xsl:if test="position() != 1">;</xsl:if>
 			<xsl:value-of select="translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')" />
 		</xsl:for-each>
 		<xsl:text>"&#10;&#10;</xsl:text>
 
 		<xsl:text>#define THUMBRECOIL_EXTS </xsl:text>
-		<xsl:for-each select="platform/format/ext[not(. = 	following::ext)]">
-			<xsl:sort select="." />
+		<xsl:for-each select="platform/format/ext[not(. = following::ext)]">
+			<xsl:sort />
 			<xsl:if test="position() != 1">
 				<xsl:text>, </xsl:text>
 			</xsl:if>
@@ -34,11 +32,9 @@
 		<xsl:text>&#10;&#10;</xsl:text>
 
 		<xsl:text>#define RECOILWIN_FILTERS "All supported\0</xsl:text>
-		<xsl:for-each select="platform/format/ext[not(. = 	following::ext)]">
-			<xsl:sort select="." />
-			<xsl:if test="position() != 1">
-				<xsl:text>;</xsl:text>
-			</xsl:if>
+		<xsl:for-each select="platform/format/ext[not(. = following::ext)]">
+			<xsl:sort />
+			<xsl:if test="position() != 1">;</xsl:if>
 			<xsl:text>*.</xsl:text>
 			<xsl:value-of select="translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')" />
 		</xsl:for-each>
@@ -48,10 +44,8 @@
 			<xsl:value-of select="@name" />
 			<xsl:text>\0</xsl:text>
 			<xsl:for-each select="format/ext[not(. = ../following-sibling::format/ext)]">
-				<xsl:sort select="." />
-				<xsl:if test="position() != 1">
-					<xsl:text>;</xsl:text>
-				</xsl:if>
+				<xsl:sort />
+				<xsl:if test="position() != 1">;</xsl:if>
 				<xsl:text>*.</xsl:text>
 				<xsl:value-of select="translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')" />
 			</xsl:for-each>
@@ -60,8 +54,8 @@
 		<xsl:text>&#9;"\0"&#10;&#10;</xsl:text>
 
 		<xsl:text>#define MAGICK_RECOIL_FORMATS </xsl:text>
-		<xsl:for-each select="platform/format/ext[not(. = 	following::ext)]">
-			<xsl:sort select="." />
+		<xsl:for-each select="platform/format/ext[not(. = following::ext)]">
+			<xsl:sort />
 			<xsl:if test="position() != 1">
 				<xsl:text>, \&#10;&#9;</xsl:text>
 			</xsl:if>

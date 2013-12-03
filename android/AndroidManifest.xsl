@@ -20,7 +20,7 @@
 						<data android:mimeType="*/*" />
 						<data android:scheme="file" android:host="*" />
 						<xsl:for-each select="platform/format/ext[not(. = following::ext)]">
-							<xsl:sort select="." />
+							<xsl:sort />
 							<data android:pathPattern=".*\\.{translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')}" />
 						</xsl:for-each>
 					</intent-filter>
