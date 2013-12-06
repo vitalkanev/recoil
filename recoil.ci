@@ -6877,7 +6877,7 @@ public class RECOIL
 		case PACKED_EXT("RM4"):
 			return DecodeRm(content, contentLength, 4, RECOILResolution.Xe2x1);
 		case PACKED_EXT("RP"):
-			return contentLength == 10242 && DecodeC64Multicolor(320, content, 0x402, 2, 0x2402, content[0x2401]);
+			return contentLength == 10242 && DecodeC64Multicolor(320, content, 0x402, 2, 0x2402, 0);
 		case PACKED_EXT("SAR"):
 			return contentLength == 10018 && DecodeC64Multicolor(320, content, 0x402, 2, 0x2402, content[0x3f2]);
 		case PACKED_EXT("SCR"):
