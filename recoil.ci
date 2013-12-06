@@ -6768,7 +6768,7 @@ public class RECOIL
 		case PACKED_EXT("IPC"):
 			return DecodeAtari8Ice(content, contentLength, false, 19);
 		case PACKED_EXT("IPT"):
-			return contentLength == 10003 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, 0); // FIXME: background in the file?
+			return contentLength == 10003 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2712]);
 		case PACKED_EXT("IR2"):
 			return DecodeAtari8Ice(content, contentLength, false, 2);
 		case PACKED_EXT("IRG"):
