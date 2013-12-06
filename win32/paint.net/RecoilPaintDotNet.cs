@@ -155,6 +155,8 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".gr8", "Graphics 8; up to 320x240, mono"),
 				new RecoilFileType(".gr9", "Graphics 9; up to 80x240, 16-level grayscale"),
 				new RecoilFileType(".gun", "Gunpaint; 296x200, 2 frames"),
+				new RecoilFileType(".ham6", "Hold-And-Modify 6; 4096 colors"),
+				new RecoilFileType(".ham8", "Hold-And-Modify 8; 16777216 colors"),
 				new RecoilFileType(".hbm", "Hires Bitmap; 320x200, mono"),
 				new RecoilFileType(".hed", "Hi-Eddi; 320x200, 16 colors"),
 				new RecoilFileType(".hfc", "Hires FLI by Crest; 296x112, 16 colors"),
