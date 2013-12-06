@@ -39,6 +39,13 @@ enum RECOILResolution
 	Zx1x1
 }
 
+enum IffType
+{
+	Ilbm,
+	Pbm,
+	Acbm
+}
+
 enum IceFrameMode
 {
 	Gr0,
@@ -1458,9 +1465,8 @@ public class RECOIL
 		return true;
 	}
 
-	/// Atari ST/Falcon/Portfolio palette.
-	/// Unlike Atari 8-bit, this palette is always decoded from the image file.
-	int[256] Atari16Palette;
+	/// RGB palette decoded from the image file.
+	int[256] ContentPalette;
 
 	/// Decodes Atari ST/Falcon interleaved bitplanes.
 	/// Each 16 pixels are encoded in N consecutive 16-bit words.
@@ -1472,15 +1478,15 @@ public class RECOIL
 			int c = 0;
 			for (int bitplane = bitplanes; --bitplane >= 0; )
 				c = c << 1 | content[offset + (bitplane << 1)] >> bit & 1;
-			Pixels[pixelsOffset + i] = Atari16Palette[c];
+			Pixels[pixelsOffset + i] = ContentPalette[c];
 		}
 	}
 
 	void DecodeBlackAndWhite(byte[] content, int contentOffset, int width, int height, RECOILResolution resolution)
 	{
 		SetSize(width, height, resolution);
-		Atari16Palette[0] = 0xffffff;
-		Atari16Palette[1] = 0x000000;
+		ContentPalette[0] = 0xffffff;
+		ContentPalette[1] = 0x000000;
 		DecodeBitplanes(content, contentOffset, 1, 0, width * height);
 	}
 
@@ -2384,7 +2390,7 @@ public class RECOIL
 	void SetStPalette(byte[] content, int contentOffset, int colors)
 	{
 		for (int c = 0; c < colors; c++)
-			Atari16Palette[c] = GetStColor(content, contentOffset + c * 2);
+			ContentPalette[c] = GetStColor(content, contentOffset + c * 2);
 	}
 
 	static int GetStColor1000(byte[] content, int contentOffset)
@@ -2417,7 +2423,7 @@ public class RECOIL
 				int bit = ~x & 7;
 				int c = bitmap[offset] >> bit & 1 | (bitmap[offset + 2] >> bit & 1) << 1;
 				int pixelsOffset = y * 1280 + x;
-				Pixels[pixelsOffset + 640] = Pixels[pixelsOffset] = Atari16Palette[c];
+				Pixels[pixelsOffset + 640] = Pixels[pixelsOffset] = ContentPalette[c];
 			}
 		}
 	}
@@ -2541,7 +2547,7 @@ public class RECOIL
 			int rgb = GetStColor1000(content, 20 + bitmapLength + i * 6);
 			if (rgb < 0)
 				return false;
-			Atari16Palette[j] = rgb;
+			ContentPalette[j] = rgb;
 		}
 
 		SetSizeStOrFalcon(width, height, bitplanes);
@@ -2683,8 +2689,8 @@ public class RECOIL
 
 		switch (bitplanes) {
 		case 1:
-			Atari16Palette[0] = 0xffffff;
-			Atari16Palette[1] = 0x000000;
+			ContentPalette[0] = 0xffffff;
+			ContentPalette[1] = 0x000000;
 			break;
 		case 2:
 		case 4:
@@ -2694,7 +2700,7 @@ public class RECOIL
 					int rgb = GetStColor1000(content, 22 + i * 6);
 					if (rgb < 0)
 						return false;
-					Atari16Palette[i] = rgb;
+					ContentPalette[i] = rgb;
 				}
 			}
 			else
@@ -3086,7 +3092,7 @@ public class RECOIL
 	{
 		for (int i = 0; i < 256; i++) {
 			int offset = contentOffset + (i << 2);
-			Atari16Palette[i] = content[offset] << 16 | content[offset + 1] << 8 | content[offset + 3];
+			ContentPalette[i] = content[offset] << 16 | content[offset + 1] << 8 | content[offset + 3];
 		}
 	}
 
@@ -3260,7 +3266,7 @@ public class RECOIL
 		int holdBits = bitplanes > 6 ? 6 : 4;
 		int i = 0;
 		for (int y = 0; y < Height; y++) {
-			int rgb = Atari16Palette[0];
+			int rgb = ContentPalette[0];
 			for (int x = 0; x < Width; x++) {
 				int offset = (i >> 3 & ~1) * bitplanes + (i >> 3 & 1);
 				int bit = ~i & 7;
@@ -3270,7 +3276,7 @@ public class RECOIL
 
 				switch (c >> holdBits) {
 				case 0:
-					rgb = Atari16Palette[c];
+					rgb = ContentPalette[c];
 					break;
 				case 1: // blue
 					c = c << 8 - holdBits & 0xff;
@@ -3300,7 +3306,7 @@ public class RECOIL
 				// grayscale
 				colors = 1 << bitplanes;
 				for (int c = 0; c < colors; c++)
-					Atari16Palette[c] = c * 255 / colors * 0x010101;
+					ContentPalette[c] = c * 255 / colors * 0x010101;
 			}
 			else if ((camg & 0x880) == 0x80 && bitplanes == 6 && colors < 64) {
 				// Amiga Extra Half-Brite
@@ -3308,7 +3314,7 @@ public class RECOIL
 				// I also check if we don't already have 64 colors,
 				// because I found such EHB files.
 				for (int c = 0; c < 32; c++)
-					Atari16Palette[32 + c] = Atari16Palette[c] >> 1 & 0x7f7f7f;
+					ContentPalette[32 + c] = ContentPalette[c] >> 1 & 0x7f7f7f;
 			}
 			if ((camg & 0x800) != 0) {
 				// Amiga Hold-And-Modify
@@ -3342,7 +3348,14 @@ public class RECOIL
 		int contentOffset = 8;
 		if (IsStringAt(content, 8, "DPSTDPAH") && Get32BigEndian(content, 16) == 24 && IsStringAt(content, 44, "FORM"))
 			contentOffset = 52;
-		if (!IsStringAt(content, contentOffset, "ILBM") && !IsStringAt(content, contentOffset, "ACBM"))
+		IffType type;
+		if (IsStringAt(content, contentOffset, "ILBM"))
+			type = IffType.Ilbm;
+		else if (IsStringAt(content, contentOffset, "PBM "))
+			type = IffType.Pbm;
+		else if (IsStringAt(content, contentOffset, "ACBM"))
+			type = IffType.Acbm;
+		else
 			return false;
 		contentOffset += 4;
 
@@ -3368,8 +3381,16 @@ public class RECOIL
 				 || bitplanes == 0 || (bitplanes > 8 && bitplanes != 24 && bitplanes != 32)
 				 || compression > 2)
 					return false;
-				// FIXME: round up to 16 pixels; we shouldn't show the extra pixels
-				width = width + 15 & ~15;
+				if (type == IffType.Pbm) {
+					if (bitplanes != 8)
+						return false;
+					// FIXME: round up to 4 pixels; we shouldn't show the extra pixels
+					width = width + 3 & ~3;
+				}
+				else {
+					// FIXME: round up to 16 pixels; we shouldn't show the extra pixels
+					width = width + 15 & ~15;
+				}
 			}
 			else if (IsStringAt(content, contentOffset, "CMAP")) {
 				colors = chunkLength / 3;
@@ -3378,10 +3399,10 @@ public class RECOIL
 				int c;
 				for (c = 0; c < colors; c++) {
 					int offset = contentOffset + 8 + c * 3;
-					Atari16Palette[c] = content[offset] << 16 | content[offset + 1] << 8 | content[offset + 2];
+					ContentPalette[c] = content[offset] << 16 | content[offset + 1] << 8 | content[offset + 2];
 				}
 				for ( ; c < 256; c++)
-					Atari16Palette[c] = 0;
+					ContentPalette[c] = 0;
 			}
 			else if (IsStringAt(content, contentOffset, "CAMG") && chunkLength >= 4)
 				camg = Get32BigEndian(content, contentOffset + 8);
@@ -3423,6 +3444,20 @@ public class RECOIL
 					rle.Content = content;
 					rle.ContentOffset = contentOffset + 8;
 					rle.ContentLength = contentOffset + 8 + chunkLength;
+					if (type == IffType.Pbm) {
+						if (colors == 0)
+							return false;
+						SetSize(width, height, RECOILResolution.Amiga1x1);
+						for (int y = 0; y < height; y++) {
+							for (int x = 0; x < width; x++) {
+								int b = compression == 0 ? rle.ReadByte() : rle.ReadRle();
+								if (b < 0)
+									return false;
+								Pixels[y * width + x] = ContentPalette[b];
+							}
+						}
+						return true;
+					}
 					for (int y = 0; y < height; y++) {
 						for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
 							for (int w = bitplane << 1; w < bytesPerLine; w += bitplanes << 1) {
