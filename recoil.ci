@@ -1284,9 +1284,9 @@ public class RECOIL
 	public const int MaxContentLength = 350000;
 
 	/// Maximum width of a decoded image.
-	public const int MaxWidth = 640;
+	public const int MaxWidth = 2048;
 	/// Maximum height of a decoded image.
-	public const int MaxHeight = 568;
+	public const int MaxHeight = 1024;
 	/// Maximum number of pixels in a decoded image.
 	public const int MaxPixelsLength = 640 * 568;
 
@@ -1397,19 +1397,24 @@ public class RECOIL
 	}
 
 	/// Initializes decoded image size and resolution.
-	void SetSize(int width, int height, RECOILResolution resolution)
+	bool SetSize(int width, int height, RECOILResolution resolution)
 	{
+		if (width <= 0 || width > MaxWidth
+		 || height <= 0 || height > MaxHeight
+		 || width * height > MaxPixelsLength)
+			return false;
 		Width = width;
 		Height = height;
 		Resolution = resolution;
 		Frames = 1;
 		Colors = UnknownColors;
 		LeftSkip = 0;
+		return true;
 	}
 
-	void SetSizeStOrFalcon(int width, int height, int bitplanes)
+	bool SetSizeStOrFalcon(int width, int height, int bitplanes)
 	{
-		SetSize(width, height, (bitplanes == 1 && width <= 640 && height <= 400)
+		return SetSize(width, height, (bitplanes == 1 && width <= 640 && height <= 400)
 			|| (bitplanes <= 4 && width <= 320 && height <= 200)
 			? RECOILResolution.St1x1 : RECOILResolution.Falcon1x1);
 	}
@@ -2516,11 +2521,7 @@ public class RECOIL
 		default: return false;
 		}
 		int width = Get32BigEndian(content, 8);
-		if (width <= 0 || width > MaxWidth || (width & 15) != 0)
-			return false;
 		int height = Get32BigEndian(content, 12);
-		if (height <= 0 || height > MaxHeight)
-			return false;
 		int bitmapLength = Get32BigEndian(content, 16);
 		if (1556 + bitmapLength != contentLength || bitmapLength != (width >> 3) * bitplanes * height)
 			return false;
@@ -2550,7 +2551,8 @@ public class RECOIL
 			ContentPalette[j] = rgb;
 		}
 
-		SetSizeStOrFalcon(width, height, bitplanes);
+		if (!SetSizeStOrFalcon(width, height, bitplanes))
+			return false;
 		DecodeBitplanes(content, 20, bitplanes, 0, width * height);
 		return true;
 	}
@@ -2681,11 +2683,11 @@ public class RECOIL
 		if (contentLength < 17 || content[0] != 0 || content[1] != 1 || content[4] != 0)
 			return false;
 		int headerLength = (content[2] << 8 | content[3]) << 1;
+		if (headerLength < 16 || headerLength >= contentLength)
+			return false;
 		int bitplanes = content[5];
 		int width = (content[12] << 8 | content[13]) + 7 & ~7; // round up to 8 pixels; FIXME: these pixels are garbage
 		int height = content[14] << 8 | content[15];
-		if (headerLength < 16 || headerLength >= contentLength || width == 0 || width > MaxWidth || height == 0 || height > MaxHeight)
-			return false;
 
 		switch (bitplanes) {
 		case 1:
@@ -2711,7 +2713,8 @@ public class RECOIL
 			return false;
 		}
 
-		SetSizeStOrFalcon(width, height, bitplanes);
+		if (!SetSizeStOrFalcon(width, height, bitplanes))
+			return false;
 		ImgStream() rle;
 		rle.Content = content;
 		rle.ContentOffset = headerLength;
@@ -3052,23 +3055,27 @@ public class RECOIL
 
 	bool DecodeStIcn(byte[] content, int contentLength)
 	{
+		const int maxWidth = 256;
+		const int maxHeight = 256;
 		IcnParser() parser;
 		parser.Content = content;
 		parser.ContentOffset = 0;
 		parser.ContentLength = contentLength;
 		int width = parser.ParseDefine("ICON_W");
-		if (width <= 0 || width >= MaxWidth)
+		if (width <= 0 || width >= maxWidth)
 			return false;
 		int height = parser.ParseDefine("ICON_H");
-		if (height <= 0 || height >= MaxHeight)
+		if (height <= 0 || height >= maxHeight)
 			return false;
 		int size = parser.ParseDefine("ICONSIZE");
 		if (size != (width + 0xf >> 4) * height)
 			return false;
-		if (!parser.Expect("int") || !parser.Expect("image[ICONSIZE]")
-		 || !parser.Expect("=") || !parser.Expect("{"))
+		if (!parser.Expect("int")
+		 || !parser.Expect("image[ICONSIZE]")
+		 || !parser.Expect("=")
+		 || !parser.Expect("{"))
 			return false;
-		byte[MaxWidth / 8 * MaxHeight] bitmap;
+		byte[maxWidth / 8 * maxHeight] bitmap;
 		for (int i = 0; ; ) {
 			int value = parser.ParseHex();
 			if (value < 0)
@@ -3212,9 +3219,9 @@ public class RECOIL
 	bool DecodeFalconTrueColor(byte[] content, int contentLength, int contentOffset, int width, int height)
 	{
 		int pixelsCount = width * height;
-		if (contentOffset + pixelsCount * 2 != contentLength)
+		if (contentOffset + pixelsCount * 2 != contentLength
+		 || !SetSize(width, height, RECOILResolution.Falcon1x1))
 			return false;
-		SetSize(width, height, RECOILResolution.Falcon1x1);
 		for (int i = 0; i < pixelsCount; i++) {
 			int rg = content[contentOffset + i * 2];
 			int gb = content[contentOffset + i * 2 + 1];
@@ -3232,8 +3239,6 @@ public class RECOIL
 	{
 		int width = content[widthOffset] << 8 | content[widthOffset + 1];
 		int height = content[widthOffset + 2] << 8 | content[widthOffset + 3];
-		if (width > MaxWidth || height > MaxHeight) // TODO: resolution limits unknown
-			return false;
 		return DecodeFalconTrueColor(content, contentLength, dataOffset, width, height);
 	}
 
@@ -3377,9 +3382,6 @@ public class RECOIL
 				bitplanes = content[contentOffset + 16];
 				hasMask = content[contentOffset + 17] == 1;
 				compression = content[contentOffset + 18];
-				if (width == 0 || width > MaxWidth
-				 || height == 0 || height > MaxHeight)
-					return false;
 				if (type == IffType.Pbm) {
 					if (bitplanes != 8
 					 || compression > 1)
@@ -3394,6 +3396,9 @@ public class RECOIL
 					// FIXME: round up to 16 pixels; we shouldn't show the extra pixels
 					width = width + 15 & ~15;
 				}
+				int pixelsCount = width * height;
+				if (pixelsCount <= 0 || pixelsCount > MaxPixelsLength)
+					return false;
 			}
 			else if (IsStringAt(content, contentOffset, "CMAP")) {
 				colors = chunkLength / 3;
@@ -3414,8 +3419,9 @@ public class RECOIL
 					return false;
 				int bytesPerLine = (width >> 3) * bitplanes;
 
+				byte[] unpacked;
 				if (compression == 2) {
-					byte[] unpacked = new byte[bytesPerLine * height];
+					unpacked = new byte[bytesPerLine * height];
 					VdatStream() rle;
 					rle.Content = content;
 					rle.ContentOffset = contentOffset + 8;
@@ -3442,51 +3448,51 @@ public class RECOIL
 						rle.ContentOffset = nextContentOffset;
 					}
 					SetSizeStOrFalcon(width, height, bitplanes);
-					return DecodeIffUnpacked(unpacked, bitplanes, colors, camg);
 				}
+				else {
+					PackBitsStream() rle;
+					rle.Content = content;
+					rle.ContentOffset = contentOffset + 8;
+					rle.ContentLength = contentOffset + 8 + chunkLength;
 
-				PackBitsStream() rle;
-				rle.Content = content;
-				rle.ContentOffset = contentOffset + 8;
-				rle.ContentLength = contentOffset + 8 + chunkLength;
-
-				if (type == IffType.Pbm) {
-					if (colors == 0)
-						return false;
-					SetSize(width, height, RECOILResolution.Amiga1x1);
-					for (int y = 0; y < height; y++) {
-						for (int x = 0; x < width; x++) {
-							int b = compression == 0 ? rle.ReadByte() : rle.ReadRle();
-							if (b < 0)
-								return false;
-							Pixels[y * width + x] = ContentPalette[b];
-						}
-					}
-					return true;
-				}
-
-				byte[] unpacked = new byte[bytesPerLine * height];
-				for (int y = 0; y < height; y++) {
-					for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
-						for (int w = bitplane << 1; w < bytesPerLine; w += bitplanes << 1) {
-							for (int x = 0; x < 2; x++) {
+					if (type == IffType.Pbm) {
+						if (colors == 0)
+							return false;
+						SetSize(width, height, RECOILResolution.Amiga1x1);
+						for (int y = 0; y < height; y++) {
+							for (int x = 0; x < width; x++) {
 								int b = compression == 0 ? rle.ReadByte() : rle.ReadRle();
 								if (b < 0)
 									return false;
-								unpacked[y * bytesPerLine + w + x] = b;
+								Pixels[y * width + x] = ContentPalette[b];
+							}
+						}
+						return true;
+					}
+
+					unpacked = new byte[bytesPerLine * height];
+					for (int y = 0; y < height; y++) {
+						for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
+							for (int w = bitplane << 1; w < bytesPerLine; w += bitplanes << 1) {
+								for (int x = 0; x < 2; x++) {
+									int b = compression == 0 ? rle.ReadByte() : rle.ReadRle();
+									if (b < 0)
+										return false;
+									unpacked[y * bytesPerLine + w + x] = b;
+								}
+							}
+						}
+						if (hasMask) {
+							// ignore transparency mask
+							for (int x = 0; x < width; x += 8) {
+								int b = compression == 0 ? rle.ReadByte() : rle.ReadRle();
+								if (b < 0)
+									return false;
 							}
 						}
 					}
-					if (hasMask) {
-						// ignore transparency mask
-						for (int x = 0; x < width; x += 8) {
-							int b = compression == 0 ? rle.ReadByte() : rle.ReadRle();
-							if (b < 0)
-								return false;
-						}
-					}
+					SetSize(width, height, RECOILResolution.Amiga1x1);
 				}
-				SetSize(width, height, RECOILResolution.Amiga1x1);
 				return DecodeIffUnpacked(unpacked, bitplanes, colors, camg);
 			}
 			else if (IsStringAt(content, contentOffset, "ABIT")) {
@@ -4248,16 +4254,17 @@ public class RECOIL
 		int rows = (totalShapes + 15 >> 4);
 		const int horizontalGap = 2;
 		const int verticalGap = 2;
+		const int maxHeight = 560;
 		if (rows == 1)
 			SetSize(totalShapes * (8 + horizontalGap << 1), height, RECOILResolution.Xe2x1);
 		else {
 			int totalHeight = rows * height + (rows - 1) * verticalGap;
-			if (totalHeight > MaxHeight)
+			if (totalHeight > maxHeight)
 				return false;
 			SetSize(320, totalHeight, RECOILResolution.Xe2x1);
 		}
 
-		byte[320 * MaxHeight] frame = 0;
+		byte[320 * maxHeight] frame = 0;
 		for (int shape = 0; shape < totalShapes; shape++) {
 			int frameOffset = (shape >> 4) * (height + verticalGap) * 320 + (shape & 0xf) * (8 + horizontalGap << 1);
 			if (multi) {
