@@ -3299,7 +3299,7 @@ public class RECOIL
 		}
 	}
 
-	void DecodeIffUnpacked(byte[] unpacked, int bitplanes, int colors, int camg)
+	bool DecodeIffUnpacked(byte[] unpacked, int bitplanes, int colors, int camg)
 	{
 		if (bitplanes <= 8) {
 			if (colors == 0) {
@@ -3339,6 +3339,7 @@ public class RECOIL
 			}
 		}
 		delete unpacked;
+		return true;
 	}
 
 	bool DecodeIff(byte[] content, int contentLength)
@@ -3377,17 +3378,19 @@ public class RECOIL
 				hasMask = content[contentOffset + 17] == 1;
 				compression = content[contentOffset + 18];
 				if (width == 0 || width > MaxWidth
-				 || height == 0 || height > MaxHeight
-				 || bitplanes == 0 || (bitplanes > 8 && bitplanes != 24 && bitplanes != 32)
-				 || compression > 2)
+				 || height == 0 || height > MaxHeight)
 					return false;
 				if (type == IffType.Pbm) {
-					if (bitplanes != 8)
+					if (bitplanes != 8
+					 || compression > 1)
 						return false;
 					// FIXME: round up to 4 pixels; we shouldn't show the extra pixels
 					width = width + 3 & ~3;
 				}
 				else {
+					if (bitplanes == 0 || (bitplanes > 8 && bitplanes != 24 && bitplanes != 32)
+					 || compression > 2)
+						return false;
 					// FIXME: round up to 16 pixels; we shouldn't show the extra pixels
 					width = width + 15 & ~15;
 				}
@@ -3410,8 +3413,9 @@ public class RECOIL
 				if (width == 0)
 					return false;
 				int bytesPerLine = (width >> 3) * bitplanes;
-				byte[] unpacked = new byte[bytesPerLine * height];
+
 				if (compression == 2) {
+					byte[] unpacked = new byte[bytesPerLine * height];
 					VdatStream() rle;
 					rle.Content = content;
 					rle.ContentOffset = contentOffset + 8;
@@ -3438,50 +3442,52 @@ public class RECOIL
 						rle.ContentOffset = nextContentOffset;
 					}
 					SetSizeStOrFalcon(width, height, bitplanes);
+					return DecodeIffUnpacked(unpacked, bitplanes, colors, camg);
 				}
-				else {
-					PackBitsStream() rle;
-					rle.Content = content;
-					rle.ContentOffset = contentOffset + 8;
-					rle.ContentLength = contentOffset + 8 + chunkLength;
-					if (type == IffType.Pbm) {
-						if (colors == 0)
-							return false;
-						SetSize(width, height, RECOILResolution.Amiga1x1);
-						for (int y = 0; y < height; y++) {
-							for (int x = 0; x < width; x++) {
-								int b = compression == 0 ? rle.ReadByte() : rle.ReadRle();
-								if (b < 0)
-									return false;
-								Pixels[y * width + x] = ContentPalette[b];
-							}
-						}
-						return true;
-					}
-					for (int y = 0; y < height; y++) {
-						for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
-							for (int w = bitplane << 1; w < bytesPerLine; w += bitplanes << 1) {
-								for (int x = 0; x < 2; x++) {
-									int b = compression == 0 ? rle.ReadByte() : rle.ReadRle();
-									if (b < 0)
-										return false;
-									unpacked[y * bytesPerLine + w + x] = b;
-								}
-							}
-						}
-						if (hasMask) {
-							// ignore transparency mask
-							for (int x = 0; x < width; x += 8) {
-								int b = compression == 0 ? rle.ReadByte() : rle.ReadRle();
-								if (b < 0)
-									return false;
-							}
-						}
-					}
+
+				PackBitsStream() rle;
+				rle.Content = content;
+				rle.ContentOffset = contentOffset + 8;
+				rle.ContentLength = contentOffset + 8 + chunkLength;
+
+				if (type == IffType.Pbm) {
+					if (colors == 0)
+						return false;
 					SetSize(width, height, RECOILResolution.Amiga1x1);
+					for (int y = 0; y < height; y++) {
+						for (int x = 0; x < width; x++) {
+							int b = compression == 0 ? rle.ReadByte() : rle.ReadRle();
+							if (b < 0)
+								return false;
+							Pixels[y * width + x] = ContentPalette[b];
+						}
+					}
+					return true;
 				}
-				DecodeIffUnpacked(unpacked, bitplanes, colors, camg);
-				return true;
+
+				byte[] unpacked = new byte[bytesPerLine * height];
+				for (int y = 0; y < height; y++) {
+					for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
+						for (int w = bitplane << 1; w < bytesPerLine; w += bitplanes << 1) {
+							for (int x = 0; x < 2; x++) {
+								int b = compression == 0 ? rle.ReadByte() : rle.ReadRle();
+								if (b < 0)
+									return false;
+								unpacked[y * bytesPerLine + w + x] = b;
+							}
+						}
+					}
+					if (hasMask) {
+						// ignore transparency mask
+						for (int x = 0; x < width; x += 8) {
+							int b = compression == 0 ? rle.ReadByte() : rle.ReadRle();
+							if (b < 0)
+								return false;
+						}
+					}
+				}
+				SetSize(width, height, RECOILResolution.Amiga1x1);
+				return DecodeIffUnpacked(unpacked, bitplanes, colors, camg);
 			}
 			else if (IsStringAt(content, contentOffset, "ABIT")) {
 				if (width == 0 || compression != 0 || chunkLength != (width >> 3) * height * bitplanes)
@@ -3495,8 +3501,7 @@ public class RECOIL
 					}
 				}
 				SetSize(width, height, RECOILResolution.Amiga1x1);
-				DecodeIffUnpacked(unpacked, bitplanes, colors, camg);
-				return true;
+				return DecodeIffUnpacked(unpacked, bitplanes, colors, camg);
 			}
 			contentOffset += 8 + (chunkLength + 1 & ~1); // round up to even bytes
 		}
