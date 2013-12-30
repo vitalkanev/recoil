@@ -329,9 +329,8 @@ static const struct Format {
 ModuleExport unsigned long RegisterRECOILImage(void)
 {
 	const struct Format *pf;
-	MagickInfo *entry;
 	for (pf = formats; pf < formats + sizeof(formats) / sizeof(formats[0]); pf++) {
-		entry = SetMagickInfo(pf->name);
+		MagickInfo *entry = SetMagickInfo(pf->name);
 		entry->decoder = ReadRECOILImage;
 		entry->magick = IsRECOIL;
 		entry->description = ConstantString(pf->description);
