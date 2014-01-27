@@ -1,6 +1,6 @@
 all: recoil.js html5recoil.html
 
-recoil.js: ../recoil.ci ../atari8.fnt ../jakub.act
+recoil.js: ../recoil.ci ../atari8.fnt ../altirrapal.pal
 	cito -o $@ -I .. $<
 
 html5recoil.html: html5recoil.txt

@@ -1,6 +1,6 @@
 // recoil.ci - RECOIL core
 //
-// Copyright (C) 2009-2013  Piotr Fusik and Adrian Matoga
+// Copyright (C) 2009-2014  Piotr Fusik and Adrian Matoga
 //
 // This file is part of RECOIL (Retro Computer Image Library),
 // see http://recoil.sourceforge.net
@@ -3522,7 +3522,7 @@ public class RECOIL
 	public void SetAtari8Palette(byte[] content)
 	{
 		if (content == null)
-			content = BinaryResource("jakub.act");
+			content = BinaryResource("altirrapal.pal");
 		for (int i = 0; i < 256; i++)
 			Atari8Palette[i] = content[i * 3] << 16 | content[i * 3 + 1] << 8 | content[i * 3 + 2];
 	}

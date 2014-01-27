@@ -38,10 +38,10 @@ classes.dex: classes/net/sf/recoil/RECOIL.class
 classes/net/sf/recoil/RECOIL.class: FileSelector.java FileUtil.java GalleryAdapter.java Viewer.java java/net/sf/recoil/RECOIL.java AndroidRECOIL-resources.apk
 	mkdir -p classes && javac -d classes -bootclasspath $(ANDROID_JAR) FileSelector.java FileUtil.java GalleryAdapter.java Viewer.java java/net/sf/recoil/*.java
 
-java/net/sf/recoil/RECOIL.java: ../recoil.ci ../atari8.fnt ../jakub.act
+java/net/sf/recoil/RECOIL.java: ../recoil.ci ../atari8.fnt ../altirrapal.pal
 	mkdir -p $(@D) && cito -n net.sf.recoil -o $@ -I .. $<
 
-AndroidRECOIL-resources.apk: AndroidManifest.xml res/drawable/icon.png res/layout/filename_list_item.xml res/values/strings.xml raw/net/sf/recoil/atari8.fnt raw/net/sf/recoil/jakub.act
+AndroidRECOIL-resources.apk: AndroidManifest.xml res/drawable/icon.png res/layout/filename_list_item.xml res/values/strings.xml raw/net/sf/recoil/atari8.fnt raw/net/sf/recoil/altirrapal.pal
 	mkdir -p java && $(AAPT) p -f -m -M $< -I $(ANDROID_JAR) -S res -F $@ -J java raw
 
 raw/net/sf/recoil/%: ../%

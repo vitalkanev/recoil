@@ -38,7 +38,7 @@ endif
 endif
 
 # http://www.cmcrossroads.com/article/rules-multiple-outputs-gnu-make
-%.c %.h: %.ci atari8.fnt jakub.act
+%.c %.h: %.ci atari8.fnt altirrapal.pal
 	$(CITO) -o $*.c $<
 
 README.html: README INSTALL
