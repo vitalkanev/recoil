@@ -508,8 +508,8 @@ static void SelectAndOpenPalette(void)
 		sizeof(OPENFILENAME),
 		NULL,
 		0,
-		"Palette files (*.act)\0"
-		"*.act\0"
+		"Palette files (*.act;*.pal)\0"
+		"*.act;*pal\0"
 		"\0",
 		NULL,
 		0,
