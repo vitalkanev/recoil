@@ -64,7 +64,7 @@ uninstall-recoil2png:
 ifdef CAN_INSTALL_MAGICK
 install-magick: imagemagick/recoil.so
 ifdef MAGICK_INCLUDE_PATH
-	perl imagemagick/addcoders.pl $(FORMATS) <$(MAGICK_CONFIG_PATH)/coder.xml >imagemagick/coder.xml.new; \
+	perl imagemagick/updatecoder.pl $(FORMATS) <$(MAGICK_CONFIG_PATH)/coder.xml >imagemagick/coder.xml.new; \
 	mkdir -p "$(MAGICK_CODER_PATH)"; \
 	$(INSTALL) imagemagick/recoil.so "$(MAGICK_CODER_PATH)/recoil.so"; \
 	echo "dlname='recoil.so'" >"$(MAGICK_CODER_PATH)/recoil.la"; \
@@ -72,7 +72,7 @@ ifdef MAGICK_INCLUDE_PATH
 endif
 
 uninstall-magick:
-	perl imagemagick/delcoders.pl <$(MAGICK_CONFIG_PATH)/coder.xml >imagemagick/coder.xml.new; \
+	perl imagemagick/updatecoder.pl <$(MAGICK_CONFIG_PATH)/coder.xml >imagemagick/coder.xml.new; \
 	rm -f "$(MAGICK_CODER_PATH)/recoil.la" "$(MAGICK_CODER_PATH)/recoil.so"; \
 	mv imagemagick/coder.xml.new "$(MAGICK_CONFIG_PATH)"/coder.xml;
 endif
