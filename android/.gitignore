@@ -1,6 +1,6 @@
 /*.apk
+/assets
 /classes.dex
 /classes
-/java
-/raw
+/gen
 /AndroidManifest.xml
