@@ -42,8 +42,11 @@ classes/net/sf/recoil/RECOIL.class: FileSelector.java FileUtil.java GalleryAdapt
 gen/net/sf/recoil/RECOIL.java: ../recoil.ci ../atari8.fnt ../altirrapal.pal
 	mkdir -p $(@D) && cito -n net.sf.recoil -o $@ -I .. $<
 
-AndroidRECOIL-resources.apk: AndroidManifest.xml res/drawable/icon.png res/layout/filename_list_item.xml res/values/strings.xml assets/net/sf/recoil/atari8.fnt assets/net/sf/recoil/altirrapal.pal
+AndroidRECOIL-resources.apk: AndroidManifest.xml res/drawable/ic_launcher.png res/layout/filename_list_item.xml res/values/strings.xml assets/net/sf/recoil/atari8.fnt assets/net/sf/recoil/altirrapal.pal
 	mkdir -p gen && $(AAPT) p -f -m -M $< -I $(ANDROID_JAR) -S res -F $@ -J gen assets
+
+res/drawable/ic_launcher.png: ../recoil-512x512.png
+	mkdir -p $(@D) && convert $< -resize 72x72 -quality 95 -strip $@
 
 assets/net/sf/recoil/%: ../%
 	mkdir -p $(@D) && cp $< $@
@@ -52,7 +55,7 @@ AndroidManifest.xml: AndroidManifest.xsl ../formats.xml
 	xsltproc -o $@ AndroidManifest.xsl ../formats.xml
 
 clean:
-	$(RM) *.apk classes.dex AndroidManifest.xml
+	$(RM) *.apk classes.dex res/drawable/ic_launcher.png AndroidManifest.xml
 	rm -rf classes gen assets
 
 .PHONY: all install-dev log-dev clean

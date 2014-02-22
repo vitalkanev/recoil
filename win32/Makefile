@@ -43,7 +43,7 @@ Xrecoil.usr: xnview/Xrecoil.c ../formats.h ../recoil.c ../recoil.h
 recoilwin.exe: recoilwin/recoilwin.c recoilwin/recoilwin.h recoilwin/recoilwin-res.o ../pngsave.c ../pngsave.h ../formats.h ../recoil.c ../recoil.h
 	$(RECOIL_CC) -Wl,-subsystem,windows recoilwin/recoilwin.c recoilwin/recoilwin-res.o ../pngsave.c ../recoil.c -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng -lz
 
-recoilwin/recoilwin-res.o: recoilwin/recoilwin.rc recoilwin/recoilwin.h faileye.ico ../recoil.h
+recoilwin/recoilwin-res.o: recoilwin/recoilwin.rc recoilwin/recoilwin.h recoil.ico ../recoil.h
 	$(WINDRES) -I .. recoilwin/recoilwin.rc
 
 thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../formats.h ../recoil.c ../recoil.h
@@ -73,6 +73,9 @@ paint.net/RECOIL.cs: ../recoil.ci ../atari8.fnt ../altirrapal.pal
 %.c %.h: %.ci ../atari8.fnt ../altirrapal.pal
 	$(CITO) -o $*.c -I .. $<
 
+recoil.ico: ../recoil-512x512.png
+	convert $< -resize 48x48 $@
+
 COPYING.txt: ../COPYING
 	$(UNIX2DOS) <$< >$@
 
@@ -87,7 +90,7 @@ README_WindowsSetup.html: ../README USAGE
 
 setup: ../../recoil-$(VERSION)-win32.msi
 
-../../recoil-$(VERSION)-win32.msi: setup/recoil.wixobj faileye.ico setup/license.rtf setup/Website.url README_WindowsSetup.html $(WIN32_BIN) thumbrecoil.dll
+../../recoil-$(VERSION)-win32.msi: setup/recoil.wixobj recoil.ico setup/dialog.jpg setup/banner.jpg setup/license.rtf setup/Website.url README_WindowsSetup.html $(WIN32_BIN) thumbrecoil.dll
 	$(LIGHT) -ext WixUIExtension -sice:ICE69 $<
 
 setup/recoil.wixobj: setup/recoil.wxs setup/formats.wxi
@@ -96,9 +99,15 @@ setup/recoil.wixobj: setup/recoil.wxs setup/formats.wxi
 setup/formats.wxi: setup/formats.wxi.xsl ../formats.xml
 	$(XSLTPROC) setup/formats.wxi.xsl ../formats.xml
 
+setup/dialog.jpg: ../recoil-512x512.png
+	convert $< -resize 148 -extent 493x312-16-82 -strip $@
+
+setup/banner.jpg: ../recoil-512x512.png
+	convert $< -resize 48 -extent 493x58-425-5 -strip $@
+
 x64-setup: ../../recoil-$(VERSION)-win64.msi
 
-../../recoil-$(VERSION)-win64.msi: x64/recoil.wixobj faileye.ico setup/license.rtf setup/Website.url README_WindowsSetup.html $(WIN32_BIN) thumbrecoil.dll x64/thumbrecoil.dll x64/IM_MOD_RL_recoil_.dll x64/RECOIL.plg64
+../../recoil-$(VERSION)-win64.msi: x64/recoil.wixobj recoil.ico setup/dialog.jpg setup/banner.jpg setup/license.rtf setup/Website.url README_WindowsSetup.html $(WIN32_BIN) thumbrecoil.dll x64/thumbrecoil.dll x64/IM_MOD_RL_recoil_.dll x64/RECOIL.plg64
 	$(LIGHT) -ext WixUIExtension -sice:ICE69 -sice:ICE80 -b setup $<
 
 x64/recoil.wixobj: setup/recoil.wxs setup/formats.wxi
@@ -127,8 +136,8 @@ www: ../../www/index.html
 	$(ASCIIDOC_START) -a recoilwww ../README $(ASCIIDOC_END)
 
 clean:
-	$(RM) $(WIN32_BIN) thumbrecoil.dll recoilwin/recoilwin-res.o COPYING.txt \
-		../README.html README_Windows.html README_WindowsSetup.html setup/formats.wxi setup/recoil.wixobj x64/recoil.wixobj x64/IM_MOD_RL_recoil_.dll x64/thumbrecoil.dll x64/RECOIL.plg64 RecoilPaintDotNet.dll
+	$(RM) $(WIN32_BIN) thumbrecoil.dll recoilwin/recoilwin-res.o recoil.ico COPYING.txt \
+		../README.html README_Windows.html README_WindowsSetup.html setup/formats.wxi setup/recoil.wixobj setup/dialog.jpg setup/banner.jpg x64/recoil.wixobj x64/IM_MOD_RL_recoil_.dll x64/thumbrecoil.dll x64/RECOIL.plg64 RecoilPaintDotNet.dll
 
 .PHONY: all clean setup x64-setup ../MANIFEST srcdist dist www
 

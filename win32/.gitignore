@@ -1,5 +1,6 @@
 *.dll
 *.o
+/recoil.ico
 /Xrecoil.usr
 /RECOIL.plg
 /COPYING.txt

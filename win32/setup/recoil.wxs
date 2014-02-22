@@ -36,12 +36,12 @@
 			<Condition Message="Please uninstall the previous version of RECOIL.">NOT WIN32RECOILFOUND</Condition>
 		<?endif?>
 
-		<Icon Id="faileye.ico" SourceFile="faileye.ico" />
+		<Icon Id="recoil.ico" SourceFile="recoil.ico" />
 		<Property Id="ARPHELPLINK" Value="http://recoil.sourceforge.net/" />
-		<Property Id="ARPPRODUCTICON" Value="faileye.ico" />
+		<Property Id="ARPPRODUCTICON" Value="recoil.ico" />
 		<WixVariable Id="WixUILicenseRtf" Value="license.rtf" />
-		<!--<WixVariable Id="WixUIDialogBmp" Value="recoil-dialog.jpg" />
-		<WixVariable Id="WixUIBannerBmp" Value="recoil-banner.jpg" /> -->
+		<WixVariable Id="WixUIDialogBmp" Value="dialog.jpg" />
+		<WixVariable Id="WixUIBannerBmp" Value="banner.jpg" />
 
 		<UI Id="MyWixUI_FeatureTree">
 			<!-- customized WixUI_FeatureTree from Wix 3.0 - my changes commented -->
