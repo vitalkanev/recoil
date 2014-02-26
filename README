@@ -5,7 +5,7 @@
 :Compact-Option:
 
 ifdef::recoilwww[]
-http://sourceforge.net/projects/recoil/files/fail/2.0.2/[Download] |
+http://sourceforge.net/projects/recoil/files/recoil/3.0.0/[Download] |
 http://sourceforge.net/p/recoil/code[Browse source code (Git)] |
 http://sourceforge.net/projects/recoil/[SourceForge project page]
 endif::recoilwww[]
