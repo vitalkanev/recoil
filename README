@@ -35,6 +35,7 @@ ifdef::recoilwww[]
 image::recoilwin.png["RECOILWin"]
 image::thumbrecoil.png["Thumbnails in Windows Explorer"]
 image::nautilus.png["Thumbnails in Nautilus"]
+image::android.png["Android viewer"]
 endif::recoilwww[]
 
 Supported file formats
@@ -301,6 +302,18 @@ You may submit bugs http://sourceforge.net/p/recoil/bugs/[here] (log in required
 
 History
 -------
+
+RECOIL 3.0.0 (2014-02-26)::
+
+RECOIL is a continuation of the First Atari Image Library (FAIL) project.
+In addition to the Atari 8-bit/Portfolio/ST/Falcon formats, RECOIL decodes
+Amiga, Commodore 64 and ZX Spectrum files.
++
+Other changes from FAIL 2.0.2:
+- New ports: Android, Paint.NET plugin.
+- New Atari 8-bit formats: BGP, DGI, LEO, LUM, SIF.
+- The default Atari 8-bit palette is now Altirra's PAL.
+- The XnView plugin is now a single file and requires XnView 2.11 or newer.
 
 FAIL 2.0.2 (2013-09-15)::
 
