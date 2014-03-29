@@ -12,14 +12,15 @@
 		CBEA1AFE18C38387009F53B9 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CBEA1AFD18C38387009F53B9 /* CoreServices.framework */; };
 		CBEA1B0018C38387009F53B9 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CBEA1AFF18C38387009F53B9 /* CoreFoundation.framework */; };
 		CBEA1B0618C38387009F53B9 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = CBEA1B0418C38387009F53B9 /* InfoPlist.strings */; };
-		CBEA1B0818C38387009F53B9 /* GenerateThumbnailForURL.c in Sources */ = {isa = PBXBuildFile; fileRef = CBEA1B0718C38387009F53B9 /* GenerateThumbnailForURL.c */; };
-		CBEA1B0A18C38387009F53B9 /* GeneratePreviewForURL.c in Sources */ = {isa = PBXBuildFile; fileRef = CBEA1B0918C38387009F53B9 /* GeneratePreviewForURL.c */; };
+		CBEA1B0818C38387009F53B9 /* GenerateThumbnailForURL.m in Sources */ = {isa = PBXBuildFile; fileRef = CBEA1B0718C38387009F53B9 /* GenerateThumbnailForURL.m */; };
+		CBEA1B0A18C38387009F53B9 /* GeneratePreviewForURL.m in Sources */ = {isa = PBXBuildFile; fileRef = CBEA1B0918C38387009F53B9 /* GeneratePreviewForURL.m */; };
 		CBEA1B0C18C38387009F53B9 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CBEA1B0B18C38387009F53B9 /* main.c */; };
 		CBEA1B1418C387FF009F53B9 /* qlrecoil-Info.xsl in Resources */ = {isa = PBXBuildFile; fileRef = CBEA1B1318C387FF009F53B9 /* qlrecoil-Info.xsl */; };
 		CBEA1B1718C38835009F53B9 /* qlrecoil.c in Sources */ = {isa = PBXBuildFile; fileRef = CBEA1B1518C38835009F53B9 /* qlrecoil.c */; };
 		CBEA1B1818C38835009F53B9 /* qlrecoil.h in Headers */ = {isa = PBXBuildFile; fileRef = CBEA1B1618C38835009F53B9 /* qlrecoil.h */; };
 		CBEA1B1B18C3893D009F53B9 /* recoil.c in Sources */ = {isa = PBXBuildFile; fileRef = CBEA1B1918C3893D009F53B9 /* recoil.c */; };
 		CBEA1B1C18C3893D009F53B9 /* recoil.h in Headers */ = {isa = PBXBuildFile; fileRef = CBEA1B1A18C3893D009F53B9 /* recoil.h */; };
+		CBEB665218E77A7E00F873B4 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CBEB665118E77A7E00F873B4 /* Cocoa.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,8 +31,8 @@
 		CBEA1AFF18C38387009F53B9 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		CBEA1B0318C38387009F53B9 /* qlrecoil-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "qlrecoil-Info.plist"; sourceTree = "<group>"; };
 		CBEA1B0518C38387009F53B9 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		CBEA1B0718C38387009F53B9 /* GenerateThumbnailForURL.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = GenerateThumbnailForURL.c; sourceTree = "<group>"; };
-		CBEA1B0918C38387009F53B9 /* GeneratePreviewForURL.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = GeneratePreviewForURL.c; sourceTree = "<group>"; };
+		CBEA1B0718C38387009F53B9 /* GenerateThumbnailForURL.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GenerateThumbnailForURL.m; sourceTree = "<group>"; };
+		CBEA1B0918C38387009F53B9 /* GeneratePreviewForURL.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GeneratePreviewForURL.m; sourceTree = "<group>"; };
 		CBEA1B0B18C38387009F53B9 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		CBEA1B0D18C38387009F53B9 /* qlrecoil-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "qlrecoil-Prefix.pch"; sourceTree = "<group>"; };
 		CBEA1B1318C387FF009F53B9 /* qlrecoil-Info.xsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "qlrecoil-Info.xsl"; sourceTree = "<group>"; };
@@ -39,6 +40,8 @@
 		CBEA1B1618C38835009F53B9 /* qlrecoil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qlrecoil.h; sourceTree = "<group>"; };
 		CBEA1B1918C3893D009F53B9 /* recoil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = recoil.c; path = ../../recoil.c; sourceTree = "<group>"; };
 		CBEA1B1A18C3893D009F53B9 /* recoil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = recoil.h; path = ../../recoil.h; sourceTree = "<group>"; };
+		CBEB664E18E7784100F873B4 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		CBEB665118E77A7E00F873B4 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,9 +50,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				CBEA1B0018C38387009F53B9 /* CoreFoundation.framework in Frameworks */,
-				CBEA1AFA18C38387009F53B9 /* QuickLook.framework in Frameworks */,
 				CBEA1AFE18C38387009F53B9 /* CoreServices.framework in Frameworks */,
 				CBEA1AFC18C38387009F53B9 /* ApplicationServices.framework in Frameworks */,
+				CBEA1AFA18C38387009F53B9 /* QuickLook.framework in Frameworks */,
+				CBEB665218E77A7E00F873B4 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -76,6 +80,8 @@
 		CBEA1AF818C38387009F53B9 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CBEB665118E77A7E00F873B4 /* Cocoa.framework */,
+				CBEB664E18E7784100F873B4 /* Foundation.framework */,
 				CBEA1AF918C38387009F53B9 /* QuickLook.framework */,
 				CBEA1AFB18C38387009F53B9 /* ApplicationServices.framework */,
 				CBEA1AFD18C38387009F53B9 /* CoreServices.framework */,
@@ -91,8 +97,8 @@
 				CBEA1B1A18C3893D009F53B9 /* recoil.h */,
 				CBEA1B1518C38835009F53B9 /* qlrecoil.c */,
 				CBEA1B1618C38835009F53B9 /* qlrecoil.h */,
-				CBEA1B0718C38387009F53B9 /* GenerateThumbnailForURL.c */,
-				CBEA1B0918C38387009F53B9 /* GeneratePreviewForURL.c */,
+				CBEA1B0718C38387009F53B9 /* GenerateThumbnailForURL.m */,
+				CBEA1B0918C38387009F53B9 /* GeneratePreviewForURL.m */,
 				CBEA1B0B18C38387009F53B9 /* main.c */,
 				CBEA1B0218C38387009F53B9 /* Supporting Files */,
 			);
@@ -197,8 +203,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CBEA1B0818C38387009F53B9 /* GenerateThumbnailForURL.c in Sources */,
-				CBEA1B0A18C38387009F53B9 /* GeneratePreviewForURL.c in Sources */,
+				CBEA1B0818C38387009F53B9 /* GenerateThumbnailForURL.m in Sources */,
+				CBEA1B0A18C38387009F53B9 /* GeneratePreviewForURL.m in Sources */,
 				CBEA1B1718C38835009F53B9 /* qlrecoil.c in Sources */,
 				CBEA1B0C18C38387009F53B9 /* main.c in Sources */,
 				CBEA1B1B18C3893D009F53B9 /* recoil.c in Sources */,
@@ -250,7 +256,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 			};
@@ -282,7 +288,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -290,11 +296,13 @@
 		CBEA1B1118C38387009F53B9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "qlrecoil/qlrecoil-Prefix.pch";
 				INFOPLIST_FILE = "qlrecoil/qlrecoil-Info.plist";
 				INSTALL_PATH = /Library/QuickLook;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = qlgenerator;
 			};
@@ -303,11 +311,13 @@
 		CBEA1B1218C38387009F53B9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "qlrecoil/qlrecoil-Prefix.pch";
 				INFOPLIST_FILE = "qlrecoil/qlrecoil-Info.plist";
 				INSTALL_PATH = /Library/QuickLook;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = qlgenerator;
 			};

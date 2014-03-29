@@ -1,8 +1,12 @@
+
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreServices/CoreServices.h>
 #include <QuickLook/QuickLook.h>
 
+#import <Cocoa/Cocoa.h>
+
 #include "qlrecoil.h"
+
 
 OSStatus GenerateThumbnailForURL(void *thisInterface, QLThumbnailRequestRef thumbnail, CFURLRef url, CFStringRef contentTypeUTI, CFDictionaryRef options, CGSize maxSize);
 void CancelThumbnailGeneration(void *thisInterface, QLThumbnailRequestRef thumbnail);
@@ -15,11 +19,13 @@ void CancelThumbnailGeneration(void *thisInterface, QLThumbnailRequestRef thumbn
 
 OSStatus GenerateThumbnailForURL(void *thisInterface, QLThumbnailRequestRef thumbnail, CFURLRef url, CFStringRef contentTypeUTI, CFDictionaryRef options, CGSize maxSize)
 {
-    CGImageRef image = RECOIL_createImage(url, true);
+    @autoreleasepool{
+        CGImageRef image = RECOIL_createImage(url, true);
     
-    if (image)
-    {
-        QLThumbnailRequestSetImage(thumbnail, image, NULL);
+        if (image)
+        {
+            QLThumbnailRequestSetImage(thumbnail, image, NULL);
+        }
     }
     return noErr;
 }

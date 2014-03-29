@@ -7,7 +7,7 @@
 static RECOIL *recoil = NULL;
 
 
-static void rgba(char *dest, const int *src, int length)
+static void rgba(unsigned char *dest, const int *src, int length)
 {
 	int i;
 	for (i = 0; i < length; i++) {
@@ -65,7 +65,7 @@ CGImageRef RECOIL_createImage(CFURLRef url, bool withAlpha)
 
     unsigned char indexes[RECOIL_MAX_PIXELS_LENGTH];
     const int *palette;
-    char *pixels = (char*)malloc(size.width*size.height*4);
+    unsigned char *pixels = (unsigned char*)malloc(size.width*size.height*4);
     
     palette = RECOIL_ToPalette(recoil, indexes);
 	if (palette == NULL) {
