@@ -40,7 +40,7 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
         CGImageRelease(image);
     
         QLPreviewRequestFlushContext(preview, context);
-        CFRelease(context);
+        CGContextRelease(context);
     }
     return noErr;
 }

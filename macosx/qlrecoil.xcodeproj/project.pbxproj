@@ -16,9 +16,9 @@
 		CBEA1B0A18C38387009F53B9 /* GeneratePreviewForURL.m in Sources */ = {isa = PBXBuildFile; fileRef = CBEA1B0918C38387009F53B9 /* GeneratePreviewForURL.m */; };
 		CBEA1B0C18C38387009F53B9 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CBEA1B0B18C38387009F53B9 /* main.c */; };
 		CBEA1B1418C387FF009F53B9 /* qlrecoil-Info.xsl in Resources */ = {isa = PBXBuildFile; fileRef = CBEA1B1318C387FF009F53B9 /* qlrecoil-Info.xsl */; };
-		CBEA1B1718C38835009F53B9 /* qlrecoil.c in Sources */ = {isa = PBXBuildFile; fileRef = CBEA1B1518C38835009F53B9 /* qlrecoil.c */; };
+		CBEA1B1718C38835009F53B9 /* qlrecoil.m in Sources */ = {isa = PBXBuildFile; fileRef = CBEA1B1518C38835009F53B9 /* qlrecoil.m */; };
 		CBEA1B1818C38835009F53B9 /* qlrecoil.h in Headers */ = {isa = PBXBuildFile; fileRef = CBEA1B1618C38835009F53B9 /* qlrecoil.h */; };
-		CBEA1B1B18C3893D009F53B9 /* recoil.c in Sources */ = {isa = PBXBuildFile; fileRef = CBEA1B1918C3893D009F53B9 /* recoil.c */; };
+		CBEA1B1B18C3893D009F53B9 /* recoil.c in Sources */ = {isa = PBXBuildFile; fileRef = CBEA1B1918C3893D009F53B9 /* recoil.c */; settings = {COMPILER_FLAGS = "-O2"; }; };
 		CBEA1B1C18C3893D009F53B9 /* recoil.h in Headers */ = {isa = PBXBuildFile; fileRef = CBEA1B1A18C3893D009F53B9 /* recoil.h */; };
 		CBEB665218E77A7E00F873B4 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CBEB665118E77A7E00F873B4 /* Cocoa.framework */; };
 /* End PBXBuildFile section */
@@ -36,7 +36,7 @@
 		CBEA1B0B18C38387009F53B9 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		CBEA1B0D18C38387009F53B9 /* qlrecoil-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "qlrecoil-Prefix.pch"; sourceTree = "<group>"; };
 		CBEA1B1318C387FF009F53B9 /* qlrecoil-Info.xsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "qlrecoil-Info.xsl"; sourceTree = "<group>"; };
-		CBEA1B1518C38835009F53B9 /* qlrecoil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qlrecoil.c; sourceTree = "<group>"; };
+		CBEA1B1518C38835009F53B9 /* qlrecoil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = qlrecoil.m; sourceTree = "<group>"; };
 		CBEA1B1618C38835009F53B9 /* qlrecoil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qlrecoil.h; sourceTree = "<group>"; };
 		CBEA1B1918C3893D009F53B9 /* recoil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = recoil.c; path = ../../recoil.c; sourceTree = "<group>"; };
 		CBEA1B1A18C3893D009F53B9 /* recoil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = recoil.h; path = ../../recoil.h; sourceTree = "<group>"; };
@@ -95,7 +95,7 @@
 			children = (
 				CBEA1B1918C3893D009F53B9 /* recoil.c */,
 				CBEA1B1A18C3893D009F53B9 /* recoil.h */,
-				CBEA1B1518C38835009F53B9 /* qlrecoil.c */,
+				CBEA1B1518C38835009F53B9 /* qlrecoil.m */,
 				CBEA1B1618C38835009F53B9 /* qlrecoil.h */,
 				CBEA1B0718C38387009F53B9 /* GenerateThumbnailForURL.m */,
 				CBEA1B0918C38387009F53B9 /* GeneratePreviewForURL.m */,
@@ -205,7 +205,7 @@
 			files = (
 				CBEA1B0818C38387009F53B9 /* GenerateThumbnailForURL.m in Sources */,
 				CBEA1B0A18C38387009F53B9 /* GeneratePreviewForURL.m in Sources */,
-				CBEA1B1718C38835009F53B9 /* qlrecoil.c in Sources */,
+				CBEA1B1718C38835009F53B9 /* qlrecoil.m in Sources */,
 				CBEA1B0C18C38387009F53B9 /* main.c in Sources */,
 				CBEA1B1B18C3893D009F53B9 /* recoil.c in Sources */,
 			);

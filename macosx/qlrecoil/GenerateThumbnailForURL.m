@@ -19,9 +19,8 @@ void CancelThumbnailGeneration(void *thisInterface, QLThumbnailRequestRef thumbn
 
 OSStatus GenerateThumbnailForURL(void *thisInterface, QLThumbnailRequestRef thumbnail, CFURLRef url, CFStringRef contentTypeUTI, CFDictionaryRef options, CGSize maxSize)
 {
-    @autoreleasepool{
-        CGImageRef image = RECOIL_createImage(url, true);
-    
+    CGImageRef image = RECOIL_createImage(url, true);
+    @autoreleasepool{    
         if (image)
         {
             QLThumbnailRequestSetImage(thumbnail, image, NULL);
