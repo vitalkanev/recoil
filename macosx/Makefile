@@ -1,6 +1,9 @@
-all:qlrecoil-Info.plist qlrecoil.qlgenerator
+all:recoil qlrecoil-Info.plist qlrecoil.qlgenerator
 
-debug:qlrecoil-Info.plist qlrecoil.qlgenerator-debug
+debug:recoil qlrecoil-Info.plist qlrecoil.qlgenerator-debug
+
+recoil: 
+	(cd .. && make && cd -)
 	
 qlrecoil-Info.plist: qlrecoil/qlrecoil-Info.xsl ../formats.xml
 	xsltproc -o qlrecoil/$@ qlrecoil/qlrecoil-Info.xsl ../formats.xml
