@@ -242,6 +242,7 @@
 		<format name="Vidcom 64Paint" width="160" height="200" colors="16"><ext>VID</ext></format>
 	</platform>
 	<platform name="ZX Spectrum">
+		<format width="256" height="192" colors="8" frames="3"><ext>3</ext></format>
 		<format name="Attributes" width="32" height="24" unit="attributes" colors="15"><ext>ATR</ext></format>
 		<format name="4x8 font" tileWidth="4" tileHeight="8" colors="2"><ext>CH4</ext></format>
 		<format name="6x8 font" tileWidth="6" tileHeight="8" colors="2"><ext>CH6</ext></format>

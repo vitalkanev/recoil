@@ -1747,7 +1747,7 @@ public class RECOIL
 		return ApplyBlend();
 	}
 
-	bool DecodeZxRgb(byte[] content, int contentLength)
+	bool DecodeZxRgb3(byte[] content, int contentLength, byte[] frameComponents)
 	{
 		if (contentLength != 18432)
 			return false;
@@ -1758,14 +1758,25 @@ public class RECOIL
 				int offset = (y & 0xc0) << 5 | (y & 7) << 8 | (y & 0x38) << 2 | x >> 3;
 				int c = 0;
 				for (int frame = 0; frame < 3; frame++) {
-					c <<= 8;
 					if ((content[frame * 0x1800 + offset] >> (~x & 7) & 1) != 0)
-						c |= 0xff; // probably too bright, but 0x55 seems too dark?
+						c |= 0xff << frameComponents[frame]; // probably too bright, but 0x55 seems too dark?
 				}
 				Pixels[(y << 8) + x] = c;
 			}
 		}
 		return true;
+	}
+
+	bool DecodeZxRgb(byte[] content, int contentLength)
+	{
+		const byte[3] frameComponents = { 16, 8, 0 }; // R, G, B
+		return DecodeZxRgb3(content, contentLength, frameComponents);
+	}
+
+	bool Decode3(byte[] content, int contentLength)
+	{
+		const byte[3] frameComponents = { 0, 16, 8 }; // B, R, G
+		return DecodeZxRgb3(content, contentLength, frameComponents);
 	}
 
 	bool DecodeCh8(byte[] content, int contentLength)
@@ -6316,8 +6327,8 @@ public class RECOIL
 	}
 
 	macro PACKED_EXT(s) (
-		s.Length < 2 || s.Length > 4 ? 0
-		: s[0] + (s[1] << 8) + (s.Length >= 3 ? s[2] << 16 : 0) + (s.Length >= 4 ? s[3] << 24 : 0) | 0x20202020
+		s.Length == 0 || s.Length > 4 ? 0
+		: s[0] + (s.Length >= 2 ? s[1] << 8 : 0) + (s.Length >= 3 ? s[2] << 16 : 0) + (s.Length >= 4 ? s[3] << 24 : 0) | 0x20202020
 	)
 
 	static int GetPackedExt(string filename)
@@ -6342,6 +6353,7 @@ public class RECOIL
 	{
 		switch (GetPackedExt(filename)) {
 		case PACKED_EXT("256"):
+		case PACKED_EXT("3"):
 		case PACKED_EXT("4MI"):
 		case PACKED_EXT("4PL"):
 		case PACKED_EXT("4PM"):
@@ -6562,6 +6574,8 @@ public class RECOIL
 		switch (GetPackedExt(filename)) {
 		case PACKED_EXT("256"):
 			return Decode256(content, contentLength);
+		case PACKED_EXT("3"):
+			return Decode3(content, contentLength);
 		case PACKED_EXT("4MI"):
 			return Decode4mi(content, contentLength);
 		case PACKED_EXT("4PL"):

@@ -1,7 +1,7 @@
 /*
  * recoilmagick.c - RECOIL coder for ImageMagick
  *
- * Copyright (C) 2009-2013  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2014  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -116,6 +116,7 @@ static const struct Format {
 	const char *description;
 } formats[] = {
 	{ "256", "80x96, 256 colors" },
+	{ "3", "256x192, 8 colors, 3 frames" },
 	{ "4MI", "AtariTools-800 4 mono missiles" },
 	{ "4PL", "AtariTools-800 4 mono players" },
 	{ "4PM", "AtariTools-800 4 mono players and 4 mono missiles" },

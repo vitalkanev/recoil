@@ -1,7 +1,7 @@
 /*
  * RecoilPaintDotNet.cs - Paint.NET file type plugin
  *
- * Copyright (C) 2013  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2013-2014  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -68,6 +68,7 @@ namespace Recoil.PaintDotNet
 		{
 			return new FileType[] {
 				new RecoilFileType(".256", "80x96, 256 colors"),
+				new RecoilFileType(".3", "256x192, 8 colors, 3 frames"),
 				new RecoilFileType(".4mi", "AtariTools-800 4 mono missiles"),
 				new RecoilFileType(".4pl", "AtariTools-800 4 mono players"),
 				new RecoilFileType(".4pm", "AtariTools-800 4 mono players and 4 mono missiles"),

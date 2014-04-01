@@ -258,6 +258,7 @@ VID:: "Vidcom 64", 160x200, 16 colors.
 ZX Spectrum
 ~~~~~~~~~~~
 [horizontal]
+3:: 256x192, 8 colors, 3 frames.
 ATR:: Attributes, 256x192, 15 colors.
 CH4:: 4x8 font, mono.
 CH6:: 6x8 font, mono.
