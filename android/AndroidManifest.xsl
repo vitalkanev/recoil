@@ -13,7 +13,7 @@
 						<category android:name="android.intent.category.LAUNCHER" />
 					</intent-filter>
 				</activity>
-				<activity android:name=".Viewer" android:label="@string/view_in_recoil" android:launchMode="singleTop" android:configChanges="mcc|mnc|keyboard|keyboardHidden|orientation">
+				<activity android:name=".Viewer" android:label="@string/view_in_recoil" android:launchMode="singleTop" android:configChanges="mcc|mnc|keyboard|keyboardHidden|orientation|screenSize">
 					<intent-filter>
 						<action android:name="android.intent.action.VIEW" />
 						<category android:name="android.intent.category.DEFAULT" />
