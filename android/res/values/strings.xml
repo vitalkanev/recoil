@@ -10,4 +10,7 @@
 	<string name="error_reading_file">Error reading file %1$s</string>
 	<string name="error_decoding_file">Error decoding file %1$s</string>
 	<string name="menu_search">Search</string>
+	<string name="menu_info">File information</string>
+	<string name="info_title">File information</string>
+	<string name="info_message">Platform: %1$s\nResolution: %2$dx%3$d\nColors: %4$d</string>
 </resources>

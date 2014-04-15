@@ -1353,7 +1353,7 @@ public class RECOIL
 		case RECOILResolution.Zx1x1:
 			return "ZX Spectrum";
 		default:
-			throw "Unknown";
+			return "Unknown";
 		}
 	}
 

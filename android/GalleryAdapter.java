@@ -1,7 +1,7 @@
 /*
  * GalleryAdapter.java - RECOIL for Android
  *
- * Copyright (C) 2013  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2013-2014  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -24,17 +24,12 @@
 package net.sf.recoil;
 
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Gallery;
 import android.widget.ImageView;
 import android.widget.TextView;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.IOException;
-import java.util.zip.ZipFile;
 
 class GalleryAdapter extends BaseAdapter
 {
@@ -45,71 +40,18 @@ class GalleryAdapter extends BaseAdapter
 		this.viewer = viewer;
 	}
 
-	/**
-	 * Reads bytes from the stream into the byte array
-	 * until end of stream or array is full.
-	 * @param is source stream
-	 * @param b output array
-	 * @return number of bytes read
-	 */
-	private static int readAndClose(InputStream is, byte[] b) throws IOException
-	{
-		int got = 0;
-		int len = b.length;
-		try {
-			while (got < len) {
-				int i = is.read(b, got, len - got);
-				if (i <= 0)
-					break;
-				got += i;
-			}
-		}
-		finally {
-			is.close();
-		}
-		return got;
-	}
-
-	private View getErrorView(int resource, String filename)
-	{
-		TextView textView = (TextView) viewer.getLayoutInflater().inflate(R.layout.error, null);
-		textView.setText(viewer.getString(resource, filename));
-		return textView;
-	}
-
 	public View getView(int position, View convertView, ViewGroup parent)
 	{
-		Uri uri = viewer.getUri(position);
-
-		// Read file
-		byte[] content = new byte[RECOIL.MAX_CONTENT_LENGTH];
-		int contentLength;
-		String filename = uri.getPath();
+		RECOIL recoil;
 		try {
-			if (FileUtil.isZip(filename)) {
-				ZipFile zip = new ZipFile(filename);
-				try {
-					filename = uri.getFragment();
-					InputStream is = zip.getInputStream(zip.getEntry(filename));
-					contentLength = readAndClose(is, content);
-				}
-				finally {
-					zip.close();
-				}
-			}
-			else {
-				InputStream is = new FileInputStream(filename);
-				contentLength = readAndClose(is, content);
-			}
+			recoil = viewer.decode(position);
 		}
-		catch (IOException ex) {
-			return getErrorView(R.string.error_reading_file, filename);
+		catch (RECOILException ex) {
+			TextView textView = (TextView) viewer.getLayoutInflater().inflate(R.layout.error, null);
+			textView.setText(ex.getMessage());
+			return textView;
 		}
 
-		// Decode
-		RECOIL recoil = new RECOIL();
-		if (!recoil.decode(filename, content, contentLength))
-			return getErrorView(R.string.error_decoding_file, filename);
 		int[] pixels = recoil.getPixels();
 		int width = recoil.getWidth();
 		int height = recoil.getHeight();
