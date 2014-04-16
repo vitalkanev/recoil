@@ -100,6 +100,9 @@ public class FileSelector extends ListActivity
 				isSearch = true;
 			}
 			return true;
+		case R.id.menu_about:
+			About.show(this);
+			return true;
 		default:
 			return false;
 		}

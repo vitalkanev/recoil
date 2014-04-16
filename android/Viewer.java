@@ -199,6 +199,9 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 		case R.id.menu_info:
 			showInfo();
 			return true;
+		case R.id.menu_about:
+			About.show(this);
+			return true;
 		default:
 			return false;
 		}
