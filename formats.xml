@@ -6,6 +6,9 @@
 		<format name="Interchange File Format" compressed="yes"><ext>IFF</ext></format>
 		<format name="Interleaved Bitmap"><ext>LBM</ext></format>
 	</platform>
+	<platform name="Apple Macintosh">
+		<format name="MacPaint" width="576" height="720" colors="2"><ext>MAC</ext></format>
+	</platform>
 	<platform name="Atari 8-bit">
 		<format width="80" height="96" colors="256"><ext>256</ext><ext>AP2</ext></format>
 		<format name="AtariTools-800 4 missiles" tileWidth="2" tileHeight="240"><ext>4MI</ext></format>
@@ -43,7 +46,7 @@
 		<format name="Champions' Interlace" width="160" height="192" frames="2" compressed="yes"><ext>CCI</ext></format>
 		<format name="Blazing Paddles font" colors="2"><ext>CHR</ext></format>
 		<format name="Champions' Interlace" width="160" maxHeight="200" frames="2"><ext>CIN</ext></format>
-		<format name="Trzmiel" width="320" height="192" compressed="yes"><ext>CPR</ext></format>
+		<format name="Trzmiel" width="320" height="192" colors="2" compressed="yes"><ext>CPR</ext></format>
 		<format width="320" height="192" colors="10" frames="2"><ext>DIN</ext></format>
 		<format name="Dir Logo Maker" width="11" height="16" unit="characters" colors="2"><ext>DLM</ext></format>
 		<format name="Atari CAD" width="320" height="160" colors="2"><ext>DRG</ext></format>

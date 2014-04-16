@@ -23,6 +23,7 @@
 enum RECOILResolution
 {
 	Amiga1x1,
+	Macintosh1x1,
 	Xe1x1,
 	Xe2x1,
 	Xe4x1,
@@ -1256,15 +1257,15 @@ public class RECOIL
 	/// RECOIL version - minor part.
 	public const int VersionMinor = 0;
 	/// RECOIL version - micro part.
-	public const int VersionMicro = 0;
+	public const int VersionMicro = 1;
 	/// RECOIL version as a string.
 	public const string Version = VersionMajor + "." + VersionMinor + "." + VersionMicro;
 
 	/// Years RECOIL was created in.
-	public const string Years = "2009-2013";
+	public const string Years = "2009-2014";
 
 	/// Short credits for RECOIL.
-	public const string Credits = "Retro Computer Image Library (C) 2009-2013 Piotr Fusik and Adrian Matoga\n";
+	public const string Credits = "Retro Computer Image Library (C) 2009-2014 Piotr Fusik and Adrian Matoga\n";
 
 	/// Short license notice.
 	/// Display after the credits.
@@ -1288,7 +1289,7 @@ public class RECOIL
 	/// Maximum height of a decoded image.
 	public const int MaxHeight = 1024;
 	/// Maximum number of pixels in a decoded image.
-	public const int MaxPixelsLength = 640 * 568;
+	public const int MaxPixelsLength = 576 * 720;
 
 	/// Decoded image width.
 	int Width;
@@ -1331,6 +1332,8 @@ public class RECOIL
 		switch (Resolution) {
 		case RECOILResolution.Amiga1x1:
 			return "Amiga";
+		case RECOILResolution.Macintosh1x1:
+			return "Apple Macintosh";
 		case RECOILResolution.Xe1x1:
 		case RECOILResolution.Xe2x1:
 		case RECOILResolution.Xe4x1:
@@ -1544,6 +1547,24 @@ public class RECOIL
 			unpacked[unpackedOffset] = b;
 		}
 		return DecodePgf(unpacked, 1920);
+	}
+
+	// Apple Macintosh formats.
+
+	bool DecodeMac(byte[] content, int contentLength)
+	{
+		if (contentLength < 512
+		 || content[0] != 0 || content[1] != 0 || content[2] != 0 || (content[3] & ~2) != 0)
+			return false;
+		PackBitsStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 512;
+		rle.ContentLength = contentLength;
+		byte[51840] unpacked;
+		if (!rle.Unpack(unpacked, 0, 1, 51840))
+			return false;
+		DecodeBlackAndWhite(unpacked, 0, 576, 720, RECOILResolution.Macintosh1x1);
+		return true;
 	}
 
 	// ZX Spectrum formats.
@@ -6487,6 +6508,7 @@ public class RECOIL
 		case PACKED_EXT("LEO"):
 		case PACKED_EXT("LP3"):
 		case PACKED_EXT("LUM"):
+		case PACKED_EXT("MAC"):
 		case PACKED_EXT("MAX"):
 		case PACKED_EXT("MBG"):
 		case PACKED_EXT("MC"):
@@ -6817,6 +6839,8 @@ public class RECOIL
 			return DecodeLp3(content, contentLength);
 		case PACKED_EXT("LUM"):
 			return DecodeLum(content, contentLength);
+		case PACKED_EXT("MAC"):
+			return DecodeMac(content, contentLength);
 		case PACKED_EXT("MAX"):
 			return DecodeMax(content, contentLength);
 		case PACKED_EXT("MBG"):

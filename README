@@ -12,6 +12,7 @@ endif::recoilwww[]
 
 RECOIL is a viewer of pictures in native formats of
 http://en.wikipedia.org/wiki/Amiga[Amiga],
+http://en.wikipedia.org/wiki/Macintosh_128K[Apple Macintosh],
 http://en.wikipedia.org/wiki/Atari_8-bit_family[Atari 8-bit],
 http://en.wikipedia.org/wiki/Atari_Portfolio[Atari Portfolio],
 http://en.wikipedia.org/wiki/Atari_ST[Atari ST],
@@ -48,6 +49,10 @@ ACBM:: "Amiga Continuous Bitmap".
 HAM6:: "Hold-And-Modify 6", 4096 colors.
 HAM8:: "Hold-And-Modify 8", 16777216 colors.
 IFF, LBM:: "Interchange File Format" / "Interleaved Bitmap", compressed.
+
+Apple Macintosh
+~~~~~~~~~~~~~~~
+MAC:: "MacPaint", 576x720, mono, compressed.
 
 Atari 8-bit
 ~~~~~~~~~~~
