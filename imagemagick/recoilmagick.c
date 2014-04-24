@@ -298,6 +298,7 @@ static const struct Format {
 	{ "RPM", "Run Paint; 160x200, 16 colors" },
 	{ "SAR", "Saracen Paint; 160x200, 16 colors" },
 	{ "SCR", "256x192, 15 colors" },
+	{ "SCS4", "Mode 4; 256x192, 16 colors" },
 	{ "SGE", "Semi-Graphic logos Editor; 320x192, mono" },
 	{ "SHC", "SAMAR Hi-res Interlace with Map of Colours; 320x192, 2 frames" },
 	{ "SHP", "Blazing Paddles or Movie Maker shapes" },

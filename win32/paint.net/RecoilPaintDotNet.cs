@@ -250,6 +250,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".rpm", "Run Paint; 160x200, 16 colors"),
 				new RecoilFileType(".sar", "Saracen Paint; 160x200, 16 colors"),
 				new RecoilFileType(".scr", "256x192, 15 colors"),
+				new RecoilFileType(".scs4", "Mode 4; 256x192, 16 colors"),
 				new RecoilFileType(".sge", "Semi-Graphic logos Editor; 320x192, mono"),
 				new RecoilFileType(".shc", "SAMAR Hi-res Interlace with Map of Colours; 320x192, 2 frames"),
 				new RecoilFileType(".shp", "Blazing Paddles or Movie Maker shapes"),

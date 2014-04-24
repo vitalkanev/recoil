@@ -37,6 +37,7 @@ enum RECOILResolution
 	Falcon1x1,
 	C641x1,
 	C642x1,
+	SamCoupe1x1,
 	Zx1x1
 }
 
@@ -1353,6 +1354,8 @@ public class RECOIL
 		case RECOILResolution.C641x1:
 		case RECOILResolution.C642x1:
 			return "Commodore 64";
+		case RECOILResolution.SamCoupe1x1:
+			return "SAM Coupe";
 		case RECOILResolution.Zx1x1:
 			return "ZX Spectrum";
 		default:
@@ -1883,6 +1886,46 @@ public class RECOIL
 			return false;
 		SetSize(256, 192, RECOILResolution.Zx1x1);
 		DecodeZx(scr, ZxBitmapLinear, 0x1800, ZxAttributes8x1, 0);
+		return true;
+	}
+
+	// SAM Coupe formats.
+
+	bool DecodeScs4(byte[] content, int contentLength)
+	{
+		if (contentLength != 24617 || content[24616] != 0xff)
+			return false;
+
+		int[16] palette;
+		for (int i = 0; i < 16; i++) {
+			int c = content[0x6000 + i];
+			int rgb = 0;
+			if ((c & 1) != 0)
+				rgb |= 0x000049; // B1
+			if ((c & 2) != 0)
+				rgb |= 0x490000; // R1
+			if ((c & 4) != 0)
+				rgb |= 0x004900; // G1
+			if ((c & 8) != 0)
+				rgb |= 0x242424; // BRIGHT
+			if ((c & 0x10) != 0)
+				rgb |= 0x000092; // B2
+			if ((c & 0x20) != 0)
+				rgb |= 0x920000; // R2
+			if ((c & 0x40) != 0)
+				rgb |= 0x009200; // G2
+			palette[i] = rgb;
+		}
+
+		SetSize(256, 192, RECOILResolution.SamCoupe1x1);
+		for (int y = 0; y < 192; y++) {
+			for (int x = 0; x < 256; x++) {
+				int c = content[(y << 7) + (x >> 1)];
+				if ((x & 1) == 0)
+					c >>= 4;
+				Pixels[(y << 8) + x] = palette[c & 0xf];
+			}
+		}
 		return true;
 	}
 
@@ -6558,6 +6601,7 @@ public class RECOIL
 		case PACKED_EXT("RP"):
 		case PACKED_EXT("SAR"):
 		case PACKED_EXT("SCR"):
+		case PACKED_EXT("SCS4"):
 		case PACKED_EXT("SGE"):
 		case PACKED_EXT("SHC"):
 		case PACKED_EXT("SHP"):
@@ -6932,6 +6976,8 @@ public class RECOIL
 			return contentLength == 10018 && DecodeC64Multicolor(320, content, 0x402, 2, 0x2402, content[0x3f2]);
 		case PACKED_EXT("SCR"):
 			return DecodeScr(content, contentLength);
+		case PACKED_EXT("SCS4"):
+			return DecodeScs4(content, contentLength);
 		case PACKED_EXT("SGE"):
 			return DecodeSge(content, contentLength);
 		case PACKED_EXT("SHC"):

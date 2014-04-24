@@ -17,7 +17,8 @@ http://en.wikipedia.org/wiki/Atari_8-bit_family[Atari 8-bit],
 http://en.wikipedia.org/wiki/Atari_Portfolio[Atari Portfolio],
 http://en.wikipedia.org/wiki/Atari_ST[Atari ST],
 http://en.wikipedia.org/wiki/Atari_Falcon[Atari Falcon],
-http://en.wikipedia.org/wiki/Commodore_64[Commodore 64]
+http://en.wikipedia.org/wiki/Commodore_64[Commodore 64],
+http://en.wikipedia.org/wiki/SAM_Coupé[SAM Coupé]
 and http://en.wikipedia.org/wiki/ZX_Spectrum[ZX Spectrum] computers.
 
 Currently the project includes:
@@ -52,6 +53,7 @@ IFF, LBM:: "Interchange File Format" / "Interleaved Bitmap", compressed.
 
 Apple Macintosh
 ~~~~~~~~~~~~~~~
+[horizontal]
 MAC:: "MacPaint", 576x720, mono, compressed.
 
 Atari 8-bit
@@ -259,6 +261,11 @@ RP:: "Rainbow Painter", 160x200, 16 colors.
 RPM:: "Run Paint", 160x200, 16 colors.
 SAR:: "Saracen Paint", 160x200, 16 colors.
 VID:: "Vidcom 64", 160x200, 16 colors.
+
+SAM Coupé
+~~~~~~~~~
+[horizontal]
+SCS4:: "Mode 4", 256x192, 16 colors.
 
 ZX Spectrum
 ~~~~~~~~~~~
