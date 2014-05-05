@@ -117,6 +117,7 @@ static const struct Format {
 } formats[] = {
 	{ "256", "80x96, 256 colors" },
 	{ "3", "256x192, 8 colors, 3 frames" },
+	{ "4BT", "GoDot; 320x200, 16 colors" },
 	{ "4MI", "AtariTools-800 4 mono missiles" },
 	{ "4PL", "AtariTools-800 4 mono players" },
 	{ "4PM", "AtariTools-800 4 mono players and 4 mono missiles" },

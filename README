@@ -209,6 +209,7 @@ TRU:: "IndyPaint", 65536 colors.
 C64
 ~~~
 [horizontal]
+4BT:: "GoDot", 320x200, 16 colors.
 64C:: 8x8 font, mono.
 AAS:: "Art Studio", 320x200, 16 colors.
 AFL:: "AFLI-editor v2.0" by Topaz Beerlin, 296x200, 16 colors.

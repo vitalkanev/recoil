@@ -292,6 +292,27 @@ class C64KoalaStream : RleStream
 	}
 }
 
+class GoDotStream : RleStream
+{
+	override bool ReadCommand()
+	{
+		int b = ReadByte();
+		if (b < 0)
+			return false;
+		if (b == 0xad) {
+			RepeatCount = ReadByte();
+			if (RepeatCount == 0)
+				RepeatCount = 256;
+			RepeatValue = ReadByte();
+		}
+		else {
+			RepeatCount = 1;
+			RepeatValue = b;
+		}
+		return true;
+	}
+}
+
 class DrpStream : RleStream
 {
 	int Escape;
@@ -1958,6 +1979,28 @@ public class RECOIL
 		0x6c5eb5,
 		0x959595
 	};
+
+	bool Decode4bt(byte[] content, int contentLength)
+	{
+		if (contentLength < 5 || !IsStringAt(content, 0, "GOD0") || content[contentLength - 1] != 0xad)
+			return false;
+		byte[32000] unpacked;
+		GoDotStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 4;
+		rle.ContentLength = contentLength - 1;
+		if (!rle.Unpack(unpacked, 0, 1, 32000))
+			return false;
+		SetSize(320, 200, RECOILResolution.C641x1);
+		for (int y = 0; y < 200; y++) {
+			for (int x = 0; x < 320; x++) {
+				const byte[16] byBrightness = { 0, 6, 9, 11, 2, 4, 8, 12, 14, 10, 5, 15, 3, 7, 13, 1 };
+				int c = unpacked[(y & ~7) * 160 + ((x & ~7) + (y & 7) << 2) + (x >> 1 & 3)];
+				Pixels[y * 320 + x] = C64Palette[byBrightness[(x & 1) == 0 ? c >> 4 : c & 0xf]];
+			}
+		}
+		return true;
+	}
 
 	const int FliBugCharacters = 3;
 
@@ -6418,6 +6461,7 @@ public class RECOIL
 		switch (GetPackedExt(filename)) {
 		case PACKED_EXT("256"):
 		case PACKED_EXT("3"):
+		case PACKED_EXT("4BT"):
 		case PACKED_EXT("4MI"):
 		case PACKED_EXT("4PL"):
 		case PACKED_EXT("4PM"):
@@ -6642,6 +6686,8 @@ public class RECOIL
 			return Decode256(content, contentLength);
 		case PACKED_EXT("3"):
 			return Decode3(content, contentLength);
+		case PACKED_EXT("4BT"):
+			return Decode4bt(content, contentLength);
 		case PACKED_EXT("4MI"):
 			return Decode4mi(content, contentLength);
 		case PACKED_EXT("4PL"):

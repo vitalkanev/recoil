@@ -169,6 +169,7 @@
 		<format name="IndyPaint" colors="65536"><ext>TRU</ext></format>
 	</platform>
 	<platform name="Commodore 64">
+		<format name="GoDot" width="320" height="200" colors="16"><ext>4BT</ext></format>
 		<format name="8x8 font" tileWidth="8" tileHeight="8" colors="2"><ext>64C</ext></format>
 		<format name="AFLI-editor v2.0 by Topaz Beerlin" width="296" height="200" colors="16"><ext>AFL</ext></format>
 		<format name="Amica Paint" width="160" height="200" colors="16" compressed="yes"><ext>AMI</ext></format>
