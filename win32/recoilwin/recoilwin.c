@@ -192,6 +192,8 @@ static BOOL Repaint(BOOL fit_to_desktop)
 			int desktop_width = GetSystemMetrics(SM_CXFULLSCREEN);
 			int desktop_height = GetSystemMetrics(SM_CYFULLSCREEN);
 			RECT rect;
+			if (zoom < ZOOM_MIN)
+				zoom = ZOOM_MIN;
 			show_width = MulDiv(RECOIL_GetWidth(recoil), zoom, 100);
 			show_height = MulDiv(RECOIL_GetHeight(recoil), zoom, 100);
 			CalculateWindowSize();
