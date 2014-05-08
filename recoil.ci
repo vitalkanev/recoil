@@ -37,6 +37,7 @@ enum RECOILResolution
 	Falcon1x1,
 	C641x1,
 	C642x1,
+	Msx1x1,
 	SamCoupe1x1,
 	Zx1x1
 }
@@ -482,6 +483,46 @@ class SpsStream : RleStream
 			RepeatValue = -1;
 		}
 		return true;
+	}
+}
+
+class Sr8Stream : RleStream
+{
+	override bool ReadCommand()
+	{
+		int b = ReadByte();
+		switch (b) {
+		case -1:
+			return false;
+		case 0:
+			RepeatCount = ReadByte();
+			if (RepeatCount == 0)
+				RepeatCount = 256;
+			RepeatValue = ReadByte();
+			return true;
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+		case 11:
+		case 12:
+		case 13:
+		case 14:
+		case 15:
+			RepeatCount = b;
+			RepeatValue = ReadByte();
+			return true;
+		default:
+			RepeatCount = 1;
+			RepeatValue = b;
+			return true;
+		}
 	}
 }
 
@@ -1375,6 +1416,8 @@ public class RECOIL
 		case RECOILResolution.C641x1:
 		case RECOILResolution.C642x1:
 			return "Commodore 64";
+		case RECOILResolution.Msx1x1:
+			return "MSX";
 		case RECOILResolution.SamCoupe1x1:
 			return "SAM Coupe";
 		case RECOILResolution.Zx1x1:
@@ -1908,6 +1951,63 @@ public class RECOIL
 		SetSize(256, 192, RECOILResolution.Zx1x1);
 		DecodeZx(scr, ZxBitmapLinear, 0x1800, ZxAttributes8x1, 0);
 		return true;
+	}
+
+	// MSX formats.
+
+	static int GetMsxHeader(byte[] content)
+	{
+		if (content[1] != 0 || content[2] != 0 || content[5] != 0 || content[6] != 0)
+			return -1;
+		return content[3] | content[4] << 8;
+	}
+
+	bool DecodeValidSc8(byte[] content)
+	{
+		int[256] palette;
+		for (int c = 0; c < 256; c++) {
+			// 0bGGGRRRBB -> 0bRRRRRRRRGGGGGGGGBBBBBBBB
+			palette[c] = (c & 0x1c) * 0x48 >> 3 << 16
+				| (c >> 5) * 0x48 >> 1 << 8
+				| (c & 3) * 0x55;
+		}
+		SetSize(256, 212, RECOILResolution.Msx1x1);
+		for (int y = 0; y < 212; y++) {
+			for (int x = 0; x < 256; x++) {
+				Pixels[(y << 8) + x] = palette[content[7 + (y << 8) + x]];
+			}
+		}
+		return true;
+	}
+
+	bool DecodeSc8(byte[] content, int contentLength)
+	{
+		if (contentLength < 54279 || content[0] != 0xfe)
+			return false;
+		switch (GetMsxHeader(content)) {
+		case 0xd3ff:
+		case 0xd400:
+			break;
+		default:
+			return false;
+		}
+		return DecodeValidSc8(content);
+	}
+
+	bool DecodeSr8(byte[] content, int contentLength)
+	{
+		if (contentLength < 7)
+			return false;
+		if (content[0] != 0xfd)
+			return DecodeSc8(content, contentLength);
+		if (GetMsxHeader(content) + 7 != contentLength)
+			return false;
+		byte[54279] unpacked;
+		Sr8Stream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 7;
+		rle.ContentLength = contentLength;
+		return rle.Unpack(unpacked, 7, 1, 54272) && DecodeValidSc8(unpacked);
 	}
 
 	// SAM Coupe formats.
@@ -4243,8 +4343,9 @@ public class RECOIL
 		if (contentLength >= 7681 && contentLength <= 7685)
 			return DecodeMic(content, contentLength);
 
-		// Some images with .PIC extension are ST raw format.
-		return DecodeDoo(content, contentLength);
+		// Some images with .PIC extension are DOO or SC8.
+		return DecodeDoo(content, contentLength)
+			|| DecodeSc8(content, contentLength);
 	}
 
 	bool DecodeWnd(byte[] content, int contentLength)
@@ -6644,6 +6745,7 @@ public class RECOIL
 		case PACKED_EXT("RM4"):
 		case PACKED_EXT("RP"):
 		case PACKED_EXT("SAR"):
+		case PACKED_EXT("SC8"):
 		case PACKED_EXT("SCR"):
 		case PACKED_EXT("SCS4"):
 		case PACKED_EXT("SGE"):
@@ -6653,6 +6755,7 @@ public class RECOIL
 		case PACKED_EXT("SPC"):
 		case PACKED_EXT("SPS"):
 		case PACKED_EXT("SPU"):
+		case PACKED_EXT("SR8"):
 		case PACKED_EXT("SXS"):
 		case PACKED_EXT("TIP"):
 		case PACKED_EXT("TN1"):
@@ -7020,6 +7123,8 @@ public class RECOIL
 			return contentLength == 10242 && DecodeC64Multicolor(320, content, 0x402, 2, 0x2402, 0);
 		case PACKED_EXT("SAR"):
 			return contentLength == 10018 && DecodeC64Multicolor(320, content, 0x402, 2, 0x2402, content[0x3f2]);
+		case PACKED_EXT("SC8"):
+			return DecodeSc8(content, contentLength);
 		case PACKED_EXT("SCR"):
 			return DecodeScr(content, contentLength);
 		case PACKED_EXT("SCS4"):
@@ -7039,6 +7144,8 @@ public class RECOIL
 			return DecodeSps(content, contentLength);
 		case PACKED_EXT("SPU"):
 			return DecodeSpu(content, contentLength);
+		case PACKED_EXT("SR8"):
+			return DecodeSr8(content, contentLength);
 		case PACKED_EXT("SXS"):
 			return DecodeSxs(content, contentLength);
 		case PACKED_EXT("TIP"):

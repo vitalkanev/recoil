@@ -18,6 +18,7 @@ http://en.wikipedia.org/wiki/Atari_Portfolio[Atari Portfolio],
 http://en.wikipedia.org/wiki/Atari_ST[Atari ST],
 http://en.wikipedia.org/wiki/Atari_Falcon[Atari Falcon],
 http://en.wikipedia.org/wiki/Commodore_64[Commodore 64],
+http://en.wikipedia.org/wiki/MSX[MSX],
 http://en.wikipedia.org/wiki/SAM_Coupé[SAM Coupé]
 and http://en.wikipedia.org/wiki/ZX_Spectrum[ZX Spectrum] computers.
 
@@ -262,6 +263,12 @@ RP:: "Rainbow Painter", 160x200, 16 colors.
 RPM:: "Run Paint", 160x200, 16 colors.
 SAR:: "Saracen Paint", 160x200, 16 colors.
 VID:: "Vidcom 64", 160x200, 16 colors.
+
+MSX
+~~~
+[horizontal]
+SC8:: "Mode 8", 256x212, 256 colors.
+SR8:: "Mode 8", 256x212, 256 colors, compressed.
 
 SAM Coupé
 ~~~~~~~~~
