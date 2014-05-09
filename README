@@ -267,8 +267,9 @@ VID:: "Vidcom 64", 160x200, 16 colors.
 MSX
 ~~~
 [horizontal]
-SC8:: "Mode 8", 256x212, 256 colors.
-SR8:: "Mode 8", 256x212, 256 colors, compressed.
+SC2, GRP:: "Screen 2", 256x192, 15 colors.
+SC8:: "Screen 8", 256x212, 256 colors.
+SR8:: "Graph Saurus", 256x212, 256 colors, compressed.
 
 SAM Coupé
 ~~~~~~~~~

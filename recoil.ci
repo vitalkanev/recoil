@@ -1962,6 +1962,52 @@ public class RECOIL
 		return content[3] | content[4] << 8;
 	}
 
+	bool DecodeSc2(byte[] content, int contentLength)
+	{
+		// TODO: 16391-byte SC2 files with sprites
+		if (contentLength != 14343 || content[0] != 0xfe)
+			return false;
+		switch (GetMsxHeader(content)) {
+		case 0x37ff:
+		case 0x3800:
+			break;
+		default:
+			return false;
+		}
+		SetSize(256, 192, RECOILResolution.Msx1x1);
+		for (int y = 0; y < 192; y++) {
+			int fontOffset = 7 + ((y &0xc0) << 5);
+			for (int x = 0; x < 256; x++) {
+				int b = fontOffset + (content[0x1807 + ((y & ~7) << 2) + (x >> 3)] << 3) + (y & 7);
+				int c = content[0x2000 + b];
+				// TODO: 0xRB 0x0G, 3 bits per component palette at 0x1b87.
+				// Use the following default if all zero.
+				// All files I have either don't specify the palette (all zeros)
+				// or specify a palette that is identical to the default one.
+				const int[16] palette = {
+					0x000000,
+					0x000000,
+					0x3eb849,
+					0x74d07d,
+					0x5955e0,
+					0x8076f1,
+					0xb95e51,
+					0x65dbef,
+					0xdb6559,
+					0xff897d,
+					0xccc35e,
+					0xded087,
+					0x3aa241,
+					0xb766b5,
+					0xcccccc,
+					0xffffff
+				};
+				Pixels[(y << 8) + x] = palette[(content[b] >> (~x & 7) & 1) == 0 ? c & 0xf : c >> 4];
+			}
+		}
+		return true;
+	}
+
 	bool DecodeValidSc8(byte[] content)
 	{
 		int[256] palette;
@@ -6745,6 +6791,8 @@ public class RECOIL
 		case PACKED_EXT("RM4"):
 		case PACKED_EXT("RP"):
 		case PACKED_EXT("SAR"):
+		case PACKED_EXT("SC2"):
+		case PACKED_EXT("GRP"):
 		case PACKED_EXT("SC8"):
 		case PACKED_EXT("SCR"):
 		case PACKED_EXT("SCS4"):
@@ -7123,6 +7171,9 @@ public class RECOIL
 			return contentLength == 10242 && DecodeC64Multicolor(320, content, 0x402, 2, 0x2402, 0);
 		case PACKED_EXT("SAR"):
 			return contentLength == 10018 && DecodeC64Multicolor(320, content, 0x402, 2, 0x2402, content[0x3f2]);
+		case PACKED_EXT("SC2"):
+		case PACKED_EXT("GRP"):
+			return DecodeSc2(content, contentLength);
 		case PACKED_EXT("SC8"):
 			return DecodeSc8(content, contentLength);
 		case PACKED_EXT("SCR"):

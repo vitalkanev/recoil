@@ -246,8 +246,9 @@
 		<format name="Vidcom 64Paint" width="160" height="200" colors="16"><ext>VID</ext></format>
 	</platform>
 	<platform name="MSX">
-		<format name="Mode 8" width="256" height="212" colors="256"><ext>SC8</ext><ext>PIC</ext></format>
-		<format name="Mode 8" width="256" height="212" colors="256" compressed="optionally"><ext>SR8</ext></format>
+		<format name="Screen 2" width="256" height="192" colors="15"><ext>SC2</ext><ext>GRP</ext></format>
+		<format name="Screen 8" width="256" height="212" colors="256"><ext>SC8</ext><ext>PIC</ext></format>
+		<format name="Graph Saurus" width="256" height="212" colors="256" compressed="optionally"><ext>SR8</ext></format>
 	</platform>
 	<platform name="SAM Coupe">
 		<format name="Mode 4" width="256" height="192" colors="16"><ext>SCS4</ext></format>
