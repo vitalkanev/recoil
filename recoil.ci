@@ -2228,6 +2228,11 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeOcp(byte[] content, int contentLength)
+	{
+		return contentLength == 10018 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x233a, content[0x232b]);
+	}
+
 	bool DecodeHir(byte[] content, int contentLength)
 	{
 		switch (contentLength) {
@@ -2357,6 +2362,7 @@ public class RECOIL
 	bool DecodeDol(byte[] content, int contentLength)
 	{
 		switch (contentLength) {
+		case 10241: // VIC
 		case 10242: // DOL
 		case 10050: // VID
 			break;
@@ -2481,16 +2487,28 @@ public class RECOIL
 
 	bool DecodeFli(byte[] content, int contentLength)
 	{
-		if (contentLength != 17409)
+		switch (contentLength) {
+		case 17218: // FD2
+		case 17409: // FLI
+		case 17410: // VIC
+			break;
+		default:
 			return false;
+		}
 		DecodeC64Multicolor(320 - FliBugCharacters * 8, content, 0x2402 + FliBugCharacters * 8, 0x402 + FliBugCharacters, 2 + FliBugCharacters, 0);
 		return true;
 	}
 
 	bool DecodeBml(byte[] content, int contentLength)
 	{
-		if (contentLength != 17474)
+		switch (contentLength) {
+		case 17474: // BML
+		case 17665: // VIC
+		case 17666: // VIC
+			break;
+		default:
 			return false;
+		}
 		DecodeC64Multicolor(320 - FliBugCharacters * 8, content, 0x2502 + FliBugCharacters * 8, 0x502 + FliBugCharacters, 0x102 + FliBugCharacters, -2);
 		return true;
 	}
@@ -2506,8 +2524,10 @@ public class RECOIL
 
 	bool DecodeGun(byte[] content, int contentLength)
 	{
-		if (contentLength != 33603 || !IsStringAt(content, 0x3ea, "GUNPAINT (JZ)   "))
+		if (contentLength != 33602 && contentLength != 33603)
 			return false;
+		//if (!IsStringAt(content, 0x3ea, "GUNPAINT (JZ)   "))
+		//	return false;
 		SetSize(320 - FliBugCharacters * 8, 200, RECOILResolution.C641x1);
 		DecodeC64MulticolorFrame(content, 0x2002 + FliBugCharacters * 8, 2 + FliBugCharacters, 0x4002 + FliBugCharacters, GunPaintBorder, 0);
 		LeftSkip = -1;
@@ -2585,6 +2605,38 @@ public class RECOIL
 			}
 		}
 		return true;
+	}
+
+	bool DecodeVic(byte[] content, int contentLength)
+	{
+		switch (contentLength) {
+		case 9002:
+		case 9003:
+		case 9009:
+			return DecodeIph(content, contentLength);
+		case 10018:
+			return DecodeOcp(content, contentLength);
+		case 10241:
+		case 10242:
+			return DecodeDol(content, contentLength);
+		case 17218:
+		case 17409:
+		case 17410:
+			return DecodeFli(content, contentLength);
+		case 17474:
+		case 17665:
+		case 17666:
+			return DecodeBml(content, contentLength);
+		case 18242:
+			return DecodeDrl(content, contentLength);
+		case 33602:
+		case 33603:
+			return DecodeGun(content, contentLength);
+		case 33694:
+			return DecodeFun(content, contentLength);
+		default:
+			return false;
+		}
 	}
 
 	// Atari ST formats.
@@ -6674,6 +6726,7 @@ public class RECOIL
 		case PACKED_EXT("DRP"):
 		case PACKED_EXT("ECI"):
 		case PACKED_EXT("ECP"):
+		case PACKED_EXT("FD2"):
 		case PACKED_EXT("FFLI"):
 		case PACKED_EXT("FLI"):
 		case PACKED_EXT("FNT"):
@@ -6812,6 +6865,7 @@ public class RECOIL
 		case PACKED_EXT("TNY"):
 		case PACKED_EXT("TRP"):
 		case PACKED_EXT("TRU"):
+		case PACKED_EXT("VIC"):
 		case PACKED_EXT("VZI"):
 		case PACKED_EXT("WND"):
 		case PACKED_EXT("XLP"):
@@ -6955,6 +7009,8 @@ public class RECOIL
 			return DecodeEci(content, contentLength);
 		case PACKED_EXT("ECP"):
 			return DecodeEcp(content, contentLength);
+		case PACKED_EXT("FD2"):
+			return DecodeFli(content, contentLength);
 		case PACKED_EXT("FFLI"):
 			return DecodeFfli(content, contentLength);
 		case PACKED_EXT("FLI"):
@@ -7116,7 +7172,7 @@ public class RECOIL
 		case PACKED_EXT("NLQ"):
 			return DecodeNlq(content, contentLength);
 		case PACKED_EXT("OCP"):
-			return contentLength == 10018 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x233a, content[0x232b]);
+			return DecodeOcp(content, contentLength);
 		case PACKED_EXT("P64"):
 			return contentLength == 10050 && DecodeC64Multicolor(320, content, 0x802, 0x402, 2, content[0x801]);
 		case PACKED_EXT("PAC"):
@@ -7210,6 +7266,8 @@ public class RECOIL
 			return DecodeTrp(content, contentLength);
 		case PACKED_EXT("TRU"):
 			return DecodeTru(content, contentLength);
+		case PACKED_EXT("VIC"):
+			return DecodeVic(content, contentLength);
 		case PACKED_EXT("VZI"):
 			return DecodeVzi(content, contentLength);
 		case PACKED_EXT("WND"):

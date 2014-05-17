@@ -229,6 +229,7 @@ DRP:: "Drazpaint", 160x200, 16 colors, compressed.
 DRZ:: "Drazpaint", 160x200, 16 colors.
 ECI:: "ECI Graphic Editor", 296x200, 2 frames.
 ECP:: "ECI Graphic Editor", 296x200, 2 frames, compressed.
+FD2:: "FLI Designer", 148x200, 16 colors.
 FFLI:: 148x200, 2 frames.
 FGS:: "Fun Graphics Machine", 320x200, mono.
 FLI:: "Flexible Line Interpratation", 148x200, 16 colors.
@@ -262,6 +263,7 @@ PMG:: "Paint Magic", 160x200, 16 colors.
 RP:: "Rainbow Painter", 160x200, 16 colors.
 RPM:: "Run Paint", 160x200, 16 colors.
 SAR:: "Saracen Paint", 160x200, 16 colors.
+VIC:: Generic C64, up to 320x200, 16 colors.
 VID:: "Vidcom 64", 160x200, 16 colors.
 
 MSX

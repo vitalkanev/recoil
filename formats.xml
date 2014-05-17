@@ -197,6 +197,7 @@
 		</format>
 		<format name="ECI Graphic Editor" width="296" height="200" frames="2"><ext>ECI</ext></format>
 		<format name="ECI Graphic Editor" width="296" height="200" frames="2" compressed="yes"><ext>ECP</ext></format>
+		<format name="FLI Designer" width="148" height="200" colors="16"><ext>FD2</ext></format>
 		<format name="FFLI" width="148" height="200" frames="2"><ext>FFLI</ext></format>
 		<format name="FLI" width="148" height="200" colors="16"><ext>FLI</ext></format>
 		<format name="Face Painter" width="160" height="200" colors="16"><ext>FPT</ext></format>
@@ -243,6 +244,7 @@
 		<format name="Rainbow Painter" width="160" height="200" colors="16"><ext>RP</ext></format>
 		<format name="Run Paint" width="160" height="200" colors="16"><ext>RPM</ext></format>
 		<format name="Saracen Paint" width="160" height="200" colors="16"><ext>SAR</ext></format>
+		<format maxWidth="320" height="200" colors="16"><ext>VIC</ext></format>
 		<format name="Vidcom 64Paint" width="160" height="200" colors="16"><ext>VID</ext></format>
 	</platform>
 	<platform name="MSX">
