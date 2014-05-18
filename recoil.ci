@@ -2172,8 +2172,12 @@ public class RECOIL
 		}
 	}
 
-	const int FunPaintBorder = -0x3f5a;
-	const int GunPaintBorder = -0x3f51;
+#if FUNPAINT_BORDER
+	const int FunPaintBackground = -0x3f5a;
+#else
+	const int FunPaintBackground = 0;
+#endif
+	const int GunPaintBackground = -0x3f51;
 
 	void DecodeC64MulticolorFrame(byte[] content, int bitmapOffset, int videoMatrixOffset, int colorOffset, int background, int pixelsOffset)
 	{
@@ -2183,9 +2187,11 @@ public class RECOIL
 			int lineBackground;
 			if (background >= 0)
 				lineBackground = background;
-			else if (background == FunPaintBorder && y >= 100)
+#if FUNPAINT_BORDER
+			else if (background == FunPaintBackground && y >= 100)
 				lineBackground = content[0x833a - 100 + y];
-			else if (background == GunPaintBorder && y >= 177)
+#endif
+			else if (background == GunPaintBackground && y >= 177)
 				lineBackground = content[y < 197 ? 0x47ea - 177 + y : 0x47fd];
 			else
 				lineBackground = content[y - background];
@@ -2529,18 +2535,18 @@ public class RECOIL
 		//if (!IsStringAt(content, 0x3ea, "GUNPAINT (JZ)   "))
 		//	return false;
 		SetSize(320 - FliBugCharacters * 8, 200, RECOILResolution.C641x1);
-		DecodeC64MulticolorFrame(content, 0x2002 + FliBugCharacters * 8, 2 + FliBugCharacters, 0x4002 + FliBugCharacters, GunPaintBorder, 0);
+		DecodeC64MulticolorFrame(content, 0x2002 + FliBugCharacters * 8, 2 + FliBugCharacters, 0x4002 + FliBugCharacters, GunPaintBackground, 0);
 		LeftSkip = -1;
-		DecodeC64MulticolorFrame(content, 0x6402 + FliBugCharacters * 8, 0x4402 + FliBugCharacters, 0x4002 + FliBugCharacters, GunPaintBorder, 296 * 200);
+		DecodeC64MulticolorFrame(content, 0x6402 + FliBugCharacters * 8, 0x4402 + FliBugCharacters, 0x4002 + FliBugCharacters, GunPaintBackground, 296 * 200);
 		return ApplyBlend();
 	}
 
 	bool DecodeFunUnpacked(byte[] content)
 	{
 		SetSize(320 - FliBugCharacters * 8, 200, RECOILResolution.C641x1);
-		DecodeC64MulticolorFrame(content, 0x2012 + FliBugCharacters * 8, 0x12 + FliBugCharacters, 0x4012 + FliBugCharacters, FunPaintBorder, 0);
+		DecodeC64MulticolorFrame(content, 0x2012 + FliBugCharacters * 8, 0x12 + FliBugCharacters, 0x4012 + FliBugCharacters, FunPaintBackground, 0);
 		LeftSkip = -1;
-		DecodeC64MulticolorFrame(content, 0x63fa + FliBugCharacters * 8, 0x43fa + FliBugCharacters, 0x4012 + FliBugCharacters, FunPaintBorder, 296 * 200);
+		DecodeC64MulticolorFrame(content, 0x63fa + FliBugCharacters * 8, 0x43fa + FliBugCharacters, 0x4012 + FliBugCharacters, FunPaintBackground, 296 * 200);
 		return ApplyBlend();
 	}
 
