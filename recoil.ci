@@ -2437,6 +2437,35 @@ public class RECOIL
 		return ApplyBlend();
 	}
 
+	void DecodeMleFrame(byte[] content, int contentOffset, int pixelsOffset)
+	{
+		for (int y = 0; y < 56; y++) {
+			for (int x = 0; x < 320; x++) {
+				int c = 0;
+				int i = x + LeftSkip;
+				if (i >= 0) {
+					int ch = (y >> 3) * 40 + (i >> 3);
+					if (ch < 256) {
+						const byte[4] colors = { 0, 9, 8, 5 };
+						c = colors[content[contentOffset + (ch << 3) + (y & 7)] >> (~i & 6) & 3];
+					}
+				}
+				Pixels[pixelsOffset + y * Width + x] = C64Palette[c];
+			}
+		}
+	}
+
+	bool DecodeMle(byte[] content, int contentLength)
+	{
+		if (contentLength != 4098)
+			return false;
+		SetSize(320, 56, RECOILResolution.C641x1);
+		DecodeMleFrame(content, 2050, 0);
+		LeftSkip = -1;
+		DecodeMleFrame(content, 2, 320 * 56);
+		return ApplyBlend();
+	}
+
 	bool DecodeHimUnpacked(byte[] content)
 	{
 		SetSize(320 - FliBugCharacters * 8, 192, RECOILResolution.C641x1);
@@ -6817,6 +6846,7 @@ public class RECOIL
 		case PACKED_EXT("MIC"):
 		case PACKED_EXT("MIL"):
 		case PACKED_EXT("MIS"):
+		case PACKED_EXT("MLE"):
 		case PACKED_EXT("MPP"):
 		case PACKED_EXT("NEO"):
 		case PACKED_EXT("NLQ"):
@@ -7171,6 +7201,8 @@ public class RECOIL
 			return contentLength == 10022 && DecodeC64Multicolor(320, content, 0x7e6, 0x16, 0x3fe, 0);
 		case PACKED_EXT("MIS"):
 			return DecodeMis(content, contentLength);
+		case PACKED_EXT("MLE"):
+			return DecodeMle(content, contentLength);
 		case PACKED_EXT("MPP"):
 			return DecodeMpp(content, contentLength);
 		case PACKED_EXT("NEO"):

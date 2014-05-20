@@ -215,6 +215,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".mic", "Micro Illustrator; up to 160x240, 4 colors"),
 				new RecoilFileType(".mil", "Micro Illustrator; 160x200, 16 colors"),
 				new RecoilFileType(".mis", "AtariTools-800 missile; 2x240, mono"),
+				new RecoilFileType(".mle", "Multi-Lace Editor; 320x56, 10 colors, 2 frames"),
 				new RecoilFileType(".mon", "Mono Magic; 320x200, mono"),
 				new RecoilFileType(".mpp", "Multi Palette Picture; up to 416x273, 1 or 2 frames"),
 				new RecoilFileType(".neo", "NEOchrome"),
