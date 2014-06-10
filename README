@@ -27,6 +27,7 @@ Currently the project includes:
 - recoil2png - portable command-line converter to PNG files
 - RECOILWin - viewer for Windows
 - thumbnail providers for Windows Explorer and GNOME (Linux)
+- plugin for OS X QuickLook
 - plugin for http://www.xnview.com[XnView]
 - (de)coder for http://www.imagemagick.org/[ImageMagick]
 - plugin for http://www.nyam.pe.kr/[Imagine]
@@ -37,6 +38,7 @@ Currently the project includes:
 ifdef::recoilwww[]
 image::recoilwin.png["RECOILWin"]
 image::thumbrecoil.png["Thumbnails in Windows Explorer"]
+image::qlrecoil.png["OS X QuickLook"]
 image::nautilus.png["Thumbnails in Nautilus"]
 image::android.png["Android viewer"]
 endif::recoilwww[]
@@ -440,6 +442,9 @@ Idea, programming.
 
 Adrian Matoga {recoilwww!<epi@atari8.info>}::
 Programming.
+
+Petri Pyy {recoilwww!<laskipeto@gmail.com>}::
+OS X QuickLook plugin.
 
 Paweł Szewczyk {recoilwww!<ripek77@gmail.com>}::
 Icons, testing.
