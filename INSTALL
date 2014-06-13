@@ -17,7 +17,7 @@ you'll need http://cito.sourceforge.net[cito].
 Required libraries
 ~~~~~~~~~~~~~~~~~~
 
-For all builds you will need development files for libpng >=1.2.5
+For Linux and Windows builds you will need development files for libpng >=1.2.5
 and zlib >=1.2.3.
 In some systems they are installed by default or included in software
 repositories.
@@ -68,9 +68,14 @@ To install recoil2png under `PREFIX`, run:
 make install-recoil2png
 --------------------------------------------------------------------------------
 
-To install GNOME thumbnailer and recoil2png, run:
+To install GNOME 3 thumbnailer and recoil2png, run:
 --------------------------------------------------------------------------------
 make install-thumbnailer
+--------------------------------------------------------------------------------
+
+Or, if you are still on GNOME 2:
+--------------------------------------------------------------------------------
+make install-gnome2-thumbnailer
 --------------------------------------------------------------------------------
 
 After you restart your system, Nautilus windows should display thumbnails
