@@ -17,7 +17,7 @@ ASCIIDOC_START = asciidoc -o -
 ASCIIDOC_END = | sed -e "s/527bbd;/800080;/" | xmllint --valid --nonet -o $@ -
 GIT = git
 TAR = tar
-SEVENZIP = 7z a -mx=9
+SEVENZIP = 7z a -mx=9 -bd
 CANDLE = candle -ext WixUtilExtension -nologo -o $@
 LIGHT = light -ext WixUtilExtension -nologo -o $@ -spdb
 IMAGEMAGICK_X64_INST_DIR = c:\Program Files\ImageMagick-6.8.2-Q16
