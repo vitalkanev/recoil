@@ -26,7 +26,7 @@ space := $(nullstring) # need exactly one space after $(nullstring)
 all: recoil2png $(if $(CAN_INSTALL_MAGICK),imagemagick/recoil.so) recoil-mime.xml
 
 recoil2png: recoil2png.c pngsave.c pngsave.h recoil.c recoil.h
-	$(CC) $(CFLAGS) recoil2png.c pngsave.c recoil.c -lpng -lz -lm -o $@
+	$(CC) $(CFLAGS) recoil2png.c pngsave.c recoil.c -lpng -lz -o $@
 
 ifdef CAN_INSTALL_MAGICK
 imagemagick/recoil.so: imagemagick/recoilmagick.c recoil.c recoil.h
