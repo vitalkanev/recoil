@@ -86,32 +86,38 @@ recoil-mime.xml: recoil-mime.xsl formats.xml
 install-mime: recoil-mime.xml
 	mkdir -p $(PREFIX)/share/mime/packages
 	$(INSTALL_DATA) recoil-mime.xml $(PREFIX)/share/mime/packages/recoil-mime.xml
+ifndef BUILDING_PACKAGE
 	update-mime-database $(PREFIX)/share/mime
+endif
 
 uninstall-mime:
 	rm -f $(PREFIX)/share/mime/packages/recoil-mime.xml
 	update-mime-database $(PREFIX)/share/mime
 
 install-thumbnailer: install-mime install-recoil2png
-	(echo '[Thumbnailer Entry]' && echo 'Exec=$(PREFIX)/bin/recoil2png -o %o %i' && echo 'MimeType=$(subst $(space),;,$(FORMATS_LC:%=image/x-%))') >/usr/share/thumbnailers/recoil.thumbnailer
+	mkdir -p $(PREFIX)/share/thumbnailers
+	(echo '[Thumbnailer Entry]' && echo 'Exec=recoil2png -o %o %i' && echo 'MimeType=$(subst $(space),;,$(FORMATS_LC:%=image/x-%))') >$(PREFIX)/share/thumbnailers/recoil.thumbnailer
 
 uninstall-thumbnailer:
-	rm -f /usr/share/thumbnailers/recoil.thumbnailer
+	rm -f $(PREFIX)/share/thumbnailers/recoil.thumbnailer
 
 install-gnome2-thumbnailer: install-mime install-recoil2png
 	for ext in $(FORMATS_LC); do \
-		gconftool-2 --config-source xml:readwrite:/etc/gconf/gconf.xml.defaults -s /desktop/gnome/thumbnailers/image@x-$$ext/command -t string "recoil2png -o %o %i"; \
+		gconftool-2 --config-source xml:readwrite:/etc/gconf/gconf.xml.defaults -s /desktop/gnome/thumbnailers/image@x-$$ext/command -t string 'recoil2png -o %o %i'; \
 		gconftool-2 --config-source xml:readwrite:/etc/gconf/gconf.xml.defaults -s /desktop/gnome/thumbnailers/image@x-$$ext/enable -t boolean true; \
 	done
 
 uninstall-gnome2-thumbnailer: uninstall-mime uninstall-recoil2png
 	for ext in $(FORMATS_LC); do \
-		gconftool-2 -u "/desktop/gnome/thumbnailers/image@x-$$ext/command" "/desktop/gnome/thumbnailers/image@x-$$ext/enable" ; \
+		gconftool-2 -u /desktop/gnome/thumbnailers/image@x-$$ext/command /desktop/gnome/thumbnailers/image@x-$$ext/enable; \
 	done
+
+deb:
+	debuild -b -us -uc
 
 missing-examples:
 	@echo Missing examples for $(foreach EXT,$(FORMATS),$(if $(wildcard ../examples/*.$(EXT)),,$(EXT)))
 
-.PHONY: all clean install uninstall install-recoil2png uninstall-recoil2png $(if $(CAN_INSTALL_MAGICK),install-magick uninstall-magick) install-mime uninstall-mime install-thumbnailer uninstall-thumbnailer install-gnome2-thumbnailer uninstall-gnome2-thumbnailer missing-examples
+.PHONY: all clean install uninstall install-recoil2png uninstall-recoil2png $(if $(CAN_INSTALL_MAGICK),install-magick uninstall-magick) install-mime uninstall-mime install-thumbnailer uninstall-thumbnailer install-gnome2-thumbnailer uninstall-gnome2-thumbnailer deb missing-examples
 
 .DELETE_ON_ERROR:
