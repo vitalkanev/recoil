@@ -12,12 +12,12 @@ endif::recoilwww[]
 
 RECOIL is a viewer of pictures in native formats of
 http://en.wikipedia.org/wiki/Amiga[Amiga],
-http://en.wikipedia.org/wiki/Macintosh_128K[Apple Macintosh],
 http://en.wikipedia.org/wiki/Atari_8-bit_family[Atari 8-bit],
 http://en.wikipedia.org/wiki/Atari_Portfolio[Atari Portfolio],
 http://en.wikipedia.org/wiki/Atari_ST[Atari ST],
 http://en.wikipedia.org/wiki/Atari_Falcon[Atari Falcon],
 http://en.wikipedia.org/wiki/Commodore_64[Commodore 64],
+http://en.wikipedia.org/wiki/Macintosh_128K[Macintosh 128K],
 http://en.wikipedia.org/wiki/MSX[MSX],
 http://en.wikipedia.org/wiki/SAM_Coupé[SAM Coupé]
 and http://en.wikipedia.org/wiki/ZX_Spectrum[ZX Spectrum] computers.
@@ -26,7 +26,8 @@ Currently the project includes:
 
 - recoil2png - portable command-line converter to PNG files
 - RECOILWin - viewer for Windows
-- thumbnail providers for Windows Explorer and GNOME (Linux)
+- thumbnail provider for Windows Explorer
+- Linux GNOME thumbnailer
 - plugin for OS X QuickLook
 - plugin for http://www.xnview.com[XnView]
 - (de)coder for http://www.imagemagick.org/[ImageMagick]
