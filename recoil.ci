@@ -1318,9 +1318,9 @@ public class RECOIL
 	/// RECOIL version - major part.
 	public const int VersionMajor = 3;
 	/// RECOIL version - minor part.
-	public const int VersionMinor = 0;
+	public const int VersionMinor = 1;
 	/// RECOIL version - micro part.
-	public const int VersionMicro = 1;
+	public const int VersionMicro = 0;
 	/// RECOIL version as a string.
 	public const string Version = VersionMajor + "." + VersionMinor + "." + VersionMicro;
 

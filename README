@@ -5,7 +5,7 @@
 :Compact-Option:
 
 ifdef::recoilwww[]
-http://sourceforge.net/projects/recoil/files/recoil/3.0.0/[Download] |
+http://sourceforge.net/projects/recoil/files/recoil/3.1.0/[Download] |
 http://sourceforge.net/p/recoil/code[Browse source code (Git)] |
 http://sourceforge.net/projects/recoil/[SourceForge project page]
 endif::recoilwww[]
@@ -54,11 +54,6 @@ ACBM:: "Amiga Continuous Bitmap".
 HAM6:: "Hold-And-Modify 6", 4096 colors.
 HAM8:: "Hold-And-Modify 8", 16777216 colors.
 IFF, LBM:: "Interchange File Format" / "Interleaved Bitmap", compressed.
-
-Apple Macintosh
-~~~~~~~~~~~~~~~
-[horizontal]
-MAC:: "MacPaint", 576x720, mono, compressed.
 
 Atari 8-bit
 ~~~~~~~~~~~
@@ -270,6 +265,11 @@ SAR:: "Saracen Paint", 160x200, 16 colors.
 VIC:: Generic C64, up to 320x200, 16 colors.
 VID:: "Vidcom 64", 160x200, 16 colors.
 
+Macintosh 128K
+~~~~~~~~~~~~~~
+[horizontal]
+MAC:: "MacPaint", 576x720, mono, compressed.
+
 MSX
 ~~~
 [horizontal]
@@ -330,6 +330,29 @@ You may submit bugs http://sourceforge.net/p/recoil/bugs/[here] (log in required
 
 History
 -------
+
+RECOIL 3.1.0 (2014-06-??)::
+
+New formats;;
+- Commodore 64: GoDot (\*.4BT), \*.VIC, FLI Designer (\*.FD2), Multi-Lace Editor (*.MLE)
+- ZX Spectrum: *.3
+- Macintosh 128K: MacPaint (*.MAC)
+- MSX: *.SC2, *.GRP, *.SC8, Graph Saurus (*.SR8)
+- SAM Coupe: *.SCS4
+
+New ports;;
+- OS X QuickLook plugin.
+- GNOME 3 thumbnailer.
+- Linux *.DEB and *.RPM binary packages.
+
+Android changes;;
+- Search filenames using on-screen keyboard.
+- Added file information and About boxes.
+- Don't reset the gallery on orientation change.
+
+Other changes;;
+- Disable per-line background color in the Funpaint (FUN) format.
+- Reset RECOILWin zoom after a large image is open.
 
 RECOIL 3.0.0 (2014-02-26)::
 
