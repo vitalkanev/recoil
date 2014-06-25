@@ -26,20 +26,22 @@ Currently the project includes:
 
 - recoil2png - portable command-line converter to PNG files
 - RECOILWin - viewer for Windows
-- thumbnail provider for Windows Explorer
-- Linux GNOME thumbnailer
-- plugin for OS X QuickLook
+- thumbnail provider for Windows Explorer (install with a *.MSI installer)
+- Linux GNOME thumbnailer (install `recoil-2png` first, then `recoil-thumbnailer`)
+- plugin for OS X Quick Look (to install: open `recoil-3.1.0-osx.dmg`, drag `RECOIL.qlgenerator` to `QuickLook`, then re-log or run `qlmanage -r`)
 - plugin for http://www.xnview.com[XnView]
 - (de)coder for http://www.imagemagick.org/[ImageMagick]
 - plugin for http://www.nyam.pe.kr/[Imagine]
 - plugin for http://www.getpaint.net/[Paint.NET]
-- application for Android
+- application for Android (also available in https://play.google.com/store/apps/details?id=net.sf.recoil[Google Play])
 - http://recoil.sourceforge.net/html5recoil.html[HTML 5 based viewer]
+
+RECOIL is also included in the "Formats" http://www.irfanview.com/[IrfanView] plugin.
 
 ifdef::recoilwww[]
 image::recoilwin.png["RECOILWin"]
 image::thumbrecoil.png["Thumbnails in Windows Explorer"]
-image::qlrecoil.png["OS X QuickLook"]
+image::qlrecoil.png["OS X Quick Look"]
 image::nautilus.png["Thumbnails in Nautilus"]
 image::android.png["Android viewer"]
 endif::recoilwww[]
@@ -241,7 +243,7 @@ GUN, IFL:: "Gunpaint", 296x200, 2 frames.
 HBM, HIR:: Hires-Bitmap, 320x200, mono.
 HED:: "Hi-Eddi", 320x200, 16 colors.
 HFC:: "Hires FLI" by Crest, 296x112, 16 colors.
-HIM:: "Hires Manager by Cosmos, 296x192, 16 colors, compressed.
+HIM:: "Hires Manager" by Cosmos, 296x192, 16 colors, compressed.
 HLF:: "Hires Interlace" by Feniks; 320x200, 2 frames.
 HPC:: "Hi-Pic Creator", 320x200, 16 colors.
 IHE:: "Interlace Hires Editor", 320x200, 3 colors, 2 frames.
@@ -331,17 +333,17 @@ You may submit bugs http://sourceforge.net/p/recoil/bugs/[here] (log in required
 History
 -------
 
-RECOIL 3.1.0 (2014-06-??)::
+RECOIL 3.1.0 (2014-06-25)::
 
 New formats;;
 - Commodore 64: GoDot (\*.4BT), \*.VIC, FLI Designer (\*.FD2), Multi-Lace Editor (*.MLE)
 - ZX Spectrum: *.3
 - Macintosh 128K: MacPaint (*.MAC)
-- MSX: *.SC2, *.GRP, *.SC8, Graph Saurus (*.SR8)
+- MSX: \*.SC2, \*.GRP, \*.SC8, Graph Saurus (*.SR8)
 - SAM Coupe: *.SCS4
 
 New ports;;
-- OS X QuickLook plugin.
+- OS X Quick Look plugin.
 - GNOME 3 thumbnailer.
 - Linux *.DEB and *.RPM binary packages.
 
@@ -468,7 +470,7 @@ Adrian Matoga {recoilwww!<epi@atari8.info>}::
 Programming.
 
 Petri Pyy {recoilwww!<laskipeto@gmail.com>}::
-OS X QuickLook plugin.
+OS X Quick Look plugin.
 
 Paweł Szewczyk {recoilwww!<ripek77@gmail.com>}::
 Icons, testing.

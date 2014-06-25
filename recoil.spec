@@ -61,6 +61,6 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/update-mime-database %{_datadir}/mime &> /dev/null || :
 
 %changelog
-* Tue Jun 17 2014 Piotr Fusik <fox@scene.pl>
+* Wed Jun 25 2014 Piotr Fusik <fox@scene.pl>
 - 3.1.0-1
 - Initial packaging
