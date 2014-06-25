@@ -18,6 +18,9 @@ all: $(ANDROID_RELEASE)
 install-dev: $(ANDROID_RELEASE)
 	$(ADB) -d install -r $<
 
+install-emu: $(ANDROID_RELEASE)
+	$(ADB) -e install -r $<
+
 log-dev:
 	$(ADB) -d logcat
 
@@ -58,6 +61,6 @@ clean:
 	$(RM) *.apk classes.dex res/drawable/ic_launcher.png AndroidManifest.xml
 	rm -rf classes gen assets
 
-.PHONY: all install-dev log-dev clean
+.PHONY: all install-dev install-emu log-dev clean
 
 .DELETE_ON_ERROR:
