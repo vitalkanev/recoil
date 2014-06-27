@@ -66,7 +66,7 @@ static CGImageRef CreateImage(CFURLRef url)
 	}
 	int width = RECOIL_GetWidth(recoil);
 	int height = RECOIL_GetHeight(recoil);
-	CGContextRef context = CGBitmapContextCreate((void *) RECOIL_GetPixels(recoil), width, height, 8, width << 2, colorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaNoneSkipFirst);
+	CGContextRef context = CGBitmapContextCreate((void *) RECOIL_GetPixels(recoil), width, height, 8, width << 2, colorSpace, kCGBitmapByteOrder32Host | kCGImageAlphaNoneSkipFirst);
 	CFRelease(colorSpace);
 	if (context == NULL) {
 		RECOIL_Delete(recoil);
