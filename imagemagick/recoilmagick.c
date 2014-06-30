@@ -299,6 +299,7 @@ static const struct Format {
 	{ "RM4", "Rambrandt; 160x192, 99 colors" },
 	{ "RP", "Rainbow Painter; 160x200, 16 colors" },
 	{ "RPM", "Run Paint; 160x200, 16 colors" },
+	{ "RYS", "Mamut; 160x96, 4 colors" },
 	{ "SAR", "Saracen Paint; 160x200, 16 colors" },
 	{ "SC2", "Screen 2; 256x192, 15 colors" },
 	{ "SC8", "Screen 8; 256x212, 256 colors" },

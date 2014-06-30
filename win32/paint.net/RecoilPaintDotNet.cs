@@ -251,6 +251,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".rm4", "Rambrandt; 160x192, 99 colors"),
 				new RecoilFileType(".rp", "Rainbow Painter; 160x200, 16 colors"),
 				new RecoilFileType(".rpm", "Run Paint; 160x200, 16 colors"),
+				new RecoilFileType(".rys", "Mamut; 160x96, 4 colors"),
 				new RecoilFileType(".sar", "Saracen Paint; 160x200, 16 colors"),
 				new RecoilFileType(".sc2", "Screen 2; 256x192, 15 colors"),
 				new RecoilFileType(".sc8", "Screen 8; 256x212, 256 colors"),

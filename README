@@ -137,6 +137,7 @@ RM2:: "Rambrandt", 80x192, 104 colors.
 // 104 = 9 colors + 95 DLI changes
 RM3:: "Rambrandt", 80x192, 128 colors.
 RM4:: "Rambrandt", 160x192, 99 colors.
+RYS:: "Mamut", 160x96, 4 colors.
 SGE:: "Semi-Graphic logos Editor", 40x24 characters, mono.
 SHC:: "SAMAR Hi-res Interlace with Map of Colours", 320x192, 2 frames.
 SHP:: "Blazing Paddles" shape table, mono.
