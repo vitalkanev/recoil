@@ -157,6 +157,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".gr7", "Graphics 7; up to 160x120, 4 colors"),
 				new RecoilFileType(".gr8", "Graphics 8; up to 320x240, mono"),
 				new RecoilFileType(".gr9", "Graphics 9; up to 80x240, 16-level grayscale"),
+				new RecoilFileType(".grp", "Screen 2; 256x192, 15 colors"),
 				new RecoilFileType(".gun", "Gunpaint; 296x200, 2 frames"),
 				new RecoilFileType(".ham6", "Hold-And-Modify 6; 4096 colors"),
 				new RecoilFileType(".ham8", "Hold-And-Modify 8; 16777216 colors"),
