@@ -304,6 +304,7 @@ static const struct Format {
 	{ "SAR", "Saracen Paint; 160x200, 16 colors" },
 	{ "SC2", "Screen 2; 256x192, 15 colors" },
 	{ "SC8", "Screen 8; 256x212, 256 colors" },
+	{ "SCA", "Screen 10; 256x212, 12515 colors" },
 	{ "SCC", "Screen 12; 256x212, 19268 colors" },
 	{ "SCR", "256x192, 15 colors" },
 	{ "SCS4", "Mode 4; 256x192, 16 colors" },

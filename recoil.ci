@@ -2017,11 +2017,8 @@ public class RECOIL
 				| (c & 3) * 0x55;
 		}
 		SetSize(256, 212, RECOILResolution.Msx1x1);
-		for (int y = 0; y < 212; y++) {
-			for (int x = 0; x < 256; x++) {
-				Pixels[(y << 8) + x] = palette[content[7 + (y << 8) + x]];
-			}
-		}
+		for (int i = 0; i < 212 * 256; i++)
+			Pixels[i] = palette[content[7 + i]];
 		return true;
 	}
 
@@ -2051,41 +2048,66 @@ public class RECOIL
 		return rle.Unpack(unpacked, 7, 1, 54272) && DecodeValidSc8(unpacked);
 	}
 
+	static int DecodeMsxYjk(byte[] content, int i)
+	{
+		int y = content[7 + i] >> 3;
+		i &= ~3;
+		int k = (content[i + 7] & 7) | (content[i + 8] & 7) << 3;
+		int j = (content[i + 9] & 7) | (content[i + 10] & 7) << 3;
+		// to 6-bit signed
+		k -= (k & 0x20) << 1;
+		j -= (j & 0x20) << 1;
+		// YJK to RGB
+		int r = y + j;
+		if (r < 0)
+			r = 0;
+		else if (r > 31)
+			r = 31;
+		int g = y + k;
+		if (g < 0)
+			g = 0;
+		else if (g > 31)
+			g = 31;
+		int b = (((5 * y - k) >> 1) - j) >> 1;
+		if (b < 0)
+			b = 0;
+		else if (b > 31)
+			b = 31;
+		int rgb = r << 16 | g << 8 | b;
+		// 5-bit RGB to 8-bit RGB
+		return rgb << 3 | (rgb >> 2 & 0x070707);
+	}
+
 	bool DecodeScc(byte[] content, int contentLength)
 	{
 		if (!ExpectMsx2(content, contentLength))
 			return false;
 		SetSize(256, 212, RECOILResolution.Msx1x1);
-		for (int row = 0; row < 212; row++) {
-			for (int x = 0; x < 256; x++) {
-				int i = (row << 8) + x;
-				int y = content[7 + i] >> 3;
-				i &= ~3;
-				int k = (content[i + 7] & 7) | (content[i + 8] & 7) << 3;
-				int j = (content[i + 9] & 7) | (content[i + 10] & 7) << 3;
-				// to 6-bit signed:
-				k -= (k & 0x20) << 1;
-				j -= (j & 0x20) << 1;
-				// YJK to RGB
-				int r = y + j;
-				if (r < 0)
-					r = 0;
-				else if (r > 31)
-					r = 31;
-				int g = y + k;
-				if (g < 0)
-					g = 0;
-				else if (g > 31)
-					g = 31;
-				int b = (((5 * y - k) >> 1) - j) >> 1;
-				if (b < 0)
-					b = 0;
-				else if (b > 31)
-					b = 31;
-				int rgb = r << 16 | g << 8 | b;
-				// 5-bit RGB to 8-bit RGB
-				Pixels[(row << 8) + x] = rgb << 3 | (rgb >> 2 & 0x070707);
-			}
+		for (int i = 0; i < 212 * 256; i++)
+			Pixels[i] = DecodeMsxYjk(content, i);
+		return true;
+	}
+
+	bool DecodeSca(byte[] content, int contentLength)
+	{
+		if (contentLength != 64263 || GetMsxHeader(content) < 0xd400)
+			return false;
+		int[16] palette;
+		for (int i = 0; i < 16; i++) {
+			// 0xRB 0x0G, 3 bits per component 
+			int rb = content[0xfa87 + (i << 1)];
+			int g = content[0xfa88 + (i << 1)];
+			int rgb = (rb & 0x70) << 12 | (rb & 7) | (g & 7) << 8;
+			palette[i] = rgb << 5 | rgb << 2 | (rgb >> 1 & 0x030303);
+		}
+		SetSize(256, 212, RECOILResolution.Msx1x1);
+		for (int i = 0; i < 212 * 256; i++) {
+			int c = content[7 + i];
+			if ((c & 8) == 0)
+				c = DecodeMsxYjk(content, i);
+			else
+				c = palette[c >> 4];
+			Pixels[i] = c;
 		}
 		return true;
 	}
@@ -6932,6 +6954,7 @@ public class RECOIL
 		case PACKED_EXT("SC2"):
 		case PACKED_EXT("GRP"):
 		case PACKED_EXT("SC8"):
+		case PACKED_EXT("SCA"):
 		case PACKED_EXT("SCC"):
 		case PACKED_EXT("SRS"):
 		case PACKED_EXT("SCR"):
@@ -7323,6 +7346,8 @@ public class RECOIL
 			return DecodeSc2(content, contentLength);
 		case PACKED_EXT("SC8"):
 			return DecodeSc8(content, contentLength);
+		case PACKED_EXT("SCA"):
+			return DecodeSca(content, contentLength);
 		case PACKED_EXT("SCC"):
 		case PACKED_EXT("SRS"):
 			return DecodeScc(content, contentLength);

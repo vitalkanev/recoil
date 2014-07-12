@@ -256,6 +256,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".sar", "Saracen Paint; 160x200, 16 colors"),
 				new RecoilFileType(".sc2", "Screen 2; 256x192, 15 colors"),
 				new RecoilFileType(".sc8", "Screen 8; 256x212, 256 colors"),
+				new RecoilFileType(".sca", "Screen 10; 256x212, 12515 colors"),
 				new RecoilFileType(".scc", "Screen 12; 256x212, 19268 colors"),
 				new RecoilFileType(".scr", "256x192, 15 colors"),
 				new RecoilFileType(".scs4", "Mode 4; 256x192, 16 colors"),
