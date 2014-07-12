@@ -252,6 +252,7 @@
 	<platform name="MSX">
 		<format name="Screen 2" width="256" height="192" colors="15"><ext>SC2</ext><ext>GRP</ext></format>
 		<format name="Screen 8" width="256" height="212" colors="256"><ext>SC8</ext><ext>PIC</ext></format>
+		<format name="Screen 12" width="256" height="212" colors="19268"><ext>SCC</ext><ext>SRS</ext></format>
 		<format name="Graph Saurus" width="256" height="212" colors="256" compressed="optionally"><ext>SR8</ext></format>
 	</platform>
 	<platform name="SAM Coupe">

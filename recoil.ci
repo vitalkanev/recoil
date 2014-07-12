@@ -1962,18 +1962,17 @@ public class RECOIL
 		return content[3] | content[4] << 8;
 	}
 
+	static bool ExpectMsxHeader(byte[] content, int expected)
+	{
+		int value = GetMsxHeader(content);
+		return value == expected || value == expected - 1;
+	}
+
 	bool DecodeSc2(byte[] content, int contentLength)
 	{
 		// TODO: 16391-byte SC2 files with sprites
-		if (contentLength != 14343 || content[0] != 0xfe)
+		if (contentLength != 14343 || content[0] != 0xfe || !ExpectMsxHeader(content, 0x3800))
 			return false;
-		switch (GetMsxHeader(content)) {
-		case 0x37ff:
-		case 0x3800:
-			break;
-		default:
-			return false;
-		}
 		SetSize(256, 192, RECOILResolution.Msx1x1);
 		for (int y = 0; y < 192; y++) {
 			int fontOffset = 7 + ((y &0xc0) << 5);
@@ -2026,18 +2025,14 @@ public class RECOIL
 		return true;
 	}
 
+	static bool ExpectMsx2(byte[] content, int contentLength)
+	{
+		return contentLength >= 54279 && content[0] == 0xfe && ExpectMsxHeader(content, 0xd400);
+	}
+
 	bool DecodeSc8(byte[] content, int contentLength)
 	{
-		if (contentLength < 54279 || content[0] != 0xfe)
-			return false;
-		switch (GetMsxHeader(content)) {
-		case 0xd3ff:
-		case 0xd400:
-			break;
-		default:
-			return false;
-		}
-		return DecodeValidSc8(content);
+		return ExpectMsx2(content, contentLength) && DecodeValidSc8(content);
 	}
 
 	bool DecodeSr8(byte[] content, int contentLength)
@@ -2054,6 +2049,45 @@ public class RECOIL
 		rle.ContentOffset = 7;
 		rle.ContentLength = contentLength;
 		return rle.Unpack(unpacked, 7, 1, 54272) && DecodeValidSc8(unpacked);
+	}
+
+	bool DecodeScc(byte[] content, int contentLength)
+	{
+		if (!ExpectMsx2(content, contentLength))
+			return false;
+		SetSize(256, 212, RECOILResolution.Msx1x1);
+		for (int row = 0; row < 212; row++) {
+			for (int x = 0; x < 256; x++) {
+				int i = (row << 8) + x;
+				int y = content[7 + i] >> 3;
+				i &= ~3;
+				int k = (content[i + 7] & 7) | (content[i + 8] & 7) << 3;
+				int j = (content[i + 9] & 7) | (content[i + 10] & 7) << 3;
+				// to 6-bit signed:
+				k -= (k & 0x20) << 1;
+				j -= (j & 0x20) << 1;
+				// YJK to RGB
+				int r = y + j;
+				if (r < 0)
+					r = 0;
+				else if (r > 31)
+					r = 31;
+				int g = y + k;
+				if (g < 0)
+					g = 0;
+				else if (g > 31)
+					g = 31;
+				int b = (((5 * y - k) >> 1) - j) >> 1;
+				if (b < 0)
+					b = 0;
+				else if (b > 31)
+					b = 31;
+				int rgb = r << 16 | g << 8 | b;
+				// 5-bit RGB to 8-bit RGB
+				Pixels[(row << 8) + x] = rgb << 3 | (rgb >> 2 & 0x070707);
+			}
+		}
+		return true;
 	}
 
 	// SAM Coupe formats.
@@ -6898,6 +6932,8 @@ public class RECOIL
 		case PACKED_EXT("SC2"):
 		case PACKED_EXT("GRP"):
 		case PACKED_EXT("SC8"):
+		case PACKED_EXT("SCC"):
+		case PACKED_EXT("SRS"):
 		case PACKED_EXT("SCR"):
 		case PACKED_EXT("SCS4"):
 		case PACKED_EXT("SGE"):
@@ -7287,6 +7323,9 @@ public class RECOIL
 			return DecodeSc2(content, contentLength);
 		case PACKED_EXT("SC8"):
 			return DecodeSc8(content, contentLength);
+		case PACKED_EXT("SCC"):
+		case PACKED_EXT("SRS"):
+			return DecodeScc(content, contentLength);
 		case PACKED_EXT("SCR"):
 			return DecodeScr(content, contentLength);
 		case PACKED_EXT("SCS4"):
