@@ -212,6 +212,7 @@ static const struct Format {
 	{ "HBM", "Hires Bitmap; 320x200, mono" },
 	{ "HED", "Hi-Eddi; 320x200, 16 colors" },
 	{ "HFC", "Hires FLI by Crest; 296x112, 16 colors" },
+	{ "HGB", "HinterGrundBild; 512x256, mono" },
 	{ "HIM", "Hires Manager by Cosmos; 296x192, 16 colors, compressed" },
 	{ "HIP", "Hard Interlace Picture; 160x200, grayscale, 2 frames" },
 	{ "HIR", "Hires; 320x200, mono" },

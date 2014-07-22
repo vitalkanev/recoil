@@ -23,6 +23,8 @@
 enum RECOILResolution
 {
 	Amiga1x1,
+	Amstrad1x1,
+	Amstrad1x2,
 	Macintosh1x1,
 	Xe1x1,
 	Xe2x1,
@@ -579,6 +581,41 @@ class XlpStream : RleStream
 			RepeatCount = RepeatCount - 0x40 << 8 | b;
 		}
 		RepeatValue = rle ? ReadByte() : -1;
+		return true;
+	}
+}
+
+class AmstradStream : RleStream
+{
+	int BlockLength;
+
+	override bool ReadCommand()
+	{
+		while (BlockLength <= 0) {
+			if (ReadByte() != 'M' || ReadByte() != 'J' || ReadByte() != 'H')
+				return false;
+			int lo = ReadByte();
+			if (lo < 0)
+				return false;
+			int hi = ReadByte();
+			if (hi < 0)
+				return false;
+			BlockLength = hi << 8 | lo;
+		}
+		int b = ReadByte();
+		if (b < 0)
+			return false;
+		if (b == 1) {
+			RepeatCount = ReadByte();
+			if (RepeatCount == 0)
+				RepeatCount = 256;
+			RepeatValue = ReadByte();
+		}
+		else {
+			RepeatCount = 1;
+			RepeatValue = b;
+		}
+		BlockLength -= RepeatCount;
 		return true;
 	}
 }
@@ -1395,6 +1432,9 @@ public class RECOIL
 		switch (Resolution) {
 		case RECOILResolution.Amiga1x1:
 			return "Amiga";
+		case RECOILResolution.Amstrad1x1:
+		case RECOILResolution.Amstrad1x2:
+			return "Amstrad CPC";
 		case RECOILResolution.Macintosh1x1:
 			return "Apple Macintosh";
 		case RECOILResolution.Xe1x1:
@@ -1447,6 +1487,7 @@ public class RECOIL
 	public int GetOriginalHeight()
 	{
 		switch (Resolution) {
+		case RECOILResolution.Amstrad1x2:
 		case RECOILResolution.Xe2x2:
 		case RECOILResolution.Xe4x2:
 		case RECOILResolution.St1x2:
@@ -1634,6 +1675,71 @@ public class RECOIL
 		return true;
 	}
 
+	// Amstrad CPC formats.
+
+	static int GetAmstradHeader(byte[] content, int contentLength)
+	{
+		if (contentLength < 128
+		 || (content[0x18] | content[0x19] << 8) != contentLength - 128
+		 || content[0x40] != content[0x18] || content[0x41] != content[0x19] || content[0x42] != 0)
+			return 0;
+		int sum = 0;
+		for (int i = 0; i < 67; i++)
+			sum += content[i];
+		if ((content[0x43] | content[0x44] << 8) != sum)
+			return 0;
+		return 128;
+	}
+
+	bool DecodeAmstradFnt(byte[] content, int contentLength)
+	{
+		int contentOffset = GetAmstradHeader(content, contentLength);
+		if (contentLength < contentOffset + 768)
+			return false;
+		SetSize(256, 24, RECOILResolution.Amstrad1x1);
+		DecodeBlackAndWhiteFont(content, contentOffset, contentLength);
+		return true;
+	}
+
+	bool DecodeAmstradMode2(byte[] content, int contentOffset, int width, int height)
+	{
+		SetSize(width, height << 1, RECOILResolution.Amstrad1x2);
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int offset = (y * width << 1) + x;
+				int c = content[contentOffset + ((y & 7) << 11) + ((y >> 3) * width + x >> 3)] >> (~x & 7) & 1;
+				if (c != 0)
+					c = 0xffffff;
+				Pixels[offset + width] = Pixels[offset] = c;
+			}
+		}
+		return true;
+	}
+
+	bool DecodeHgb(byte[] content, int contentLength)
+	{
+		int contentOffset = GetAmstradHeader(content, contentLength);
+		if (contentLength != contentOffset + 16384)
+			return false;
+		return DecodeAmstradMode2(content, contentOffset, 512, 256);
+	}
+
+	bool DecodeAmstradScr(byte[] content, int contentLength)
+	{
+		int contentOffset = GetAmstradHeader(content, contentLength);
+		if (contentLength == contentOffset + 16384)
+			return DecodeAmstradMode2(content, contentOffset, 640, 200);
+		AmstradStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = contentOffset;
+		rle.ContentLength = contentLength;
+		rle.BlockLength = 0;
+		byte[16384] unpacked;
+		if (!rle.Unpack(unpacked, 0, 1, 16384))
+			return false;
+		return DecodeAmstradMode2(unpacked, 0, 640, 200);
+	}
+
 	// ZX Spectrum formats.
 
 	const int ZxBitmapCheckerboard = -3;
@@ -1746,7 +1852,7 @@ public class RECOIL
 			DecodeZx(content, 0, 0x1800, ZxAttributesTimex, 0);
 			return true;
 		default:
-			return false;
+			return DecodeAmstradScr(content, contentLength);
 		}
 	}
 
@@ -5609,7 +5715,7 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
-	bool DecodeFnt(byte[] content, int contentLength)
+	bool DecodeAtari8Fnt(byte[] content, int contentLength)
 	{
 		int contentOffset;
 		switch (contentLength) {
@@ -6852,6 +6958,7 @@ public class RECOIL
 		case PACKED_EXT("GUN"):
 		case PACKED_EXT("HED"):
 		case PACKED_EXT("HFC"):
+		case PACKED_EXT("HGB"):
 		case PACKED_EXT("HIM"):
 		case PACKED_EXT("HIP"):
 		case PACKED_EXT("HIR"):
@@ -7127,7 +7234,8 @@ public class RECOIL
 			return DecodeFli(content, contentLength)
 				|| DecodeBml(content, contentLength);
 		case PACKED_EXT("FNT"):
-			return DecodeFnt(content, contentLength);
+			return DecodeAtari8Fnt(content, contentLength)
+				|| DecodeAmstradFnt(content, contentLength);
 		case PACKED_EXT("FPT"):
 			return contentLength == 10004 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2714]);
 		case PACKED_EXT("FTC"):
@@ -7161,6 +7269,8 @@ public class RECOIL
 			return DecodeHed(content, contentLength);
 		case PACKED_EXT("HFC"):
 			return DecodeHfc(content, contentLength);
+		case PACKED_EXT("HGB"):
+			return DecodeHgb(content, contentLength);
 		case PACKED_EXT("HIM"):
 			return DecodeHim(content, contentLength);
 		case PACKED_EXT("HIP"):

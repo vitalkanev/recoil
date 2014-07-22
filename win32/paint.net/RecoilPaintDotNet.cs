@@ -164,6 +164,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".hbm", "Hires Bitmap; 320x200, mono"),
 				new RecoilFileType(".hed", "Hi-Eddi; 320x200, 16 colors"),
 				new RecoilFileType(".hfc", "Hires FLI by Crest; 296x112, 16 colors"),
+				new RecoilFileType(".hgb", "HinterGrundBild; 512x256, mono"),
 				new RecoilFileType(".him", "Hires Manager by Cosmos; 296x192, 16 colors, compressed"),
 				new RecoilFileType(".hip", "Hard Interlace Picture; 160x200, grayscale, 2 frames"),
 				new RecoilFileType(".hir", "Hires; 320x200, mono"),
