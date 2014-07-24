@@ -63,14 +63,14 @@ x64/RECOIL.plg64: imagine/recoilimagine.c ../formats.h ../recoil.c ../recoil.h
 RecoilPaintDotNet.dll: paint.net/RecoilPaintDotNet.cs paint.net/RECOIL.cs
 	$(CSC) -t:library paint.net\\RecoilPaintDotNet.cs paint.net\\RECOIL.cs -r:"$(PAINT_NET_DIR)\PaintDotNet.Base.dll" -r:"$(PAINT_NET_DIR)\PaintDotNet.Data.dll"
 
-paint.net/RECOIL.cs: ../recoil.ci ../atari8.fnt ../altirrapal.pal
+paint.net/RECOIL.cs: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c16.pal
 	$(CITO) -o $@ -I .. -n Recoil $<
 
 ../formats.h: ../formats.h.xsl ../formats.xml
 	$(XSLTPROC) ../formats.h.xsl ../formats.xml
 
 # http://www.cmcrossroads.com/article/rules-multiple-outputs-gnu-make
-%.c %.h: %.ci ../atari8.fnt ../altirrapal.pal
+%.c %.h: %.ci ../atari8.fnt ../altirrapal.pal ../c16.pal
 	$(CITO) -o $*.c -I .. $<
 
 recoil.ico: ../recoil-512x512.png

@@ -37,6 +37,7 @@ enum RECOILResolution
 	Ste1x1,
 	Ste1x2,
 	Falcon1x1,
+	C162x1,
 	C641x1,
 	C642x1,
 	Msx1x1,
@@ -1453,6 +1454,8 @@ public class RECOIL
 			return "Atari STE";
 		case RECOILResolution.Falcon1x1:
 			return "Atari Falcon";
+		case RECOILResolution.C162x1:
+			return "Commodore 16";
 		case RECOILResolution.C641x1:
 		case RECOILResolution.C642x1:
 			return "Commodore 64";
@@ -1473,6 +1476,7 @@ public class RECOIL
 		switch (Resolution) {
 		case RECOILResolution.Xe2x1:
 		case RECOILResolution.Xe2x2:
+		case RECOILResolution.C162x1:
 		case RECOILResolution.C642x1:
 			return Width >> 1;
 		case RECOILResolution.Xe4x1:
@@ -2253,6 +2257,64 @@ public class RECOIL
 				if ((x & 1) == 0)
 					c >>= 4;
 				Pixels[(y << 8) + x] = palette[c & 0xf];
+			}
+		}
+		return true;
+	}
+
+	// Commodore 16 formats.
+
+	bool DecodeP4i(byte[] content, int contentLength)
+	{
+		bool logo;
+		switch (contentLength) {
+		case 10050:
+			if (!IsStringAt(content, 0x3fc, "MULT"))
+				return false;
+			logo = false;
+			SetSize(320, 200, RECOILResolution.C162x1);
+			break;
+		case 2050:
+			logo = true;
+			SetSize(256, 64, RECOILResolution.C162x1);
+			break;
+		default:
+			return false;
+		}
+
+		int[256] palette;
+		byte[] pal = BinaryResource("c16.pal");
+		for (int i = 0; i < 256; i++)
+			palette[i] = pal[i * 3] << 16 | pal[i * 3 + 1] << 8 | pal[i * 3 + 2];
+
+		for (int y = 0; y < Height; y++) {
+			for (int x = 0; x < Width; x++) {
+				int c;
+				if (logo) {
+					const byte[4] logoColors = { 0, 0x13, 0x15, 0x17 };
+					c = logoColors[content[2 + ((x & ~7) << 3) + y] >> (~x & 6) & 3];
+				}
+				else {
+					int offset = (y & ~7) * 40 + (x & ~7) + (y & 7);
+					c = content[0x802 + offset] >> (~x & 6) & 3;
+					switch (c) {
+					case 0:
+						c = content[0x401];
+						break;
+					case 1:
+						offset >>= 3;
+						c = (content[0x402 + offset] & 0xf0) | (content[2 + offset] & 7);
+						break;
+					case 2:
+						offset >>= 3;
+						c = (content[0x402 + offset] & 0xf) << 4 | content[2 + offset] >> 4;
+						break;
+					default:
+						c = content[0x400];
+						break;
+					}
+				}
+				Pixels[y * Width + x] = palette[c];
 			}
 		}
 		return true;
@@ -7028,6 +7090,7 @@ public class RECOIL
 		case PACKED_EXT("NEO"):
 		case PACKED_EXT("NLQ"):
 		case PACKED_EXT("OCP"):
+		case PACKED_EXT("P4I"):
 		case PACKED_EXT("P64"):
 		case PACKED_EXT("PAC"):
 		case PACKED_EXT("PC1"):
@@ -7395,6 +7458,8 @@ public class RECOIL
 			return DecodeNlq(content, contentLength);
 		case PACKED_EXT("OCP"):
 			return DecodeOcp(content, contentLength);
+		case PACKED_EXT("P4I"):
+			return DecodeP4i(content, contentLength);
 		case PACKED_EXT("P64"):
 			return contentLength == 10050 && DecodeC64Multicolor(320, content, 0x802, 0x402, 2, content[0x801]);
 		case PACKED_EXT("PAC"):

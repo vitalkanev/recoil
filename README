@@ -17,6 +17,7 @@ http://en.wikipedia.org/wiki/Atari_8-bit_family[Atari 8-bit],
 http://en.wikipedia.org/wiki/Atari_Portfolio[Atari Portfolio],
 http://en.wikipedia.org/wiki/Atari_ST[Atari ST],
 http://en.wikipedia.org/wiki/Atari_Falcon[Atari Falcon],
+http://en.wikipedia.org/wiki/Commodore_16[Commodore 16],
 http://en.wikipedia.org/wiki/Commodore_64[Commodore 64],
 http://en.wikipedia.org/wiki/Macintosh_128K[Macintosh 128K],
 http://en.wikipedia.org/wiki/MSX[MSX],
@@ -216,8 +217,13 @@ PI4, PI9:: "Fuckpaint", 320x240 or 320x200, 256 colors.
 TRP:: "EggPaint", 65536 colors.
 TRU:: "IndyPaint", 65536 colors.
 
-C64
-~~~
+Commodore 16
+~~~~~~~~~~~~
+[horizontal]
+P4I:: up to 160x200, 121 colors.
+
+Commodore 64
+~~~~~~~~~~~~
 [horizontal]
 4BT:: "GoDot", 320x200, 16 colors.
 64C:: 8x8 font, mono.

@@ -16,7 +16,7 @@ $(BINARY): qlrecoil.c ../recoil.c ../recoil.h
 $(PLIST): Info.plist.xsl ../formats.xml
 	mkdir -p $(@D) && xsltproc -o $@ Info.plist.xsl ../formats.xml
 
-%.c %.h: %.ci ../atari8.fnt ../altirrapal.pal
+%.c %.h: %.ci ../atari8.fnt ../altirrapal.pal ../c16.pal
 	cito -o $*.c -I .. $<
 
 clean:
