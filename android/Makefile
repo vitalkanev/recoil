@@ -4,7 +4,6 @@ ANDROID_BUILD_TOOLS = $(ANDROID_SDK)/build-tools/19.0.1
 
 AAPT = $(ANDROID_BUILD_TOOLS)/aapt
 DX = java -jar "$(ANDROID_BUILD_TOOLS)/lib/dx.jar" --no-strict
-APKBUILDER = java -classpath "$(ANDROID_SDK)/tools/lib/sdklib.jar" com.android.sdklib.build.ApkBuilderMain $@
 JARSIGNER = jarsigner -sigalg SHA1withRSA -digestalg SHA1
 ZIPALIGN = $(ANDROID_SDK)/tools/zipalign
 ADB = $(ANDROID_SDK)/platform-tools/adb
@@ -31,10 +30,7 @@ AndroidRECOIL-unaligned.apk: AndroidRECOIL-unsigned.apk
 	$(JARSIGNER) -storepass walsie -signedjar $@ $< pfusik
 
 AndroidRECOIL-unsigned.apk: AndroidRECOIL-resources.apk classes.dex
-	$(APKBUILDER) -u -z $< -f classes.dex
-
-AndroidRECOIL-debug.apk: AndroidRECOIL-resources.apk classes.dex
-	$(APKBUILDER) -z $< -f classes.dex
+	cp $< $@ && 7z a -mx=9 -bd -tzip $@ ./classes.dex
 
 classes.dex: classes/net/sf/recoil/RECOIL.class
 	$(DX) --dex --output=$@ classes
