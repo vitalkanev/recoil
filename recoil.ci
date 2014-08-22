@@ -3841,6 +3841,61 @@ public class RECOIL
 		return DecodeFalconTrueColorVariable(content, contentLength, 4, 256);
 	}
 
+	// Amiga formats.
+
+	bool DecodeInfo(byte[] content, int contentLength)
+	{
+		if (contentLength < 98 || content[0] != 0xe3 || content[1] != 0x10 || content[2] != 0 || content[3] != 1)
+			return false;
+
+		const int[4] os1Palette = { 0x55AAFF, 0xFFFFFF, 0x000000, 0xFF8800 };
+		const int[8] os2Palette = { 0x959595, 0x000000, 0xFFFFFF, 0x3B67A2, 0x7B7B7B, 0xAFAFAF, 0xAA907C, 0xFFA997 };
+		int[] palette;
+		switch (Get32BigEndian(content, 0x2c)) {
+		case 0:
+			palette = os1Palette;
+			break;
+		case 1:
+			palette = os2Palette;
+			break;
+		default:
+			return false;
+		}
+
+		int contentOffset = Get32BigEndian(content, 0x42) == 0 ? 0x4e : 0x4e + 0x38; // skip DrawerData if present
+		int width = content[contentOffset + 4] << 8 | content[contentOffset + 5];
+		int height = content[contentOffset + 6] << 8 | content[contentOffset + 7];
+		int bitplanes = content[contentOffset + 8] << 8 | content[contentOffset + 9];
+		switch (bitplanes) {
+		case 2:
+			break;
+		case 3:
+			if (palette == os1Palette)
+				return false;
+			break;
+		default:
+			return false;
+		}
+		width = width + 15 & ~15; // round up to 16 pixels, FIXME
+		contentOffset += 0x14;
+		if (contentOffset + height * (width >> 3) > contentLength)
+			return false;
+		if (!SetSize(width, height, RECOILResolution.Amiga1x1))
+			return false;
+
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int bit = ~x & 7;
+				int offset = contentOffset + y * (width >> 3) + (x >> 3);
+				int c = 0;
+				for (int bitplane = bitplanes; --bitplane >= 0; )
+					c = c << 1 | content[offset + bitplane * height * (width >> 3)] >> bit & 1;
+				Pixels[y * width + x] = palette[c];
+			}
+		}
+		return true;
+	}
+
 	void DecodeHam(byte[] unpacked, int bitplanes)
 	{
 		int holdBits = bitplanes > 6 ? 6 : 4;
@@ -7051,6 +7106,7 @@ public class RECOIL
 		case PACKED_EXT("IMG"):
 		case PACKED_EXT("XIMG"):
 		case PACKED_EXT("IMN"):
+		case PACKED_EXT("INFO"):
 		case PACKED_EXT("ING"):
 		case PACKED_EXT("INP"):
 		case PACKED_EXT("INT"):
@@ -7385,6 +7441,8 @@ public class RECOIL
 			return DecodeStImg(content, contentLength);
 		case PACKED_EXT("IMN"):
 			return DecodeAtari8Ice(content, contentLength, false, 18);
+		case PACKED_EXT("INFO"):
+			return DecodeInfo(content, contentLength);
 		case PACKED_EXT("ING"):
 		case PACKED_EXT("INP"):
 			return DecodeInp(content, contentLength);

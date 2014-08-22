@@ -183,6 +183,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".ilc", "80x192, 256 colors, 2 frames"),
 				new RecoilFileType(".img", "GEM Bit Image or ZX Spectrum Gigascreen"),
 				new RecoilFileType(".imn", "ICE MIN; 160x192, 80 colors, 2 frames"),
+				new RecoilFileType(".info", "Amiga Icon; 8 colors"),
 				new RecoilFileType(".ing", "ING 15; 160x200, 7 colors, 2 frames"),
 				new RecoilFileType(".inp", "160x200, 7 colors, 2 frames"),
 				new RecoilFileType(".int", "INT95a; up to 160x239, 16 colors, 2 frames"),

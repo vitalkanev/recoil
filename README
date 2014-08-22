@@ -58,6 +58,7 @@ ACBM:: "Amiga Continuous Bitmap".
 HAM6:: "Hold-And-Modify 6", 4096 colors.
 HAM8:: "Hold-And-Modify 8", 16777216 colors.
 IFF, LBM:: "Interchange File Format" / "Interleaved Bitmap", compressed.
+INFO:: Icon, 8 colors.
 
 Amstrad CPC
 ~~~~~~~~~~~

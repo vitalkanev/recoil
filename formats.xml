@@ -3,6 +3,7 @@
 		<format name="Amiga Continuous Bitmap"><ext>ACBM</ext></format>
 		<format name="Hold-And-Modify 6" colors="4096"><ext>HAM6</ext></format>
 		<format name="Hold-And-Modify 8" colors="16777216"><ext>HAM8</ext></format>
+		<format name="Icon" colors="8"><ext>INFO</ext></format>
 		<format name="Interchange File Format" compressed="yes"><ext>IFF</ext></format>
 		<format name="Interleaved Bitmap"><ext>LBM</ext></format>
 	</platform>

@@ -231,6 +231,7 @@ static const struct Format {
 	{ "ILC", "80x192, 256 colors, 2 frames" },
 	{ "IMG", "GEM Bit Image or ZX Spectrum Gigascreen" },
 	{ "IMN", "ICE MIN; 160x192, 80 colors, 2 frames" },
+	{ "INFO", "Amiga Icon; 8 colors" },
 	{ "ING", "ING 15; 160x200, 7 colors, 2 frames" },
 	{ "INP", "160x200, 7 colors, 2 frames" },
 	{ "INT", "INT95a; up to 160x239, 16 colors, 2 frames" },
