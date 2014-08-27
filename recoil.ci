@@ -3312,6 +3312,15 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeDuo(byte[] content, int contentLength)
+	{
+		if (contentLength != 113600)
+			return false;
+		DecodeStLow(content, 32, content, 0, 416, 273);
+		DecodeBitplanes(content, 32 + 208 * 273, 4, 416 * 273, 416 * 273);
+		return ApplyBlend();
+	}
+
 	bool DecodeSpu(byte[] content, int contentLength)
 	{
 		if (contentLength != 51104)
@@ -7052,6 +7061,7 @@ public class RECOIL
 		case PACKED_EXT("DLP"):
 		case PACKED_EXT("DRZ"):
 		case PACKED_EXT("DRP"):
+		case PACKED_EXT("DUO"):
 		case PACKED_EXT("ECI"):
 		case PACKED_EXT("ECP"):
 		case PACKED_EXT("FD2"):
@@ -7341,6 +7351,8 @@ public class RECOIL
 		case PACKED_EXT("DRZ"):
 		case PACKED_EXT("DRP"):
 			return DecodeDrz(content, contentLength);
+		case PACKED_EXT("DUO"):
+			return DecodeDuo(content, contentLength);
 		case PACKED_EXT("ECI"):
 			return DecodeEci(content, contentLength);
 		case PACKED_EXT("ECP"):

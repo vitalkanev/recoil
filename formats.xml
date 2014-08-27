@@ -132,6 +132,7 @@
 		<format name="CrackArt" width="640" height="400" colors="2" compressed="optionally"><ext>CA3</ext></format>
 		<format name="Canvas" compressed="yes"><ext>CPT</ext></format>
 		<format name="Doodle" width="640" height="400" colors="2"><ext>DOO</ext></format>
+		<format width="416" height="273" colors="136" frames="2"><ext>DUO</ext></format>
 		<format name="DeskPic"><ext>GFB</ext></format>
 		<format name="DEGAS Elite icon" colors="2"><ext>ICN</ext></format>
 		<format name="Interchange File Format"><ext>IFF</ext></format>
