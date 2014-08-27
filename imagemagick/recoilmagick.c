@@ -289,6 +289,7 @@ static const struct Format {
 	{ "PI4", "Fuckpaint; 320x240 or 320x200, 256 colors" },
 	{ "PI9", "Fuckpaint; 320x240 or 320x200, 256 colors" },
 	{ "PIC", "Koala MicroIllustrator; 160x192, 4 colors, compressed" },
+	{ "PL4", "320x200, 256 colors, 2 frames, compressed" },
 	{ "PLA", "AtariTools-800 player; 8x240, mono" },
 	{ "PLM", "Plama 256; 80x96, 256 colors" },
 	{ "PMD", "PMG Designer by Henryk Karpowicz" },

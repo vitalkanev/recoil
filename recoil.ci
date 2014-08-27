@@ -1049,6 +1049,48 @@ class HimStream : RleStream
 	}
 }
 
+class Lz4Stream
+{
+	byte[] Content;
+	int ContentOffset;
+	int ContentLength;
+	byte[] Unpacked;
+	int UnpackedOffset;
+	int UnpackedLength;
+
+	int ReadByte()
+	{
+		if (ContentOffset >= ContentLength)
+			return -1;
+		return Content[ContentOffset++];
+	}
+
+	bool Copy(int count)
+	{
+		if (ContentOffset + count > ContentLength
+		 || UnpackedOffset + count > UnpackedLength)
+			return false;
+		Content.CopyTo(ContentOffset, Unpacked, UnpackedOffset, count);
+		ContentOffset += count;
+		UnpackedOffset += count;
+		return true;
+	}
+
+	int ReadCount(int count)
+	{
+		if (count == 15) {
+			int b;
+			do {
+				b = ReadByte();
+				if (b < 0)
+					return -1;
+				count += b;
+			} while (b == 255);
+		}
+		return count;
+	}
+}
+
 // FlashPack 2.1
 class A4rStream
 {
@@ -1541,6 +1583,15 @@ public class RECOIL
 			| content[contentOffset + 1] << 16
 			| content[contentOffset + 2] << 8
 			| content[contentOffset + 3];
+	}
+
+	/// Reads a 32-bit little endian integer from a byte array.
+	static int Get32LittleEndian(byte[] content, int contentOffset)
+	{
+		return content[contentOffset]
+			| content[contentOffset + 1] << 8
+			| content[contentOffset + 2] << 16
+			| content[contentOffset + 3] << 24;
 	}
 
 	static bool IsStringAt(byte[] content, int contentOffset, string s)
@@ -3318,6 +3369,96 @@ public class RECOIL
 			return false;
 		DecodeStLow(content, 32, content, 0, 416, 273);
 		DecodeBitplanes(content, 32 + 208 * 273, 4, 416 * 273, 416 * 273);
+		return ApplyBlend();
+	}
+
+	bool UnpackLz4(byte[] content, int contentLength, byte[] unpacked, int unpackedLength)
+	{
+		if (contentLength < 4 + 3 + 4
+		 || content[0] != 0x04 || content[1] != 0x22 || content[2] != 0x4d || content[3] != 0x18
+		 || (content[4] & 0xc3) != 0x40)
+			return false;
+		Lz4Stream() stream;
+		stream.Content = content;
+		stream.ContentOffset = 6 + 1;
+		if ((content[4] & 0x08) != 0)
+			stream.ContentOffset += 8; // content size
+		stream.Unpacked = unpacked;
+		stream.UnpackedOffset = 0;
+		stream.UnpackedLength = unpackedLength;
+
+		for (;;) {
+			if (stream.ContentOffset + 4 > contentLength)
+				return false;
+			int blockSize = Get32LittleEndian(content, stream.ContentOffset);
+			stream.ContentOffset += 4;
+			stream.ContentLength = contentLength;
+
+			if (blockSize == 0)
+				break;
+			if ((blockSize >> 31) != 0) {
+				if (!stream.Copy(blockSize & 0x7fffffff))
+					return false;
+				continue;
+			}
+			stream.ContentLength = stream.ContentOffset + blockSize;
+			if (stream.ContentLength > contentLength)
+				return false;
+
+			for (;;) {
+				int token = stream.ReadByte();
+				if (token < 0)
+					return false;
+
+				// literals
+				int count = stream.ReadCount(token >> 4);
+				if (count < 0
+				 || !stream.Copy(count))
+					return false;
+
+				if (stream.ContentOffset == stream.ContentLength)
+					break;
+
+				// LZ77
+				if (stream.ContentOffset + 2 > stream.ContentLength)
+					return false;
+				int offset = stream.ReadByte();
+				offset += stream.ReadByte() << 8;
+				if (offset == 0 || offset > stream.UnpackedOffset)
+					return false;
+				count = stream.ReadCount(token & 0xf);
+				if (count < 0
+				 || stream.UnpackedOffset + count > unpackedLength)
+					return false;
+				count += 4;
+				do {
+					unpacked[stream.UnpackedOffset] = unpacked[stream.UnpackedOffset - offset];
+					stream.UnpackedOffset++;
+				} while (--count > 0);
+			}
+
+			if ((content[4] & 0x10) != 0)
+				stream.ContentOffset += 4; // block checksum
+		}
+
+		if ((content[4] & 0x04) != 0)
+			stream.ContentOffset += 4; // content checksum
+		return stream.ContentOffset == contentLength && stream.UnpackedOffset == unpackedLength;
+	}
+
+	bool DecodePl4(byte[] content, int contentLength)
+	{
+		byte[64070] unpacked;
+		const int secondPi1Offset = 32036;
+		if (!UnpackLz4(content, contentLength, unpacked, unpacked.Length)
+		 || unpacked[0] != 0 || unpacked[1] != 0
+		 || unpacked[secondPi1Offset] != 0 || unpacked[secondPi1Offset + 1] != 0)
+			return false;
+		SetSize(320, 200, IsStePalette(unpacked, 2, 16) || IsStePalette(unpacked, secondPi1Offset + 2, 16) ? RECOILResolution.Ste1x1 : RECOILResolution.St1x1);
+		SetStPalette(unpacked, 2, 16);
+		DecodeBitplanes(unpacked, 34, 4, 0, 320 * 200);
+		SetStPalette(unpacked, secondPi1Offset + 2, 16);
+		DecodeBitplanes(unpacked, secondPi1Offset + 34, 4, 320 * 200, 320 * 200);
 		return ApplyBlend();
 	}
 
@@ -7172,6 +7313,7 @@ public class RECOIL
 		case PACKED_EXT("PI4"):
 		case PACKED_EXT("PI9"):
 		case PACKED_EXT("PIC"):
+		case PACKED_EXT("PL4"):
 		case PACKED_EXT("PLA"):
 		case PACKED_EXT("PLM"):
 		case PACKED_EXT("PMD"):
@@ -7555,6 +7697,8 @@ public class RECOIL
 			return DecodePi4(content, contentLength);
 		case PACKED_EXT("PIC"):
 			return DecodePic(content, contentLength);
+		case PACKED_EXT("PL4"):
+			return DecodePl4(content, contentLength);
 		case PACKED_EXT("PLA"):
 			return DecodePla(content, contentLength);
 		case PACKED_EXT("PLM"):

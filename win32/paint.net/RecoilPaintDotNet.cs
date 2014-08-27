@@ -241,6 +241,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".pi4", "Fuckpaint; 320x240 or 320x200, 256 colors"),
 				new RecoilFileType(".pi9", "Fuckpaint; 320x240 or 320x200, 256 colors"),
 				new RecoilFileType(".pic", "Koala MicroIllustrator; 160x192, 4 colors, compressed"),
+				new RecoilFileType(".pl4", "320x200, 256 colors, 2 frames, compressed"),
 				new RecoilFileType(".pla", "AtariTools-800 player; 8x240, mono"),
 				new RecoilFileType(".plm", "Plama 256; 80x96, 256 colors"),
 				new RecoilFileType(".pmd", "PMG Designer by Henryk Karpowicz"),

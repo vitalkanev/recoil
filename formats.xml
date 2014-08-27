@@ -147,6 +147,7 @@
 		<format name="DEGAS" maxWidth="416" maxHeight="560" colors="16"><ext>PI1</ext></format>
 		<format name="DEGAS" width="640" height="200" colors="4"><ext>PI2</ext></format>
 		<format name="DEGAS" width="640" height="400" colors="2"><ext>PI3</ext></format>
+		<format width="320" height="200" colors="256" frames="2" compressed="yes"><ext>PL4</ext></format>
 		<format name="Spectrum 512" width="320" height="199" colors="512" compressed="yes"><ext>SPC</ext></format>
 		<format name="Spectrum 512 (Smooshed)" width="320" height="199" colors="512" compressed="yes"><ext>SPS</ext></format>
 		<format name="Spectrum 512" width="320" height="199" colors="512"><ext>SPU</ext></format>

@@ -197,6 +197,7 @@ PCS:: "PhotoChrome", 320x199, 1 or 2 frames, compressed.
 PI1:: "DEGAS", up to 416x560, 16 colors.
 PI2:: "DEGAS", 640x200, 4 colors.
 PI3:: "DEGAS", 640x400, mono.
+PL4:: 320x200, 256 colors, 2 frames, compressed.
 SPC:: "Spectrum 512", 320x199, 512 colors, compressed.
 SPS:: "Spectrum 512 (Smooshed)" , 320x199, 512 colors, compressed.
 SPU:: "Spectrum 512", 320x199, 512 colors.
