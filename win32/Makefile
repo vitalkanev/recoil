@@ -20,7 +20,7 @@ TAR = tar
 SEVENZIP = 7z a -mx=9 -bd
 CANDLE = candle -ext WixUtilExtension -nologo -o $@
 LIGHT = light -ext WixUtilExtension -nologo -o $@ -spdb
-IMAGEMAGICK_X64_INST_DIR = c:\Program Files\ImageMagick-6.8.2-Q16
+IMAGEMAGICK_X64_INST_DIR = c:\Program Files\ImageMagick-6.8.9-Q16
 PAINT_NET_DIR = c:\Program Files\Paint.NET
 
 WIN32_BIN = recoil2png.exe IM_MOD_RL_recoil_.dll Xrecoil.usr recoilwin.exe RECOIL.plg RecoilPaintDotNet.dll
