@@ -1,7 +1,7 @@
-/*
+﻿/*
  * RecoilPaintDotNet.cs - Paint.NET file type plugin
  *
- * Copyright (C) 2013-2014  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2013-2014  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -25,10 +25,19 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 using PaintDotNet;
 using Recoil;
+
+[assembly: AssemblyTitle("Paint.NET RECOIL plugin")]
+//[assembly: AssemblyDescription("Decodes images in native formats of classic computers")]
+[assembly: AssemblyCompany("Piotr Fusik")]
+[assembly: AssemblyProduct("RECOIL")]
+[assembly: AssemblyCopyright("Copyright © 2013-2014")]
+[assembly: AssemblyVersion(RECOIL.Version + ".0")]
+[assembly: AssemblyFileVersion(RECOIL.Version + ".0")]
 
 namespace Recoil.PaintDotNet
 {
@@ -46,9 +55,9 @@ namespace Recoil.PaintDotNet
 			// Read.
 			byte[] content = new byte[RECOIL.MaxContentLength];
 			int contentLength = input.Read(content, 0, content.Length);
-			RECOIL recoil = new RECOIL();
 
 			// Decode.
+			RECOIL recoil = new RECOIL();
 			if (!recoil.Decode(DefaultExtension, content, contentLength))
 				throw new Exception("Decoding error");
 			int width = recoil.GetWidth();
