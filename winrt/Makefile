@@ -21,16 +21,16 @@ obj/AppxManifest.xml: AppxManifest.xsl ../formats.xml
 	mkdir -p $(@D) && xsltproc -o $@ $^
 
 obj/Logo.png: logo.png
-	mkdir -p $(@D) && convert -background none $< -gravity Center -sample 75x75 -extent 150x150 -quality 95 $@
+	mkdir -p $(@D) && convert -background none $< -sample 64x64 -extent 150x150-43-30 -quality 95 -strip $@
 
 obj/SmallLogo.png: logo.png
-	mkdir -p $(@D) && convert -background none $< -gravity Center -sample 28x28 -extent 30x30 -quality 95 $@
+	mkdir -p $(@D) && convert -background none $< -gravity Center -sample 28x28 -extent 30x30 -quality 95 -strip $@
 
 obj/SplashScreen.png: logo.png
-	mkdir -p $(@D) && convert -background none $< -gravity Center -sample 280x280 -extent 620x300 -quality 95 $@
+	mkdir -p $(@D) && convert -background none $< -gravity Center -sample 280x280 -extent 620x300 -quality 95 -strip $@
 
 obj/FileLogo.png: logo.png
-	mkdir -p $(@D) && convert -background "#800080" $< -gravity Center -sample 36x36 -extent 48x48 -quality 95 $@
+	mkdir -p $(@D) && convert -background "#800080" $< -gravity Center -sample 36x36 -extent 48x48 -quality 95 -strip $@
 
 clean:
 	rm -r obj FilePicker.cs RECOIL.cs
