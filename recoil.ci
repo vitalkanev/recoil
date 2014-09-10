@@ -64,12 +64,22 @@ enum IceFrameMode
 	Gr12Gtia11
 }
 
-class ZxpStream
+abstract class Stream
 {
 	byte[] Content;
 	int ContentOffset;
 	int ContentLength;
 
+	int ReadByte()
+	{
+		if (ContentOffset >= ContentLength)
+			return -1;
+		return Content[ContentOffset++];
+	}
+}
+
+class ZxpStream : Stream
+{
 	int ReadChar()
 	{
 		if (ContentOffset >= ContentLength)
@@ -119,11 +129,8 @@ class ZxpStream
 }
 
 /// Readable in-memory stream of bits, most-significant bit first.
-class BitStream
+class BitStream : Stream
 {
-	byte[] Content;
-	int ContentOffset;
-	int ContentLength;
 	int Bits; // 8 bits sliding left with a trailing 1
 
 	BitStream()
@@ -215,13 +222,6 @@ abstract class RleStream : BitStream
 	{
 		// Start with a new block.
 		RepeatCount = 0;
-	}
-
-	int ReadByte()
-	{
-		if (ContentOffset >= ContentLength)
-			return -1;
-		return Content[ContentOffset++];
 	}
 
 	/// Decodes a block from the stream.
@@ -1049,21 +1049,11 @@ class HimStream : RleStream
 	}
 }
 
-class Lz4Stream
+class Lz4Stream : Stream
 {
-	byte[] Content;
-	int ContentOffset;
-	int ContentLength;
 	byte[] Unpacked;
 	int UnpackedOffset;
 	int UnpackedLength;
-
-	int ReadByte()
-	{
-		if (ContentOffset >= ContentLength)
-			return -1;
-		return Content[ContentOffset++];
-	}
 
 	bool Copy(int count)
 	{
@@ -1092,24 +1082,14 @@ class Lz4Stream
 }
 
 // FlashPack 2.1
-class A4rStream
+class A4rStream : Stream
 {
-	byte[] Content;
-	int ContentOffset;
-	int ContentLength;
 	int OuterFlags;
 	int InnerFlags;
 
 	A4rStream()
 	{
 		OuterFlags = InnerFlags = 0;
-	}
-
-	int ReadByte()
-	{
-		if (ContentOffset >= ContentLength)
-			return -1;
-		return Content[ContentOffset++];
 	}
 
 	int ReadFlag()
@@ -1317,12 +1297,8 @@ class BlazingPaddlesBoundingBox
 	}
 }
 
-class IcnParser
+class IcnParser : Stream
 {
-	byte[] Content;
-	int ContentOffset;
-	int ContentLength;
-
 	bool SkipWhitespace()
 	{
 		bool got = false;
