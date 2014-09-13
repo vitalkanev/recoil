@@ -14,7 +14,7 @@ obj/MetroRECOIL.exe: MetroRECOIL.cs FilePicker.cs RECOIL.cs
 FilePicker.cs: FilePicker.cs.xsl ../formats.xml
 	xsltproc -o $@ $^
 
-RECOIL.cs: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c16.pal
+RECOIL.cs: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../zx81.fnt
 	cito -o $@ -I .. -n Recoil $<
 
 obj/AppxManifest.xml: AppxManifest.xsl ../formats.xml

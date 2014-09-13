@@ -273,6 +273,7 @@ static const struct Format {
 	{ "NEO", "NEOchrome" },
 	{ "NLQ", "Daisy-Dot; 19x16 font, mono" },
 	{ "OCP", "Advanced Art Studio; 160x200, 16 colors" },
+	{ "P", "Sinclair BASIC; 256x192, mono" },
 	{ "P4I", "Up to 160x200, 121 colors" },
 	{ "P64", "Picasso 64; 160x200, 16 colors" },
 	{ "PAC", "STAD; 640x400, mono, compressed" },

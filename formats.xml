@@ -270,6 +270,9 @@
 	<platform name="SAM Coupe">
 		<format name="Mode 4" width="256" height="192" colors="16"><ext>SCS4</ext></format>
 	</platform>
+	<platform name="ZX81">
+		<format name="Sinclair BASIC" width="32" height="24" unit="characters" colors="2"><ext>P</ext></format>
+	</platform>
 	<platform name="ZX Spectrum">
 		<format width="256" height="192" colors="8" frames="3"><ext>3</ext></format>
 		<format name="Attributes" width="32" height="24" unit="attributes" colors="15"><ext>ATR</ext></format>

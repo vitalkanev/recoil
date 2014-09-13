@@ -234,6 +234,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".neo", "NEOchrome"),
 				new RecoilFileType(".nlq", "Daisy-Dot; 19x16 font, mono"),
 				new RecoilFileType(".ocp", "Advanced Art Studio; 160x200, 16 colors"),
+				new RecoilFileType(".p", "Sinclair BASIC; 256x192, mono"),
 				new RecoilFileType(".p4i", "Up to 160x200, 121 colors"),
 				new RecoilFileType(".p64", "Picasso 64; 160x200, 16 colors"),
 				new RecoilFileType(".pac", "STAD; 640x400, mono, compressed"),

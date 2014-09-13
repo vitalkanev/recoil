@@ -42,7 +42,8 @@ enum RECOILResolution
 	C642x1,
 	Msx1x1,
 	SamCoupe1x1,
-	Zx1x1
+	Spectrum1x1,
+	Zx811x1
 }
 
 enum IffType
@@ -1369,6 +1370,282 @@ class IcnParser : Stream
 	}
 }
 
+// Interpreter of a subset of ZX81 Sinclair BASIC.
+// Typical *.p picture program looks like this:
+// 10 FAST
+// 20 CLS
+// 30 CLEAR
+// 40 PRINT "<256 characters>";
+// 50 PRINT "<256 characters>";
+// 60 PRINT "<192 characters>";
+// 70 LET A$="<64 characters>"
+// 80 LET S=3+PEEK 16400+256*PEEK 16401
+// 90 LET D=727+PEEK 16396+256*PEEK 16397
+// 100 IF LEN A$<>64 THEN STOP
+// 110 FOR F=0 TO 63
+// 120 POKE D+F+(F>31),PEEK(S+F)
+// 130 NEXT F
+// 140 SLOW
+// 150 PAUSE 4E4
+// FAST disables the display so that the program runs faster. SLOW enables it.
+// CLS clears the screen. CLEAR undefines all variables.
+// Semicolon at the end of PRINT means "no new line".
+// Lines 70-130 fill the bottom two rows which PRINT cannot access.
+class PInterpreter : Stream
+{
+	byte[32 * 24] Screen;
+	int ScreenOffset;
+	int BottomOffset;
+
+	const int LetS = 1; // LET S=3+PEEK 16400+256*PEEK 16401
+	const int LetD = 2; // LET D=727+PEEK 16396+256*PEEK 16397
+	const int ForF = 4; // FOR F=0 TO 63
+	const int PokeD = 8; // POKE D+F+(F>31),PEEK(S+F)
+	int BottomCode;
+
+	int ReadNumber()
+	{
+		for (;;) {
+			switch (ReadByte()) {
+			case 0x15: // +
+			case 0x16: // -
+			case 0x1b: // .
+			case 0x1c: // 0
+			case 0x1d: // 1
+			case 0x1e: // 2
+			case 0x1f: // 3
+			case 0x20: // 4
+			case 0x21: // 5
+			case 0x22: // 6
+			case 0x23: // 7
+			case 0x24: // 8
+			case 0x25: // 9
+			case 0x2a: // E
+				break;
+			case 0x7e:
+				if (ContentOffset + 5 > ContentLength)
+					return -1;
+				int exp = ReadByte();
+				int m0 = ReadByte();
+				int m1 = ReadByte();
+				ContentOffset += 2;
+				if (exp > 0x90 // too big to fit in 16 bits
+				 || m0 >= 0x80) // negative
+					return -1; 
+				if (exp <= 0x80) // between 0 and 1
+					return 0;
+				return ((m0 | 0x80) << 8 | m1) >> (0x90 - exp);
+			default:
+				return -1;
+			}
+		}
+	}
+
+	int PrintString(int offset)
+	{
+		for (;;) {
+			if (offset >= ContentLength)
+				return -1;
+			int c = Content[offset++];
+			if (c == 0x0b) // "
+				break;
+			if (ScreenOffset >= 24 * 32)
+				return -1;
+			if (c == 0xc0) // escaped "
+				c = 0x0b;
+			else if ((c & 0x7f) >= 0x40)
+				return -1;
+			Screen[ScreenOffset++] = c;
+		}
+		return offset;
+	}
+
+	bool Print()
+	{
+		for (;;) {
+			switch (ReadByte()) {
+			case 0x0b: // "
+				ContentOffset = PrintString(ContentOffset);
+				if (ContentOffset < 0)
+					return false;
+				break;
+			case 0xc1: // AT
+				int row = ReadNumber();
+				if (row < 0 || row > 21 || ReadByte() != 0x1a) // ,
+					return false;
+				int column = ReadNumber();
+				if (column < 0 || column > 31)
+					return false;
+				ScreenOffset = row << 5 | column;
+				break;
+			case 0x00: // space
+			case 0x19: // ;
+				break;
+			case 0x76:
+				ContentOffset--;
+				if (Content[ContentOffset - 1] != 0x19) {
+					// new line
+					ScreenOffset = (ScreenOffset & ~0x1f) + 32;
+				}
+				return true;
+			default:
+				return false;
+			}
+		}
+	}
+
+	bool DPeek(int expectedX, int expectedAddress)
+	{
+		return ReadByte() == 0x14 // =
+			&& ReadNumber() == expectedX
+			&& ReadByte() == 0x15 // +
+			&& ReadByte() == 0xd3 // PEEK
+			&& ReadNumber() == expectedAddress
+			&& ReadByte() == 0x15 // +
+			&& ReadNumber() == 256
+			&& ReadByte() == 0x17 // *
+			&& ReadByte() == 0xd3 // PEEK
+			&& ReadNumber() == expectedAddress + 1;
+	}
+
+	bool Let()
+	{
+		switch (ReadByte()) {
+		case 0x26: // A
+			if (ReadByte() != 0x0d || ReadByte() != 0x14 || ReadByte() != 0x0b) // $ = "
+				return false;
+			BottomOffset = ContentOffset;
+			for (;;) {
+				switch (ReadByte()) {
+				case -1:
+					return false;
+				case 0x0b:
+					return true;
+				default:
+					break;
+				}
+			}
+		case 0x38: // S
+			BottomCode |= LetS;
+			return DPeek(3, 16400);
+		case 0x29: // D
+			BottomCode |= LetD;
+			return DPeek(727, 16396);
+		default:
+			return false;
+		}
+	}
+
+	bool If()
+	{
+		return ReadByte() == 0xc6 // LEN
+			&& ReadByte() == 0x26 // A
+			&& ReadByte() == 0x0d // $
+			&& ReadByte() == 0xdd // <>
+			&& ReadNumber() == 64
+			&& ReadByte() == 0xde // THEN
+			&& ReadByte() == 0xe3; // STOP
+	}
+
+	bool For()
+	{
+		BottomCode |= ForF;
+		return ReadByte() == 0x2b // F
+			&& ReadByte() == 0x14 // =
+			&& ReadNumber() == 0
+			&& ReadByte() == 0xdf // TO
+			&& ReadNumber() == 63;
+	}
+
+	bool Poke()
+	{
+		BottomCode |= PokeD;
+		return ReadByte() == 0x29 // D
+			&& ReadByte() == 0x15 // +
+			&& ReadByte() == 0x2b // F
+			&& ReadByte() == 0x15 // +
+			&& ReadByte() == 0x10 // (
+			&& ReadByte() == 0x2b // F
+			&& ReadByte() == 0x12 // >
+			&& ReadNumber() == 31
+			&& ReadByte() == 0x11 // )
+			&& ReadByte() == 0x1a // ,
+			&& ReadByte() == 0xd3 // PEEK
+			&& ReadByte() == 0x10 // (
+			&& ReadByte() == 0x38 // S
+			&& ReadByte() == 0x15 // +
+			&& ReadByte() == 0x2b // F
+			&& ReadByte() == 0x11; // )
+	}
+
+	bool Next()
+	{
+		if (ReadByte() == 0x2b // F
+		 && BottomOffset > 0
+		 && BottomCode == (LetS | LetD | ForF | PokeD)) {
+			ScreenOffset = 22 * 32;
+			return PrintString(BottomOffset) >= 0;
+		}
+		return false;
+	}
+
+	bool Run()
+	{
+		ContentOffset = 0x74;
+		Screen.Clear();
+		ScreenOffset = 0;
+		BottomOffset = -1;
+		BottomCode = 0;
+
+		for (;;) {
+			if (ContentOffset + 8 > ContentLength)
+				return false;
+			if (ReadByte() == 0x76)
+				return true; // no more lines
+			ContentOffset += 3;
+			switch (ReadByte()) {
+			case 0xe4: // SLOW
+			case 0xe5: // FAST
+			case 0xfb: // CLS
+			case 0xfd: // CLEAR
+				break;
+			case 0xe3: // STOP
+			case 0xec: // GOTO
+			case 0xf2: // PAUSE
+				return true;
+			case 0xf5: // PRINT
+				if (!Print())
+					return false;
+				break;
+			case 0xf1: // LET
+				if (!Let())
+					return false;
+				break;
+			case 0xfa: // IF
+				if (!If())
+					return false;
+				break;
+			case 0xeb: // FOR
+				if (!For())
+					return false;
+				break;
+			case 0xf4: // POKE
+				if (!Poke())
+					return false;
+				break;
+			case 0xf3: // NEXT
+				if (!Next())
+					return false;
+				break;
+			default:
+				return false;
+			}
+			if (ReadByte() != 0x76)
+				return false;
+		}
+	}
+}
+
 public class RECOIL
 {
 	/// RECOIL version - major part.
@@ -1481,8 +1758,10 @@ public class RECOIL
 			return "MSX";
 		case RECOILResolution.SamCoupe1x1:
 			return "SAM Coupe";
-		case RECOILResolution.Zx1x1:
+		case RECOILResolution.Spectrum1x1:
 			return "ZX Spectrum";
+		case RECOILResolution.Zx811x1:
+			return "ZX81";
 		default:
 			return "Unknown";
 		}
@@ -1771,6 +2050,27 @@ public class RECOIL
 		return DecodeAmstradMode2(unpacked, 0, 640, 200);
 	}
 
+	// ZX80 formats.
+
+	bool DecodeP(byte[] content, int contentLength)
+	{
+		PInterpreter() interp;
+		interp.Content = content;
+		interp.ContentLength = contentLength;
+		if (!interp.Run())
+			return false;
+		SetSize(256, 192, RECOILResolution.Zx811x1);
+		byte[] font = BinaryResource("zx81.fnt");
+		for (int y = 0; y < 192; y++) {
+			for (int x = 0; x < 256; x++) {
+				int c = interp.Screen[y >> 3 << 5 | x >> 3];
+				int b = font[(c & 0x3f) << 3 | (y & 7)] >> (~x & 7) & 1;
+				Pixels[y << 8 | x] = b == c >> 7 ? 0xffffff : 0;
+			}
+		}
+		return true;
+	}
+
 	// ZX Spectrum formats.
 
 	const int ZxBitmapCheckerboard = -3;
@@ -1870,16 +2170,16 @@ public class RECOIL
 	{
 		switch (contentLength) {
 		case 6144:
-			SetSize(256, 192, RECOILResolution.Zx1x1);
+			SetSize(256, 192, RECOILResolution.Spectrum1x1);
 			DecodeZx(content, 0, -1, ZxAttributesNone, 0);
 			return true;
 		case 6912:
 		case 6913: // border color - ignore
-			SetSize(256, 192, RECOILResolution.Zx1x1);
+			SetSize(256, 192, RECOILResolution.Spectrum1x1);
 			DecodeZx(content, 0, 0x1800, ZxAttributes8x8, 0);
 			return true;
 		case 12288:
-			SetSize(256, 192, RECOILResolution.Zx1x1);
+			SetSize(256, 192, RECOILResolution.Spectrum1x1);
 			DecodeZx(content, 0, 0x1800, ZxAttributesTimex, 0);
 			return true;
 		default:
@@ -1891,7 +2191,7 @@ public class RECOIL
 	{
 		if (contentLength != 9216)
 			return false;
-		SetSize(256, 192, RECOILResolution.Zx1x1);
+		SetSize(256, 192, RECOILResolution.Spectrum1x1);
 		DecodeZx(content, 0, 0x1800, ZxAttributes8x2, 0);
 		return true;
 	}
@@ -1900,7 +2200,7 @@ public class RECOIL
 	{
 		if (contentLength != 12288)
 			return false;
-		SetSize(256, 192, RECOILResolution.Zx1x1);
+		SetSize(256, 192, RECOILResolution.Spectrum1x1);
 		DecodeZx(content, ZxBitmapLinear, 0x1800, ZxAttributes8x1, 0);
 		return true;
 	}
@@ -1909,7 +2209,7 @@ public class RECOIL
 	{
 		if (contentLength != 13824)
 			return false;
-		SetSize(256, 192, RECOILResolution.Zx1x1);
+		SetSize(256, 192, RECOILResolution.Spectrum1x1);
 		DecodeZx(content, 0, 0x1800, ZxAttributes8x8, 0);
 		DecodeZx(content, 0x1b00, 0x3300, ZxAttributes8x8, 256 * 192);
 		return ApplyBlend();
@@ -1927,7 +2227,7 @@ public class RECOIL
 		case 1:
 			if (contentLength != 19456)
 				return false;
-			SetSize(256, 192, RECOILResolution.Zx1x1);
+			SetSize(256, 192, RECOILResolution.Spectrum1x1);
 			DecodeZx(content, 0x100, 0x4900, ZxAttributesMg1, 0);
 			DecodeZx(content, 0x1900, 0x4a80, ZxAttributesMg1, 256 * 192);
 			return ApplyBlend();
@@ -1945,7 +2245,7 @@ public class RECOIL
 		}
 		if (contentLength != 256 + 2 * 6144 + (2 * 6144 >> attributesMode))
 			return false;
-		SetSize(256, 192, RECOILResolution.Zx1x1);
+		SetSize(256, 192, RECOILResolution.Spectrum1x1);
 		DecodeZx(content, 0x100, 0x3100, attributesMode, 0);
 		DecodeZx(content, 0x1900, 0x3100 + (6144 >> attributesMode), attributesMode, 256 * 192);
 		return ApplyBlend();
@@ -1955,7 +2255,7 @@ public class RECOIL
 	{
 		if (contentLength != 768)
 			return false;
-		SetSize(256, 192, RECOILResolution.Zx1x1);
+		SetSize(256, 192, RECOILResolution.Spectrum1x1);
 		DecodeZx(content, ZxBitmapCheckerboard, 0, ZxAttributes8x8, 0);
 		return true;
 	}
@@ -1966,7 +2266,7 @@ public class RECOIL
 		if (contentLength != 1628 || content[0] != 0x76 || content[1] != 0xaf || content[2] != 0xd3 || content[3] != 0xfe
 		 || content[4] != 0x21 || content[5] != 0x00 || content[6] != 0x58)
 			return false;
-		SetSize(256, 192, RECOILResolution.Zx1x1);
+		SetSize(256, 192, RECOILResolution.Spectrum1x1);
 		DecodeZx(content, ZxBitmapHlr, 0x5c, ZxAttributes8x8, 0);
 		DecodeZx(content, ZxBitmapHlr, 0x35c, ZxAttributes8x8, 256 * 192);
 		return ApplyBlend();
@@ -1976,7 +2276,7 @@ public class RECOIL
 	{
 		if (contentLength != 18432)
 			return false;
-		SetSize(256, 192, RECOILResolution.Zx1x1);
+		SetSize(256, 192, RECOILResolution.Spectrum1x1);
 		Frames = 3;
 		for (int y = 0; y < 192; y++) {
 			for (int x = 0; x < 256; x++) {
@@ -2017,7 +2317,7 @@ public class RECOIL
 		default:
 			return false;
 		}
-		SetSize(256, height, RECOILResolution.Zx1x1);
+		SetSize(256, height, RECOILResolution.Spectrum1x1);
 		DecodeBlackAndWhiteFont(content, 0, contentLength);
 		return true;
 	}
@@ -2066,7 +2366,7 @@ public class RECOIL
 
 		for (int y = 0; y < 192; y++) {
 			if (y == 24 && s.IsEof()) {
-				SetSize(256, 192, RECOILResolution.Zx1x1);
+				SetSize(256, 192, RECOILResolution.Spectrum1x1);
 				DecodeZx(scr, ZxBitmapLinear, 0x1800, ZxAttributes8x8, 0);
 				return true;
 			}
@@ -2085,7 +2385,7 @@ public class RECOIL
 
 		if (!s.IsEof())
 			return false;
-		SetSize(256, 192, RECOILResolution.Zx1x1);
+		SetSize(256, 192, RECOILResolution.Spectrum1x1);
 		DecodeZx(scr, ZxBitmapLinear, 0x1800, ZxAttributes8x1, 0);
 		return true;
 	}
@@ -7273,6 +7573,7 @@ public class RECOIL
 		case PACKED_EXT("NEO"):
 		case PACKED_EXT("NLQ"):
 		case PACKED_EXT("OCP"):
+		case PACKED_EXT("P"):
 		case PACKED_EXT("P4I"):
 		case PACKED_EXT("P64"):
 		case PACKED_EXT("PAC"):
@@ -7646,6 +7947,8 @@ public class RECOIL
 			return DecodeNlq(content, contentLength);
 		case PACKED_EXT("OCP"):
 			return DecodeOcp(content, contentLength);
+		case PACKED_EXT("P"):
+			return DecodeP(content, contentLength);
 		case PACKED_EXT("P4I"):
 			return DecodeP4i(content, contentLength);
 		case PACKED_EXT("P64"):
