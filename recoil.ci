@@ -93,9 +93,7 @@ class ZxpStream : Stream
 	}
 
 	bool IsEof()
-	{
 		return ContentOffset >= ContentLength;
-	}
 
 	int ReadHexDigit()
 	{
@@ -233,9 +231,7 @@ abstract class RleStream : BitStream
 	abstract bool ReadCommand();
 
 	virtual int ReadValue()
-	{
 		return ReadByte();
-	}
 
 	int ReadRle()
 	{
@@ -868,9 +864,7 @@ class CaStream : RleStream
 class RgbStream : RleStream
 {
 	override int ReadValue()
-	{
 		return ReadBits(12);
-	}
 
 	override bool ReadCommand()
 	{
@@ -1702,22 +1696,16 @@ public class RECOIL
 
 	/// Returns decoded image width.
 	public int GetWidth()
-	{
 		return Width;
-	}
 
 	/// Returns decoded image height.
 	public int GetHeight()
-	{
 		return Height;
-	}
 
 	/// Returns pixels of the decoded image, top-down, left-to-right.
 	/// Each pixel is a 24-bit integer 0xRRGGBB.
 	public int[] GetPixels()
-	{
 		return Pixels;
-	}
 
 	/// Maximum length of a string returned by `GetPlatform()`.
 	public const int MaxPlatformLength = "Atari Portfolio".Length;
@@ -1804,9 +1792,7 @@ public class RECOIL
 	/// * 2 means the picture is displayed by quickly alternating two sub-pictures.
 	/// * 3 means the picture is displayed by alternating three sub-pictures.
 	public int GetFrames()
-	{
 		return Frames;
-	}
 
 	/// Initializes decoded image size and resolution.
 	bool SetSize(int width, int height, RECOILResolution resolution)
@@ -2460,14 +2446,10 @@ public class RECOIL
 	}
 
 	static bool ExpectMsx2(byte[] content, int contentLength)
-	{
 		return contentLength >= 54279 && content[0] == 0xfe && ExpectMsxHeader(content, 0xd400);
-	}
 
 	bool DecodeSc8(byte[] content, int contentLength)
-	{
 		return ExpectMsx2(content, contentLength) && DecodeValidSc8(content);
-	}
 
 	bool DecodeSr8(byte[] content, int contentLength)
 	{
@@ -2786,9 +2768,7 @@ public class RECOIL
 	}
 
 	bool DecodeOcp(byte[] content, int contentLength)
-	{
 		return contentLength == 10018 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x233a, content[0x232b]);
-	}
 
 	bool DecodeHir(byte[] content, int contentLength)
 	{
@@ -4244,14 +4224,10 @@ public class RECOIL
 	}
 
 	bool DecodeFtc(byte[] content, int contentLength)
-	{
 		return DecodeFalconTrueColor(content, contentLength, 0, 384, 240);
-	}
 
 	bool DecodeGod(byte[] content, int contentLength)
-	{
 		return contentLength > 6 && DecodeFalconTrueColorVariable(content, contentLength, 2, 6);
-	}
 
 	bool DecodeTrp(byte[] content, int contentLength)
 	{
@@ -4907,9 +4883,7 @@ public class RECOIL
 	}
 
 	bool DecodeDrg(byte[] content, int contentLength)
-	{
 		return contentLength == 6400 && DecodeGr8(content, contentLength);
-	}
 
 	bool DecodeMbg(byte[] content, int contentLength)
 	{
@@ -4981,9 +4955,7 @@ public class RECOIL
 	}
 
 	bool DecodeBkg(byte[] content, int contentLength)
-	{
 		return contentLength == 3856 && DecodeGr7(content, 0, 3844);
-	}
 
 	bool DecodeAtari8Artist(byte[] content, int contentLength)
 	{
@@ -7112,9 +7084,7 @@ public class RECOIL
 	}
 
 	bool DecodeChr(byte[] content, int contentLength)
-	{
 		return contentLength == 3072 && DecodeBlazingPaddlesVectors(content, contentLength, 0x7000);
-	}
 
 	bool DecodeShp(byte[] content, int contentLength)
 	{
@@ -7386,10 +7356,9 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
-	macro PACKED_EXT(s) (
-		s.Length == 0 || s.Length > 4 ? 0
-		: s[0] + (s.Length >= 2 ? s[1] << 8 : 0) + (s.Length >= 3 ? s[2] << 16 : 0) + (s.Length >= 4 ? s[3] << 24 : 0) | 0x20202020
-	)
+	static int PackExt(string ext)
+		return ext.Length == 0 || ext.Length > 4 ? 0
+			: ext[0] + (ext.Length >= 2 ? ext[1] << 8 : 0) + (ext.Length >= 3 ? ext[2] << 16 : 0) + (ext.Length >= 4 ? ext[3] << 24 : 0) | 0x20202020;
 
 	static int GetPackedExt(string filename)
 	{
@@ -7412,229 +7381,229 @@ public class RECOIL
 	public static bool IsOurFile(string filename)
 	{
 		switch (GetPackedExt(filename)) {
-		case PACKED_EXT("256"):
-		case PACKED_EXT("3"):
-		case PACKED_EXT("4BT"):
-		case PACKED_EXT("4MI"):
-		case PACKED_EXT("4PL"):
-		case PACKED_EXT("4PM"):
-		case PACKED_EXT("64C"):
-		case PACKED_EXT("A4R"):
-		case PACKED_EXT("AAS"):
-		case PACKED_EXT("IPH"):
-		case PACKED_EXT("ACS"):
-		case PACKED_EXT("AFL"):
-		case PACKED_EXT("AGP"):
-		case PACKED_EXT("ALL"):
-		case PACKED_EXT("AMI"):
-		case PACKED_EXT("AP2"):
-		case PACKED_EXT("AP3"):
-		case PACKED_EXT("APV"):
-		case PACKED_EXT("DGI"):
-		case PACKED_EXT("DGP"):
-		case PACKED_EXT("ESC"):
-		case PACKED_EXT("ILC"):
-		case PACKED_EXT("PZM"):
-		case PACKED_EXT("APC"):
-		case PACKED_EXT("APL"):
-		case PACKED_EXT("APP"):
-		case PACKED_EXT("ART"):
-		case PACKED_EXT("ATR"):
-		case PACKED_EXT("BFLI"):
-		case PACKED_EXT("BG9"):
-		case PACKED_EXT("G09"):
-		case PACKED_EXT("BGP"):
-		case PACKED_EXT("BKG"):
-		case PACKED_EXT("BML"):
-		case PACKED_EXT("BRU"):
-		case PACKED_EXT("CA1"):
-		case PACKED_EXT("CA2"):
-		case PACKED_EXT("CA3"):
-		case PACKED_EXT("CCI"):
-		case PACKED_EXT("CDU"):
-		case PACKED_EXT("CH4"):
-		case PACKED_EXT("CH6"):
-		case PACKED_EXT("CH8"):
-		case PACKED_EXT("CHE"):
-		case PACKED_EXT("CHR"):
-		case PACKED_EXT("CIN"):
-		case PACKED_EXT("CPR"):
-		case PACKED_EXT("CPT"):
-		case PACKED_EXT("CWG"):
-		case PACKED_EXT("DC1"):
-		case PACKED_EXT("DD"):
-		case PACKED_EXT("DEL"):
-		case PACKED_EXT("DG1"):
-		case PACKED_EXT("DGC"):
-		case PACKED_EXT("DGU"):
-		case PACKED_EXT("DIN"):
-		case PACKED_EXT("DLM"):
-		case PACKED_EXT("DOL"):
-		case PACKED_EXT("VID"):
-		case PACKED_EXT("DOO"):
-		case PACKED_EXT("DPH"):
-		case PACKED_EXT("DRG"):
-		case PACKED_EXT("DRL"):
-		case PACKED_EXT("DLP"):
-		case PACKED_EXT("DRZ"):
-		case PACKED_EXT("DRP"):
-		case PACKED_EXT("DUO"):
-		case PACKED_EXT("ECI"):
-		case PACKED_EXT("ECP"):
-		case PACKED_EXT("FD2"):
-		case PACKED_EXT("FFLI"):
-		case PACKED_EXT("FLI"):
-		case PACKED_EXT("FNT"):
-		case PACKED_EXT("FPT"):
-		case PACKED_EXT("FTC"):
-		case PACKED_EXT("FUN"):
-		case PACKED_EXT("FP2"):
-		case PACKED_EXT("FWA"):
-		case PACKED_EXT("GG"):
-		case PACKED_EXT("GHG"):
-		case PACKED_EXT("GOD"):
-		case PACKED_EXT("G10"):
-		case PACKED_EXT("G11"):
-		case PACKED_EXT("GFB"):
-		case PACKED_EXT("GR7"):
-		case PACKED_EXT("GR8"):
-		case PACKED_EXT("GR9"):
-		case PACKED_EXT("GUN"):
-		case PACKED_EXT("HED"):
-		case PACKED_EXT("HFC"):
-		case PACKED_EXT("HGB"):
-		case PACKED_EXT("HIM"):
-		case PACKED_EXT("HIP"):
-		case PACKED_EXT("HIR"):
-		case PACKED_EXT("HBM"):
-		case PACKED_EXT("GIH"):
-		case PACKED_EXT("FGS"):
-		case PACKED_EXT("MON"):
-		case PACKED_EXT("GCD"):
-		case PACKED_EXT("HLF"):
-		case PACKED_EXT("HLR"):
-		case PACKED_EXT("HPC"):
-		case PACKED_EXT("HPM"):
-		case PACKED_EXT("HR"):
-		case PACKED_EXT("HR2"):
-		case PACKED_EXT("ICE"):
-		case PACKED_EXT("ICN"):
-		case PACKED_EXT("IFF"):
-		case PACKED_EXT("ACBM"):
-		case PACKED_EXT("BL1"):
-		case PACKED_EXT("BL2"):
-		case PACKED_EXT("BL3"):
-		case PACKED_EXT("HAM6"):
-		case PACKED_EXT("HAM8"):
-		case PACKED_EXT("LBM"):
-		case PACKED_EXT("IFL"):
-		case PACKED_EXT("IGE"):
-		case PACKED_EXT("IHE"):
-		case PACKED_EXT("IMG"):
-		case PACKED_EXT("XIMG"):
-		case PACKED_EXT("IMN"):
-		case PACKED_EXT("INFO"):
-		case PACKED_EXT("ING"):
-		case PACKED_EXT("INP"):
-		case PACKED_EXT("INT"):
-		case PACKED_EXT("IP2"):
-		case PACKED_EXT("IPC"):
-		case PACKED_EXT("IPT"):
-		case PACKED_EXT("IR2"):
-		case PACKED_EXT("IRG"):
-		case PACKED_EXT("ISM"):
-		case PACKED_EXT("IST"):
-		case PACKED_EXT("JGP"):
-		case PACKED_EXT("JJ"):
-		case PACKED_EXT("KOA"):
-		case PACKED_EXT("GIG"):
-		case PACKED_EXT("RPM"):
-		case PACKED_EXT("LEO"):
-		case PACKED_EXT("LP3"):
-		case PACKED_EXT("LUM"):
-		case PACKED_EXT("MAC"):
-		case PACKED_EXT("MAX"):
-		case PACKED_EXT("MBG"):
-		case PACKED_EXT("MC"):
-		case PACKED_EXT("MCH"):
-		case PACKED_EXT("MCI"):
-		case PACKED_EXT("MCP"):
-		case PACKED_EXT("MCS"):
-		case PACKED_EXT("MG1"):
-		case PACKED_EXT("MG2"):
-		case PACKED_EXT("MG4"):
-		case PACKED_EXT("MG8"):
-		case PACKED_EXT("MGP"):
-		case PACKED_EXT("MIC"):
-		case PACKED_EXT("MIL"):
-		case PACKED_EXT("MIS"):
-		case PACKED_EXT("MLE"):
-		case PACKED_EXT("MPP"):
-		case PACKED_EXT("NEO"):
-		case PACKED_EXT("NLQ"):
-		case PACKED_EXT("OCP"):
-		case PACKED_EXT("P"):
-		case PACKED_EXT("P4I"):
-		case PACKED_EXT("P64"):
-		case PACKED_EXT("PAC"):
-		case PACKED_EXT("PC1"):
-		case PACKED_EXT("PC2"):
-		case PACKED_EXT("PC3"):
-		case PACKED_EXT("PCS"):
-		case PACKED_EXT("PGC"):
-		case PACKED_EXT("PGF"):
-		case PACKED_EXT("PI"):
-		case PACKED_EXT("PI1"):
-		case PACKED_EXT("PI2"):
-		case PACKED_EXT("PI3"):
-		case PACKED_EXT("PI4"):
-		case PACKED_EXT("PI9"):
-		case PACKED_EXT("PIC"):
-		case PACKED_EXT("PL4"):
-		case PACKED_EXT("PLA"):
-		case PACKED_EXT("PLM"):
-		case PACKED_EXT("PMD"):
-		case PACKED_EXT("PMG"):
-		case PACKED_EXT("RAW"):
-		case PACKED_EXT("RGB"):
-		case PACKED_EXT("RIP"):
-		case PACKED_EXT("RM0"):
-		case PACKED_EXT("RM1"):
-		case PACKED_EXT("RM2"):
-		case PACKED_EXT("RM3"):
-		case PACKED_EXT("RM4"):
-		case PACKED_EXT("RP"):
-		case PACKED_EXT("RYS"):
-		case PACKED_EXT("SAR"):
-		case PACKED_EXT("SC2"):
-		case PACKED_EXT("GRP"):
-		case PACKED_EXT("SC8"):
-		case PACKED_EXT("SCA"):
-		case PACKED_EXT("SCC"):
-		case PACKED_EXT("SRS"):
-		case PACKED_EXT("SCR"):
-		case PACKED_EXT("SCS4"):
-		case PACKED_EXT("SGE"):
-		case PACKED_EXT("SHC"):
-		case PACKED_EXT("SHP"):
-		case PACKED_EXT("SIF"):
-		case PACKED_EXT("SPC"):
-		case PACKED_EXT("SPS"):
-		case PACKED_EXT("SPU"):
-		case PACKED_EXT("SR8"):
-		case PACKED_EXT("SXS"):
-		case PACKED_EXT("TIP"):
-		case PACKED_EXT("TN1"):
-		case PACKED_EXT("TN2"):
-		case PACKED_EXT("TN3"):
-		case PACKED_EXT("TNY"):
-		case PACKED_EXT("TRP"):
-		case PACKED_EXT("TRU"):
-		case PACKED_EXT("VIC"):
-		case PACKED_EXT("VZI"):
-		case PACKED_EXT("WND"):
-		case PACKED_EXT("XLP"):
-		case PACKED_EXT("ZXP"):
+		case PackExt("256"):
+		case PackExt("3"):
+		case PackExt("4BT"):
+		case PackExt("4MI"):
+		case PackExt("4PL"):
+		case PackExt("4PM"):
+		case PackExt("64C"):
+		case PackExt("A4R"):
+		case PackExt("AAS"):
+		case PackExt("IPH"):
+		case PackExt("ACS"):
+		case PackExt("AFL"):
+		case PackExt("AGP"):
+		case PackExt("ALL"):
+		case PackExt("AMI"):
+		case PackExt("AP2"):
+		case PackExt("AP3"):
+		case PackExt("APV"):
+		case PackExt("DGI"):
+		case PackExt("DGP"):
+		case PackExt("ESC"):
+		case PackExt("ILC"):
+		case PackExt("PZM"):
+		case PackExt("APC"):
+		case PackExt("APL"):
+		case PackExt("APP"):
+		case PackExt("ART"):
+		case PackExt("ATR"):
+		case PackExt("BFLI"):
+		case PackExt("BG9"):
+		case PackExt("G09"):
+		case PackExt("BGP"):
+		case PackExt("BKG"):
+		case PackExt("BML"):
+		case PackExt("BRU"):
+		case PackExt("CA1"):
+		case PackExt("CA2"):
+		case PackExt("CA3"):
+		case PackExt("CCI"):
+		case PackExt("CDU"):
+		case PackExt("CH4"):
+		case PackExt("CH6"):
+		case PackExt("CH8"):
+		case PackExt("CHE"):
+		case PackExt("CHR"):
+		case PackExt("CIN"):
+		case PackExt("CPR"):
+		case PackExt("CPT"):
+		case PackExt("CWG"):
+		case PackExt("DC1"):
+		case PackExt("DD"):
+		case PackExt("DEL"):
+		case PackExt("DG1"):
+		case PackExt("DGC"):
+		case PackExt("DGU"):
+		case PackExt("DIN"):
+		case PackExt("DLM"):
+		case PackExt("DOL"):
+		case PackExt("VID"):
+		case PackExt("DOO"):
+		case PackExt("DPH"):
+		case PackExt("DRG"):
+		case PackExt("DRL"):
+		case PackExt("DLP"):
+		case PackExt("DRZ"):
+		case PackExt("DRP"):
+		case PackExt("DUO"):
+		case PackExt("ECI"):
+		case PackExt("ECP"):
+		case PackExt("FD2"):
+		case PackExt("FFLI"):
+		case PackExt("FLI"):
+		case PackExt("FNT"):
+		case PackExt("FPT"):
+		case PackExt("FTC"):
+		case PackExt("FUN"):
+		case PackExt("FP2"):
+		case PackExt("FWA"):
+		case PackExt("GG"):
+		case PackExt("GHG"):
+		case PackExt("GOD"):
+		case PackExt("G10"):
+		case PackExt("G11"):
+		case PackExt("GFB"):
+		case PackExt("GR7"):
+		case PackExt("GR8"):
+		case PackExt("GR9"):
+		case PackExt("GUN"):
+		case PackExt("HED"):
+		case PackExt("HFC"):
+		case PackExt("HGB"):
+		case PackExt("HIM"):
+		case PackExt("HIP"):
+		case PackExt("HIR"):
+		case PackExt("HBM"):
+		case PackExt("GIH"):
+		case PackExt("FGS"):
+		case PackExt("MON"):
+		case PackExt("GCD"):
+		case PackExt("HLF"):
+		case PackExt("HLR"):
+		case PackExt("HPC"):
+		case PackExt("HPM"):
+		case PackExt("HR"):
+		case PackExt("HR2"):
+		case PackExt("ICE"):
+		case PackExt("ICN"):
+		case PackExt("IFF"):
+		case PackExt("ACBM"):
+		case PackExt("BL1"):
+		case PackExt("BL2"):
+		case PackExt("BL3"):
+		case PackExt("HAM6"):
+		case PackExt("HAM8"):
+		case PackExt("LBM"):
+		case PackExt("IFL"):
+		case PackExt("IGE"):
+		case PackExt("IHE"):
+		case PackExt("IMG"):
+		case PackExt("XIMG"):
+		case PackExt("IMN"):
+		case PackExt("INFO"):
+		case PackExt("ING"):
+		case PackExt("INP"):
+		case PackExt("INT"):
+		case PackExt("IP2"):
+		case PackExt("IPC"):
+		case PackExt("IPT"):
+		case PackExt("IR2"):
+		case PackExt("IRG"):
+		case PackExt("ISM"):
+		case PackExt("IST"):
+		case PackExt("JGP"):
+		case PackExt("JJ"):
+		case PackExt("KOA"):
+		case PackExt("GIG"):
+		case PackExt("RPM"):
+		case PackExt("LEO"):
+		case PackExt("LP3"):
+		case PackExt("LUM"):
+		case PackExt("MAC"):
+		case PackExt("MAX"):
+		case PackExt("MBG"):
+		case PackExt("MC"):
+		case PackExt("MCH"):
+		case PackExt("MCI"):
+		case PackExt("MCP"):
+		case PackExt("MCS"):
+		case PackExt("MG1"):
+		case PackExt("MG2"):
+		case PackExt("MG4"):
+		case PackExt("MG8"):
+		case PackExt("MGP"):
+		case PackExt("MIC"):
+		case PackExt("MIL"):
+		case PackExt("MIS"):
+		case PackExt("MLE"):
+		case PackExt("MPP"):
+		case PackExt("NEO"):
+		case PackExt("NLQ"):
+		case PackExt("OCP"):
+		case PackExt("P"):
+		case PackExt("P4I"):
+		case PackExt("P64"):
+		case PackExt("PAC"):
+		case PackExt("PC1"):
+		case PackExt("PC2"):
+		case PackExt("PC3"):
+		case PackExt("PCS"):
+		case PackExt("PGC"):
+		case PackExt("PGF"):
+		case PackExt("PI"):
+		case PackExt("PI1"):
+		case PackExt("PI2"):
+		case PackExt("PI3"):
+		case PackExt("PI4"):
+		case PackExt("PI9"):
+		case PackExt("PIC"):
+		case PackExt("PL4"):
+		case PackExt("PLA"):
+		case PackExt("PLM"):
+		case PackExt("PMD"):
+		case PackExt("PMG"):
+		case PackExt("RAW"):
+		case PackExt("RGB"):
+		case PackExt("RIP"):
+		case PackExt("RM0"):
+		case PackExt("RM1"):
+		case PackExt("RM2"):
+		case PackExt("RM3"):
+		case PackExt("RM4"):
+		case PackExt("RP"):
+		case PackExt("RYS"):
+		case PackExt("SAR"):
+		case PackExt("SC2"):
+		case PackExt("GRP"):
+		case PackExt("SC8"):
+		case PackExt("SCA"):
+		case PackExt("SCC"):
+		case PackExt("SRS"):
+		case PackExt("SCR"):
+		case PackExt("SCS4"):
+		case PackExt("SGE"):
+		case PackExt("SHC"):
+		case PackExt("SHP"):
+		case PackExt("SIF"):
+		case PackExt("SPC"):
+		case PackExt("SPS"):
+		case PackExt("SPU"):
+		case PackExt("SR8"):
+		case PackExt("SXS"):
+		case PackExt("TIP"):
+		case PackExt("TN1"):
+		case PackExt("TN2"):
+		case PackExt("TN3"):
+		case PackExt("TNY"):
+		case PackExt("TRP"):
+		case PackExt("TRU"):
+		case PackExt("VIC"):
+		case PackExt("VZI"):
+		case PackExt("WND"):
+		case PackExt("XLP"):
+		case PackExt("ZXP"):
 			return true;
 		default:
 			return false;
@@ -7652,416 +7621,416 @@ public class RECOIL
 		int contentLength)
 	{
 		switch (GetPackedExt(filename)) {
-		case PACKED_EXT("256"):
+		case PackExt("256"):
 			return Decode256(content, contentLength);
-		case PACKED_EXT("3"):
+		case PackExt("3"):
 			return Decode3(content, contentLength);
-		case PACKED_EXT("4BT"):
+		case PackExt("4BT"):
 			return Decode4bt(content, contentLength);
-		case PACKED_EXT("4MI"):
+		case PackExt("4MI"):
 			return Decode4mi(content, contentLength);
-		case PACKED_EXT("4PL"):
+		case PackExt("4PL"):
 			return Decode4pl(content, contentLength);
-		case PACKED_EXT("4PM"):
+		case PackExt("4PM"):
 			return Decode4pm(content, contentLength);
-		case PACKED_EXT("64C"):
+		case PackExt("64C"):
 			return Decode64c(content, contentLength);
-		case PACKED_EXT("A4R"):
+		case PackExt("A4R"):
 			return DecodeA4r(content, contentLength);
-		case PACKED_EXT("AAS"):
-		case PACKED_EXT("IPH"):
+		case PackExt("AAS"):
+		case PackExt("IPH"):
 			return DecodeIph(content, contentLength);
-		case PACKED_EXT("ACS"):
+		case PackExt("ACS"):
 			return DecodeAcs(content, contentLength);
-		case PACKED_EXT("AFL"):
+		case PackExt("AFL"):
 			return DecodeAfl(content, contentLength);
-		case PACKED_EXT("AGP"):
+		case PackExt("AGP"):
 			return DecodeAgp(content, contentLength);
-		case PACKED_EXT("ALL"):
+		case PackExt("ALL"):
 			return DecodeAll(content, contentLength);
-		case PACKED_EXT("AMI"):
+		case PackExt("AMI"):
 			return DecodeAmi(content, contentLength);
-		case PACKED_EXT("AP2"):
+		case PackExt("AP2"):
 			return Decode256(content, contentLength);
-		case PACKED_EXT("AP3"):
-		case PACKED_EXT("APV"):
-		case PACKED_EXT("DGI"):
-		case PACKED_EXT("DGP"):
-		case PACKED_EXT("ESC"):
-		case PACKED_EXT("ILC"):
-		case PACKED_EXT("PZM"):
+		case PackExt("AP3"):
+		case PackExt("APV"):
+		case PackExt("DGI"):
+		case PackExt("DGP"):
+		case PackExt("ESC"):
+		case PackExt("ILC"):
+		case PackExt("PZM"):
 			return DecodeAp3(content, contentLength);
-		case PACKED_EXT("APC"):
+		case PackExt("APC"):
 			return DecodeApc(content, contentLength);
-		case PACKED_EXT("APL"):
+		case PackExt("APL"):
 			return DecodeApl(content, contentLength);
-		case PACKED_EXT("APP"):
+		case PackExt("APP"):
 			return DecodeApp(content, contentLength);
-		case PACKED_EXT("ART"):
+		case PackExt("ART"):
 			return DecodeIph(content, contentLength)
 				|| DecodeArtDirector(content, contentLength)
 				|| DecodeAtari8Artist(content, contentLength)
 				|| DecodeAsciiArtEditor(content, contentLength);
-		case PACKED_EXT("ATR"):
+		case PackExt("ATR"):
 			return DecodeAtr(content, contentLength);
-		case PACKED_EXT("BFLI"):
+		case PackExt("BFLI"):
 			return DecodeBfli(content, contentLength);
-		case PACKED_EXT("BG9"):
-		case PACKED_EXT("G09"):
+		case PackExt("BG9"):
+		case PackExt("G09"):
 			return DecodeG09(content, contentLength);
-		case PACKED_EXT("BGP"):
+		case PackExt("BGP"):
 			return DecodeBgp(content, contentLength);
-		case PACKED_EXT("BKG"):
+		case PackExt("BKG"):
 			return DecodeBkg(content, contentLength);
-		case PACKED_EXT("BML"):
+		case PackExt("BML"):
 			return DecodeBml(content, contentLength);
-		case PACKED_EXT("BRU"):
+		case PackExt("BRU"):
 			return DecodeBru(content, contentLength);
-		case PACKED_EXT("CA1"):
-		case PACKED_EXT("CA2"):
-		case PACKED_EXT("CA3"):
+		case PackExt("CA1"):
+		case PackExt("CA2"):
+		case PackExt("CA3"):
 			return DecodeCa(content, contentLength);
-		case PACKED_EXT("CCI"):
+		case PackExt("CCI"):
 			return DecodeCci(content, contentLength);
-		case PACKED_EXT("CDU"):
+		case PackExt("CDU"):
 			return contentLength == 10277 && DecodeC64Multicolor(320, content, 0x113, 0x2053, 0x243b, content[0x2823]);
-		case PACKED_EXT("CH4"):
-		case PACKED_EXT("CH6"):
-		case PACKED_EXT("CH8"):
+		case PackExt("CH4"):
+		case PackExt("CH6"):
+		case PackExt("CH8"):
 			return DecodeCh8(content, contentLength);
-		case PACKED_EXT("CHE"):
+		case PackExt("CHE"):
 			return contentLength == 20482 && DecodeC64Multicolor(320, content, 2, 0x4202, 0x4802, 0);
-		case PACKED_EXT("CHR"):
+		case PackExt("CHR"):
 			return DecodeChr(content, contentLength);
-		case PACKED_EXT("CIN"):
+		case PackExt("CIN"):
 			return DecodeCin(content, contentLength);
-		case PACKED_EXT("CPR"):
+		case PackExt("CPR"):
 			return DecodeCpr(content, contentLength);
-		case PACKED_EXT("CPT"):
+		case PackExt("CPT"):
 			return DecodeCpt(content, contentLength);
-		case PACKED_EXT("CWG"):
+		case PackExt("CWG"):
 			return contentLength == 10007 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2713]);
-		case PACKED_EXT("DC1"):
-		case PACKED_EXT("DGC"):
+		case PackExt("DC1"):
+		case PackExt("DGC"):
 			return DecodeDgc(content, contentLength);
-		case PACKED_EXT("DD"):
+		case PackExt("DD"):
 			return DecodeDd(content, contentLength);
-		case PACKED_EXT("DEL"):
+		case PackExt("DEL"):
 			return DecodeDel(content, contentLength);
-		case PACKED_EXT("DG1"):
-		case PACKED_EXT("DGU"):
+		case PackExt("DG1"):
+		case PackExt("DGU"):
 			return DecodeDgu(content, contentLength);
-		case PACKED_EXT("DIN"):
+		case PackExt("DIN"):
 			return DecodeAtari8Ice(content, contentLength, false, 3);
-		case PACKED_EXT("DLM"):
+		case PackExt("DLM"):
 			return DecodeDlm(content, contentLength);
-		case PACKED_EXT("DOL"):
-		case PACKED_EXT("VID"):
+		case PackExt("DOL"):
+		case PackExt("VID"):
 			return DecodeDol(content, contentLength);
-		case PACKED_EXT("DOO"):
+		case PackExt("DOO"):
 			return DecodeDoo(content, contentLength);
-		case PACKED_EXT("DPH"):
+		case PackExt("DPH"):
 			return DecodeDph(content, contentLength);
-		case PACKED_EXT("DRG"):
+		case PackExt("DRG"):
 			return DecodeDrg(content, contentLength);
-		case PACKED_EXT("DRL"):
-		case PACKED_EXT("DLP"):
+		case PackExt("DRL"):
+		case PackExt("DLP"):
 			return DecodeDrl(content, contentLength);
-		case PACKED_EXT("DRZ"):
-		case PACKED_EXT("DRP"):
+		case PackExt("DRZ"):
+		case PackExt("DRP"):
 			return DecodeDrz(content, contentLength);
-		case PACKED_EXT("DUO"):
+		case PackExt("DUO"):
 			return DecodeDuo(content, contentLength);
-		case PACKED_EXT("ECI"):
+		case PackExt("ECI"):
 			return DecodeEci(content, contentLength);
-		case PACKED_EXT("ECP"):
+		case PackExt("ECP"):
 			return DecodeEcp(content, contentLength);
-		case PACKED_EXT("FD2"):
+		case PackExt("FD2"):
 			return DecodeFli(content, contentLength);
-		case PACKED_EXT("FFLI"):
+		case PackExt("FFLI"):
 			return DecodeFfli(content, contentLength);
-		case PACKED_EXT("FLI"):
+		case PackExt("FLI"):
 			return DecodeFli(content, contentLength)
 				|| DecodeBml(content, contentLength);
-		case PACKED_EXT("FNT"):
+		case PackExt("FNT"):
 			return DecodeAtari8Fnt(content, contentLength)
 				|| DecodeAmstradFnt(content, contentLength);
-		case PACKED_EXT("FPT"):
+		case PackExt("FPT"):
 			return contentLength == 10004 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2714]);
-		case PACKED_EXT("FTC"):
+		case PackExt("FTC"):
 			return DecodeFtc(content, contentLength);
-		case PACKED_EXT("FUN"):
-		case PACKED_EXT("FP2"):
+		case PackExt("FUN"):
+		case PackExt("FP2"):
 			return DecodeFun(content, contentLength);
-		case PACKED_EXT("FWA"):
+		case PackExt("FWA"):
 			return DecodeFwa(content, contentLength);
-		case PACKED_EXT("GG"):
+		case PackExt("GG"):
 			return DecodeGg(content, contentLength);
-		case PACKED_EXT("GHG"):
+		case PackExt("GHG"):
 			return DecodeGhg(content, contentLength);
-		case PACKED_EXT("GOD"):
+		case PackExt("GOD"):
 			return DecodeGod(content, contentLength);
-		case PACKED_EXT("G10"):
+		case PackExt("G10"):
 			return DecodeG10(content, contentLength);
-		case PACKED_EXT("G11"):
+		case PackExt("G11"):
 			return DecodeG11(content, contentLength);
-		case PACKED_EXT("GFB"):
+		case PackExt("GFB"):
 			return DecodeGfb(content, contentLength);
-		case PACKED_EXT("GR7"):
+		case PackExt("GR7"):
 			return DecodeGr7(content, 0, contentLength);
-		case PACKED_EXT("GR8"):
+		case PackExt("GR8"):
 			return DecodeGr8(content, contentLength);
-		case PACKED_EXT("GR9"):
+		case PackExt("GR9"):
 			return DecodeGr9(content, contentLength);
-		case PACKED_EXT("GUN"):
+		case PackExt("GUN"):
 			return DecodeGun(content, contentLength);
-		case PACKED_EXT("HED"):
+		case PackExt("HED"):
 			return DecodeHed(content, contentLength);
-		case PACKED_EXT("HFC"):
+		case PackExt("HFC"):
 			return DecodeHfc(content, contentLength);
-		case PACKED_EXT("HGB"):
+		case PackExt("HGB"):
 			return DecodeHgb(content, contentLength);
-		case PACKED_EXT("HIM"):
+		case PackExt("HIM"):
 			return DecodeHim(content, contentLength);
-		case PACKED_EXT("HIP"):
+		case PackExt("HIP"):
 			return DecodeHip(content, contentLength);
-		case PACKED_EXT("HIR"):
-		case PACKED_EXT("HBM"):
-		case PACKED_EXT("GIH"):
-		case PACKED_EXT("FGS"):
-		case PACKED_EXT("MON"):
-		case PACKED_EXT("GCD"):
+		case PackExt("HIR"):
+		case PackExt("HBM"):
+		case PackExt("GIH"):
+		case PackExt("FGS"):
+		case PackExt("MON"):
+		case PackExt("GCD"):
 			return DecodeHir(content, contentLength);
-		case PACKED_EXT("HLF"):
+		case PackExt("HLF"):
 			return DecodeHlf(content, contentLength);
-		case PACKED_EXT("HLR"):
+		case PackExt("HLR"):
 			return DecodeHlr(content, contentLength);
-		case PACKED_EXT("HPC"):
+		case PackExt("HPC"):
 			return DecodeIph(content, contentLength);
-		case PACKED_EXT("HPM"):
+		case PackExt("HPM"):
 			return DecodeHpm(content, contentLength);
-		case PACKED_EXT("HR"):
+		case PackExt("HR"):
 			return DecodeHr(content, contentLength);
-		case PACKED_EXT("HR2"):
+		case PackExt("HR2"):
 			return DecodeHr2(content, contentLength);
-		case PACKED_EXT("ICE"):
+		case PackExt("ICE"):
 			return contentLength > 2048 && DecodeAtari8Ice(content, contentLength, true, content[0]);
-		case PACKED_EXT("ICN"):
+		case PackExt("ICN"):
 			return DecodeStIcn(content, contentLength)
 				|| DecodeAtari8Ice(content, contentLength, false, 17);
-		case PACKED_EXT("IFF"):
-		case PACKED_EXT("ACBM"):
-		case PACKED_EXT("BL1"):
-		case PACKED_EXT("BL2"):
-		case PACKED_EXT("BL3"):
-		case PACKED_EXT("HAM6"):
-		case PACKED_EXT("HAM8"):
-		case PACKED_EXT("LBM"):
+		case PackExt("IFF"):
+		case PackExt("ACBM"):
+		case PackExt("BL1"):
+		case PackExt("BL2"):
+		case PackExt("BL3"):
+		case PackExt("HAM6"):
+		case PackExt("HAM8"):
+		case PackExt("LBM"):
 			return DecodeIff(content, contentLength);
-		case PACKED_EXT("IFL"):
+		case PackExt("IFL"):
 			return DecodeGun(content, contentLength)
 				|| DecodeZxIfl(content, contentLength);
-		case PACKED_EXT("IGE"):
+		case PackExt("IGE"):
 			return DecodeIge(content, contentLength);
-		case PACKED_EXT("IHE"):
+		case PackExt("IHE"):
 			return DecodeIhe(content, contentLength);
-		case PACKED_EXT("IMG"):
+		case PackExt("IMG"):
 			return DecodeStImg(content, contentLength)
 				|| DecodeZxImg(content, contentLength);
-		case PACKED_EXT("XIMG"):
+		case PackExt("XIMG"):
 			return DecodeStImg(content, contentLength);
-		case PACKED_EXT("IMN"):
+		case PackExt("IMN"):
 			return DecodeAtari8Ice(content, contentLength, false, 18);
-		case PACKED_EXT("INFO"):
+		case PackExt("INFO"):
 			return DecodeInfo(content, contentLength);
-		case PACKED_EXT("ING"):
-		case PACKED_EXT("INP"):
+		case PackExt("ING"):
+		case PackExt("INP"):
 			return DecodeInp(content, contentLength);
-		case PACKED_EXT("INT"):
+		case PackExt("INT"):
 			return DecodeInt(content, contentLength)
 				|| DecodeInp(content, contentLength);
-		case PACKED_EXT("IP2"):
+		case PackExt("IP2"):
 			return DecodeIp2(content, contentLength);
-		case PACKED_EXT("IPC"):
+		case PackExt("IPC"):
 			return DecodeAtari8Ice(content, contentLength, false, 19);
-		case PACKED_EXT("IPT"):
+		case PackExt("IPT"):
 			return contentLength == 10003 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2712]);
-		case PACKED_EXT("IR2"):
+		case PackExt("IR2"):
 			return DecodeAtari8Ice(content, contentLength, false, 2);
-		case PACKED_EXT("IRG"):
+		case PackExt("IRG"):
 			return DecodeAtari8Ice(content, contentLength, false, 1);
-		case PACKED_EXT("ISM"):
+		case PackExt("ISM"):
 			return contentLength == 10218 && DecodeC64Multicolor(320, content, 0x402, 0x2402, 2, content[0x2401]);
-		case PACKED_EXT("IST"):
+		case PackExt("IST"):
 			return DecodeIst(content, contentLength);
-		case PACKED_EXT("JGP"):
+		case PackExt("JGP"):
 			return DecodeJgp(content, contentLength);
-		case PACKED_EXT("JJ"):
+		case PackExt("JJ"):
 			return DecodeJj(content, contentLength);
-		case PACKED_EXT("KOA"):
-		case PACKED_EXT("GIG"):
-		case PACKED_EXT("RPM"):
+		case PackExt("KOA"):
+		case PackExt("GIG"):
+		case PackExt("RPM"):
 			return DecodeKoa(content, contentLength);
-		case PACKED_EXT("LEO"):
+		case PackExt("LEO"):
 			return DecodeLeo(content, contentLength);
-		case PACKED_EXT("LP3"):
+		case PackExt("LP3"):
 			return DecodeLp3(content, contentLength);
-		case PACKED_EXT("LUM"):
+		case PackExt("LUM"):
 			return DecodeLum(content, contentLength);
-		case PACKED_EXT("MAC"):
+		case PackExt("MAC"):
 			return DecodeMac(content, contentLength);
-		case PACKED_EXT("MAX"):
+		case PackExt("MAX"):
 			return DecodeMax(content, contentLength);
-		case PACKED_EXT("MBG"):
+		case PackExt("MBG"):
 			return DecodeMbg(content, contentLength);
-		case PACKED_EXT("MC"):
+		case PackExt("MC"):
 			return DecodeMc(content, contentLength);
-		case PACKED_EXT("MCH"):
+		case PackExt("MCH"):
 			return DecodeMch(content, contentLength);
-		case PACKED_EXT("MCI"):
+		case PackExt("MCI"):
 			return DecodeMci(content, contentLength);
-		case PACKED_EXT("MCP"):
+		case PackExt("MCP"):
 			return DecodeMcp(content, contentLength);
-		case PACKED_EXT("MCS"):
+		case PackExt("MCS"):
 			return DecodeMcs(content, contentLength);
-		case PACKED_EXT("MG1"):
-		case PACKED_EXT("MG2"):
-		case PACKED_EXT("MG4"):
-		case PACKED_EXT("MG8"):
+		case PackExt("MG1"):
+		case PackExt("MG2"):
+		case PackExt("MG4"):
+		case PackExt("MG8"):
 			return DecodeMg(content, contentLength);
-		case PACKED_EXT("MGP"):
+		case PackExt("MGP"):
 			return DecodeMgp(content, contentLength);
-		case PACKED_EXT("MIC"):
+		case PackExt("MIC"):
 			return DecodeMic(content, contentLength);
-		case PACKED_EXT("MIL"):
+		case PackExt("MIL"):
 			return contentLength == 10022 && DecodeC64Multicolor(320, content, 0x7e6, 0x16, 0x3fe, 0);
-		case PACKED_EXT("MIS"):
+		case PackExt("MIS"):
 			return DecodeMis(content, contentLength);
-		case PACKED_EXT("MLE"):
+		case PackExt("MLE"):
 			return DecodeMle(content, contentLength);
-		case PACKED_EXT("MPP"):
+		case PackExt("MPP"):
 			return DecodeMpp(content, contentLength);
-		case PACKED_EXT("NEO"):
+		case PackExt("NEO"):
 			return DecodeNeo(content, contentLength);
-		case PACKED_EXT("NLQ"):
+		case PackExt("NLQ"):
 			return DecodeNlq(content, contentLength);
-		case PACKED_EXT("OCP"):
+		case PackExt("OCP"):
 			return DecodeOcp(content, contentLength);
-		case PACKED_EXT("P"):
+		case PackExt("P"):
 			return DecodeP(content, contentLength);
-		case PACKED_EXT("P4I"):
+		case PackExt("P4I"):
 			return DecodeP4i(content, contentLength);
-		case PACKED_EXT("P64"):
+		case PackExt("P64"):
 			return contentLength == 10050 && DecodeC64Multicolor(320, content, 0x802, 0x402, 2, content[0x801]);
-		case PACKED_EXT("PAC"):
+		case PackExt("PAC"):
 			return DecodePac(content, contentLength);
-		case PACKED_EXT("PC1"):
-		case PACKED_EXT("PC2"):
-		case PACKED_EXT("PC3"):
+		case PackExt("PC1"):
+		case PackExt("PC2"):
+		case PackExt("PC3"):
 			return DecodePc(content, contentLength);
-		case PACKED_EXT("PCS"):
+		case PackExt("PCS"):
 			return DecodePcs(content, contentLength);
-		case PACKED_EXT("PGC"):
+		case PackExt("PGC"):
 			return DecodePgc(content, contentLength);
-		case PACKED_EXT("PGF"):
+		case PackExt("PGF"):
 			return DecodePgf(content, contentLength);
-		case PACKED_EXT("PI"):
+		case PackExt("PI"):
 			return contentLength == 10242 && DecodeC64Multicolor(320, content, 2, 0x2002, 0x2402, content[0x1f82]);
-		case PACKED_EXT("PI1"):
-		case PACKED_EXT("PI2"):
-		case PACKED_EXT("PI3"):
+		case PackExt("PI1"):
+		case PackExt("PI2"):
+		case PackExt("PI3"):
 			return DecodeStPi(content, contentLength);
-		case PACKED_EXT("PI4"):
-		case PACKED_EXT("PI9"):
+		case PackExt("PI4"):
+		case PackExt("PI9"):
 			return DecodePi4(content, contentLength);
-		case PACKED_EXT("PIC"):
+		case PackExt("PIC"):
 			return DecodePic(content, contentLength);
-		case PACKED_EXT("PL4"):
+		case PackExt("PL4"):
 			return DecodePl4(content, contentLength);
-		case PACKED_EXT("PLA"):
+		case PackExt("PLA"):
 			return DecodePla(content, contentLength);
-		case PACKED_EXT("PLM"):
+		case PackExt("PLM"):
 			return DecodeApc(content, contentLength);
-		case PACKED_EXT("PMD"):
+		case PackExt("PMD"):
 			return DecodePmd(content, contentLength);
-		case PACKED_EXT("PMG"):
+		case PackExt("PMG"):
 			return DecodePmg(content, contentLength);
-		case PACKED_EXT("RAW"):
+		case PackExt("RAW"):
 			return DecodeRaw(content, contentLength);
-		case PACKED_EXT("RGB"):
+		case PackExt("RGB"):
 			return DecodeAtari8Rgb(content, contentLength)
 				|| DecodeZxRgb(content, contentLength);
-		case PACKED_EXT("RIP"):
+		case PackExt("RIP"):
 			return DecodeRip(content, contentLength);
-		case PACKED_EXT("RM0"):
+		case PackExt("RM0"):
 			return DecodeRm(content, contentLength, 0, RECOILResolution.Xe2x2);
-		case PACKED_EXT("RM1"):
+		case PackExt("RM1"):
 			return DecodeRm(content, contentLength, 1, RECOILResolution.Xe4x1);
-		case PACKED_EXT("RM2"):
+		case PackExt("RM2"):
 			return DecodeRm(content, contentLength, 2, RECOILResolution.Xe4x1);
-		case PACKED_EXT("RM3"):
+		case PackExt("RM3"):
 			return DecodeRm(content, contentLength, 3, RECOILResolution.Xe4x1);
-		case PACKED_EXT("RM4"):
+		case PackExt("RM4"):
 			return DecodeRm(content, contentLength, 4, RECOILResolution.Xe2x1);
-		case PACKED_EXT("RP"):
+		case PackExt("RP"):
 			return contentLength == 10242 && DecodeC64Multicolor(320, content, 0x402, 2, 0x2402, 0);
-		case PACKED_EXT("RYS"):
+		case PackExt("RYS"):
 			return DecodeRys(content, contentLength);
-		case PACKED_EXT("SAR"):
+		case PackExt("SAR"):
 			return contentLength == 10018 && DecodeC64Multicolor(320, content, 0x402, 2, 0x2402, content[0x3f2]);
-		case PACKED_EXT("SC2"):
-		case PACKED_EXT("GRP"):
+		case PackExt("SC2"):
+		case PackExt("GRP"):
 			return DecodeSc2(content, contentLength);
-		case PACKED_EXT("SC8"):
+		case PackExt("SC8"):
 			return DecodeSc8(content, contentLength);
-		case PACKED_EXT("SCA"):
+		case PackExt("SCA"):
 			return DecodeSca(content, contentLength);
-		case PACKED_EXT("SCC"):
-		case PACKED_EXT("SRS"):
+		case PackExt("SCC"):
+		case PackExt("SRS"):
 			return DecodeScc(content, contentLength);
-		case PACKED_EXT("SCR"):
+		case PackExt("SCR"):
 			return DecodeScr(content, contentLength);
-		case PACKED_EXT("SCS4"):
+		case PackExt("SCS4"):
 			return DecodeScs4(content, contentLength);
-		case PACKED_EXT("SGE"):
+		case PackExt("SGE"):
 			return DecodeSge(content, contentLength);
-		case PACKED_EXT("SHC"):
+		case PackExt("SHC"):
 			return DecodeShc(content, contentLength);
-		case PACKED_EXT("SHP"):
+		case PackExt("SHP"):
 			return DecodeShp(content, contentLength);
-		case PACKED_EXT("SIF"):
+		case PackExt("SIF"):
 			return DecodeSif(content, contentLength);
-		case PACKED_EXT("SPC"):
+		case PackExt("SPC"):
 			return DecodeStSpc(content, contentLength)
 				|| DecodeAtari8Spc(content, contentLength);
-		case PACKED_EXT("SPS"):
+		case PackExt("SPS"):
 			return DecodeSps(content, contentLength);
-		case PACKED_EXT("SPU"):
+		case PackExt("SPU"):
 			return DecodeSpu(content, contentLength);
-		case PACKED_EXT("SR8"):
+		case PackExt("SR8"):
 			return DecodeSr8(content, contentLength);
-		case PACKED_EXT("SXS"):
+		case PackExt("SXS"):
 			return DecodeSxs(content, contentLength);
-		case PACKED_EXT("TIP"):
+		case PackExt("TIP"):
 			return DecodeTip(content, contentLength);
-		case PACKED_EXT("TN1"):
-		case PACKED_EXT("TN2"):
-		case PACKED_EXT("TN3"):
-		case PACKED_EXT("TNY"):
+		case PackExt("TN1"):
+		case PackExt("TN2"):
+		case PackExt("TN3"):
+		case PackExt("TNY"):
 			return DecodeTny(content, contentLength);
-		case PACKED_EXT("TRP"):
+		case PackExt("TRP"):
 			return DecodeTrp(content, contentLength);
-		case PACKED_EXT("TRU"):
+		case PackExt("TRU"):
 			return DecodeTru(content, contentLength);
-		case PACKED_EXT("VIC"):
+		case PackExt("VIC"):
 			return DecodeVic(content, contentLength);
-		case PACKED_EXT("VZI"):
+		case PackExt("VZI"):
 			return DecodeVzi(content, contentLength);
-		case PACKED_EXT("WND"):
+		case PackExt("WND"):
 			return DecodeWnd(content, contentLength);
-		case PACKED_EXT("XLP"):
+		case PackExt("XLP"):
 			return DecodeXlp(content, contentLength);
-		case PACKED_EXT("ZXP"):
+		case PackExt("ZXP"):
 			return DecodeZxp(content, contentLength);
 		default:
 			return false;
