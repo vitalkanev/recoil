@@ -1530,7 +1530,7 @@ class PInterpreter : Stream
 		}
 	}
 
-	bool If()
+	bool DoIf()
 	{
 		return ReadByte() == 0xc6 // LEN
 			&& ReadByte() == 0x26 // A
@@ -1541,7 +1541,7 @@ class PInterpreter : Stream
 			&& ReadByte() == 0xe3; // STOP
 	}
 
-	bool For()
+	bool DoFor()
 	{
 		BottomCode |= ForF;
 		return ReadByte() == 0x2b // F
@@ -1616,11 +1616,11 @@ class PInterpreter : Stream
 					return false;
 				break;
 			case 0xfa: // IF
-				if (!If())
+				if (!DoIf())
 					return false;
 				break;
 			case 0xeb: // FOR
-				if (!For())
+				if (!DoFor())
 					return false;
 				break;
 			case 0xf4: // POKE
