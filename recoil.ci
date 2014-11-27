@@ -7486,6 +7486,7 @@ public class RECOIL
 		case PackExt("HPM"):
 		case PackExt("HR"):
 		case PackExt("HR2"):
+		case PackExt("HCI"):
 		case PackExt("ICE"):
 		case PackExt("ICN"):
 		case PackExt("IFF"):
@@ -7812,6 +7813,7 @@ public class RECOIL
 		case PackExt("HR"):
 			return DecodeHr(content, contentLength);
 		case PackExt("HR2"):
+		case PackExt("HCI"):
 			return DecodeHr2(content, contentLength);
 		case PackExt("ICE"):
 			return contentLength > 2048 && DecodeAtari8Ice(content, contentLength, true, content[0]);

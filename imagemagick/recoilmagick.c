@@ -211,6 +211,7 @@ static const struct Format {
 	{ "HAM6", "Hold-And-Modify 6; 4096 colors" },
 	{ "HAM8", "Hold-And-Modify 8; 16777216 colors" },
 	{ "HBM", "Hires Bitmap; 320x200, mono" },
+	{ "HCI", "320x200, 5 colors, 2 frames" },
 	{ "HED", "Hi-Eddi; 320x200, 16 colors" },
 	{ "HFC", "Hires FLI by Crest; 296x112, 16 colors" },
 	{ "HGB", "HinterGrundBild; 512x256, mono" },

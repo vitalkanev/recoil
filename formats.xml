@@ -67,7 +67,10 @@
 		<format name="Hard Interlace Picture" width="160" height="200" grayscale="30" frames="2"><ext>HIP</ext></format>
 		<format name="Grass' Slideshow" width="160" height="192" colors="4" compressed="yes"><ext>HPM</ext></format>
 		<format width="256" height="239" colors="3" frames="2"><ext>HR</ext></format>
-		<format width="320" height="200" colors="5" frames="2"><ext>HR2</ext></format>
+		<format width="320" height="200" colors="5" frames="2">
+			<ext name="High resolution Color Interlace">HCI</ext>
+			<ext>HR2</ext>
+		</format>
 		<format name="Interlace Character Editor font" frames="2"><ext>ICE</ext></format>
 		<format name="ICE CIN" width="160" height="192" colors="80" frames="2"><ext>ICN</ext></format>
 		<format name="Interlace Graphics Editor" width="128" height="96" colors="16" frames="2"><ext>IGE</ext></format>

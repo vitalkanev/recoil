@@ -172,6 +172,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".ham6", "Hold-And-Modify 6; 4096 colors"),
 				new RecoilFileType(".ham8", "Hold-And-Modify 8; 16777216 colors"),
 				new RecoilFileType(".hbm", "Hires Bitmap; 320x200, mono"),
+				new RecoilFileType(".hci", "320x200, 5 colors, 2 frames"),
 				new RecoilFileType(".hed", "Hi-Eddi; 320x200, 16 colors"),
 				new RecoilFileType(".hfc", "Hires FLI by Crest; 296x112, 16 colors"),
 				new RecoilFileType(".hgb", "HinterGrundBild; 512x256, mono"),
