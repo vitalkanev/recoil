@@ -128,6 +128,7 @@ MAX:: "XL-Paint MAX", 160x192, 2 frames, compressed.
 MBG:: "Mad Designer", 512x256, mono.
 MCH:: "Graph2Font", up to 176x240, 128 colors.
 MCP:: "McPainter", 160x200, 16 colors, 2 frames.
+MCPP:: "Paradox", 160x200, 8 colors.
 MCS:: 160x192, 9 colors.
 MGP:: "Magic Painter", 160x96, 4 colors with optional rainbow effect.
 MIC:: "Micro Illustrator" / "Graphics 15" , up to 160x240, 4 colors.

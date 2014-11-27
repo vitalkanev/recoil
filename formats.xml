@@ -90,6 +90,7 @@
 		<format name="Mad Designer" width="512" height="256" colors="2"><ext>MBG</ext></format>
 		<format name="Graph2Font" maxWidth="176" height="240" colors="128"><ext>MCH</ext></format>
 		<format name="McPainter" width="160" height="200" colors="16" frames="2"><ext>MCP</ext></format>
+		<format name="Paradox" width="160" height="200" colors="8"><ext>MCPP</ext></format>
 		<format width="160" height="192" colors="9"><ext>MCS</ext></format>
 		<format name="Magic Painter" width="160" height="96"><ext>MGP</ext></format>
 		<format name="Micro Illustrator / Graphics 15" width="160" maxHeight="240" colors="4"><ext>MIC</ext></format>

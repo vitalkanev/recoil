@@ -5358,6 +5358,19 @@ public class RECOIL
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
+	bool DecodeMcpp(byte[] content, int contentLength)
+	{
+		if (contentLength != 8008)
+			return false;
+		SetSize(320, 200, RECOILResolution.Xe2x1);
+		byte[320 * 200] frame;
+		SetPF012Bak(content, 8000);
+		DecodeAtari8Gr15(content, 0, 40, frame, 0, 640, 100);
+		SetPF012Bak(content, 8004);
+		DecodeAtari8Gr15(content, 4000, 40, frame, 320, 640, 100);
+		return ApplyAtari8Palette(frame);
+	}
+
 	// INP, ING
 	bool DecodeInp(byte[] content, int contentLength)
 	{
@@ -7529,6 +7542,7 @@ public class RECOIL
 		case PackExt("MCH"):
 		case PackExt("MCI"):
 		case PackExt("MCP"):
+		case PackExt("MCPP"):
 		case PackExt("MCS"):
 		case PackExt("MG1"):
 		case PackExt("MG2"):
@@ -7893,6 +7907,8 @@ public class RECOIL
 			return DecodeMci(content, contentLength);
 		case PackExt("MCP"):
 			return DecodeMcp(content, contentLength);
+		case PackExt("MCPP"):
+			return DecodeMcpp(content, contentLength);
 		case PackExt("MCS"):
 			return DecodeMcs(content, contentLength);
 		case PackExt("MG1"):
