@@ -141,6 +141,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".drp", "Drazpaint; 160x200, 16 colors, compressed"),
 				new RecoilFileType(".drz", "Drazpaint; 160x200, 16 colors"),
 				new RecoilFileType(".du1", "416x273, 136 colors, 2 frames"),
+				new RecoilFileType(".du2", "832x273, 10 colors, 2 frames"),
 				new RecoilFileType(".duo", "416x273, 136 colors, 2 frames"),
 				new RecoilFileType(".eci", "ECI Graphic Editor; 296x200, 2 frames"),
 				new RecoilFileType(".ecp", "ECI Graphic Editor; 296x200, 2 frames, compressed"),

@@ -1679,7 +1679,7 @@ public class RECOIL
 	/// Maximum height of a decoded image.
 	public const int MaxHeight = 1024;
 	/// Maximum number of pixels in a decoded image.
-	public const int MaxPixelsLength = 576 * 720;
+	public const int MaxPixelsLength = 832 * 546 * 2;
 
 	/// Decoded image width.
 	int Width;
@@ -3300,17 +3300,19 @@ public class RECOIL
 		return true;
 	}
 
-	void DecodeStMedium(byte[] bitmap, int bitmapOffset, byte[] palette, int paletteOffset)
+	void DecodeStMedium(byte[] bitmap, int bitmapOffset, byte[] palette, int paletteOffset, int width, int height, int blend)
 	{
-		SetSize(640, 400, IsStePalette(palette, paletteOffset, 4) ? RECOILResolution.Ste1x2 : RECOILResolution.St1x2);
+		SetSize(width, height << 1, IsStePalette(palette, paletteOffset, 4) ? RECOILResolution.Ste1x2 : RECOILResolution.St1x2);
 		SetStPalette(palette, paletteOffset, 4);
-		for (int y = 0; y < 200; y++) {
-			for (int x = 0; x < 640; x++) {
-				int offset = bitmapOffset + y * 160 + (x >> 2 & ~3) + (x >> 3 & 1);
+		height <<= blend;
+		for (int y = 0; y < height; y++) {
+			int lineOffset = y * width;
+			for (int x = 0; x < width; x++) {
+				int offset = bitmapOffset + (lineOffset >> 2) + (x >> 2 & ~3) + (x >> 3 & 1);
 				int bit = ~x & 7;
 				int c = bitmap[offset] >> bit & 1 | (bitmap[offset + 2] >> bit & 1) << 1;
-				int pixelsOffset = y * 1280 + x;
-				Pixels[pixelsOffset + 640] = Pixels[pixelsOffset] = ContentPalette[c];
+				int pixelsOffset = (lineOffset << 1) + x;
+				Pixels[pixelsOffset + width] = Pixels[pixelsOffset] = ContentPalette[c];
 			}
 		}
 	}
@@ -3321,7 +3323,7 @@ public class RECOIL
 		case 0:
 			return DecodeStLow(bitmap, bitmapOffset, palette, paletteOffset, 320, 200);
 		case 1:
-			DecodeStMedium(bitmap, bitmapOffset, palette, paletteOffset);
+			DecodeStMedium(bitmap, bitmapOffset, palette, paletteOffset, 640, 200, 0);
 			return true;
 		case 2:
 			DecodeBlackAndWhite(bitmap, bitmapOffset, 640, 400, RECOILResolution.St1x1);
@@ -3625,6 +3627,14 @@ public class RECOIL
 			return false;
 		DecodeStLow(content, 32, content, 0, 416, 273);
 		DecodeBitplanes(content, 32 + 208 * 273, 4, 416 * 273, 416 * 273);
+		return ApplyBlend();
+	}
+
+	bool DecodeDu2(byte[] content, int contentLength)
+	{
+		if (contentLength != 113576)
+			return false;
+		DecodeStMedium(content, 8, content, 0, 832, 273, 1);
 		return ApplyBlend();
 	}
 
@@ -7462,6 +7472,7 @@ public class RECOIL
 		case PackExt("DRP"):
 		case PackExt("DU1"):
 		case PackExt("DUO"):
+		case PackExt("DU2"):
 		case PackExt("ECI"):
 		case PackExt("ECP"):
 		case PackExt("FD2"):
@@ -7758,6 +7769,8 @@ public class RECOIL
 		case PackExt("DU1"):
 		case PackExt("DUO"):
 			return DecodeDuo(content, contentLength);
+		case PackExt("DU2"):
+			return DecodeDu2(content, contentLength);
 		case PackExt("ECI"):
 			return DecodeEci(content, contentLength);
 		case PackExt("ECP"):
