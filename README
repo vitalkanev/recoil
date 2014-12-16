@@ -184,7 +184,7 @@ CA2:: "CrackArt", 640x200, 4 colors, compressed.
 CA3:: "CrackArt", 640x400, mono, compressed.
 CPT:: "Canvas", compressed.
 DOO:: "Doodle", 640x400, mono.
-DUO:: 416x273, 136 colors, 2 frames.
+DU1, DUO:: 416x273, 136 colors, 2 frames.
 GFB:: "DeskPic".
 ICN:: "DEGAS Elite" icon, mono.
 IFF:: "Interchange File Format", compressed.

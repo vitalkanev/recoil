@@ -179,6 +179,7 @@ static const struct Format {
 	{ "DRL", "Drazlace; up to 320x200, 2 frames" },
 	{ "DRP", "Drazpaint; 160x200, 16 colors, compressed" },
 	{ "DRZ", "Drazpaint; 160x200, 16 colors" },
+	{ "DU1", "416x273, 136 colors, 2 frames" },
 	{ "DUO", "416x273, 136 colors, 2 frames" },
 	{ "ECI", "ECI Graphic Editor; 296x200, 2 frames" },
 	{ "ECP", "ECI Graphic Editor; 296x200, 2 frames, compressed" },

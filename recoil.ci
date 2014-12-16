@@ -7460,6 +7460,7 @@ public class RECOIL
 		case PackExt("DLP"):
 		case PackExt("DRZ"):
 		case PackExt("DRP"):
+		case PackExt("DU1"):
 		case PackExt("DUO"):
 		case PackExt("ECI"):
 		case PackExt("ECP"):
@@ -7754,6 +7755,7 @@ public class RECOIL
 		case PackExt("DRZ"):
 		case PackExt("DRP"):
 			return DecodeDrz(content, contentLength);
+		case PackExt("DU1"):
 		case PackExt("DUO"):
 			return DecodeDuo(content, contentLength);
 		case PackExt("ECI"):
