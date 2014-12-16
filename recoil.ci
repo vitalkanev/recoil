@@ -3632,7 +3632,7 @@ public class RECOIL
 
 	bool DecodeDu2(byte[] content, int contentLength)
 	{
-		if (contentLength != 113576)
+		if (contentLength != 113576 && contentLength != 113600)
 			return false;
 		DecodeStMedium(content, 8, content, 0, 832, 273, 1);
 		return ApplyBlend();
