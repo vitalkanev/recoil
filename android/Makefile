@@ -1,11 +1,11 @@
 ANDROID_SDK = C:/bin/android-sdk-windows
 ANDROID_JAR = $(ANDROID_SDK)/platforms/android-19/android.jar
-ANDROID_BUILD_TOOLS = $(ANDROID_SDK)/build-tools/19.0.1
+ANDROID_BUILD_TOOLS = $(ANDROID_SDK)/build-tools/21.1.2
 
 AAPT = $(ANDROID_BUILD_TOOLS)/aapt
 DX = java -jar "$(ANDROID_BUILD_TOOLS)/lib/dx.jar" --no-strict
 JARSIGNER = jarsigner -sigalg SHA1withRSA -digestalg SHA1
-ZIPALIGN = $(ANDROID_SDK)/tools/zipalign
+ZIPALIGN = $(ANDROID_BUILD_TOOLS)/zipalign
 ADB = $(ANDROID_SDK)/platform-tools/adb
 ANDROID = $(ANDROID_SDK)/tools/android.bat
 EMULATOR = $(ANDROID_SDK)/tools/emulator
