@@ -41,7 +41,7 @@ classes/net/sf/recoil/RECOIL.class: About.java FileSelector.java FileUtil.java G
 gen/net/sf/recoil/RECOIL.java: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../zx81.fnt
 	mkdir -p $(@D) && cito -n net.sf.recoil -o $@ -I .. $<
 
-AndroidRECOIL-resources.apk: AndroidManifest.xml res/drawable/ic_launcher.png res/layout/error.xml res/layout/filename_list_item.xml res/layout/gallery.xml res/menu/file_selector.xml res/menu/viewer.xml res/values/strings.xml assets/net/sf/recoil/atari8.fnt assets/net/sf/recoil/altirrapal.pal assets/net/sf/recoil/c16.pal
+AndroidRECOIL-resources.apk: AndroidManifest.xml res/drawable/ic_launcher.png res/layout/error.xml res/layout/filename_list_item.xml res/layout/gallery.xml res/menu/file_selector.xml res/menu/viewer.xml res/values/strings.xml res/values-pl/strings.xml assets/net/sf/recoil/atari8.fnt assets/net/sf/recoil/altirrapal.pal assets/net/sf/recoil/c16.pal
 	mkdir -p gen && $(AAPT) p -f -m -M $< -I $(ANDROID_JAR) -S res -F $@ -J gen assets
 
 res/drawable/ic_launcher.png: ../recoil-512x512.png
