@@ -6,6 +6,7 @@
 			package="net.sf.recoil" android:versionCode="310" android:versionName="3.1.0" android:installLocation="auto">
 			<uses-sdk android:minSdkVersion="4" android:targetSdkVersion="19" />
 			<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+			<supports-screens android:largeScreens="true" android:xlargeScreens="true" />
 			<application android:label="@string/app_name" android:icon="@drawable/ic_launcher" android:description="@string/app_description">
 				<activity android:name=".FileSelector" android:label="@string/app_name">
 					<intent-filter>
