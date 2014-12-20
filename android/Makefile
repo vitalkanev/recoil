@@ -12,7 +12,7 @@ EMULATOR = $(ANDROID_SDK)/tools/emulator
 
 ANDROID_RELEASE = recoil-3.1.0-android.apk
 
-all: $(ANDROID_RELEASE)
+all: $(ANDROID_RELEASE) recoil-1024x500.png
 
 install-dev: $(ANDROID_RELEASE)
 	$(ADB) -d install -r $<
@@ -53,8 +53,11 @@ assets/net/sf/recoil/%: ../%
 AndroidManifest.xml: AndroidManifest.xsl ../formats.xml
 	xsltproc -o $@ AndroidManifest.xsl ../formats.xml
 
+recoil-1024x500.png: ../recoil-512x512.png
+	convert $< -crop 334x163+89+140 -sample 1024x500 -quality 95 -strip $@
+
 clean:
-	$(RM) *.apk classes.dex res/drawable/ic_launcher.png AndroidManifest.xml
+	$(RM) *.apk classes.dex res/drawable/ic_launcher.png AndroidManifest.xml recoil-1024x500.png
 	rm -rf classes gen assets
 
 .PHONY: all install-dev install-emu log-dev clean
