@@ -188,6 +188,13 @@
 		<format name="EggPaint" colors="65536"><ext>TRP</ext></format>
 		<format name="IndyPaint" colors="65536"><ext>TRU</ext></format>
 	</platform>
+	<platform name="BBC Micro">
+		<format name="Mode 0" width="640" height="256" colors="2"><ext>BB0</ext></format>
+		<format name="Mode 1" width="320" height="256" colors="4"><ext>BB1</ext></format>
+		<format name="Mode 2" width="160" height="256" colors="8"><ext>BB2</ext></format>
+		<format name="Mode 4" width="320" height="256" colors="2"><ext>BB4</ext></format>
+		<format name="Mode 5" width="160" height="256" colors="4"><ext>BB5</ext></format>
+	</platform>
 	<platform name="Commodore 16">
 		<format maxWidth="160" maxHeight="200" colors="121"><ext>P4I</ext></format>
 	</platform>

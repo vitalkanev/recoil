@@ -37,6 +37,9 @@ enum RECOILResolution
 	Ste1x1,
 	Ste1x2,
 	Falcon1x1,
+	Bbc1x1,
+	Bbc2x1,
+	Bbc1x2,
 	C162x1,
 	C641x1,
 	C642x1,
@@ -1737,6 +1740,10 @@ public class RECOIL
 			return "Atari STE";
 		case RECOILResolution.Falcon1x1:
 			return "Atari Falcon";
+		case RECOILResolution.Bbc1x1:
+		case RECOILResolution.Bbc2x1:
+		case RECOILResolution.Bbc1x2:
+			return "BBC Micro";
 		case RECOILResolution.C162x1:
 			return "Commodore 16";
 		case RECOILResolution.C641x1:
@@ -1761,6 +1768,7 @@ public class RECOIL
 		switch (Resolution) {
 		case RECOILResolution.Xe2x1:
 		case RECOILResolution.Xe2x2:
+		case RECOILResolution.Bbc2x1:
 		case RECOILResolution.C162x1:
 		case RECOILResolution.C642x1:
 			return Width >> 1;
@@ -1781,6 +1789,7 @@ public class RECOIL
 		case RECOILResolution.Xe4x2:
 		case RECOILResolution.St1x2:
 		case RECOILResolution.Ste1x2:
+		case RECOILResolution.Bbc1x2:
 			return Height >> 1;
 		default:
 			return Height;
@@ -1971,6 +1980,105 @@ public class RECOIL
 		return true;
 	}
 
+	// BBC micro formats.
+
+	const int[4] BbcPalette2Bit = {
+		0x000000,
+		0xff0000,
+		0xffff00,
+		0xffffff
+	};
+
+	bool DecodeBb0(byte[] content, int contentLength)
+	{
+		if (contentLength != 20480)
+			return false;
+		SetSize(640, 512, RECOILResolution.Bbc1x2);
+		for (int y = 0; y < 256; y++) {
+			for (int x = 0; x < 640; x++) {
+				int c = content[(y & ~7) * 80 + (x & ~7) + (y & 7)] >> (~x & 7) & 1;
+				if (c != 0)
+					c = 0xffffff;
+				int pixelsOffset = y * 1280 + x;
+				Pixels[pixelsOffset + 640] = Pixels[pixelsOffset] = c;
+			}
+		}
+		return true;
+	}
+
+	bool DecodeBb1(byte[] content, int contentLength)
+	{
+		if (contentLength != 20480)
+			return false;
+		SetSize(320, 256, RECOILResolution.Bbc1x1);
+		for (int y = 0; y < 256; y++) {
+			for (int x = 0; x < 320; x++) {
+				int c = content[(y & ~7) * 80 + ((x & ~3) << 1) + (y & 7)] >> (~x & 3);
+				Pixels[y * 320 + x] = BbcPalette2Bit[(c >> 3 & 2) + (c & 1)];
+			}
+		}
+		return true;
+	}
+
+	bool DecodeBb2(byte[] content, int contentLength)
+	{
+		if (contentLength != 20480)
+			return false;
+		SetSize(320, 256, RECOILResolution.Bbc2x1);
+		for (int y = 0; y < 256; y++) {
+			for (int x = 0; x < 160; x++) {
+				int c = content[(y & ~7) * 80 + ((x & ~1) << 2) + (y & 7)] >> (~x & 1);
+				// Colors 8-15 are flashing with the negative color
+				// (e.g. color 9 = color 1 alternated with color 6).
+				// We don't support flashing here and just make colors 8-15 identical to 0-7.
+				const int[8] bbcPalette = {
+					0x000000,
+					0xff0000,
+					0x00ff00,
+					0xffff00,
+					0x0000ff,
+					0xff00ff,
+					0x00ffff,
+					0xffffff
+				};
+				int pixelsOffset = (y * 160 + x) << 1;
+				Pixels[pixelsOffset + 1] = Pixels[pixelsOffset] = bbcPalette[(c >> 2 & 4) + (c >> 1 & 2) + (c & 1)];
+			}
+		}
+		return true;
+	}
+
+	bool DecodeBb4(byte[] content, int contentLength)
+	{
+		if (contentLength != 10240)
+			return false;
+		SetSize(320, 256, RECOILResolution.Bbc1x1);
+		for (int y = 0; y < 256; y++) {
+			for (int x = 0; x < 320; x++) {
+				int c = content[(y & ~7) * 40 + (x & ~7) + (y & 7)] >> (~x & 7) & 1;
+				if (c != 0)
+					c = 0xffffff;
+				Pixels[y * 320 + x] = c;
+			}
+		}
+		return true;
+	}
+
+	bool DecodeBb5(byte[] content, int contentLength)
+	{
+		if (contentLength != 10240)
+			return false;
+		SetSize(320, 256, RECOILResolution.Bbc2x1);
+		for (int y = 0; y < 256; y++) {
+			for (int x = 0; x < 160; x++) {
+				int c = content[(y & ~7) * 40 + ((x & ~3) << 1) + (y & 7)] >> (~x & 3);
+				int pixelsOffset = (y * 160 + x) << 1;
+				Pixels[pixelsOffset + 1] = Pixels[pixelsOffset] = BbcPalette2Bit[(c >> 3 & 2) + (c & 1)];
+			}
+		}
+		return true;
+	}
+
 	// Amstrad CPC formats.
 
 	static int GetAmstradHeader(byte[] content, int contentLength)
@@ -2036,7 +2144,7 @@ public class RECOIL
 		return DecodeAmstradMode2(unpacked, 0, 640, 200);
 	}
 
-	// ZX80 formats.
+	// ZX81 formats.
 
 	bool DecodeP(byte[] content, int contentLength)
 	{
@@ -7432,6 +7540,11 @@ public class RECOIL
 		case PackExt("APP"):
 		case PackExt("ART"):
 		case PackExt("ATR"):
+		case PackExt("BB0"):
+		case PackExt("BB1"):
+		case PackExt("BB2"):
+		case PackExt("BB4"):
+		case PackExt("BB5"):
 		case PackExt("BFLI"):
 		case PackExt("BG9"):
 		case PackExt("G09"):
@@ -7700,6 +7813,16 @@ public class RECOIL
 				|| DecodeAsciiArtEditor(content, contentLength);
 		case PackExt("ATR"):
 			return DecodeAtr(content, contentLength);
+		case PackExt("BB0"):
+			return DecodeBb0(content, contentLength);
+		case PackExt("BB1"):
+			return DecodeBb1(content, contentLength);
+		case PackExt("BB2"):
+			return DecodeBb2(content, contentLength);
+		case PackExt("BB4"):
+			return DecodeBb4(content, contentLength);
+		case PackExt("BB5"):
+			return DecodeBb5(content, contentLength);
 		case PackExt("BFLI"):
 			return DecodeBfli(content, contentLength);
 		case PackExt("BG9"):
