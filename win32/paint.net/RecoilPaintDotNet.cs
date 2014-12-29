@@ -24,7 +24,6 @@
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -50,7 +49,7 @@ namespace Recoil.PaintDotNet
 		{
 		}
 
-		protected override Document OnLoad(Stream input)
+		protected override Document OnLoad(System.IO.Stream input)
 		{
 			// Read.
 			byte[] content = new byte[RECOIL.MaxContentLength];
