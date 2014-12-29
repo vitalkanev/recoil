@@ -2026,6 +2026,28 @@ public class RECOIL
 
 	// BBC micro formats.
 
+	const int[16] BbcPalette = {
+		0x000000,
+		0xff0000,
+		0x00ff00,
+		0xffff00,
+		0x0000ff,
+		0xff00ff,
+		0x00ffff,
+		0xffffff,
+		// Colors 8-15 are flashing with the negative color
+		// (e.g. color 9 = color 1 alternated with color 6).
+		// We don't support flashing here and just make colors 8-15 identical to 0-7.
+		0x000000,
+		0xff0000,
+		0x00ff00,
+		0xffff00,
+		0x0000ff,
+		0xff00ff,
+		0x00ffff,
+		0xffffff
+	};
+
 	const int[4] BbcPalette2Bit = {
 		0x000000,
 		0xff0000,
@@ -2033,7 +2055,12 @@ public class RECOIL
 		0xffffff
 	};
 
-	bool DecodeBb0(byte[] content, int contentLength)
+	const int[2] BbcPalette1Bit = {
+		0x000000,
+		0xffffff
+	};
+
+	bool DecodeBb0(byte[] content, int contentLength, int[] palette)
 	{
 		if (contentLength != 20480)
 			return false;
@@ -2041,16 +2068,14 @@ public class RECOIL
 		for (int y = 0; y < 256; y++) {
 			for (int x = 0; x < 640; x++) {
 				int c = content[(y & ~7) * 80 + (x & ~7) + (y & 7)] >> (~x & 7) & 1;
-				if (c != 0)
-					c = 0xffffff;
 				int pixelsOffset = y * 1280 + x;
-				Pixels[pixelsOffset + 640] = Pixels[pixelsOffset] = c;
+				Pixels[pixelsOffset + 640] = Pixels[pixelsOffset] = palette[c];
 			}
 		}
 		return true;
 	}
 
-	bool DecodeBb1(byte[] content, int contentLength)
+	bool DecodeBb1(byte[] content, int contentLength, int[] palette)
 	{
 		if (contentLength != 20480)
 			return false;
@@ -2058,13 +2083,13 @@ public class RECOIL
 		for (int y = 0; y < 256; y++) {
 			for (int x = 0; x < 320; x++) {
 				int c = content[(y & ~7) * 80 + ((x & ~3) << 1) + (y & 7)] >> (~x & 3);
-				Pixels[y * 320 + x] = BbcPalette2Bit[(c >> 3 & 2) + (c & 1)];
+				Pixels[y * 320 + x] = palette[(c >> 3 & 2) + (c & 1)];
 			}
 		}
 		return true;
 	}
 
-	bool DecodeBb2(byte[] content, int contentLength)
+	bool DecodeBb2(byte[] content, int contentLength, int[] palette)
 	{
 		if (contentLength != 20480)
 			return false;
@@ -2072,27 +2097,14 @@ public class RECOIL
 		for (int y = 0; y < 256; y++) {
 			for (int x = 0; x < 160; x++) {
 				int c = content[(y & ~7) * 80 + ((x & ~1) << 2) + (y & 7)] >> (~x & 1);
-				// Colors 8-15 are flashing with the negative color
-				// (e.g. color 9 = color 1 alternated with color 6).
-				// We don't support flashing here and just make colors 8-15 identical to 0-7.
-				const int[8] bbcPalette = {
-					0x000000,
-					0xff0000,
-					0x00ff00,
-					0xffff00,
-					0x0000ff,
-					0xff00ff,
-					0x00ffff,
-					0xffffff
-				};
 				int pixelsOffset = (y * 160 + x) << 1;
-				Pixels[pixelsOffset + 1] = Pixels[pixelsOffset] = bbcPalette[(c >> 2 & 4) + (c >> 1 & 2) + (c & 1)];
+				Pixels[pixelsOffset + 1] = Pixels[pixelsOffset] = palette[(c >> 3 & 8) + (c >> 2 & 4) + (c >> 1 & 2) + (c & 1)];
 			}
 		}
 		return true;
 	}
 
-	bool DecodeBb4(byte[] content, int contentLength)
+	bool DecodeBb4(byte[] content, int contentLength, int[] palette)
 	{
 		if (contentLength != 10240)
 			return false;
@@ -2100,15 +2112,13 @@ public class RECOIL
 		for (int y = 0; y < 256; y++) {
 			for (int x = 0; x < 320; x++) {
 				int c = content[(y & ~7) * 40 + (x & ~7) + (y & 7)] >> (~x & 7) & 1;
-				if (c != 0)
-					c = 0xffffff;
-				Pixels[y * 320 + x] = c;
+				Pixels[y * 320 + x] = palette[c];
 			}
 		}
 		return true;
 	}
 
-	bool DecodeBb5(byte[] content, int contentLength)
+	bool DecodeBb5(byte[] content, int contentLength, int[] palette)
 	{
 		if (contentLength != 10240)
 			return false;
@@ -2117,7 +2127,7 @@ public class RECOIL
 			for (int x = 0; x < 160; x++) {
 				int c = content[(y & ~7) * 40 + ((x & ~3) << 1) + (y & 7)] >> (~x & 3);
 				int pixelsOffset = (y * 160 + x) << 1;
-				Pixels[pixelsOffset + 1] = Pixels[pixelsOffset] = BbcPalette2Bit[(c >> 3 & 2) + (c & 1)];
+				Pixels[pixelsOffset + 1] = Pixels[pixelsOffset] = palette[(c >> 3 & 2) + (c & 1)];
 			}
 		}
 		return true;
@@ -2147,8 +2157,12 @@ public class RECOIL
 		default:
 			return false;
 		}
-		for (int c = 15; c >= 0; c--)
-			rle.ReadBitsReverse(4); // TODO: palette
+		for (int i = 15; i >= 0; i--) {
+			int c = rle.ReadBitsReverse(4);
+			if (c < 0)
+				return false;
+			ContentPalette[i] = BbcPalette[c];
+		}
 		int unpackedStep = rle.ReadBitsReverse(8);
 		if (unpackedStep <= 0)
 			return false;
@@ -2172,15 +2186,15 @@ public class RECOIL
 
 		switch (mode) {
 		case 0:
-			return DecodeBb0(unpacked, unpackedLength);
+			return DecodeBb0(unpacked, unpackedLength, ContentPalette);
 		case 1:
-			return DecodeBb1(unpacked, unpackedLength);
+			return DecodeBb1(unpacked, unpackedLength, ContentPalette);
 		case 2:
-			return DecodeBb2(unpacked, unpackedLength);
+			return DecodeBb2(unpacked, unpackedLength, ContentPalette);
 		case 4:
-			return DecodeBb4(unpacked, unpackedLength);
+			return DecodeBb4(unpacked, unpackedLength, ContentPalette);
 		case 5:
-			return DecodeBb5(unpacked, unpackedLength);
+			return DecodeBb5(unpacked, unpackedLength, ContentPalette);
 		default:
 			return false;
 		}
@@ -7922,15 +7936,15 @@ public class RECOIL
 		case PackExt("ATR"):
 			return DecodeAtr(content, contentLength);
 		case PackExt("BB0"):
-			return DecodeBb0(content, contentLength);
+			return DecodeBb0(content, contentLength, BbcPalette1Bit);
 		case PackExt("BB1"):
-			return DecodeBb1(content, contentLength);
+			return DecodeBb1(content, contentLength, BbcPalette2Bit);
 		case PackExt("BB2"):
-			return DecodeBb2(content, contentLength);
+			return DecodeBb2(content, contentLength, BbcPalette);
 		case PackExt("BB4"):
-			return DecodeBb4(content, contentLength);
+			return DecodeBb4(content, contentLength, BbcPalette1Bit);
 		case PackExt("BB5"):
-			return DecodeBb5(content, contentLength);
+			return DecodeBb5(content, contentLength, BbcPalette2Bit);
 		case PackExt("BBG"):
 			return DecodeBbg(content, contentLength);
 		case PackExt("BFLI"):
