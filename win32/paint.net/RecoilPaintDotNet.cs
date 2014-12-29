@@ -103,6 +103,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".bb2", "Mode 2; 160x256, 8 colors"),
 				new RecoilFileType(".bb4", "Mode 4; 320x256, mono"),
 				new RecoilFileType(".bb5", "Mode 5; 160x256, 4 colors"),
+				new RecoilFileType(".bbg", "LdPic"),
 				new RecoilFileType(".bfli", "Big FLI; 148x400, 16 colors"),
 				new RecoilFileType(".bg9", "160x192, 16-level grayscale"),
 				new RecoilFileType(".bgp", "Bugbiter APAC239i; 80x239, 256 colors, 2 frames"),

@@ -277,6 +277,50 @@ abstract class RleStream : BitStream
 	}
 }
 
+class BbgStream : RleStream
+{
+	int ValueBits;
+	int CountBits;
+
+	/// Reads the requested number of bits and returns them
+	/// as an unsigned integer with the first bit read as the least significant.
+	/// Returns -1 on end of stream.
+	int ReadBitsReverse(int count)
+	{
+		int result = 0;
+		for (int i = 0; i < count; i++) {
+			switch (ReadBit()) {
+			case -1:
+				return -1;
+			case 1:
+				result |= 1 << i;
+				break;
+			case 0:
+				break;
+			}
+		}
+		return result;
+	}
+
+	override bool ReadCommand()
+	{
+		switch (ReadBit()) {
+		case -1:
+			return false;
+		case 0:
+			RepeatCount = 1;
+			break;
+		case 1:
+			RepeatCount = ReadBitsReverse(CountBits);
+			if (RepeatCount <= 0)
+				return false;
+			break;
+		}
+		RepeatValue = ReadBitsReverse(ValueBits);
+		return true;
+	}
+}
+
 class C64KoalaStream : RleStream
 {
 	override bool ReadCommand()
@@ -2077,6 +2121,69 @@ public class RECOIL
 			}
 		}
 		return true;
+	}
+
+	bool DecodeBbg(byte[] content, int contentLength)
+	{
+		BbgStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 0;
+		rle.ContentLength = contentLength;
+		rle.ValueBits = rle.ReadBitsReverse(8);
+		if (rle.ValueBits < 1 || rle.ValueBits > 8)
+			return false;
+		int mode = rle.ReadBitsReverse(8);
+		int unpackedLength;
+		switch (mode) {
+		case 0:
+		case 1:
+		case 2:
+			unpackedLength = 20480;
+			break;
+		case 4:
+		case 5:
+			unpackedLength = 10240;
+			break;
+		default:
+			return false;
+		}
+		for (int c = 15; c >= 0; c--)
+			rle.ReadBitsReverse(4); // TODO: palette
+		int unpackedStep = rle.ReadBitsReverse(8);
+		if (unpackedStep <= 0)
+			return false;
+		rle.CountBits = rle.ReadBitsReverse(8);
+		if (rle.CountBits < 1 || rle.CountBits > 8)
+			return false;
+
+		byte[20480] unpacked;
+		for (int unpackedOffset = unpackedStep - 1;;) {
+			int b = rle.ReadRle();
+			if (b < 0)
+				return false;
+			unpacked[unpackedOffset] = b;
+			unpackedOffset += unpackedStep;
+			if (unpackedOffset >= unpackedLength) {
+				unpackedOffset = unpackedOffset % unpackedStep - 1;
+				if (unpackedOffset < 0)
+					break;
+			}
+		}
+
+		switch (mode) {
+		case 0:
+			return DecodeBb0(unpacked, unpackedLength);
+		case 1:
+			return DecodeBb1(unpacked, unpackedLength);
+		case 2:
+			return DecodeBb2(unpacked, unpackedLength);
+		case 4:
+			return DecodeBb4(unpacked, unpackedLength);
+		case 5:
+			return DecodeBb5(unpacked, unpackedLength);
+		default:
+			return false;
+		}
 	}
 
 	// Amstrad CPC formats.
@@ -7545,6 +7652,7 @@ public class RECOIL
 		case PackExt("BB2"):
 		case PackExt("BB4"):
 		case PackExt("BB5"):
+		case PackExt("BBG"):
 		case PackExt("BFLI"):
 		case PackExt("BG9"):
 		case PackExt("G09"):
@@ -7823,6 +7931,8 @@ public class RECOIL
 			return DecodeBb4(content, contentLength);
 		case PackExt("BB5"):
 			return DecodeBb5(content, contentLength);
+		case PackExt("BBG"):
+			return DecodeBbg(content, contentLength);
 		case PackExt("BFLI"):
 			return DecodeBfli(content, contentLength);
 		case PackExt("BG9"):

@@ -143,6 +143,7 @@ static const struct Format {
 	{ "BB2", "Mode 2; 160x256, 8 colors" },
 	{ "BB4", "Mode 4; 320x256, mono" },
 	{ "BB5", "Mode 5; 160x256, 4 colors" },
+	{ "BBG", "LdPic" },
 	{ "BFLI", "Big FLI; 148x400, 16 colors" },
 	{ "BG9", "160x192, 16-level grayscale" },
 	{ "BGP", "Bugbiter APAC239i; 80x239, 256 colors, 2 frames" },

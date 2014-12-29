@@ -194,6 +194,7 @@
 		<format name="Mode 2" width="160" height="256" colors="8"><ext>BB2</ext></format>
 		<format name="Mode 4" width="320" height="256" colors="2"><ext>BB4</ext></format>
 		<format name="Mode 5" width="160" height="256" colors="4"><ext>BB5</ext></format>
+		<format name="LdPic" maxWidth="640" height="256" compressed="yes"><ext>BBG</ext></format>
 	</platform>
 	<platform name="Commodore 16">
 		<format maxWidth="160" maxHeight="200" colors="121"><ext>P4I</ext></format>

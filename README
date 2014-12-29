@@ -232,6 +232,7 @@ BB1:: "Mode 1", 320x256, 4 colors.
 BB2:: "Mode 2", 160x256, 8 colors.
 BB4:: "Mode 4", 320x256, mono.
 BB5:: "Mode 5", 160x256, 4 colors.
+BBG:: "LdPic", compressed.
 
 Commodore 16
 ~~~~~~~~~~~~
