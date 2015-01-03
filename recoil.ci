@@ -7613,10 +7613,46 @@ public class RECOIL
 
 	// PC formats.
 
+	bool DecodeAwbm(byte[] content, int contentLength)
+	{
+		int width = content[4] | content[5] << 8;
+		if ((width & 3) != 0)
+			return false;
+		int height = content[6] | content[7] << 8;
+		int bpl = width + 7 >> 3;
+		int paletteOffset = 8 + (height * bpl << 2);
+		if (!IsStringAt(content, paletteOffset, "RGB ") || contentLength < paletteOffset + 4 + 16 * 3)
+			return false;
+		if (!SetSize(width, height, RECOILResolution.Pc1x1))
+			return false;
+		int[16] palette;
+		for (int i = 0; i < 16; i++) {
+			int r = content[paletteOffset + 4 + i * 3];
+			int g = content[paletteOffset + 5 + i * 3];
+			int b = content[paletteOffset + 6 + i * 3];
+			int rgb = r << 16 | g << 8 | b;
+			palette[i] = (rgb & 0x3f3f3f) << 2 | (rgb >> 4 & 0x030303);
+		}
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int offset = 8 + (y * bpl << 2) + (x >> 3);
+				int c = 0;
+				for (int bit = 0; bit < 4; bit++) {
+					c |= (content[offset] >> (~x & 7) & 1) << bit;
+					offset += bpl;
+				}
+				Pixels[y * width + x] = palette[c];
+			}
+		}
+		return true;
+	}
+
 	bool DecodeEpa(byte[] content, int contentLength)
 	{
-		if (contentLength < 2 + 15 + 70)
+		if (contentLength < 2 + 15)
 			return false;
+		if (IsStringAt(content, 0, "AWBM"))
+			return DecodeAwbm(content, contentLength);
 		int columns = content[0];
 		int rows = content[1];
 		if (columns > 80 || rows > 25 || contentLength != 2 + columns * rows * 15 + 70)
