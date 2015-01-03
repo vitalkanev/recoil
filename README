@@ -313,6 +313,11 @@ SCA:: "Screen 10", 256x212, 12515 colors.
 SCC, SRS:: "Screen 12", 256x212, 19268 colors.
 SR8:: "Graph Saurus", 256x212, 256 colors, compressed.
 
+PC
+~~
+[horizontal]
+EPA:: "Award BIOS logo", 16 colors.
+
 SAM Coupé
 ~~~~~~~~~
 [horizontal]

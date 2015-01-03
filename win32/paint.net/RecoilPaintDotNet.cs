@@ -1,7 +1,7 @@
 ﻿/*
  * RecoilPaintDotNet.cs - Paint.NET file type plugin
  *
- * Copyright (C) 2013-2014  Piotr Fusik
+ * Copyright (C) 2013-2015  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -34,7 +34,7 @@ using Recoil;
 //[assembly: AssemblyDescription("Decodes images in native formats of classic computers")]
 [assembly: AssemblyCompany("Piotr Fusik")]
 [assembly: AssemblyProduct("RECOIL")]
-[assembly: AssemblyCopyright("Copyright © 2013-2014")]
+[assembly: AssemblyCopyright("Copyright © 2013-2015")]
 [assembly: AssemblyVersion(RECOIL.Version + ".0")]
 [assembly: AssemblyFileVersion(RECOIL.Version + ".0")]
 
@@ -150,6 +150,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".duo", "416x273, 136 colors, 2 frames"),
 				new RecoilFileType(".eci", "ECI Graphic Editor; 296x200, 2 frames"),
 				new RecoilFileType(".ecp", "ECI Graphic Editor; 296x200, 2 frames, compressed"),
+				new RecoilFileType(".epa", "Award BIOS logo, 16 colors"),
 				new RecoilFileType(".esc", "EscalPaint; 80x192, 256 colors, 2 frames"),
 				new RecoilFileType(".fd2", "FLI Designer; 148x200, 16 colors"),
 				new RecoilFileType(".ffli", "FFLI; 148x200, 2 frames"),

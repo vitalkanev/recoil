@@ -1,7 +1,7 @@
 ﻿/*
  * MetroRECOIL.cs - Windows Store application
  *
- * Copyright (C) 2014  Piotr Fusik
+ * Copyright (C) 2014-2015  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -38,7 +38,7 @@ using Recoil;
 //[assembly: AssemblyDescription("Shows images in native formats of classic computers")]
 [assembly: AssemblyCompany("Piotr Fusik")]
 [assembly: AssemblyProduct("RECOIL")]
-[assembly: AssemblyCopyright("Copyright © 2014")]
+[assembly: AssemblyCopyright("Copyright © 2014-2015")]
 [assembly: AssemblyVersion(RECOIL.Version + ".0")]
 [assembly: AssemblyFileVersion(RECOIL.Version + ".0")]
 
