@@ -322,6 +322,25 @@ class BbgStream : RleStream
 	}
 }
 
+class MspStream : RleStream
+{
+	override bool ReadCommand()
+	{
+		int b = ReadByte();
+		if (b < 0)
+			return false;
+		if (b == 0) {
+			RepeatCount = ReadByte();
+			RepeatValue = ReadByte();
+		}
+		else {
+			RepeatCount = b;
+			RepeatValue = -1;
+		}
+		return true;
+	}
+}
+
 class C64KoalaStream : RleStream
 {
 	override bool ReadCommand()
@@ -1727,7 +1746,7 @@ public class RECOIL
 	/// Maximum height of a decoded image.
 	public const int MaxHeight = 1024;
 	/// Maximum number of pixels in a decoded image.
-	public const int MaxPixelsLength = 832 * 546 * 2;
+	public const int MaxPixelsLength = 3 << 19;
 
 	/// Decoded image width.
 	int Width;
@@ -1950,12 +1969,14 @@ public class RECOIL
 		}
 	}
 
-	void DecodeBlackAndWhite(byte[] content, int contentOffset, int width, int height, RECOILResolution resolution)
+	bool DecodeBlackAndWhite(byte[] content, int contentOffset, int width, int height, int backgroundColor, RECOILResolution resolution)
 	{
-		SetSize(width, height, resolution);
-		ContentPalette[0] = 0xffffff;
-		ContentPalette[1] = 0x000000;
+		if (!SetSize(width, height, resolution))
+			return false;
+		ContentPalette[0] = backgroundColor; // 0 or 0xffffff
+		ContentPalette[1] = backgroundColor ^ 0xffffff;
 		DecodeBitplanes(content, contentOffset, 1, 0, width * height);
+		return true;
 	}
 
 	void DecodeBlackAndWhiteFont(byte[] content, int contentOffset, int contentLength)
@@ -1982,8 +2003,7 @@ public class RECOIL
 	{
 		if (contentLength != 1920)
 			return false;
-		DecodeBlackAndWhite(content, 0, 240, 64, RECOILResolution.Portfolio1x1);
-		return true;
+		return DecodeBlackAndWhite(content, 0, 240, 64, 0xffffff, RECOILResolution.Portfolio1x1);
 	}
 
 	bool DecodePgc(byte[] content, int contentLength)
@@ -2023,8 +2043,7 @@ public class RECOIL
 		byte[51840] unpacked;
 		if (!rle.Unpack(unpacked, 0, 1, 51840))
 			return false;
-		DecodeBlackAndWhite(unpacked, 0, 576, 720, RECOILResolution.Macintosh1x1);
-		return true;
+		return DecodeBlackAndWhite(unpacked, 0, 576, 720, 0xffffff, RECOILResolution.Macintosh1x1);
 	}
 
 	// BBC micro formats.
@@ -3441,10 +3460,7 @@ public class RECOIL
 
 	bool DecodeDoo(byte[] content, int contentLength)
 	{
-		if (contentLength != 32000)
-			return false;
-		DecodeBlackAndWhite(content, 0, 640, 400, RECOILResolution.St1x1);
-		return true;
+		return contentLength == 32000 && DecodeBlackAndWhite(content, 0, 640, 400, 0xffffff, RECOILResolution.St1x1);
 	}
 
 	bool DecodePac(byte[] content, int contentLength)
@@ -3558,8 +3574,7 @@ public class RECOIL
 			DecodeStMedium(bitmap, bitmapOffset, palette, paletteOffset, 640, 200, 0);
 			return true;
 		case 2:
-			DecodeBlackAndWhite(bitmap, bitmapOffset, 640, 400, RECOILResolution.St1x1);
-			return true;
+			return DecodeBlackAndWhite(bitmap, bitmapOffset, 640, 400, 0xffffff, RECOILResolution.St1x1);
 		default:
 			return false;
 		}
@@ -4312,8 +4327,7 @@ public class RECOIL
 		}
 		if (!parser.Expect("};"))
 			return false;
-		DecodeBlackAndWhite(bitmap, 0, width + 0xf & ~0xf, height, RECOILResolution.St1x1);
-		return true;
+		return DecodeBlackAndWhite(bitmap, 0, width + 0xf & ~0xf, height, 0xffffff, RECOILResolution.St1x1);
 	}
 
 	// Atari Falcon formats.
@@ -7613,6 +7627,30 @@ public class RECOIL
 
 	// PC formats.
 
+	bool DecodeMsp(byte[] content, int contentLength)
+	{
+		if (contentLength < 32)
+			return false;
+		int width = content[4] | content[5] << 8;
+		int height = content[6] | content[7] << 8;
+		width = width + 7 & ~7; // round up to 8 pixels; FIXME
+		int bitmapLength = (width >> 3) * height;
+		if (IsStringAt(content, 0, "DanM")) // Microsoft Paint 1
+			return contentLength == 32 + bitmapLength && DecodeBlackAndWhite(content, 32, width, height, 0, RECOILResolution.Pc1x1);
+		if (IsStringAt(content, 0, "LinS")) {
+			// Microsoft Paint 2
+			MspStream() rle;
+			rle.Content = content;
+			rle.ContentOffset = 32 + (height << 1);
+			rle.ContentLength = contentLength;
+			byte[] unpacked = new byte[bitmapLength];
+			bool ok = rle.Unpack(unpacked, 0, 1, bitmapLength) && DecodeBlackAndWhite(unpacked, 0, width, height, 0, RECOILResolution.Pc1x1);
+			delete unpacked;
+			return ok;
+		}
+		return false;
+	}
+
 	bool DecodeAwbmPalette(byte[] content, int contentLength, int paletteOffset, int colors)
 	{
 		if (!IsStringAt(content, paletteOffset, "RGB ") || contentLength < paletteOffset + 4 + colors * 3)
@@ -7897,6 +7935,7 @@ public class RECOIL
 		case PackExt("MIS"):
 		case PackExt("MLE"):
 		case PackExt("MPP"):
+		case PackExt("MSP"):
 		case PackExt("NEO"):
 		case PackExt("NLQ"):
 		case PackExt("OCP"):
@@ -8288,6 +8327,8 @@ public class RECOIL
 			return DecodeMle(content, contentLength);
 		case PackExt("MPP"):
 			return DecodeMpp(content, contentLength);
+		case PackExt("MSP"):
+			return DecodeMsp(content, contentLength);
 		case PackExt("NEO"):
 			return DecodeNeo(content, contentLength);
 		case PackExt("NLQ"):

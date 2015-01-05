@@ -281,6 +281,7 @@ static const struct Format {
 	{ "MLE", "Multi-Lace Editor; 320x56, 10 colors, 2 frames" },
 	{ "MON", "Mono Magic; 320x200, mono" },
 	{ "MPP", "Multi Palette Picture; up to 416x273, 1 or 2 frames" },
+	{ "MSP", "Microsoft Paint version 1 or 2; mono" },
 	{ "NEO", "NEOchrome" },
 	{ "NLQ", "Daisy-Dot; 19x16 font, mono" },
 	{ "OCP", "Advanced Art Studio; 160x200, 16 colors" },

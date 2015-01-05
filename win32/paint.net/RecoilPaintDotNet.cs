@@ -241,6 +241,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".mle", "Multi-Lace Editor; 320x56, 10 colors, 2 frames"),
 				new RecoilFileType(".mon", "Mono Magic; 320x200, mono"),
 				new RecoilFileType(".mpp", "Multi Palette Picture; up to 416x273, 1 or 2 frames"),
+				new RecoilFileType(".msp", "Microsoft Paint version 1 or 2; mono"),
 				new RecoilFileType(".neo", "NEOchrome"),
 				new RecoilFileType(".nlq", "Daisy-Dot; 19x16 font, mono"),
 				new RecoilFileType(".ocp", "Advanced Art Studio; 160x200, 16 colors"),
