@@ -296,7 +296,7 @@
 		<format name="Graph Saurus" width="256" height="212" colors="256" compressed="optionally"><ext>SR8</ext></format>
 	</platform>
 	<platform name="PC">
-		<format name="Award BIOS logo" colors="16"><ext>EPA</ext></format>
+		<format name="Award BIOS logo"><ext>EPA</ext></format>
 	</platform>
 	<platform name="SAM Coupe">
 		<format name="Mode 4" width="256" height="192" colors="16"><ext>SCS4</ext></format>

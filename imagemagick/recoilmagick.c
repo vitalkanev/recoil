@@ -190,7 +190,7 @@ static const struct Format {
 	{ "DUO", "416x273, 136 colors, 2 frames" },
 	{ "ECI", "ECI Graphic Editor; 296x200, 2 frames" },
 	{ "ECP", "ECI Graphic Editor; 296x200, 2 frames, compressed" },
-	{ "EPA", "Award BIOS logo, 16 colors" },
+	{ "EPA", "Award BIOS logo" },
 	{ "ESC", "EscalPaint; 80x192, 256 colors, 2 frames" },
 	{ "FD2", "FLI Designer; 148x200, 16 colors" },
 	{ "FFLI", "148x200, 2 frames" },
