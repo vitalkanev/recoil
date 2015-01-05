@@ -13,6 +13,7 @@ endif::recoilwww[]
 RECOIL is a viewer of pictures in native formats of
 http://en.wikipedia.org/wiki/Amiga[Amiga],
 http://en.wikipedia.org/wiki/Amstrad_CPC[Amstrad CPC],
+http://en.wikipedia.org/wiki/Apple_II[Apple II],
 http://en.wikipedia.org/wiki/Atari_8-bit_family[Atari 8-bit],
 http://en.wikipedia.org/wiki/Atari_Portfolio[Atari Portfolio],
 http://en.wikipedia.org/wiki/Atari_ST[Atari ST],
@@ -68,6 +69,11 @@ Amstrad CPC
 FNT:: 8x8 font, mono.
 HGB:: "HinterGrundBild", 512x256, mono.
 SCR:: "Mode 2", 640x200, mono.
+
+Apple II
+~~~~~~~~
+[horizontal]
+HGR:: High resolution, 280x192, mono.
 
 Atari 8-bit
 ~~~~~~~~~~~

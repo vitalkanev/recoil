@@ -25,6 +25,7 @@ enum RECOILResolution
 	Amiga1x1,
 	Amstrad1x1,
 	Amstrad1x2,
+	AppleII1x1,
 	Macintosh1x1,
 	Xe1x1,
 	Xe2x1,
@@ -1786,6 +1787,8 @@ public class RECOIL
 		case RECOILResolution.Amstrad1x1:
 		case RECOILResolution.Amstrad1x2:
 			return "Amstrad CPC";
+		case RECOILResolution.AppleII1x1:
+			return "Apple II";
 		case RECOILResolution.Macintosh1x1:
 			return "Apple Macintosh";
 		case RECOILResolution.Xe1x1:
@@ -2778,6 +2781,25 @@ public class RECOIL
 			else
 				c = palette[c >> 4];
 			Pixels[i] = c;
+		}
+		return true;
+	}
+
+	// Apple II formats.
+
+	bool DecodeHgr(byte[] content, int contentLength)
+	{
+		if (contentLength < 8184)
+			return false;
+		SetSize(280, 192, RECOILResolution.AppleII1x1);
+		for (int y = 0; y < 192; y++) {
+			int lineOffset = (y & 7) << 10 | (y & 0x38) << 4 | (y >> 6) * 40;
+			for (int x = 0; x < 280; x++) {
+				int c = content[lineOffset + x / 7] >> (x % 7) & 1;
+				if (c != 0)
+					c = 0xffffff;
+				Pixels[y * 280 + x] = c;
+			}
 		}
 		return true;
 	}
@@ -7866,6 +7888,7 @@ public class RECOIL
 		case PackExt("HED"):
 		case PackExt("HFC"):
 		case PackExt("HGB"):
+		case PackExt("HGR"):
 		case PackExt("HIM"):
 		case PackExt("HIP"):
 		case PackExt("HIR"):
@@ -8204,6 +8227,8 @@ public class RECOIL
 			return DecodeHfc(content, contentLength);
 		case PackExt("HGB"):
 			return DecodeHgb(content, contentLength);
+		case PackExt("HGR"):
+			return DecodeHgr(content, contentLength);
 		case PackExt("HIM"):
 			return DecodeHim(content, contentLength);
 		case PackExt("HIP"):
