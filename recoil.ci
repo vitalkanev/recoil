@@ -2826,6 +2826,31 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeShr(byte[] content, int contentLength)
+	{
+		if (contentLength != 32768)
+			return false;
+		SetSize(320, 200, RECOILResolution.AppleII1x1);
+		for (int c = 0; c < 256; c++) {
+			int gb = content[0x7e00 + (c << 1)];
+			int r = content[0x7e01 + (c << 1)] & 0xf;
+			int g = gb >> 4;
+			int b = gb & 0xf;
+			int rgb = r << 16 | g << 8 | b;
+			rgb |= rgb << 4;
+			ContentPalette[c] = rgb;
+		}
+		for (int y = 0; y < 200; y++) {
+			int palette = content[0x7d00 + y] << 4;
+			for (int x = 0; x < 320; x++) {
+				int b = content[y * 160 + (x >> 1)];
+				int c = (x & 1) == 0 ? b >> 4 : b & 0xf;
+				Pixels[y * 320 + x] = ContentPalette[palette + c];
+			}
+		}
+		return true;
+	}
+
 	// SAM Coupe formats.
 
 	bool DecodeScs4(byte[] content, int contentLength)
@@ -8029,6 +8054,7 @@ public class RECOIL
 		case PackExt("SGE"):
 		case PackExt("SHC"):
 		case PackExt("SHP"):
+		case PackExt("SHR"):
 		case PackExt("SIF"):
 		case PackExt("SPC"):
 		case PackExt("SPS"):
@@ -8467,6 +8493,8 @@ public class RECOIL
 			return DecodeShc(content, contentLength);
 		case PackExt("SHP"):
 			return DecodeShp(content, contentLength);
+		case PackExt("SHR"):
+			return DecodeShr(content, contentLength);
 		case PackExt("SIF"):
 			return DecodeSif(content, contentLength);
 		case PackExt("SPC"):
