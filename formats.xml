@@ -13,7 +13,8 @@
 		<format name="Mode 2" width="640" height="200" colors="2" compressed="optionally"><ext>SCR</ext></format>
 	</platform>
 	<platform name="Apple II">
-		<format name="High resolution" width="280" height="192" colors="2"><ext>HGR</ext></format>
+		<format name="Double High-Resolution" width="560" height="192" colors="2"><ext>DHR</ext></format>
+		<format name="High Resolution" width="280" height="192" colors="2"><ext>HGR</ext></format>
 	</platform>
 	<platform name="Apple Macintosh">
 		<format name="MacPaint" width="576" height="720" colors="2"><ext>MAC</ext></format>

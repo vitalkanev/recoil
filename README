@@ -73,7 +73,8 @@ SCR:: "Mode 2", 640x200, mono.
 Apple II
 ~~~~~~~~
 [horizontal]
-HGR:: High resolution, 280x192, mono.
+DHR:: Double High Resolution, 560x192, mono.
+HGR:: High Resolution, 280x192, mono.
 
 Atari 8-bit
 ~~~~~~~~~~~

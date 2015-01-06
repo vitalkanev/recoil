@@ -135,6 +135,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".dgi", "Digi Paint; 80x192, 256 colors, 2 frames"),
 				new RecoilFileType(".dgp", "Digi Paint; 80x192, 256 colors, 2 frames"),
 				new RecoilFileType(".dgu", "DuneGraph; 320x200, 256 colors"),
+				new RecoilFileType(".dhr", "Double High-Resolution; 560x192, mono"),
 				new RecoilFileType(".din", "320x192, 10 colors, 2 frames"),
 				new RecoilFileType(".dlm", "Dir Logo Maker; 88x128, mono"),
 				new RecoilFileType(".dlp", "Drazlace; up to 320x200, 2 frames, compressed"),

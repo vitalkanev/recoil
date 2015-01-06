@@ -26,6 +26,7 @@ enum RECOILResolution
 	Amstrad1x1,
 	Amstrad1x2,
 	AppleII1x1,
+	AppleII1x2,
 	Macintosh1x1,
 	Xe1x1,
 	Xe2x1,
@@ -1788,6 +1789,7 @@ public class RECOIL
 		case RECOILResolution.Amstrad1x2:
 			return "Amstrad CPC";
 		case RECOILResolution.AppleII1x1:
+		case RECOILResolution.AppleII1x2:
 			return "Apple II";
 		case RECOILResolution.Macintosh1x1:
 			return "Apple Macintosh";
@@ -1854,6 +1856,7 @@ public class RECOIL
 	{
 		switch (Resolution) {
 		case RECOILResolution.Amstrad1x2:
+		case RECOILResolution.AppleII1x2:
 		case RECOILResolution.Xe2x2:
 		case RECOILResolution.Xe4x2:
 		case RECOILResolution.St1x2:
@@ -2799,6 +2802,25 @@ public class RECOIL
 				if (c != 0)
 					c = 0xffffff;
 				Pixels[y * 280 + x] = c;
+			}
+		}
+		return true;
+	}
+
+	bool DecodeDhr(byte[] content, int contentLength)
+	{
+		if (contentLength != 16384)
+			return false;
+		SetSize(560, 384, RECOILResolution.AppleII1x2);
+		for (int y = 0; y < 192; y++) {
+			int lineOffset = (y & 7) << 10 | (y & 0x38) << 4 | (y >> 6) * 40;
+			for (int x = 0; x < 560; x++) {
+				int b = x / 7;
+				int c = content[((b & 1) << 13) + lineOffset + (b >> 1)] >> (x % 7) & 1;
+				if (c != 0)
+					c = 0xffffff;
+				int pixelsOffset = y * (560 * 2) + x;
+				Pixels[pixelsOffset + 560] = Pixels[pixelsOffset] = c;
 			}
 		}
 		return true;
@@ -7849,6 +7871,7 @@ public class RECOIL
 		case PackExt("DG1"):
 		case PackExt("DGC"):
 		case PackExt("DGU"):
+		case PackExt("DHR"):
 		case PackExt("DIN"):
 		case PackExt("DLM"):
 		case PackExt("DOL"):
@@ -8152,6 +8175,8 @@ public class RECOIL
 		case PackExt("DG1"):
 		case PackExt("DGU"):
 			return DecodeDgu(content, contentLength);
+		case PackExt("DHR"):
+			return DecodeDhr(content, contentLength);
 		case PackExt("DIN"):
 			return DecodeAtari8Ice(content, contentLength, false, 3);
 		case PackExt("DLM"):
