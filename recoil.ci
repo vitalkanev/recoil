@@ -2841,11 +2841,11 @@ public class RECOIL
 			ContentPalette[c] = rgb;
 		}
 		for (int y = 0; y < 200; y++) {
-			int palette = content[0x7d00 + y] << 4;
+			int linePalette = (content[0x7d00 + y] & 0xf) << 4;
 			for (int x = 0; x < 320; x++) {
 				int b = content[y * 160 + (x >> 1)];
 				int c = (x & 1) == 0 ? b >> 4 : b & 0xf;
-				Pixels[y * 320 + x] = ContentPalette[palette + c];
+				Pixels[y * 320 + x] = ContentPalette[linePalette + c];
 			}
 		}
 		return true;
