@@ -1,7 +1,7 @@
 /*
  * recoilwin.c - Windows API port of RECOIL
  *
- * Copyright (C) 2009-2014  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2015  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -78,6 +78,7 @@ static void ShowAbout(void)
 		hInst,
 		"Retro Computer Image Library\n"
 		"(C) " RECOIL_YEARS " Piotr Fusik and Adrian Matoga\n"
+		"Formats research, testing by Mariusz Rozwadowski\n"
 		"RECOIL icon (C) 2014 Pawel Szewczyk\n\n"
 		RECOIL_COPYRIGHT,
 		APP_TITLE " " RECOIL_VERSION,
