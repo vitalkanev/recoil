@@ -133,7 +133,7 @@
 		<format width="240" height="64" colors="2" compressed="yes"><ext>PGC</ext></format>
 		<format width="240" height="64" colors="2"><ext>PGF</ext></format>
 	</platform>
-	<platform name="Atari ST">
+	<platform name="Atari ST/STE">
 		<format name="Art Director" width="320" height="200" colors="16"><ext>ART</ext></format>
 		<format name="DEGAS Elite block" colors="16"><ext>BL1</ext></format>
 		<format name="DEGAS Elite block" colors="4"><ext>BL2</ext></format>
