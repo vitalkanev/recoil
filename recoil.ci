@@ -42,6 +42,7 @@ enum RECOILResolution
 	Bbc1x1,
 	Bbc2x1,
 	Bbc1x2,
+	C161x1,
 	C162x1,
 	C641x1,
 	C642x1,
@@ -1813,6 +1814,7 @@ public class RECOIL
 		case RECOILResolution.Bbc2x1:
 		case RECOILResolution.Bbc1x2:
 			return "BBC Micro";
+		case RECOILResolution.C161x1:
 		case RECOILResolution.C162x1:
 			return "Commodore 16";
 		case RECOILResolution.C641x1:
@@ -2893,58 +2895,74 @@ public class RECOIL
 
 	// Commodore 16 formats.
 
+	void SetC16Palette()
+	{
+		byte[] pal = BinaryResource("c16.pal");
+		for (int i = 0; i < 256; i++)
+			ContentPalette[i] = pal[i * 3] << 16 | pal[i * 3 + 1] << 8 | pal[i * 3 + 2];
+	}
+
 	bool DecodeP4i(byte[] content, int contentLength)
 	{
-		bool logo;
 		switch (contentLength) {
 		case 10050:
-			if (!IsStringAt(content, 0x3fc, "MULT"))
-				return false;
-			logo = false;
-			SetSize(320, 200, RECOILResolution.C162x1);
+			if (IsStringAt(content, 0x3fc, "MULT")) {
+				SetSize(320, 200, RECOILResolution.C162x1);
+				SetC16Palette();
+				for (int y = 0; y < 200; y++) {
+					for (int x = 0; x < 320; x++) {
+						int offset = (y & ~7) * 40 + (x & ~7) + (y & 7);
+						int c = content[0x802 + offset] >> (~x & 6) & 3;
+						switch (c) {
+						case 0:
+							c = content[0x401];
+							break;
+						case 1:
+							offset >>= 3;
+							c = (content[0x402 + offset] & 0xf0) | (content[2 + offset] & 7);
+							break;
+						case 2:
+							offset >>= 3;
+							c = (content[0x402 + offset] & 0xf) << 4 | content[2 + offset] >> 4;
+							break;
+						default:
+							c = content[0x400];
+							break;
+						}
+						Pixels[y * 320 + x] = ContentPalette[c];
+					}
+				}
+			}
+			else {
+				SetSize(320, 200, RECOILResolution.C161x1);
+				SetC16Palette();
+				for (int y = 0; y < 200; y++) {
+					for (int x = 0; x < 320; x++) {
+						int offset = (y & ~7) * 40 + (x & ~7) + (y & 7);
+						int c = content[0x802 + offset] >> (~x & 7) & 1;
+						offset >>= 3;
+						if (c == 0)
+							c = (content[0x402 + offset] & 0xf) << 4 | content[2 + offset] >> 4;
+						else
+							c = (content[0x402 + offset] & 0xf0) | (content[2 + offset] & 7);
+						Pixels[y * 320 + x] = ContentPalette[c];
+					}
+				}
+			}
 			break;
 		case 2050:
-			logo = true;
 			SetSize(256, 64, RECOILResolution.C162x1);
+			SetC16Palette();
+			for (int y = 0; y < 64; y++) {
+				for (int x = 0; x < 256; x++) {
+					const byte[4] logoColors = { 0, 0x13, 0x15, 0x17 };
+					int c = logoColors[content[2 + ((x & ~7) << 3) + y] >> (~x & 6) & 3];
+					Pixels[(y << 8) + x] = ContentPalette[c];
+				}
+			}
 			break;
 		default:
 			return false;
-		}
-
-		int[256] palette;
-		byte[] pal = BinaryResource("c16.pal");
-		for (int i = 0; i < 256; i++)
-			palette[i] = pal[i * 3] << 16 | pal[i * 3 + 1] << 8 | pal[i * 3 + 2];
-
-		for (int y = 0; y < Height; y++) {
-			for (int x = 0; x < Width; x++) {
-				int c;
-				if (logo) {
-					const byte[4] logoColors = { 0, 0x13, 0x15, 0x17 };
-					c = logoColors[content[2 + ((x & ~7) << 3) + y] >> (~x & 6) & 3];
-				}
-				else {
-					int offset = (y & ~7) * 40 + (x & ~7) + (y & 7);
-					c = content[0x802 + offset] >> (~x & 6) & 3;
-					switch (c) {
-					case 0:
-						c = content[0x401];
-						break;
-					case 1:
-						offset >>= 3;
-						c = (content[0x402 + offset] & 0xf0) | (content[2 + offset] & 7);
-						break;
-					case 2:
-						offset >>= 3;
-						c = (content[0x402 + offset] & 0xf) << 4 | content[2 + offset] >> 4;
-						break;
-					default:
-						c = content[0x400];
-						break;
-					}
-				}
-				Pixels[y * Width + x] = palette[c];
-			}
 		}
 		return true;
 	}

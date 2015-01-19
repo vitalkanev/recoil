@@ -202,7 +202,7 @@
 		<format name="LdPic" maxWidth="640" height="256" compressed="yes"><ext>BBG</ext></format>
 	</platform>
 	<platform name="Commodore 16">
-		<format maxWidth="160" maxHeight="200" colors="121"><ext>P4I</ext></format>
+		<format maxWidth="320" maxHeight="200" colors="121"><ext>P4I</ext></format>
 	</platform>
 	<platform name="Commodore 64">
 		<format name="GoDot" width="320" height="200" colors="16"><ext>4BT</ext></format>

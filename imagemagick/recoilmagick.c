@@ -289,7 +289,7 @@ static const struct Format {
 	{ "NLQ", "Daisy-Dot; 19x16 font, mono" },
 	{ "OCP", "Advanced Art Studio; 160x200, 16 colors" },
 	{ "P", "Sinclair BASIC; 256x192, mono" },
-	{ "P4I", "Up to 160x200, 121 colors" },
+	{ "P4I", "Up to 320x200, 121 colors" },
 	{ "P64", "Picasso 64; 160x200, 16 colors" },
 	{ "PAC", "STAD; 640x400, mono, compressed" },
 	{ "PC1", "DEGAS Elite; 320x200, 16 colors, compressed" },
