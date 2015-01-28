@@ -14,6 +14,6 @@
 	<string name="menu_about">Informacja o RECOIL</string>
 	<string name="info_title">Informacje o pliku</string>
 	<string name="info_message">Komputer: %1$s\nRozdzielczość: %2$dx%3$d\nKolorów: %4$d</string>
-	<string name="about_title">RECOIL 3.1.0</string>
+	<string name="about_title">RECOIL 3.2.0</string>
 	<string name="about_message">Retro Computer Image Library (C) 2009-2015 Piotr Fusik\nFormaty wyszukiwał, testował Mariusz Rozwadowski\nIkona RECOIL (C) 2014 Pawel Szewczyk\n\nTen program jest wolnym oprogramowaniem; możesz go rozpowszechniać i/lub modyfikować na warunkach Powszechnej Licencji Publicznej GNU opublikowanej przez Free Software Foundation, wersji 2 tej licencji lub (jak wolisz) dowolnej późniejszej.</string>
 </resources>

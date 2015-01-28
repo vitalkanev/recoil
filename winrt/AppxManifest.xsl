@@ -8,7 +8,7 @@
 				<DisplayName>RECOIL</DisplayName>
 				<PublisherDisplayName>Piotr Fusik</PublisherDisplayName>
 				<Logo>Logo.png</Logo>
-				<Description>RECOIL (Retro Computer Image Library) is a viewer of pictures in native formats of classic home computers: Amiga, Amstrad CPC, Atari 8-bit, Atari Portfolio, Atari ST, Atari Falcon, BBC Micro, Commodore 16, Commodore 64, Macintosh 128K, MSX, Sam Coupé, ZX81 and ZX Spectrum.</Description>
+				<Description>RECOIL (Retro Computer Image Library) is a viewer of pictures in native formats of classic home computers: Amiga, Amstrad CPC, Apple II, Atari 8-bit, Atari Portfolio, Atari ST, Atari Falcon, BBC Micro, Commodore 16, Commodore 64, Macintosh 128K, MSX, Sam Coupé, ZX81 and ZX Spectrum.</Description>
 			</Properties>
 			<Prerequisites>
 				<OSMinVersion>6.2</OSMinVersion>

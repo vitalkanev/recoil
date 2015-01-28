@@ -3,7 +3,7 @@
 	<xsl:template match="/formats">
 		<xsl:comment>Generated automatically from formats.xml and AndroidManifest.xsl. Do not edit.</xsl:comment>
 		<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-			package="net.sf.recoil" android:versionCode="310" android:versionName="3.1.0" android:installLocation="auto">
+			package="net.sf.recoil" android:versionCode="320" android:versionName="3.2.0" android:installLocation="auto">
 			<uses-sdk android:minSdkVersion="4" android:targetSdkVersion="19" />
 			<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 			<supports-screens android:largeScreens="true" android:xlargeScreens="true" />

@@ -1715,7 +1715,7 @@ public class RECOIL
 	/// RECOIL version - major part.
 	public const int VersionMajor = 3;
 	/// RECOIL version - minor part.
-	public const int VersionMinor = 1;
+	public const int VersionMinor = 2;
 	/// RECOIL version - micro part.
 	public const int VersionMicro = 0;
 	/// RECOIL version as a string.
@@ -5705,7 +5705,7 @@ public class RECOIL
 	{
 		if (contentLength != 8008)
 			return false;
-		SetSize(320, 200, RECOILResolution.Xe2x1);
+		SetSize(320, 200, RECOILResolution.Xe2x2);
 		byte[320 * 200] frame;
 		SetPF012Bak(content, 8000);
 		DecodeAtari8Gr15(content, 0, 40, frame, 0, 640, 100);

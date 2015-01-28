@@ -5,7 +5,7 @@
 :Compact-Option:
 
 ifdef::recoilwww[]
-http://sourceforge.net/projects/recoil/files/recoil/3.1.0/[Download] |
+http://sourceforge.net/projects/recoil/files/recoil/3.2.0/[Download] |
 http://sourceforge.net/p/recoil/code[Browse source code (Git)] |
 http://sourceforge.net/projects/recoil/[SourceForge project page]
 endif::recoilwww[]
@@ -33,7 +33,7 @@ Currently the project includes:
 - RECOILWin - viewer for Windows
 - thumbnail provider for Windows Explorer (install with a *.MSI installer)
 - Linux GNOME thumbnailer (install `recoil-2png` first, then `recoil-thumbnailer`)
-- plugin for OS X Quick Look (to install: open `recoil-3.1.0-osx.dmg`, drag `RECOIL.qlgenerator` to `QuickLook`, then re-log or run `qlmanage -r`)
+- plugin for OS X Quick Look (to install: open `recoil-3.2.0-osx.dmg`, drag `RECOIL.qlgenerator` to `QuickLook`, then re-log or run `qlmanage -r`)
 - plugin for http://www.xnview.com[XnView]
 - (de)coder for http://www.imagemagick.org/[ImageMagick]
 - plugin for http://www.nyam.pe.kr/[Imagine]
@@ -386,6 +386,21 @@ You may submit bugs http://sourceforge.net/p/recoil/bugs/[here] (log in required
 
 History
 -------
+
+RECOIL 3.2.0 (2015-01-28)::
+
+New formats;;
+- Amiga: INFO
+- Amstrad CPC: SCR, HGB, FNT
+- Apple II: HGR, DHR, SHR
+- Atari 8-bit: RYS, HCI, MCPP
+- Atari ST/STE: DUO/DU1, DU2, PL4
+- BBC Micro: BB0, BB1, BB2, BB4, BB5, BBG
+- Commodore 16: P4I
+- Commodore 64: A64/WIG
+- MSX: SCA, SCC, SRS
+- PC: EPA, MSP
+- ZX81: P
 
 RECOIL 3.1.0 (2014-06-25)::
 

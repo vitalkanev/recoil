@@ -231,7 +231,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".mch", "Graph2Font; up to 176x240, 128 colors"),
 				new RecoilFileType(".mci", "True Paint; 320x200, 2 frames"),
 				new RecoilFileType(".mcp", "McPainter; 160x200, 16 colors, 2 frames"),
-				new RecoilFileType(".mcpp", "Paradox; 160x200, 8 colors"),
+				new RecoilFileType(".mcpp", "Paradox; 160x100, 16 colors"),
 				new RecoilFileType(".mcs", "160x192, 9 colors"),
 				new RecoilFileType(".mg1", "MultiArtist; 256x192, 2 frames"),
 				new RecoilFileType(".mg2", "MultiArtist; 256x192, 2 frames"),

@@ -1,5 +1,5 @@
 Name: recoil
-Version: 3.1.0
+Version: 3.2.0
 Release: 1
 Summary: Viewer of retro computer image files
 License: GPLv2+
@@ -11,16 +11,18 @@ BuildRoot: %{_tmppath}/%{name}-root
 
 %description
 Decoder of pictures in native formats of
-Amiga, Atari 8-bit/Portfolio/ST/Falcon, Commodore 64,
-Macintosh 128K, MSX, SAM Coupe and ZX Spectrum computers.
+Amiga, Amstrad CPC, Apple II, Atari 8-bit/Portfolio/ST/Falcon, BBC Micro,
+Commodore 16, Commodore 64, Macintosh 128K, MSX, SAM Coupe, ZX81
+and ZX Spectrum computers.
 
 %package 2png
 Summary: Converter of retro computer image files
 
 %description 2png
-Provides "recoil2png" command-line converter of pictures
-in native formats of Amiga, Atari 8-bit/Portfolio/ST/Falcon, Commodore 64,
-Macintosh 128K, MSX, SAM Coupe and ZX Spectrum computers.
+Provides "recoil2png" command-line converter of pictures in native formats of
+Amiga, Amstrad CPC, Apple II, Atari 8-bit/Portfolio/ST/Falcon, BBC Micro,
+Commodore 16, Commodore 64, Macintosh 128K, MSX, SAM Coupe, ZX81
+and ZX Spectrum computers.
 
 %package thumbnailer
 Summary: GNOME thumbnailer for retro computer image files
@@ -29,8 +31,9 @@ BuildArch: noarch
 
 %description thumbnailer
 GNOME thumbnailer for pictures in native formats of
-Amiga, Atari 8-bit/Portfolio/ST/Falcon, Commodore 64,
-Macintosh 128K, MSX, SAM Coupe and ZX Spectrum computers.
+Amiga, Amstrad CPC, Apple II, Atari 8-bit/Portfolio/ST/Falcon, BBC Micro,
+Commodore 16, Commodore 64, Macintosh 128K, MSX, SAM Coupe, ZX81
+and ZX Spectrum computers.
 
 %prep
 %setup -q
@@ -61,6 +64,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/update-mime-database %{_datadir}/mime &> /dev/null || :
 
 %changelog
+* Wed Jan 28 2015 Piotr Fusik <fox@scene.pl>
+- 3.2.0-1
+
 * Wed Jun 25 2014 Piotr Fusik <fox@scene.pl>
 - 3.1.0-1
 - Initial packaging
