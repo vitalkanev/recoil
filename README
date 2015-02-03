@@ -354,6 +354,7 @@ MG1:: "MultiArtist", 256x192, 2 frames.
 MG2:: "MultiArtist", 256x192, 2 frames.
 MG4:: "MultiArtist", 256x192, 2 frames.
 MG8:: "MultiArtist", 256x192, 2 frames.
+MLT:: 256x192, 15 colors.
 RGB:: 256x192, 8 colors, 3 frames.
 SCR:: 256x192, 15 colors.
 ZXP:: "ZX-Paintbrush", 256x192, 15 colors.

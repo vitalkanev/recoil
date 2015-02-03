@@ -282,6 +282,7 @@ static const struct Format {
 	{ "MIL", "Micro Illustrator; 160x200, 16 colors" },
 	{ "MIS", "AtariTools-800 missile; 2x240, mono" },
 	{ "MLE", "Multi-Lace Editor; 320x56, 10 colors, 2 frames" },
+	{ "MLT", "256x192, 15 colors" },
 	{ "MON", "Mono Magic; 320x200, mono" },
 	{ "MPP", "Multi Palette Picture; up to 416x273, 1 or 2 frames" },
 	{ "MSP", "Microsoft Paint version 1 or 2; mono" },
