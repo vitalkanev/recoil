@@ -2441,21 +2441,12 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodeMc(byte[] content, int contentLength)
+	bool DecodeMcMlt(byte[] content, int contentLength, int bitmapOffset)
 	{
 		if (contentLength != 12288)
 			return false;
 		SetSize(256, 192, RECOILResolution.Spectrum1x1);
-		DecodeZx(content, ZxBitmapLinear, 0x1800, ZxAttributes8x1, 0);
-		return true;
-	}
-
-	bool DecodeMlt(byte[] content, int contentLength)
-	{
-		if (contentLength != 12288)
-			return false;
-		SetSize(256, 192, RECOILResolution.Spectrum1x1);
-		DecodeZx(content, 0, 0x1800, ZxAttributes8x1, 0);
+		DecodeZx(content, bitmapOffset, 0x1800, ZxAttributes8x1, 0);
 		return true;
 	}
 
@@ -8408,7 +8399,7 @@ public class RECOIL
 		case PackExt("MBG"):
 			return DecodeMbg(content, contentLength);
 		case PackExt("MC"):
-			return DecodeMc(content, contentLength);
+			return DecodeMcMlt(content, contentLength, ZxBitmapLinear);
 		case PackExt("MCH"):
 			return DecodeMch(content, contentLength);
 		case PackExt("MCI"):
@@ -8435,7 +8426,7 @@ public class RECOIL
 		case PackExt("MLE"):
 			return DecodeMle(content, contentLength);
 		case PackExt("MLT"):
-			return DecodeMlt(content, contentLength);
+			return DecodeMcMlt(content, contentLength, 0);
 		case PackExt("MPP"):
 			return DecodeMpp(content, contentLength);
 		case PackExt("MSP"):
