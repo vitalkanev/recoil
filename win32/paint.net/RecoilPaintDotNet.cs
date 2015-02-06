@@ -219,6 +219,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".ist", "Interlace Studio; 160x200, 2 frames"),
 				new RecoilFileType(".jgp", "Jet Graphics Planner; 8x16 tiles, 4 colors"),
 				new RecoilFileType(".jj", "Doodle; 320x200, 16 colors, compressed"),
+				new RecoilFileType(".kla", "Koala Painter; 160x200, 16 colors"),
 				new RecoilFileType(".koa", "Koala Painter; 160x200, 16 colors"),
 				new RecoilFileType(".lbm", "Interleaved Bitmap"),
 				new RecoilFileType(".leo", "Larka Edytor Obiektow trybu $4+; 8x16 tiles, 5 colors"),

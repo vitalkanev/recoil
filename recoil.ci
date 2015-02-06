@@ -3212,7 +3212,7 @@ public class RECOIL
 	bool DecodeKoa(byte[] content, int contentLength)
 	{
 		switch (contentLength) {
-		case 10003: // GIG, KOA
+		case 10003: // GIG, KLA, KOA
 		case 10006: // RPM
 			break;
 		default:
@@ -8001,6 +8001,7 @@ public class RECOIL
 		case PackExt("IST"):
 		case PackExt("JGP"):
 		case PackExt("JJ"):
+		case PackExt("KLA"):
 		case PackExt("KOA"):
 		case PackExt("GIG"):
 		case PackExt("RPM"):
@@ -8382,6 +8383,7 @@ public class RECOIL
 			return DecodeJgp(content, contentLength);
 		case PackExt("JJ"):
 			return DecodeJj(content, contentLength);
+		case PackExt("KLA"):
 		case PackExt("KOA"):
 		case PackExt("GIG"):
 		case PackExt("RPM"):

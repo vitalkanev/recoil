@@ -272,6 +272,7 @@
 		<format name="Doodle" width="320" height="200" colors="16" compressed="yes"><ext>JJ</ext></format>
 		<format width="160" height="200" colors="16">
 			<ext name="Gigapaint">GIG</ext>
+			<ext name="Koala Painter">KLA</ext>
 			<ext name="Koala Painter">KOA</ext>
 		</format>
 		<format name="Logo Painter 3/3+" width="160" height="400" colors="4"><ext>LP3</ext></format>

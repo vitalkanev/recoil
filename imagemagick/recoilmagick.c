@@ -259,6 +259,7 @@ static const struct Format {
 	{ "IST", "Interlace Studio; 160x200, 2 frames" },
 	{ "JGP", "Jet Graphics Planner; 8x16 tiles, 4 colors" },
 	{ "JJ", "Doodle; 320x200, 16 colors, compressed" },
+	{ "KLA", "Koala Painter; 160x200, 16 colors" },
 	{ "KOA", "Koala Painter; 160x200, 16 colors" },
 	{ "LBM", "Interleaved Bitmap" },
 	{ "LEO", "Larka Edytor Obiektow trybu $4+; 8x16 tiles, 5 colors" },
