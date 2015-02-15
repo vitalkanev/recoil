@@ -167,6 +167,7 @@ static const struct Format {
 	{ "CIN", "Champions' Interlace; 160x192 or 160x200, 2 frames" },
 	{ "CPR", "Trzmiel; 320x192, mono, compressed" },
 	{ "CPT", "Canvas; compressed" },
+	{ "CUT", "Cut Creator; 96x99, mono" },
 	{ "CWG", "Create with Garfield; 160x200, 16 colors" },
 	{ "DC1", "DuneGraph; 320x200, 256 colors, compressed" },
 	{ "DD", "Doodle; 320x200, 16 colors" },

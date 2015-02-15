@@ -127,6 +127,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".cin", "Champions' Interlace; 160x192 or 160x200, 2 frames"),
 				new RecoilFileType(".cpr", "Trzmiel; 320x192, mono, compressed"),
 				new RecoilFileType(".cpt", "Canvas; compressed"),
+				new RecoilFileType(".cut", "Cut Creator; 96x99, mono"),
 				new RecoilFileType(".cwg", "Create with Garfield; 160x200, 16 colors"),
 				new RecoilFileType(".dc1", "DuneGraph; 320x200, 256 colors, compressed"),
 				new RecoilFileType(".dd", "Doodle; 320x200, 16 colors"),

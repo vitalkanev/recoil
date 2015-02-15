@@ -5240,6 +5240,18 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeCut(byte[] content, int contentLength)
+	{
+		if (contentLength != 1188)
+			return false;
+		SetSize(96, 99, RECOILResolution.Xe1x1);
+		GtiaColors[6] = 0x00;
+		GtiaColors[5] = 0x0e;
+		byte[96 * 99] frame;
+		DecodeAtari8Gr8(content, 0, frame, 0, 99);
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodeGhg(byte[] content, int contentLength)
 	{
 		if (contentLength < 4)
@@ -7909,6 +7921,7 @@ public class RECOIL
 		case PackExt("CIN"):
 		case PackExt("CPR"):
 		case PackExt("CPT"):
+		case PackExt("CUT"):
 		case PackExt("CWG"):
 		case PackExt("DC1"):
 		case PackExt("DD"):
@@ -8214,6 +8227,8 @@ public class RECOIL
 			return DecodeCpr(content, contentLength);
 		case PackExt("CPT"):
 			return DecodeCpt(content, contentLength);
+		case PackExt("CUT"):
+			return DecodeCut(content, contentLength);
 		case PackExt("CWG"):
 			return contentLength == 10007 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2713]);
 		case PackExt("DC1"):

@@ -102,6 +102,7 @@ CCI:: "Champions' Interlace", 160x192, 2 frames, compressed.
 CHR:: "Blazing Paddles" font, mono.
 CIN:: "Champions' Interlace", 160x192 or 160x200, 2 frames.
 CPR:: "Trzmiel", 320x192, mono, compressed.
+CUT:: "Cut Creator", 96x99, mono.
 DIN:: 320x192, 10 colors, 2 frames.
 DLM:: "Dir Logo Maker", 11x16 characters, mono.
 DRG:: "Atari CAD", 320x160, mono.
