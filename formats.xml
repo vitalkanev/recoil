@@ -126,6 +126,7 @@
 		<format name="The Graphics Magician Picture Painter" width="160" height="192" colors="128"><ext>SPC</ext></format>
 		<format name="16x16 font" tileWidth="16" tileHeight="16" colors="2"><ext>SXS</ext></format>
 		<format name="Taquart Interlace Picture" maxWidth="160" maxHeight="119" frames="2"><ext>TIP</ext></format>
+		<format width="16" height="16" colors="16"><ext>TXS</ext></format>
 		<format name="VertiZontal Interlacing" width="160" height="200" grayscale="31"><ext>VZI</ext></format>
 		<format name="Blazing Paddles window" maxWidth="160" maxHeight="192" colors="4"><ext>WND</ext></format>
 		<format name="XL-Paint" width="160" maxHeight="200" colors="7" frames="2"><ext>XLP</ext></format>

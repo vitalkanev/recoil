@@ -350,6 +350,7 @@ static const struct Format {
 	{ "TNY", "Tiny Stuff; compressed" },
 	{ "TRP", "EggPaint; 65536 colors" },
 	{ "TRU", "IndyPaint; 65536 colors" },
+	{ "TXS", "16x16, 16-level grayscale" },
 	{ "WIG", "Wigmore Artist 64; 160x200, 16 colors" },
 	{ "WND", "Blazing Paddles window; up to 160x192, 4 colors" },
 	{ "VIC", "Generic C64; up to 320x200, 16 colors" },

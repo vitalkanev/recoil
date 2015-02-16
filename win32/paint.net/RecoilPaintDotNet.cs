@@ -310,6 +310,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".tny", "Tiny Stuff; compressed"),
 				new RecoilFileType(".trp", "EggPaint; 65536 colors"),
 				new RecoilFileType(".tru", "IndyPaint; 65536 colors"),
+				new RecoilFileType(".txs", "16x16, 16-level grayscale"),
 				new RecoilFileType(".wig", "Wigmore Artist 64; 160x200, 16 colors"),
 				new RecoilFileType(".wnd", "Blazing Paddles window; up to 160x192, 4 colors"),
 				new RecoilFileType(".vic", "Generic C64; up to 320x200, 16 colors"),
