@@ -54,6 +54,23 @@ endif::recoilwww[]
 Supported file formats
 ----------------------
 
+Formats are listed below by origin computer family and filename extension.
+Alternative extensions are comma-separated.
+
+Some pictures are composed of multiple files - they must share their filename
+and only differ by their extensions.
+Such formats are listed here with the plus sign combining the extensions.
+Some ports of RECOIL don't support multi-file pictures.
+
+"2 frames" means the picture is composed of two quickly alternating frames so that
+a human perceives more colors (for example black alternated with gray looks like dark gray).
+On Atari 8-bit and Commodore 64 this technique is commonly (but incorrectly)
+referred to as "interlace". On ZX Spectrum it is called "gigascreen".
+Likewise, "3 frames" means three different alternating pictures and more flickering.
+RECOIL displays such pictures by averaging frames into a static image.
+
+You can find some sample files in http://recoil.sourceforge.net/examples.zip[examples.zip].
+
 Amiga
 ~~~~~
 [horizontal]
@@ -322,6 +339,7 @@ SC2, GRP:: "Screen 2", 256x192, 15 colors.
 SC8:: "Screen 8", 256x212, 256 colors.
 SCA:: "Screen 10", 256x212, 12515 colors.
 SCC, SRS:: "Screen 12", 256x212, 19268 colors.
+SR5+PL5:: "Screen 5", 256x212, 16 colors.
 SR8:: "Graph Saurus", 256x212, 256 colors, compressed.
 
 PC
@@ -360,14 +378,6 @@ MLT:: 256x192, 15 colors.
 RGB:: 256x192, 8 colors, 3 frames.
 SCR:: 256x192, 15 colors.
 ZXP:: "ZX-Paintbrush", 256x192, 15 colors.
-
-"2 frames" above means the picture is composed of two quickly alternating frames so that
-a human perceives more colors (for example black alternated with gray looks like dark gray).
-On Atari 8-bit and Commodore 64 this technique is commonly (but incorrectly)
-referred to as "interlace". On ZX Spectrum it is called "gigascreen".
-Likewise, "3 frames" means three different alternating pictures and more flickering.
-
-You can find some sample files in http://recoil.sourceforge.net/examples.zip[examples.zip].
 
 ifdef::recoilsrc[]
 include::INSTALL[]

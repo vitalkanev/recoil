@@ -299,6 +299,10 @@
 			<ext>SC2</ext>
 			<ext>GRP</ext>
 		</format>
+		<format name="Screen 5" width="256" height="212" colors="16">
+			<ext>SR5</ext>
+			<companionExt>PL5</companionExt>
+		</format>
 		<format name="Screen 8" width="256" height="212" colors="256">
 			<ext>SC8</ext>
 			<ext>PIC</ext>
