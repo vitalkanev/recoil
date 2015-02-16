@@ -557,7 +557,7 @@ class SpsStream : RleStream
 	}
 }
 
-class Sr8Stream : RleStream
+class SrStream : RleStream
 {
 	override bool ReadCommand()
 	{
@@ -2750,8 +2750,36 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodeValidSc8(byte[] content)
+	static byte[] UnpackSr(byte[] content, int contentLength, byte[] unpacked)
 	{
+		if (contentLength < 7)
+			return null;
+		switch (content[0]) {
+		case 0xfe:
+			if (contentLength < 54279 || !ExpectMsxHeader(content, 0xd400))
+				return null;
+			return content;
+		case 0xfd:
+			if (7 + GetMsxHeader(content) != contentLength)
+				return null;
+			SrStream() rle;
+			rle.Content = content;
+			rle.ContentOffset = 7;
+			rle.ContentLength = contentLength;
+			if (!rle.Unpack(unpacked, 7, 1, 54272))
+				return null;
+			return unpacked;
+		default:
+			return null;
+		}
+	}
+
+	bool DecodeSc8(byte[] content, int contentLength)
+	{
+		byte[54279] unpacked;
+		content = UnpackSr(content, contentLength, unpacked);
+		if (content == null)
+			return false;
 		int[256] palette;
 		for (int c = 0; c < 256; c++) {
 			// 0bGGGRRRBB -> 0bRRRRRRRRGGGGGGGGBBBBBBBB
@@ -2763,28 +2791,6 @@ public class RECOIL
 		for (int i = 0; i < 212 * 256; i++)
 			Pixels[i] = palette[content[7 + i]];
 		return true;
-	}
-
-	static bool ExpectMsx2(byte[] content, int contentLength)
-		return contentLength >= 54279 && content[0] == 0xfe && ExpectMsxHeader(content, 0xd400);
-
-	bool DecodeSc8(byte[] content, int contentLength)
-		return ExpectMsx2(content, contentLength) && DecodeValidSc8(content);
-
-	bool DecodeSr8(byte[] content, int contentLength)
-	{
-		if (contentLength < 7)
-			return false;
-		if (content[0] != 0xfd)
-			return DecodeSc8(content, contentLength);
-		if (GetMsxHeader(content) + 7 != contentLength)
-			return false;
-		byte[54279] unpacked;
-		Sr8Stream() rle;
-		rle.Content = content;
-		rle.ContentOffset = 7;
-		rle.ContentLength = contentLength;
-		return rle.Unpack(unpacked, 7, 1, 54272) && DecodeValidSc8(unpacked);
 	}
 
 	static int DecodeMsxYjk(byte[] content, int i)
@@ -2819,7 +2825,9 @@ public class RECOIL
 
 	bool DecodeScc(byte[] content, int contentLength)
 	{
-		if (!ExpectMsx2(content, contentLength))
+		byte[54279] unpacked;
+		content = UnpackSr(content, contentLength, unpacked);
+		if (content == null)
 			return false;
 		SetSize(256, 212, RECOILResolution.Msx1x1);
 		for (int i = 0; i < 212 * 256; i++)
@@ -8160,6 +8168,7 @@ public class RECOIL
 		case PackExt("SC2"):
 		case PackExt("GRP"):
 		case PackExt("SC8"):
+		case PackExt("SR8"):
 		case PackExt("SCA"):
 		case PackExt("SCC"):
 		case PackExt("SRS"):
@@ -8174,7 +8183,6 @@ public class RECOIL
 		case PackExt("SPS"):
 		case PackExt("SPU"):
 		case PackExt("SR5"):
-		case PackExt("SR8"):
 		case PackExt("SXS"):
 		case PackExt("TIP"):
 		case PackExt("TN1"):
@@ -8601,6 +8609,7 @@ public class RECOIL
 		case PackExt("GRP"):
 			return DecodeSc2(content, contentLength);
 		case PackExt("SC8"):
+		case PackExt("SR8"):
 			return DecodeSc8(content, contentLength);
 		case PackExt("SCA"):
 			return DecodeSca(content, contentLength);
@@ -8630,8 +8639,6 @@ public class RECOIL
 			return DecodeSpu(content, contentLength);
 		case PackExt("SR5"):
 			return DecodeSr5(filename, content, contentLength);
-		case PackExt("SR8"):
-			return DecodeSr8(content, contentLength);
 		case PackExt("SXS"):
 			return DecodeSxs(content, contentLength);
 		case PackExt("TIP"):
