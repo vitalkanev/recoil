@@ -27,8 +27,8 @@ WIN32_BIN = recoil2png.exe IM_MOD_RL_recoil_.dll Xrecoil.usr recoilwin.exe RECOI
 
 all: $(WIN32_BIN) thumbrecoil.dll
 
-recoil2png.exe: ../recoil2png.c ../pngsave.c ../pngsave.h ../recoil.c ../recoil.h
-	$(RECOIL_CC) ../recoil2png.c ../pngsave.c ../recoil.c -static -lpng -lz
+recoil2png.exe: ../recoil2png.c ../pngsave.c ../pngsave.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
+	$(RECOIL_CC) ../recoil2png.c ../pngsave.c ../recoil-stdio.c ../recoil.c -static -lpng -lz
 
 IM_MOD_RL_recoil_.dll: ../imagemagick/recoilmagick.c ../recoil.c ../recoil.h
 	$(RECOIL_CC_DLL) ../imagemagick/recoilmagick.c ../recoil.c -lCORE_RL_magick_
@@ -37,21 +37,21 @@ x64/IM_MOD_RL_recoil_.dll: ../imagemagick/recoilmagick.c ../recoil.c ../recoil.h
 	test -d x64 || mkdir x64
 	$(X64_RECOIL_CC_DLL) ../imagemagick/recoilmagick.c ../recoil.c -I"$(IMAGEMAGICK_X64_INST_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_X64_INST_DIR)"
 
-Xrecoil.usr: xnview/Xrecoil.c ../formats.h ../recoil.c ../recoil.h
-	$(RECOIL_CC_DLL) xnview/Xrecoil.c ../recoil.c
+Xrecoil.usr: xnview/Xrecoil.c ../formats.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
+	$(RECOIL_CC_DLL) xnview/Xrecoil.c ../recoil-stdio.c ../recoil.c
 
-recoilwin.exe: recoilwin/recoilwin.c recoilwin/recoilwin.h recoilwin/recoilwin-res.o ../pngsave.c ../pngsave.h ../formats.h ../recoil.c ../recoil.h
-	$(RECOIL_CC) -Wl,-subsystem,windows recoilwin/recoilwin.c recoilwin/recoilwin-res.o ../pngsave.c ../recoil.c -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng -lz
+recoilwin.exe: recoilwin/recoilwin.c recoilwin/recoilwin.h recoilwin/recoilwin-res.o ../pngsave.c ../pngsave.h ../formats.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
+	$(RECOIL_CC) -Wl,-subsystem,windows recoilwin/recoilwin.c recoilwin/recoilwin-res.o ../pngsave.c ../recoil-stdio.c ../recoil.c -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng -lz
 
 recoilwin/recoilwin-res.o: recoilwin/recoilwin.rc recoilwin/recoilwin.h recoil.ico ../recoil.h
 	$(WINDRES) -I .. recoilwin/recoilwin.rc
 
-thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../formats.h ../recoil.c ../recoil.h
-	$(RECOIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbrecoil/thumbrecoil.cpp ../recoil.c -lgdi32 -lole32 -luuid
+thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../formats.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
+	$(RECOIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbrecoil/thumbrecoil.cpp ../recoil-stdio.c ../recoil.c -lgdi32 -lole32 -luuid
 
-x64/thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../formats.h ../recoil.c ../recoil.h
+x64/thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../formats.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
 	test -d x64 || mkdir x64
-	$(X64_RECOIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbrecoil/thumbrecoil.cpp ../recoil.c -lgdi32 -lole32 -luuid
+	$(X64_RECOIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbrecoil/thumbrecoil.cpp ../recoil-stdio.c ../recoil.c -lgdi32 -lole32 -luuid
 
 RECOIL.plg: imagine/recoilimagine.c ../formats.h ../recoil.c ../recoil.h
 	$(RECOIL_CC_DLL) imagine/recoilimagine.c ../recoil.c

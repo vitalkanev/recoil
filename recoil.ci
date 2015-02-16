@@ -1945,6 +1945,33 @@ public class RECOIL
 		return true;
 	}
 
+	virtual int ReadFile(string filename, byte[] content, int contentLength)
+	{
+		LeftSkip = 0; // HACK around cito 0 to make this method a mutator
+		content[0] = 0; // HACK around cito 0 to make content non-const
+		return -1;
+	}
+
+	int ReadCompanionFile(string baseFilename, string upperExt, string lowerExt, byte[] content, int contentLength)
+	{
+		const int maxFilenameLength = 1024;
+		int i = baseFilename.Length;
+		if (i > maxFilenameLength - 4) // let's say the companion filename can be 4 characters longer than the base filename
+			return -1;
+		bool lower = false;
+		for (;;) {
+			int c = baseFilename[--i];
+			if (c >= 'a')
+				lower = true;
+			else if (c == '.')
+				break;
+		}
+		string(maxFilenameLength) filename;
+		filename = baseFilename.Substring(0, i + 1);
+		filename += lower ? lowerExt : upperExt;
+		return ReadFile(filename, content, contentLength);
+	}
+
 	bool DecodeBru(byte[] content, int contentLength)
 	{
 		if (contentLength != 64)
@@ -5926,17 +5953,23 @@ public class RECOIL
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
-	// LUM file combined with COL file gives 256-color Technicolor Dream.
-	// Since we don't support decoding pairs of files, let's at least show the grayscale.
-	bool DecodeLum(byte[] content, int contentLength)
+	bool DecodeLum(string filename, byte[] content, int contentLength)
 	{
 		if (contentLength != 4766)
 			return false;
 		SetSize(320, 192, RECOILResolution.Xe4x2);
 		byte[320 * 192] frame;
 		GtiaColors[8] = 0x00;
-		DecodeAtari8Gr9(content, 6, 40, frame, 0, 640, 320, 96);
 		DecodeAtari8Gr9(content, 6, 40, frame, 320, 640, 320, 96);
+		byte[4766 + 1] col;
+		if (ReadCompanionFile(filename, "COL", "col", col, col.Length) == 4766) {
+			// LUM file combined with COL file gives 256-color Technicolor Dream.
+			DecodeAtari8Gr11PalBlend(col, 6, 40, frame, 0);
+		}
+		else {
+			// Problem with COL, at least show the grayscale.
+			DecodeAtari8Gr9(content, 6, 40, frame, 0, 640, 320, 96);
+		}
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -8433,7 +8466,7 @@ public class RECOIL
 		case PackExt("LP3"):
 			return DecodeLp3(content, contentLength);
 		case PackExt("LUM"):
-			return DecodeLum(content, contentLength);
+			return DecodeLum(filename, content, contentLength);
 		case PackExt("MAC"):
 			return DecodeMac(content, contentLength);
 		case PackExt("MAX"):

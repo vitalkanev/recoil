@@ -1,7 +1,7 @@
 /*
  * thumbrecoil.cpp - Windows thumbnail provider for RECOIL
  *
- * Copyright (C) 2011-2013  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2011-2015  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -86,7 +86,7 @@ DECLARE_INTERFACE_(IThumbnailProvider, IUnknown)
 };
 #undef INTERFACE
 
-#include "recoil.h"
+#include "recoil-stdio.h"
 #include "formats.h"
 
 static const char extensions[][6] = { THUMBRECOIL_EXTS };
@@ -157,7 +157,7 @@ public:
 	CRECOILThumbProvider() : m_cRef(1), m_pstream(NULL), m_filename(NULL)
 	{
 		DllAddRef();
-		m_pRecoil = RECOIL_New();
+		m_pRecoil = RECOILStdio_New();
 	}
 
 	virtual ~CRECOILThumbProvider()

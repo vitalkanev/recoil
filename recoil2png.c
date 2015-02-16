@@ -1,7 +1,7 @@
 /*
  * recoil2png.c - command-line converter of retro computer pictures to the PNG format
  *
- * Copyright (C) 2009-2013  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2015  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -26,7 +26,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "recoil.h"
+#include "recoil-stdio.h"
 #include "pngsave.h"
 
 static RECOIL *recoil = NULL;
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 {
 	cibool no_input_files = TRUE;
 	int i;
-	recoil = RECOIL_New();
+	recoil = RECOILStdio_New();
 	if (recoil == NULL)
 		fatal_error("recoil2png: out of memory");
 	for (i = 1; i < argc; i++) {

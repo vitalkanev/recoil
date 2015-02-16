@@ -1,7 +1,7 @@
 /*
  * Xrecoil.c - RECOIL plugin for XnView http://www.xnview.com
  *
- * Copyright (C) 2009-2013  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2015  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "recoil.h"
+#include "recoil-stdio.h"
 #include "formats.h"
 
 #define API __stdcall
@@ -98,7 +98,7 @@ DLL_EXPORT void * API gfpLoadPictureInit(LPCSTR filename)
 	if (fp == NULL)
 		return NULL;
 
-	recoil = RECOIL_New();
+	recoil = RECOILStdio_New();
 	if (recoil == NULL) {
 		fclose(fp);
 		return NULL;
@@ -136,7 +136,7 @@ DLL_EXPORT BOOL API gfpLoadPictureGetInfo(
 	*height = RECOIL_GetHeight(recoil);
 	*dpi = 68;
 	*bits_per_pixel = 24;
-	*bytes_per_line = 3 * *width;
+	*bytes_per_line = *width * 3;
 	*has_colormap = FALSE;
 	strncpy(label, RECOIL_GetPlatform(recoil), label_max_size);
 

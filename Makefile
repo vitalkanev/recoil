@@ -25,8 +25,8 @@ space := $(nullstring) # need exactly one space after $(nullstring)
 
 all: recoil2png $(if $(CAN_INSTALL_MAGICK),imagemagick/recoil.so) recoil-mime.xml
 
-recoil2png: recoil2png.c pngsave.c pngsave.h recoil.c recoil.h
-	$(CC) $(CFLAGS) recoil2png.c pngsave.c recoil.c -lpng -lz -o $@
+recoil2png: recoil2png.c pngsave.c pngsave.h recoil-stdio.c recoil-stdio.h recoil.c recoil.h
+	$(CC) $(CFLAGS) recoil2png.c pngsave.c recoil-stdio.c recoil.c -lpng -lz -o $@
 
 ifdef CAN_INSTALL_MAGICK
 imagemagick/recoil.so: imagemagick/recoilmagick.c recoil.c recoil.h
@@ -47,8 +47,8 @@ endif
 README.html: README INSTALL
 	asciidoc -o - -a recoilsrc README | sed -e "s/527bbd;/800080;/" >$@
 
-benchmark: benchmark.c
-	$(CC) $(CFLAGS) benchmark.c recoil.c -o $@
+benchmark: benchmark.c recoil-stdio.c recoil-stdio.h recoil.c recoil.h
+	$(CC) $(CFLAGS) benchmark.c recoil-stdio.c recoil.c -o $@
 
 clean:
 	rm -f recoil2png imagemagick/recoil.so imagemagick/coder.xml.new recoil-mime.xml benchmark

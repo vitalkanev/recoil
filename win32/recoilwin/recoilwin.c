@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "recoil.h"
+#include "recoil-stdio.h"
 #include "formats.h"
 #include "pngsave.h"
 #include "recoilwin.h"
@@ -722,7 +722,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 0;
 	}
 
-	recoil = RECOIL_New();
+	recoil = RECOILStdio_New();
 	if (recoil == NULL)
 		return 1;
 

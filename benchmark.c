@@ -1,7 +1,7 @@
 /*
  * benchmark.c - RECOIL benchmark
  *
- * Copyright (C) 2013  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2013-2015  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -25,7 +25,7 @@
 #include <string.h>
 #include <time.h>
 
-#include "recoil.h"
+#include "recoil-stdio.h"
 
 int main(int argc, char **argv)
 {
@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "benchmark: no input files\n");
 		return 1;
 	}
-	recoil = RECOIL_New();
+	recoil = RECOILStdio_New();
 	for (i = 1; i < argc; i++) {
 		const char *arg = argv[i];
 		FILE *fp;
