@@ -5957,10 +5957,10 @@ public class RECOIL
 	{
 		if (contentLength != 4766)
 			return false;
-		SetSize(320, 192, RECOILResolution.Xe4x2);
-		byte[320 * 192] frame;
+		SetSize(320, 238, RECOILResolution.Xe4x2);
+		byte[320 * 238] frame;
 		GtiaColors[8] = 0x00;
-		DecodeAtari8Gr9(content, 6, 40, frame, 320, 640, 320, 96);
+		DecodeAtari8Gr9(content, 6, 40, frame, 320, 640, 320, 119);
 		byte[4766 + 1] col;
 		if (ReadCompanionFile(filename, "COL", "col", col, col.Length) == 4766) {
 			// LUM file combined with COL file gives 256-color Technicolor Dream.
@@ -5968,7 +5968,7 @@ public class RECOIL
 		}
 		else {
 			// Problem with COL, at least show the grayscale.
-			DecodeAtari8Gr9(content, 6, 40, frame, 0, 640, 320, 96);
+			DecodeAtari8Gr9(content, 6, 40, frame, 0, 640, 320, 119);
 		}
 		return ApplyAtari8Palette(frame);
 	}

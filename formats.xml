@@ -94,7 +94,7 @@
 		<format name="Interlace Studio" width="160" height="200" frames="2"><ext>IST</ext></format>
 		<format name="Jet Graphics Planner" tileWidth="8" tileHeight="16" colors="4"><ext>JGP</ext></format>
 		<format name="Larka Edytor Obiektów trybu $4+" tileWidth="8" tileHeight="16" colors="5"><ext>LEO</ext></format>
-		<format name="Technicolor Dream luminance" width="80" height="96" colors="256">
+		<format name="Technicolor Dream luminance" width="80" height="119" colors="256">
 			<ext>LUM</ext>
 			<companionExt>COL</companionExt>
 		</format>

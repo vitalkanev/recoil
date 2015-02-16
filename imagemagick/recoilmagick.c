@@ -265,7 +265,7 @@ static const struct Format {
 	{ "LBM", "Interleaved Bitmap" },
 	{ "LEO", "Larka Edytor Obiektow trybu $4+; 8x16 tiles, 5 colors" },
 	{ "LP3", "Logo Painter 3/3+; 160x400, 4 colors" },
-	{ "LUM", "Technicolor Dream luminance; 80x96, 16-level grayscale" },
+	{ "LUM", "Technicolor Dream luminance; 80x119, 16-level grayscale" },
 	{ "MAC", "MacPaint; 576x720, mono, compressed" },
 	{ "MAX", "XL-Paint MAX; 160x192, 2 frames, compressed" },
 	{ "MBG", "Mad Designer; 512x256, mono" },
