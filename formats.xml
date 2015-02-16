@@ -303,6 +303,10 @@
 			<ext>SR5</ext>
 			<companionExt>PL5</companionExt>
 		</format>
+		<format name="Screen 7" width="512" height="212" colors="16">
+			<ext>SR7</ext>
+			<companionExt>PL7</companionExt>
+		</format>
 		<format name="Screen 8" width="256" height="212" colors="256">
 			<ext>SC8</ext>
 			<ext>PIC</ext>

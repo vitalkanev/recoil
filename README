@@ -340,6 +340,7 @@ SC8:: "Screen 8", 256x212, 256 colors.
 SCA:: "Screen 10", 256x212, 12515 colors.
 SCC, SRS:: "Screen 12", 256x212, 19268 colors.
 SR5+PL5:: "Screen 5", 256x212, 16 colors.
+SR7+PL7:: "Screen 7", 512x212, 16 colors, compressed.
 SR8:: "Graph Saurus", 256x212, 256 colors, compressed.
 
 PC

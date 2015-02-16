@@ -48,6 +48,7 @@ enum RECOILResolution
 	C641x1,
 	C642x1,
 	Msx1x1,
+	Msx1x2,
 	Pc1x1,
 	SamCoupe1x1,
 	Spectrum1x1,
@@ -1823,6 +1824,7 @@ public class RECOIL
 		case RECOILResolution.C642x1:
 			return "Commodore 64";
 		case RECOILResolution.Msx1x1:
+		case RECOILResolution.Msx1x2:
 			return "MSX";
 		case RECOILResolution.Pc1x1:
 			return "PC";
@@ -1867,6 +1869,7 @@ public class RECOIL
 		case RECOILResolution.St1x2:
 		case RECOILResolution.Ste1x2:
 		case RECOILResolution.Bbc1x2:
+		case RECOILResolution.Msx1x2:
 			return Height >> 1;
 		case RECOILResolution.Xe4x4:
 			return Height >> 2;
@@ -2772,6 +2775,27 @@ public class RECOIL
 		default:
 			return null;
 		}
+	}
+
+	bool DecodeSr7(string filename, byte[] content, int contentLength)
+	{
+		byte[54279] unpacked;
+		content = UnpackSr(content, contentLength, unpacked);
+		if (content == null)
+			return false;
+		byte[32] palette;
+		if (ReadCompanionFile(filename, "PL7", "pl7", palette, 32) != 32)
+			return false;
+		SetMsx2Palette(palette, 0);
+		SetSize(512, 424, RECOILResolution.Msx1x2);
+		for (int y = 0; y < 212; y++) {
+			for (int x = 0; x < 512; x++) {
+				int b = content[7 + (y << 8) + (x >> 1)];
+				int pixelsOffset = (y << 10) + x;
+				Pixels[pixelsOffset + 512] = Pixels[pixelsOffset] = ContentPalette[(x & 1) == 0 ? b >> 4 : b & 0xf];
+			}
+		}
+		return true;
 	}
 
 	bool DecodeSc8(byte[] content, int contentLength)
@@ -8183,6 +8207,7 @@ public class RECOIL
 		case PackExt("SPS"):
 		case PackExt("SPU"):
 		case PackExt("SR5"):
+		case PackExt("SR7"):
 		case PackExt("SXS"):
 		case PackExt("TIP"):
 		case PackExt("TN1"):
@@ -8639,6 +8664,8 @@ public class RECOIL
 			return DecodeSpu(content, contentLength);
 		case PackExt("SR5"):
 			return DecodeSr5(filename, content, contentLength);
+		case PackExt("SR7"):
+			return DecodeSr7(filename, content, contentLength);
 		case PackExt("SXS"):
 			return DecodeSxs(content, contentLength);
 		case PackExt("TIP"):
