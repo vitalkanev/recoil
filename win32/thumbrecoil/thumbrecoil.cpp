@@ -109,7 +109,10 @@ static void DllRelease(void)
 static const GUID CLSID_RECOILThumbProvider =
 	{ 0x3c450d81, 0xb6bd, 0x4d8c, { 0x92, 0x3c, 0xfc, 0x65, 0x9a, 0xbb, 0x27, 0xd3 } };
 
-class CRECOILThumbProvider : IPersistFile, IExtractImage, IInitializeWithStream, IThumbnailProvider
+class CRECOILThumbProvider : IPersistFile, IExtractImage
+#if THUMBRECOIL_VISTA
+	, IInitializeWithStream, IThumbnailProvider
+#endif
 {
 	LONG m_cRef;
 	IStream *m_pstream;
@@ -181,6 +184,7 @@ public:
 			AddRef();
 			return S_OK;
 		}
+#if THUMBRECOIL_VISTA
 		if (riid == IID_IInitializeWithStream) {
 			*ppv = (IInitializeWithStream *) this;
 			AddRef();
@@ -191,6 +195,7 @@ public:
 			AddRef();
 			return S_OK;
 		}
+#endif
 		*ppv = NULL;
 		return E_NOINTERFACE;
 	}
@@ -280,6 +285,8 @@ public:
 		return Decode(m_filename, phBmpImage);
 	}
 
+#if THUMBRECOIL_VISTA
+
 	// IInitializeWithStream
 
 	STDMETHODIMP Initialize(IStream *pstream, DWORD grfMode)
@@ -319,6 +326,8 @@ public:
 		*pdwAlpha = WTSAT_RGB;
 		return hr;
 	}
+
+#endif
 };
 
 class CRECOILThumbProviderFactory : IClassFactory
@@ -415,7 +424,10 @@ STDAPI __declspec(dllexport) DllRegisterServer(void)
 		if (RegCreateKeyEx(HKEY_CLASSES_ROOT, extensions[i], 0, NULL, 0, KEY_WRITE, NULL, &hk1, NULL) != ERROR_SUCCESS)
 			return E_FAIL;
 		if (!RegisterCLSID(hk1, "ShellEx\\{bb2e617c-0920-11d1-9a0b-00c04fc2d6c1}") // IPersistFile+IExtractImage
-		 || !RegisterCLSID(hk1, "ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}")) // IInitializeWithStream+IThumbnailProvider
+#if THUMBRECOIL_VISTA
+		 || !RegisterCLSID(hk1, "ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}") // IInitializeWithStream+IThumbnailProvider
+#endif
+		)
 		{
 			RegCloseKey(hk1);
 			return E_FAIL;
@@ -444,7 +456,9 @@ STDAPI __declspec(dllexport) DllUnregisterServer(void)
 	for (int i = 0; i < N_EXTS; i++) {
 		if (RegOpenKeyEx(HKEY_CLASSES_ROOT, extensions[i], 0, DELETE, &hk1) == ERROR_SUCCESS) {
 			RegDeleteKey(hk1, "ShellEx\\{bb2e617c-0920-11d1-9a0b-00c04fc2d6c1}"); // IPersistFile+IExtractImage
+#if THUMBRECOIL_VISTA
 			RegDeleteKey(hk1, "ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}"); // IInitializeWithStream+IThumbnailProvider
+#endif
 			RegCloseKey(hk1);
 		}
 		RegDeleteKey(HKEY_CLASSES_ROOT, extensions[i]);
