@@ -1,7 +1,7 @@
 /*
  * Viewer.java - RECOIL for Android
  *
- * Copyright (C) 2013-2014  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2013-2015  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -34,8 +34,6 @@ import android.widget.AdapterView;
 import android.widget.Gallery;
 import android.widget.Toast;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.zip.ZipFile;
@@ -77,65 +75,33 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 		return filenames.size();
 	}
 
-	/**
-	 * Reads bytes from the stream into the byte array
-	 * until end of stream or array is full.
-	 * @param is source stream
-	 * @param b output array
-	 * @return number of bytes read
-	 */
-	private static int readAndClose(InputStream is, byte[] b) throws IOException
-	{
-		int got = 0;
-		int len = b.length;
-		try {
-			while (got < len) {
-				int i = is.read(b, got, len - got);
-				if (i <= 0)
-					break;
-				got += i;
-			}
-		}
-		finally {
-			is.close();
-		}
-		return got;
-	}
-
 	RECOIL decode(int position) throws RECOILException
 	{
 		Uri uri = FileUtil.buildUri(baseUri, filenames.get(position));
-
-		// Read file
-		byte[] content = new byte[RECOIL.MAX_CONTENT_LENGTH];
-		int contentLength;
 		String filename = uri.getPath();
 		try {
-			if (FileUtil.isZip(filename)) {
-				ZipFile zip = new ZipFile(filename);
-				try {
+			ZipFile zip = null;
+			JavaRECOIL recoil;
+			try {
+				if (FileUtil.isZip(filename)) {
+					zip = new ZipFile(filename);
+					recoil = new ZipRECOIL(zip);
 					filename = uri.getFragment();
-					InputStream is = zip.getInputStream(zip.getEntry(filename));
-					contentLength = readAndClose(is, content);
 				}
-				finally {
+				else
+					recoil = new FileRECOIL();
+				if (!recoil.load(filename))
+					throw new RECOILException(getString(R.string.error_decoding_file, filename));
+			}
+			finally {
+				if (zip != null)
 					zip.close();
-				}
 			}
-			else {
-				InputStream is = new FileInputStream(filename);
-				contentLength = readAndClose(is, content);
-			}
+			return recoil;
 		}
 		catch (IOException ex) {
 			throw new RECOILException(getString(R.string.error_reading_file, filename));
 		}
-
-		// Decode
-		RECOIL recoil = new RECOIL();
-		if (!recoil.decode(filename, content, contentLength))
-			throw new RECOILException(getString(R.string.error_decoding_file, filename));
-		return recoil;
 	}
 
 	public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
