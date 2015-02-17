@@ -1,7 +1,7 @@
 /*
  * pngsave.c - save PNG file
  *
- * Copyright (C) 2009-2013  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2015  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -44,10 +44,10 @@ cibool RECOIL_SavePng(RECOIL *self, const char *filename)
 	png_infop info_ptr;
 	int width;
 	int height;
-	unsigned char indexes[RECOIL_MAX_PIXELS_LENGTH];
+	png_bytep pixels = NULL;
 	const int *palette;
-	png_bytep row_pointers[RECOIL_MAX_HEIGHT];
 	int y;
+	png_bytep row_pointers[RECOIL_MAX_HEIGHT];
 
 	if (fp == NULL)
 		return FALSE;
@@ -65,24 +65,35 @@ cibool RECOIL_SavePng(RECOIL *self, const char *filename)
 	/* Set error handling. */
 	if (setjmp(png_jmpbuf(png_ptr))) {
 		/* If we get here, we had a problem writing the file */
-		fclose(fp);
 		png_destroy_write_struct(&png_ptr, &info_ptr);
+		free(pixels);
+		fclose(fp);
 		return FALSE;
 	}
 	png_init_io(png_ptr, fp);
 
 	width = RECOIL_GetWidth(self);
 	height = RECOIL_GetHeight(self);
-	palette = RECOIL_ToPalette(self, indexes);
+	pixels = (png_bytep) malloc(width * height);
+	if (pixels == NULL) {
+		png_destroy_write_struct(&png_ptr, &info_ptr);
+		fclose(fp);
+		return FALSE;
+	}
+	palette = RECOIL_ToPalette(self, pixels);
 	if (palette == NULL) {
-		png_color png_pixels[RECOIL_MAX_PIXELS_LENGTH];
-		RECOIL_Rgb2Png(png_pixels, RECOIL_GetPixels(self), width * height);
+		free(pixels);
+		pixels = (png_bytep) malloc(width * height * sizeof(png_color));
+		if (pixels == NULL) {
+			png_destroy_write_struct(&png_ptr, &info_ptr);
+			fclose(fp);
+			return FALSE;
+		}
+		RECOIL_Rgb2Png((png_colorp) pixels, RECOIL_GetPixels(self), width * height);
 		png_set_IHDR(png_ptr, info_ptr, width, height, 8, PNG_COLOR_TYPE_RGB,
 			PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 		png_write_info(png_ptr, info_ptr);
-
-		for (y = 0; y < height; y++)
-			row_pointers[y] = (png_bytep) (png_pixels + y * width);
+		width *= sizeof(png_color);
 	}
 	else {
 		int colors = RECOIL_GetColors(self);
@@ -96,15 +107,15 @@ cibool RECOIL_SavePng(RECOIL *self, const char *filename)
 			PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 		png_set_PLTE(png_ptr, info_ptr, png_palette, colors);
 		png_write_info(png_ptr, info_ptr);
-
 		if (bit_depth < 8)
 			png_set_packing(png_ptr);
-		for (y = 0; y < height; y++)
-			row_pointers[y] = indexes + y * width;
 	}
+	for (y = 0; y < height; y++)
+		row_pointers[y] = pixels + y * width;
 	png_write_image(png_ptr, row_pointers);
 	png_write_end(png_ptr, info_ptr);
 	png_destroy_write_struct(&png_ptr, &info_ptr);
+	free(pixels);
 	fclose(fp);
 	return TRUE;
 }
