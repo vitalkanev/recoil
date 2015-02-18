@@ -2921,6 +2921,27 @@ public class RECOIL
 		}
 	}
 
+	bool DecodeMsx7(byte[] content)
+	{
+		SetSize(512, 424, RECOILResolution.Msx1x2);
+		for (int y = 0; y < 212; y++) {
+			for (int x = 0; x < 512; x++) {
+				int b = content[7 + (y << 8) + (x >> 1)];
+				int pixelsOffset = (y << 10) + x;
+				Pixels[pixelsOffset + 512] = Pixels[pixelsOffset] = ContentPalette[(x & 1) == 0 ? b >> 4 : b & 0xf];
+			}
+		}
+		return true;
+	}
+
+	bool DecodeSc7(byte[] content, int contentLength)
+	{
+		if (contentLength != 64264 || GetMsxHeader(content) != 0xfb00)
+			return false;
+		SetMsx2Palette(content, 0xfa87);
+		return DecodeMsx7(content);
+	}
+
 	bool DecodeSr7(string filename, byte[] content, int contentLength)
 	{
 		byte[54279] unpacked;
@@ -2931,15 +2952,7 @@ public class RECOIL
 		if (ReadCompanionFile(filename, "PL7", "pl7", palette, 32) != 32)
 			return false;
 		SetMsx2Palette(palette, 0);
-		SetSize(512, 424, RECOILResolution.Msx1x2);
-		for (int y = 0; y < 212; y++) {
-			for (int x = 0; x < 512; x++) {
-				int b = content[7 + (y << 8) + (x >> 1)];
-				int pixelsOffset = (y << 10) + x;
-				Pixels[pixelsOffset + 512] = Pixels[pixelsOffset] = ContentPalette[(x & 1) == 0 ? b >> 4 : b & 0xf];
-			}
-		}
-		return true;
+		return DecodeMsx7(content);
 	}
 
 	bool DecodeSc8(byte[] content, int contentLength)
@@ -8339,6 +8352,7 @@ public class RECOIL
 		case PackExt("GRP"):
 		case PackExt("SC5"):
 		case PackExt("GE5"):
+		case PackExt("SC7"):
 		case PackExt("SC8"):
 		case PackExt("SR8"):
 		case PackExt("SCA"):
@@ -8785,6 +8799,8 @@ public class RECOIL
 		case PackExt("SC5"):
 		case PackExt("GE5"):
 			return DecodeSc5(content, contentLength);
+		case PackExt("SC7"):
+			return DecodeSc7(content, contentLength);
 		case PackExt("SC8"):
 		case PackExt("SR8"):
 			return DecodeSc8(content, contentLength);

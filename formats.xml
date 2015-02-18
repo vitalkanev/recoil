@@ -310,6 +310,7 @@
 			<ext>SC5</ext>
 			<ext>GE5</ext>
 		</format>
+		<format name="Screen 7" width="512" height="212" colors="16"><ext>SC7</ext></format>
 		<format name="Screen 5" width="256" height="212" colors="16">
 			<ext>SR5</ext>
 			<companionExt>PL5</companionExt>
