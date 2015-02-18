@@ -2992,7 +2992,9 @@ public class RECOIL
 
 	bool DecodeSca(byte[] content, int contentLength)
 	{
-		if (contentLength != 64263 || GetMsxHeader(content) < 0xd400)
+		if (contentLength != 64263 && contentLength != 64384)
+			return false;
+		if (GetMsxHeader(content) < 0xd400)
 			return false;
 		SetMsx2Palette(content, 0xfa87);
 		SetSize(256, 212, RECOILResolution.Msx1x1);
