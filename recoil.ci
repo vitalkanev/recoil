@@ -2384,11 +2384,16 @@ public class RECOIL
 	{
 		byte[16384] unpacked;
 		int contentOffset = GetAmstradHeader(content, contentLength);
-		if (contentLength != contentOffset + 16384) {
+		switch (contentLength - contentOffset) {
+		case 16336:
+		case 16384:
+			break;
+		default:
 			if (!AmstradStream.UnpackFile(content, contentOffset, contentLength, unpacked, unpacked.Length))
 				return false;
 			content = unpacked;
 			contentOffset = 0;
+			break;
 		}
 
 		if (!SetAmstradPalette(filename))
