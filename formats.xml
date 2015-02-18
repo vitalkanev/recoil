@@ -10,6 +10,10 @@
 	<platform name="Amstrad CPC">
 		<format name="8x8 font" tileWidth="8" tileHeight="8" colors="2"><ext>FNT</ext></format>
 		<format name="HinterGrundBild" width="512" height="256" colors="2"><ext>HGB</ext></format>
+		<format name="Mode 0" width="160" height="200" colors="16" compressed="optionally">
+			<ext>SCR</ext>
+			<companionExt>PAL</companionExt>
+		</format>
 		<format name="Mode 2" width="640" height="200" colors="2" compressed="optionally"><ext>SCR</ext></format>
 	</platform>
 	<platform name="Apple II">
