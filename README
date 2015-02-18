@@ -86,6 +86,7 @@ Amstrad CPC
 FNT:: 8x8 font, mono.
 HGB:: "HinterGrundBild", 512x256, mono.
 SCR+PAL:: "Advanced OCP Art Studio".
+WIN+PAL:: "Advanced OCP Art Studio", up to 160x200, 16 colors.
 
 Apple II
 ~~~~~~~~

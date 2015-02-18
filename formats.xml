@@ -14,6 +14,10 @@
 			<ext>SCR</ext>
 			<companionExt>PAL</companionExt>
 		</format>
+		<format name="Advanced OCP Art Studio" compressed="optionally">
+			<ext>WIN</ext>
+			<companionExt>PAL</companionExt>
+		</format>
 	</platform>
 	<platform name="Apple II">
 		<format name="Double High-Resolution" width="560" height="192" colors="2"><ext>DHR</ext></format>
