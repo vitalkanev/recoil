@@ -2866,6 +2866,24 @@ public class RECOIL
 		}
 	}
 
+	bool DecodeMsx5(byte[] content)
+	{
+		SetSize(256, 212, RECOILResolution.Msx1x1);
+		for (int i = 0; i < 212 * 256; i++) {
+			int b = content[7 + (i >> 1)];
+			Pixels[i] = ContentPalette[(i & 1) == 0 ? b >> 4 : b & 0xf];
+		}
+		return true;
+	}
+
+	bool DecodeGe5(byte[] content, int contentLength)
+	{
+		if (contentLength != 30375 || GetMsxHeader(content) != 0x769f)
+			return false;
+		SetMsx2Palette(content, 0x7687);
+		return DecodeMsx5(content);
+	}
+
 	bool DecodeSr5(string filename, byte[] content, int contentLength)
 	{
 		if (contentLength != 27143 && contentLength != 27144)
@@ -2876,12 +2894,7 @@ public class RECOIL
 		if (ReadCompanionFile(filename, "PL5", "pl5", palette, 32) != 32)
 			return false;
 		SetMsx2Palette(palette, 0);
-		SetSize(256, 212, RECOILResolution.Msx1x1);
-		for (int i = 0; i < 212 * 256; i++) {
-			int b = content[7 + (i >> 1)];
-			Pixels[i] = ContentPalette[(i & 1) == 0 ? b >> 4 : b & 0xf];
-		}
-		return true;
+		return DecodeMsx5(content);
 	}
 
 	static byte[] UnpackSr(byte[] content, int contentLength, byte[] unpacked)
@@ -8200,12 +8213,13 @@ public class RECOIL
 		case PackExt("FUN"):
 		case PackExt("FP2"):
 		case PackExt("FWA"):
+		case PackExt("G10"):
+		case PackExt("G11"):
+		case PackExt("GE5"):
+		case PackExt("GFB"):
 		case PackExt("GG"):
 		case PackExt("GHG"):
 		case PackExt("GOD"):
-		case PackExt("G10"):
-		case PackExt("G11"):
-		case PackExt("GFB"):
 		case PackExt("GR7"):
 		case PackExt("GR8"):
 		case PackExt("GR9"):
@@ -8540,18 +8554,20 @@ public class RECOIL
 			return DecodeFun(content, contentLength);
 		case PackExt("FWA"):
 			return DecodeFwa(content, contentLength);
+		case PackExt("G10"):
+			return DecodeG10(content, contentLength);
+		case PackExt("G11"):
+			return DecodeG11(content, contentLength);
+		case PackExt("GE5"):
+			return DecodeGe5(content, contentLength);
+		case PackExt("GFB"):
+			return DecodeGfb(content, contentLength);
 		case PackExt("GG"):
 			return DecodeGg(content, contentLength);
 		case PackExt("GHG"):
 			return DecodeGhg(content, contentLength);
 		case PackExt("GOD"):
 			return DecodeGod(content, contentLength);
-		case PackExt("G10"):
-			return DecodeG10(content, contentLength);
-		case PackExt("G11"):
-			return DecodeG11(content, contentLength);
-		case PackExt("GFB"):
-			return DecodeGfb(content, contentLength);
 		case PackExt("GR7"):
 			return DecodeGr7(content, 0, contentLength);
 		case PackExt("GR8"):

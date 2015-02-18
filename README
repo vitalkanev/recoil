@@ -336,6 +336,7 @@ MAC:: "MacPaint", 576x720, mono, compressed.
 MSX
 ~~~
 [horizontal]
+GE5:: 256x212, 16 colors.
 SC2, GRP:: "Screen 2", 256x192, 15 colors.
 SC8:: "Screen 8", 256x212, 256 colors.
 SCA:: "Screen 10", 256x212, 12515 colors.

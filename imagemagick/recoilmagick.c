@@ -209,6 +209,7 @@ static const struct Format {
 	{ "G10", "Graphics 10; up to 80x240, 9 colors" },
 	{ "G11", "Graphics 11; up to 80x240, 16 colors" },
 	{ "GCD", "Gigacad; 320x200, mono" },
+	{ "GE5", "256x212, 16 colors" },
 	{ "GFB", "DeskPic" },
 	{ "GG", "Koala Painter; 160x200, 16 colors, compressed" },
 	{ "GHG", "Gephard Hires Graphics; up to 320x200, mono" },
