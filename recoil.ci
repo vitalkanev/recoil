@@ -2876,9 +2876,9 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodeGe5(byte[] content, int contentLength)
+	bool DecodeSc5(byte[] content, int contentLength)
 	{
-		if (contentLength != 30375 || GetMsxHeader(content) != 0x769f)
+		if (contentLength != 30375 || !ExpectMsxHeader(content, 0x76a0))
 			return false;
 		SetMsx2Palette(content, 0x7687);
 		return DecodeMsx5(content);
@@ -8215,7 +8215,6 @@ public class RECOIL
 		case PackExt("FWA"):
 		case PackExt("G10"):
 		case PackExt("G11"):
-		case PackExt("GE5"):
 		case PackExt("GFB"):
 		case PackExt("GG"):
 		case PackExt("GHG"):
@@ -8338,6 +8337,8 @@ public class RECOIL
 		case PackExt("SAR"):
 		case PackExt("SC2"):
 		case PackExt("GRP"):
+		case PackExt("SC5"):
+		case PackExt("GE5"):
 		case PackExt("SC8"):
 		case PackExt("SR8"):
 		case PackExt("SCA"):
@@ -8558,8 +8559,6 @@ public class RECOIL
 			return DecodeG10(content, contentLength);
 		case PackExt("G11"):
 			return DecodeG11(content, contentLength);
-		case PackExt("GE5"):
-			return DecodeGe5(content, contentLength);
 		case PackExt("GFB"):
 			return DecodeGfb(content, contentLength);
 		case PackExt("GG"):
@@ -8783,6 +8782,9 @@ public class RECOIL
 		case PackExt("SC2"):
 		case PackExt("GRP"):
 			return DecodeSc2(content, contentLength);
+		case PackExt("SC5"):
+		case PackExt("GE5"):
+			return DecodeSc5(content, contentLength);
 		case PackExt("SC8"):
 		case PackExt("SR8"):
 			return DecodeSc8(content, contentLength);
