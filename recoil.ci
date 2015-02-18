@@ -2333,14 +2333,16 @@ public class RECOIL
 			contentOffset = 0;
 		}
 
-		byte[240] pal;
-		if (ReadCompanionFile(filename, "PAL", "pal", pal, 240) != 239)
+		byte[128 + 239 + 1] pal;
+		int palLength = ReadCompanionFile(filename, "PAL", "pal", pal, pal.Length);
+		int palOffset = GetAmstradHeader(pal, palLength);
+		if (palLength != palOffset + 239)
 			return DecodeAmstradMode2(content, contentOffset, 640, 200);
 
-		if (pal[0] != 0)
+		if (pal[palOffset] != 0)
 			return false; // TODO: mode 1, 2
 		for (int i = 0; i < 16; i++) {
-			int c = pal[3 + i * 12];
+			int c = pal[palOffset + 3 + i * 12];
 			if (c < 0x40 || c > 0x5f)
 				return false;
 			const int[32] palette = {
