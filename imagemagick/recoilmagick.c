@@ -361,6 +361,7 @@ static const struct Format {
 	{ "VZI", "VertiZontal Interlacing; 160x200, grayscale, 2 frames" },
 	{ "XIMG", "Extended GEM Bit Image; compressed" },
 	{ "XLP", "XL-Paint; 160x192 or 160x200, 7 colors, 2 frames, compressed" },
+	{ "YJK", "Screen 12; 256x212, 19268 colors" },
 	{ "ZXP", "ZX-Paintbrush; 256x192, 15 colors" }
 };
 

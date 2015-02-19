@@ -321,6 +321,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".vzi", "VertiZontal Interlacing; 160x200, grayscale, 2 frames"),
 				new RecoilFileType(".ximg", "Extended GEM Bit Image; compressed"),
 				new RecoilFileType(".xlp", "XL-Paint; 160x192 or 160x200, 7 colors, 2 frames, compressed"),
+				new RecoilFileType(".yjk", "Screen 12; 256x212, 19268 colors"),
 				new RecoilFileType(".zxp", "ZX-Paintbrush; 256x192, 15 colors")
 			};
 		}
