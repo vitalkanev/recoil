@@ -170,6 +170,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".g11", "Graphics 11; up to 80x240, 16 colors"),
 				new RecoilFileType(".gcd", "Gigacad; 320x200, mono"),
 				new RecoilFileType(".ge5", "Screen 5; 256x212, 16 colors"),
+				new RecoilFileType(".ge7", "Screen 7; 512x212, 16 colors"),
 				new RecoilFileType(".gfb", "DeskPic"),
 				new RecoilFileType(".gg", "Koala Painter; 160x200, 16 colors, compressed"),
 				new RecoilFileType(".ghg", "Gephard Hires Graphics; up to 320x200, mono"),

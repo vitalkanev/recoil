@@ -2936,7 +2936,7 @@ public class RECOIL
 
 	bool DecodeSc7(byte[] content, int contentLength)
 	{
-		if (contentLength != 64264 || GetMsxHeader(content) != 0xfb00)
+		if (contentLength < 64264 || !ExpectMsxHeader(content, 0xfb00))
 			return false;
 		SetMsx2Palette(content, 0xfa87);
 		return DecodeMsx7(content);
@@ -8353,6 +8353,7 @@ public class RECOIL
 		case PackExt("SC5"):
 		case PackExt("GE5"):
 		case PackExt("SC7"):
+		case PackExt("GE7"):
 		case PackExt("SC8"):
 		case PackExt("SR8"):
 		case PackExt("SCA"):
@@ -8801,6 +8802,7 @@ public class RECOIL
 		case PackExt("GE5"):
 			return DecodeSc5(content, contentLength);
 		case PackExt("SC7"):
+		case PackExt("GE7"):
 			return DecodeSc7(content, contentLength);
 		case PackExt("SC8"):
 		case PackExt("SR8"):

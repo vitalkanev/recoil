@@ -338,7 +338,7 @@ MSX
 [horizontal]
 SC2, GRP:: "Screen 2", 256x192, 15 colors.
 SC5, GE5:: "Screen 5", 256x212, 16 colors.
-SC7:: "Screen 7", 512x212, 16 colors.
+SC7, GE7:: "Screen 7", 512x212, 16 colors.
 SC8:: "Screen 8", 256x212, 256 colors.
 SCA:: "Screen 10", 256x212, 12515 colors.
 SCC, SRS, YJK:: "Screen 12", 256x212, 19268 colors.
