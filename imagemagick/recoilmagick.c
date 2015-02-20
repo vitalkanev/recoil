@@ -342,6 +342,7 @@ static const struct Format {
 	{ "SHR", "320x200, 256 colors" },
 	{ "SIF", "Super-IRG 4x8 font; 4 colors, 2 frames" },
 	{ "SPC", "Spectrum 512 Compressed or The Graphics Magician Picture Painter" },
+	{ "SPR", "Apple II sprites; mono" },
 	{ "SPS", "Spectrum 512 Smooshed; 320x199, 512 colors, compressed" },
 	{ "SPU", "Spectrum 512; 320x199, 512 colors" },
 	{ "SR8", "Graph Saurus; 256x212, 256 colors, compressed" },

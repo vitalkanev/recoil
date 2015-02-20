@@ -302,6 +302,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".shr", "320x200, 256 colors"),
 				new RecoilFileType(".sif", "Super-IRG 4x8 font; 4 colors, 2 frames"),
 				new RecoilFileType(".spc", "Spectrum 512 Compressed or The Graphics Magician Picture Painter"),
+				new RecoilFileType(".spr", "Apple II sprites; mono"),
 				new RecoilFileType(".sps", "Spectrum 512 Smooshed; 320x199, 512 colors, compressed"),
 				new RecoilFileType(".spu", "Spectrum 512; 320x199, 512 colors"),
 				new RecoilFileType(".sr8", "Graph Saurus; 256x212, 256 colors, compressed"),

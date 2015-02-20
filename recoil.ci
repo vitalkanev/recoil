@@ -97,8 +97,10 @@ class ZxpStream : Stream
 			return -1;
 		int c = Content[ContentOffset++];
 		// ZXP is CRLF. We support LF just in case.
-		if (c == '\r' && ContentOffset < ContentLength && Content[ContentOffset++] == '\n')
+		if (c == '\r' && ContentOffset < ContentLength && Content[ContentOffset] == '\n') {
+			ContentOffset++;
 			return '\n';
+		}
 		return c;
 	}
 
@@ -107,8 +109,10 @@ class ZxpStream : Stream
 
 	int ReadHexDigit()
 	{
+		if (ContentOffset >= ContentLength)
+			return -1;
 		// ZX-Paintbrush outputs uppercase, SCRplus outputs lowercase
-		switch (ReadChar()) {
+		switch (Content[ContentOffset++]) {
 		case '0': return 0;
 		case '1': return 1;
 		case '2': return 2;
@@ -132,8 +136,54 @@ class ZxpStream : Stream
 		case 'F':
 		case 'f': return 15;
 		default:
+			ContentOffset--;
 			return -1;
 		}
+	}
+}
+
+class SprStream : ZxpStream
+{
+	const int Width = 320;
+	const int Height = 200;
+
+	int ReadBase(int b) {
+		int r = ReadHexDigit();
+		if (r < 0 || r >= b)
+			return -1;
+		do {
+			int d = ReadHexDigit();
+			if (d < 0)
+				return r;
+			if (d >= b)
+				return -1;
+			r = r * b + d;
+		} while (r < Width);
+		return -1;
+	}
+
+	int ReadInt()
+	{
+		while (ContentOffset < ContentLength) {
+			int c = Content[ContentOffset];
+			switch (c) {
+			case ' ':
+			case '\t':
+			case '\r':
+			case '\n':
+				ContentOffset++;
+				break;
+			case '$':
+				ContentOffset++;
+				return ReadBase(16);
+			case '%':
+				ContentOffset++;
+				return ReadBase(2);
+			default:
+				return ReadBase(10);
+			}
+		}
+		return -1;
 	}
 }
 
@@ -3093,6 +3143,67 @@ public class RECOIL
 				int b = content[y * 160 + (x >> 1)];
 				int c = (x & 1) == 0 ? b >> 4 : b & 0xf;
 				Pixels[y * 320 + x] = ContentPalette[linePalette + c];
+			}
+		}
+		return true;
+	}
+
+	void DrawSprByte(int x1, int y, int b)
+	{
+		for (int x = 0; x < 8; x++) {
+			if ((b >> (7 - x) & 1) != 0)
+				Pixels[y * SprStream.Width + x1 + x] = 0xffffff;
+		}
+	}
+
+	bool DecodeSpr(byte[] content, int contentLength)
+	{
+		SetSize(SprStream.Width, SprStream.Height, RECOILResolution.AppleII1x1);
+		for (int i = 0; i < SprStream.Width * SprStream.Height; i++)
+			Pixels[i] = 0;
+		SprStream() s;
+		s.Content = content;
+		s.ContentOffset = 0;
+		s.ContentLength = contentLength;
+		for (;;) {
+			int cols = s.ReadInt();
+			if (cols < 0)
+				return false;
+			int rows = s.ReadInt();
+			if (rows < 0)
+				return false;
+			int order = s.ReadInt();
+			if (order < 0)
+				return false;
+			int x = s.ReadInt();
+			if (x < 0)
+				return false;
+			int y = s.ReadInt();
+			if (y < 0)
+				return false;
+			if (rows == 0)
+				break;
+			if (cols == 0 || x + (cols << 3) > SprStream.Width || y + rows > SprStream.Height)
+				return false;
+			if (order == 2) {
+				for (int col = 0; col < cols; col++) {
+					for (int row = 0; row < rows; row++) {
+						int b = s.ReadInt();
+						if (b < 0)
+							return false;
+						DrawSprByte(x + (col << 3), y + row, b);
+					}
+				}
+			}
+			else {
+				for (int row = 0; row < rows; row++) {
+					for (int col = 0; col < cols; col++) {
+						int b = s.ReadInt();
+						if (b < 0)
+							return false;
+						DrawSprByte(x + (col << 3), y + row, b);
+					}
+				}
 			}
 		}
 		return true;
@@ -8368,6 +8479,7 @@ public class RECOIL
 		case PackExt("SHR"):
 		case PackExt("SIF"):
 		case PackExt("SPC"):
+		case PackExt("SPR"):
 		case PackExt("SPS"):
 		case PackExt("SPU"):
 		case PackExt("SR5"):
@@ -8830,6 +8942,8 @@ public class RECOIL
 		case PackExt("SPC"):
 			return DecodeStSpc(content, contentLength)
 				|| DecodeAtari8Spc(content, contentLength);
+		case PackExt("SPR"):
+			return DecodeSpr(content, contentLength);
 		case PackExt("SPS"):
 			return DecodeSps(content, contentLength);
 		case PackExt("SPU"):

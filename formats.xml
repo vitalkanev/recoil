@@ -23,6 +23,7 @@
 		<format name="Double High-Resolution" width="560" height="192" colors="2"><ext>DHR</ext></format>
 		<format name="High Resolution" width="280" height="192" colors="2"><ext>HGR</ext></format>
 		<format width="320" height="200" colors="256"><ext>SHR</ext></format>
+		<format colors="2"> <ext>SPR</ext></format>
 	</platform>
 	<platform name="Apple Macintosh">
 		<format name="MacPaint" width="576" height="720" colors="2"><ext>MAC</ext></format>
