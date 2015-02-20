@@ -751,6 +751,24 @@ class AmstradStream : RleStream
 	}
 }
 
+class CpiStream : RleStream
+{
+	override bool ReadCommand()
+	{
+		int b = ReadByte();
+		if (b < 0)
+			return false;
+		if (ContentOffset + 1 < ContentLength && Content[ContentOffset] == b) {
+			ContentOffset++;
+			RepeatCount = 1 + Content[ContentOffset++];
+		}
+		else
+			RepeatCount = 1;
+		RepeatValue = b;
+		return true;
+	}
+}
+
 class XeKoalaStream : RleStream
 {
 	override bool ReadCommand()
@@ -5878,6 +5896,25 @@ public class RECOIL
 		return DecodeMic(unpacked, 7684);
 	}
 
+	bool DecodeCpi(byte[] content, int contentLength)
+	{
+		byte[7936] unpacked;
+		CpiStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 0;
+		rle.ContentLength = contentLength;
+		if (!rle.Unpack(unpacked, 0, 1, 7936))
+			return false;
+		SetSize(320, 192, RECOILResolution.Xe2x1);
+		byte[320 * 192] frame;
+		GtiaColors[8] = 0x00;
+		GtiaColors[4] = 0x0d;
+		GtiaColors[5] = 0x09;
+		GtiaColors[6] = 0x05;
+		DecodeAtari8Gr15(unpacked, 0, 40, frame, 0, 320, 192);
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodePic(byte[] content, int contentLength)
 	{
 		byte[7680] unpacked;
@@ -8300,6 +8337,7 @@ public class RECOIL
 		case PackExt("CHE"):
 		case PackExt("CHR"):
 		case PackExt("CIN"):
+		case PackExt("CPI"):
 		case PackExt("CPR"):
 		case PackExt("CPT"):
 		case PackExt("CUT"):
@@ -8614,6 +8652,8 @@ public class RECOIL
 			return DecodeChr(content, contentLength);
 		case PackExt("CIN"):
 			return DecodeCin(content, contentLength);
+		case PackExt("CPI"):
+			return DecodeCpi(content, contentLength);
 		case PackExt("CPR"):
 			return DecodeCpr(content, contentLength);
 		case PackExt("CPT"):

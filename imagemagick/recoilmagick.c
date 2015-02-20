@@ -165,6 +165,7 @@ static const struct Format {
 	{ "CHE", "Cheese; 160x200, 16 colors" },
 	{ "CHR", "Blazing Paddles font; mono" },
 	{ "CIN", "Champions' Interlace; 160x192 or 160x200, 2 frames" },
+	{ "CPI", "Marco Pixel Editor; 160x192, 4 colors, compressed" },
 	{ "CPR", "Trzmiel; 320x192, mono, compressed" },
 	{ "CPT", "Canvas; compressed" },
 	{ "CUT", "Cut Creator; 96x99, mono" },

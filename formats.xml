@@ -68,6 +68,7 @@
 		<format name="Champions' Interlace" width="160" height="192" frames="2" compressed="yes"><ext>CCI</ext></format>
 		<format name="Blazing Paddles font" colors="2"><ext>CHR</ext></format>
 		<format name="Champions' Interlace" width="160" maxHeight="200" frames="2"><ext>CIN</ext></format>
+		<format name="Marco Pixel Editor" width="160" height="192" colors="4" compressed="yes"><ext>CPI</ext></format>
 		<format name="Trzmiel" width="320" height="192" colors="2" compressed="yes"><ext>CPR</ext></format>
 		<format name="Cut Creator" width="96" height="99" colors="2"><ext>CUT</ext></format>
 		<format width="320" height="192" colors="10" frames="2"><ext>DIN</ext></format>
