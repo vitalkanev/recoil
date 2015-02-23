@@ -317,6 +317,7 @@ static const struct Format {
 	{ "PMD", "PMG Designer by Henryk Karpowicz" },
 	{ "PMG", "Paint Magic; 160x200, 16 colors" },
 	{ "PZM", "Pryzm Artist; 80x192, 256 colors, 2 frames" },
+	{ "RAP", "Vidig Paint; 80x192, 16 colors" },
 	{ "RAW", "XL-Paint MAX; 160x192, 16 colors, 2 frames" },
 	{ "RGB", "Atari 8-bit or ZX Spectrum; 3 frames" },
 	{ "RIP", "Rocky Interlace Picture; up to 320x239, 1 or 2 frames" },

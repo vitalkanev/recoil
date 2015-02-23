@@ -277,6 +277,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".pmd", "PMG Designer by Henryk Karpowicz"),
 				new RecoilFileType(".pmg", "Paint Magic; 160x200, 16 colors"),
 				new RecoilFileType(".pzm", "Pryzm Artist; 80x192, 256 colors, 2 frames"),
+				new RecoilFileType(".rap", "Vidig Paint; 80x192, 16 colors"),
 				new RecoilFileType(".raw", "XL-Paint MAX; 160x192, 16 colors, 2 frames"),
 				new RecoilFileType(".rgb", "Atari 8-bit or ZX Spectrum; 3 frames"),
 				new RecoilFileType(".rip", "Rocky Interlace Picture; up to 320x239, 1 or 2 frames"),

@@ -121,6 +121,7 @@
 		<format name="Koala MicroIllustrator" width="160" height="192" colors="4" compressed="optionally"><ext>PIC</ext></format>
 		<format name="AtariTools-800 player" width="8" height="240" colors="2"><ext>PLA</ext></format>
 		<format name="PMG Designer by Henryk Karpowicz"><ext>PMD</ext></format>
+		<format name="Vidig Paint" width="80" height="192" colors="16"><ext>RAP</ext></format>
 		<format name="XL-Paint MAX" width="160" height="192" colors="16" frames="2"><ext>RAW</ext></format>
 		<format name="ColorViewSquash" maxWidth="160" maxHeight="192" frames="3"><ext>RGB</ext></format>
 		<format name="Rocky Interlace Picture" maxWidth="320" maxHeight="239" maxFrames="2"><ext>RIP</ext></format>

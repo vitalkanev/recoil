@@ -5708,6 +5708,17 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeRap(byte[] content, int contentLength)
+	{
+		if (contentLength != 7681)
+			return false;
+		GtiaColors[8] = content[7680];
+		SetSize(320, 192, RECOILResolution.Xe4x1);
+		byte[320 * 192] frame;
+		DecodeAtari8Gr9(content, 0, 40, frame, 0, 320, 320, 192);
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodeTxs(byte[] content, int contentLength)
 	{
 		if (contentLength != 262
@@ -8486,6 +8497,7 @@ public class RECOIL
 		case PackExt("PLM"):
 		case PackExt("PMD"):
 		case PackExt("PMG"):
+		case PackExt("RAP"):
 		case PackExt("RAW"):
 		case PackExt("RGB"):
 		case PackExt("RIP"):
@@ -8924,6 +8936,8 @@ public class RECOIL
 			return DecodePmd(content, contentLength);
 		case PackExt("PMG"):
 			return DecodePmg(content, contentLength);
+		case PackExt("RAP"):
+			return DecodeRap(content, contentLength);
 		case PackExt("RAW"):
 			return DecodeRaw(content, contentLength);
 		case PackExt("RGB"):
