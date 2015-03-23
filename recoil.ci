@@ -7473,10 +7473,44 @@ public class RECOIL
 		return true;
 	}
 
+	void DecodeIce20Frame(byte[] content, bool second, int fontOffset, byte[] frame, int mode)
+	{
+		byte[32] bitmap;
+		for (int y = 0; y < 288; y++) {
+			int row = y >> 3;
+			int c = (second ? row / 3 : row % 3) + 1;
+			for (int col = 0; col < 32; col++) {
+				int ch = ((y & 0x18) << 1) + (col >> 1);
+				int b = content[fontOffset + (ch << 3) + (y & 7)];
+				b = (col & 1) == 0 ? b >> 4 : b & 0xf;
+				b = ((b & 8) << 3 | (b & 4) << 2 | (b & 2) << 1 | (b & 1)) * c;
+				if (mode == 10) {
+					// nibble %x100 must be COLBAK not COLPF0
+					if ((b & 0x70) == 0x40)
+						b = 0x80 + (b & 0xf);
+					if ((b & 7) == 4)
+						b = (b & 0xf0) + 8;
+				}
+				bitmap[col] = b;
+			}
+			switch (mode) {
+			case 9:
+				DecodeAtari8Gr9(bitmap, 0, 0, frame, y << 8, 0, 256, 1);
+				break;
+			case 10:
+				DecodeAtari8Gr10(bitmap, 0, frame, y << 8, 0, 1);
+				break;
+			case 11:
+				DecodeAtari8Gr11(bitmap, 0, frame, y << 8, 0, 1);
+				break;
+			}
+		}
+	}
+
 	bool DecodeAtari8Ice(byte[] content, int contentLength, bool font, int mode)
 	{
-		byte[320 * 192] frame1;
-		byte[320 * 192] frame2;
+		byte[256 * 288] frame1;
+		byte[256 * 288] frame2;
 		switch (mode) {
 		case 0:
 			if (contentLength != 5 + 2048)
@@ -7687,6 +7721,80 @@ public class RECOIL
 			LeftSkip = 2;
 			SetGtiaColors(content, 1);
 			DecodeIceFrame(content, font ? IceFontFrame2 : 10 + 16384, 10 + 1024, frame2, IceFrameMode.Gr0Gtia10);
+			break;
+		case 31:
+			if (contentLength != 8 + 1024)
+				return false;
+			SetSize(256, 288, RECOILResolution.Xe4x1);
+			LeftSkip = 2;
+			const byte[7] ice20Gtia11Colors = { 0, 1, 2, 3, 5, 7, 8 };
+			for (int i = 0; i < 7; i++)
+				SetGtiaColor(ice20Gtia11Colors[i], content[1 + i]);
+			DecodeIce20Frame(content, false, 8, frame1, 10);
+			DecodeIce20Frame(content, true, 8 + 512, frame2, 10);
+			break;
+		case 32:
+			if (contentLength != 14 + 1024)
+				return false;
+			SetSize(256, 288, RECOILResolution.Xe4x1);
+			LeftSkip = 2;
+			GtiaColors[0] = content[1] & 0xfe;
+			for (int i = 1; i < 7; i++)
+				SetGtiaColor(ice20Gtia11Colors[i], content[i * 2]);
+			DecodeIce20Frame(content, false, 14, frame1, 10);
+			for (int i = 1; i < 7; i++)
+				SetGtiaColor(ice20Gtia11Colors[i], content[1 + i * 2]);
+			DecodeIce20Frame(content, true, 14 + 512, frame2, 10);
+			break;
+		case 33:
+			if (contentLength != 3 + 1024)
+				return false;
+			SetSize(256, 288, RECOILResolution.Xe4x1);
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIce20Frame(content, false, 3, frame1, 9);
+			GtiaColors[8] = content[2] & 0xfe;
+			DecodeIce20Frame(content, true, 3 + 512, frame2, 9);
+			break;
+		case 34:
+			if (contentLength != 3 + 1024)
+				return false;
+			SetSize(256, 288, RECOILResolution.Xe4x1);
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIce20Frame(content, false, 3, frame1, 11);
+			GtiaColors[8] = content[2] & 0xfe;
+			DecodeIce20Frame(content, true, 3 + 512, frame2, 11);
+			break;
+		case 35:
+			if (contentLength != 8 + 1024)
+				return false;
+			SetSize(256, 288, RECOILResolution.Xe2x1);
+			LeftSkip = 1;
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIce20Frame(content, false, 8, frame1, 9);
+			for (int i = 0; i < 7; i++)
+				SetGtiaColor(ice20Gtia11Colors[i], content[1 + i]);
+			DecodeIce20Frame(content, true, 8 + 512, frame2, 10);
+			break;
+		case 36:
+			if (contentLength != 8 + 1024)
+				return false;
+			SetSize(256, 288, RECOILResolution.Xe2x1);
+			LeftSkip = 1;
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIce20Frame(content, false, 8, frame1, 11);
+			GtiaColors[0] = 0;
+			for (int i = 1; i < 7; i++)
+				SetGtiaColor(ice20Gtia11Colors[i], content[1 + i]);
+			DecodeIce20Frame(content, true, 8 + 512, frame2, 10);
+			break;
+		case 37:
+			if (contentLength != 3 + 1024)
+				return false;
+			SetSize(256, 288, RECOILResolution.Xe4x1);
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIce20Frame(content, false, 3, frame1, 9);
+			GtiaColors[8] = content[2] & 0xfe;
+			DecodeIce20Frame(content, true, 3 + 512, frame2, 11);
 			break;
 		default:
 			return false;
@@ -8788,7 +8896,7 @@ public class RECOIL
 		case PackExt("HCI"):
 			return DecodeHr2(content, contentLength);
 		case PackExt("ICE"):
-			return contentLength > 2048 && DecodeAtari8Ice(content, contentLength, true, content[0]);
+			return contentLength > 1024 && DecodeAtari8Ice(content, contentLength, true, content[0]);
 		case PackExt("ICN"):
 			return DecodeStIcn(content, contentLength)
 				|| DecodeAtari8Ice(content, contentLength, false, 17);
