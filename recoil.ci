@@ -72,7 +72,10 @@ enum IceFrameMode
 	Gr12,
 	Gr12Gtia9,
 	Gr12Gtia10,
-	Gr12Gtia11
+	Gr12Gtia11,
+	Gr13Gtia9,
+	Gr13Gtia10,
+	Gr13Gtia11
 }
 
 abstract class Stream
@@ -7389,6 +7392,17 @@ public class RECOIL
 
 	void DecodeIceFrame(byte[] content, int charactersOffset, int fontOffset, byte[] frame, IceFrameMode mode)
 	{
+		int doubleLine;
+		switch (mode) {
+		case IceFrameMode.Gr13Gtia9:
+		case IceFrameMode.Gr13Gtia10:
+		case IceFrameMode.Gr13Gtia11:
+			doubleLine = 1;
+			break;
+		default:
+			doubleLine = 0;
+			break;
+		}
 		int frameOffset = 0;
 		byte[40] bitmap;
 		for (int y = 0; y < Height; y++) {
@@ -7397,17 +7411,17 @@ public class RECOIL
 				switch (charactersOffset) {
 				case IceFontFrame1:
 					const byte[16] row2char1 = { 0x40, 0x00, 0x20, 0x60, 0xc0, 0x80, 0xa0, 0xe0, 0x40, 0x00, 0x20, 0x60, 0xc0, 0x80, 0xa0, 0xe0 };
-					ch = row2char1[y >> 3] + col;
+					ch = row2char1[y >> (3 + doubleLine)] + col;
 					break;
 				case IceFontFrame2:
 					const byte[16] row2char2 = { 0x40, 0x00, 0x20, 0x60, 0xc0, 0x80, 0xa0, 0xe0, 0xc0, 0x80, 0xa0, 0xe0, 0x40, 0x00, 0x20, 0x60 };
-					ch = row2char2[y >> 3] + col;
+					ch = row2char2[y >> (3 + doubleLine)] + col;
 					break;
 				default: // IRG/IR2/DIN/ICN/IMN/IPC/IP2 picture
 					ch = (y / 24 << 8) + content[charactersOffset + (y >> 3) * 40 + col];
 					break;
 				}
-				int b = content[fontOffset + ((ch & ~0x80) << 3) + (y & 7)];
+				int b = content[fontOffset + ((ch & ~0x80) << 3) + (y >> doubleLine & 7)];
 				switch (mode) {
 				case IceFrameMode.Gr0:
 				case IceFrameMode.Gr0Gtia9:
@@ -7426,9 +7440,12 @@ public class RECOIL
 					break;
 				case IceFrameMode.Gr12Gtia9:
 				case IceFrameMode.Gr12Gtia11:
+				case IceFrameMode.Gr13Gtia9:
+				case IceFrameMode.Gr13Gtia11:
 					bitmap[col] = Gr12GtiaByteToGr8(b, ch, false);
 					break;
 				case IceFrameMode.Gr12Gtia10:
+				case IceFrameMode.Gr13Gtia10:
 					bitmap[col] = Gr12GtiaByteToGr8(b, ch, true);
 					break;
 				}
@@ -7443,14 +7460,17 @@ public class RECOIL
 				break;
 			case IceFrameMode.Gr0Gtia9:
 			case IceFrameMode.Gr12Gtia9:
+			case IceFrameMode.Gr13Gtia9:
 				DecodeAtari8Gr9(bitmap, 0, 0, frame, frameOffset, 0, Width, 1);
 				break;
 			case IceFrameMode.Gr0Gtia10:
 			case IceFrameMode.Gr12Gtia10:
+			case IceFrameMode.Gr13Gtia10:
 				DecodeAtari8Gr10(bitmap, 0, frame, frameOffset, 0, 1);
 				break;
 			case IceFrameMode.Gr0Gtia11:
 			case IceFrameMode.Gr12Gtia11:
+			case IceFrameMode.Gr13Gtia11:
 				DecodeAtari8Gr11(bitmap, 0, frame, frameOffset, 0, 1);
 				break;
 			}
@@ -7721,6 +7741,76 @@ public class RECOIL
 			LeftSkip = 2;
 			SetGtiaColors(content, 1);
 			DecodeIceFrame(content, font ? IceFontFrame2 : 10 + 16384, 10 + 1024, frame2, IceFrameMode.Gr0Gtia10);
+			break;
+		case 22:
+			if (contentLength != 10 + 2048)
+				return false;
+			SetSize(256, 256, RECOILResolution.Xe4x2);
+			LeftSkip = 2;
+			SetGtiaColors(content, 1);
+			DecodeIceFrame(content, IceFontFrame1, 10, frame1, IceFrameMode.Gr13Gtia10);
+			DecodeIceFrame(content, IceFontFrame2, 10 + 1024, frame2, IceFrameMode.Gr13Gtia10);
+			break;
+		case 23:
+			if (contentLength != 17 + 2048)
+				return false;
+			SetSize(256, 256, RECOILResolution.Xe4x2);
+			LeftSkip = 2;
+			GtiaColors[0] = content[1] & 0xfe;
+			for (int i = 0; i < 8; i++)
+				SetGtiaColor(i + 1, content[2 + i * 2]);
+			DecodeIceFrame(content, IceFontFrame1, 17, frame1, IceFrameMode.Gr13Gtia10);
+			for (int i = 0; i < 7; i++)
+				SetGtiaColor(i + 1, content[3 + i * 2]);
+			DecodeIceFrame(content, IceFontFrame2, 17 + 1024, frame2, IceFrameMode.Gr13Gtia10);
+			break;
+		case 24:
+			if (contentLength != 3 + 2048)
+				return false;
+			SetSize(256, 256, RECOILResolution.Xe4x2);
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIceFrame(content, IceFontFrame1, 3, frame1, IceFrameMode.Gr13Gtia9);
+			GtiaColors[8] = content[2] & 0xfe;
+			DecodeIceFrame(content, IceFontFrame2, 3 + 1024, frame2, IceFrameMode.Gr13Gtia9);
+			break;
+		case 25:
+			if (contentLength != 3 + 2048)
+				return false;
+			SetSize(256, 256, RECOILResolution.Xe4x2);
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIceFrame(content, IceFontFrame1, 3, frame1, IceFrameMode.Gr13Gtia11);
+			GtiaColors[8] = content[2] & 0xfe;
+			DecodeIceFrame(content, IceFontFrame2, 3 + 1024, frame2, IceFrameMode.Gr13Gtia11);
+			break;
+		case 26:
+			if (contentLength != 10 + 2048)
+				return false;
+			SetSize(256, 256, RECOILResolution.Xe2x2);
+			LeftSkip = 1;
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIceFrame(content, IceFontFrame1, 10, frame1, IceFrameMode.Gr13Gtia9);
+			SetGtiaColors(content, 1);
+			DecodeIceFrame(content, IceFontFrame2, 10 + 1024, frame2, IceFrameMode.Gr13Gtia10);
+			break;
+		case 27:
+			if (contentLength != 10 + 2048)
+				return false;
+			SetSize(256, 256, RECOILResolution.Xe2x2);
+			LeftSkip = 1;
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIceFrame(content, IceFontFrame1, 10, frame1, IceFrameMode.Gr13Gtia11);
+			GtiaColors[0] = 0x00;
+			SetPM123PF0123Bak(content, 2);
+			DecodeIceFrame(content, IceFontFrame2, 10 + 1024, frame2, IceFrameMode.Gr13Gtia10);
+			break;
+		case 28:
+			if (contentLength != 3 + 2048)
+				return false;
+			SetSize(256, 256, RECOILResolution.Xe4x2);
+			GtiaColors[8] = content[1] & 0xfe;
+			DecodeIceFrame(content, IceFontFrame1, 3, frame1, IceFrameMode.Gr13Gtia9);
+			GtiaColors[8] = content[2] & 0xfe;
+			DecodeIceFrame(content, IceFontFrame2, 3 + 1024, frame2, IceFrameMode.Gr13Gtia11);
 			break;
 		case 31:
 			if (contentLength != 8 + 1024)
