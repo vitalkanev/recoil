@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "recoil-stdio.h"
+#include "recoil-win32.h"
 #include "formats.h"
 #include "pngsave.h"
 #include "recoilwin.h"
@@ -260,23 +260,10 @@ static void ZoomOut(void)
 	} while (!Repaint(FALSE));
 }
 
-static BOOL LoadFile(const char *filename, BYTE *buffer, int *len)
-{
-	HANDLE fh;
-	BOOL ok;
-	fh = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-	if (fh == INVALID_HANDLE_VALUE)
-		return FALSE;
-	ok = ReadFile(fh, buffer, *len, (LPDWORD) len, NULL);
-	CloseHandle(fh);
-	return ok;
-}
-
 static BOOL OpenImage(BOOL show_error)
 {
 	BYTE content[RECOIL_MAX_CONTENT_LENGTH];
-	int content_len = sizeof(content);
+	int content_len;
 	int width;
 	int height;
 	const int *palette;
@@ -287,7 +274,8 @@ static BOOL OpenImage(BOOL show_error)
 	SetMenuEnabled(IDM_FIRSTFILE, TRUE);
 	SetMenuEnabled(IDM_LASTFILE, TRUE);
 
-	if (!LoadFile(image_filename, content, &content_len)) {
+	content_len = SlurpFile(image_filename, content, sizeof(content));
+	if (content_len < 0) {
 		if (show_error)
 			ShowError("Cannot open file");
 		return FALSE;
@@ -483,8 +471,8 @@ static void SelectAndSaveImage(void)
 static BOOL OpenPalette(const char *filename)
 {
 	BYTE atari8_palette[768 + 1];
-	int atari8_palette_len = sizeof(atari8_palette);
-	if (!LoadFile(filename, atari8_palette, &atari8_palette_len)) {
+	int atari8_palette_len = SlurpFile(filename, atari8_palette, sizeof(atari8_palette));
+	if (atari8_palette_len < 0) {
 		ShowError("Cannot open file");
 		return FALSE;
 	}
@@ -722,7 +710,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 0;
 	}
 
-	recoil = RECOILStdio_New();
+	recoil = RECOILWin32_New();
 	if (recoil == NULL)
 		return 1;
 
