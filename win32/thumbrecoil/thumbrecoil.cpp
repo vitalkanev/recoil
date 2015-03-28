@@ -1,7 +1,7 @@
 /*
  * thumbrecoil.cpp - Windows thumbnail provider for RECOIL
  *
- * Copyright (C) 2011-2015  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2011-2015  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -86,7 +86,7 @@ DECLARE_INTERFACE_(IThumbnailProvider, IUnknown)
 };
 #undef INTERFACE
 
-#include "recoil-stdio.h"
+#include "recoil.h"
 #include "formats.h"
 
 static const char extensions[][6] = { THUMBRECOIL_EXTS };
@@ -103,6 +103,31 @@ static void DllAddRef(void)
 static void DllRelease(void)
 {
 	InterlockedDecrement(&g_cRef);
+}
+
+typedef struct {
+	int (*readFile)(RECOIL *self, const char *filename, unsigned char *content, int contentLength);
+}
+RECOILVtbl;
+
+static int RECOILWin32_ReadFile(RECOIL *self, const char *filename, unsigned char *content, int contentLength)
+{
+	HANDLE fh = CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+	if (fh == INVALID_HANDLE_VALUE)
+		return -1;
+	BOOL ok = ReadFile(fh, content, contentLength, (LPDWORD) &contentLength, NULL);
+	CloseHandle(fh);
+	return ok ? contentLength : -1;
+}
+
+static RECOIL *RECOILWin32_New(void)
+{
+	RECOIL *self = RECOIL_New();
+	if (self != NULL) {
+		static const RECOILVtbl vtbl = { RECOILWin32_ReadFile };
+		*(const RECOILVtbl **) self = &vtbl;
+	}
+	return self;
 }
 
 #define CLSID_RECOILThumbProvider_str "{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}"
@@ -160,7 +185,7 @@ public:
 	CRECOILThumbProvider() : m_cRef(1), m_pstream(NULL), m_filename(NULL)
 	{
 		DllAddRef();
-		m_pRecoil = RECOILStdio_New();
+		m_pRecoil = RECOILWin32_New();
 	}
 
 	virtual ~CRECOILThumbProvider()

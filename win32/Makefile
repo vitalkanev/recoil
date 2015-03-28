@@ -46,12 +46,12 @@ recoilwin.exe: recoilwin/recoilwin.c recoilwin/recoilwin.h recoilwin/recoilwin-r
 recoilwin/recoilwin-res.o: recoilwin/recoilwin.rc recoilwin/recoilwin.h recoil.ico ../recoil.h
 	$(WINDRES) -I .. recoilwin/recoilwin.rc
 
-thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../formats.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
-	$(RECOIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbrecoil/thumbrecoil.cpp ../recoil-stdio.c ../recoil.c -lgdi32 -lole32 -luuid
+thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../formats.h ../recoil.c ../recoil.h
+	$(RECOIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbrecoil/thumbrecoil.cpp ../recoil.c -lgdi32 -lole32 -luuid
 
-x64/thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../formats.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
+x64/thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../formats.h ../recoil.c ../recoil.h
 	test -d x64 || mkdir x64
-	$(X64_RECOIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbrecoil/thumbrecoil.cpp ../recoil-stdio.c ../recoil.c -lgdi32 -lole32 -luuid
+	$(X64_RECOIL_GPP) -shared -Wl,-subsystem,windows -Wl,--kill-at thumbrecoil/thumbrecoil.cpp ../recoil.c -lgdi32 -lole32 -luuid
 
 RECOIL.plg: imagine/recoilimagine.c ../formats.h ../recoil.c ../recoil.h
 	$(RECOIL_CC_DLL) imagine/recoilimagine.c ../recoil.c
