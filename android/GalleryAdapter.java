@@ -1,7 +1,7 @@
 /*
  * GalleryAdapter.java - RECOIL for Android
  *
- * Copyright (C) 2013-2014  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2013-2015  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -42,28 +42,15 @@ class GalleryAdapter extends BaseAdapter
 
 	public View getView(int position, View convertView, ViewGroup parent)
 	{
-		RECOIL recoil;
+		Bitmap bitmap;
 		try {
-			recoil = viewer.decode(position);
+			bitmap = viewer.getBitmap(position);
 		}
 		catch (RECOILException ex) {
 			TextView textView = (TextView) viewer.getLayoutInflater().inflate(R.layout.error, null);
 			textView.setText(ex.getMessage());
 			return textView;
 		}
-
-		int[] pixels = recoil.getPixels();
-		int width = recoil.getWidth();
-		int height = recoil.getHeight();
-
-		// Set alpha
-		int pixelsLength = width * height;
-		for (int i = 0; i < pixelsLength; i++)
-			pixels[i] |= 0xff000000;
-
-		// Display
-		Bitmap bitmap = Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888);
-		bitmap.setHasAlpha(false);
 		ImageView imageView = convertView instanceof ImageView ? (ImageView) convertView : new ImageView(viewer);
 		imageView.setLayoutParams(new Gallery.LayoutParams(Gallery.LayoutParams.MATCH_PARENT, Gallery.LayoutParams.MATCH_PARENT));
 		imageView.setImageBitmap(bitmap);

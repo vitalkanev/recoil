@@ -25,8 +25,11 @@ package net.sf.recoil;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -104,6 +107,23 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 		}
 	}
 
+	Bitmap getBitmap(int position) throws RECOILException
+	{
+		RECOIL recoil = decode(position);
+		int[] pixels = recoil.getPixels();
+		int width = recoil.getWidth();
+		int height = recoil.getHeight();
+
+		// Set alpha
+		int pixelsLength = width * height;
+		for (int i = 0; i < pixelsLength; i++)
+			pixels[i] |= 0xff000000;
+
+		Bitmap bitmap = Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888);
+		bitmap.setHasAlpha(false);
+		return bitmap;
+	}
+
 	public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
 	{
 		setTitle(getString(R.string.viewing_title, filenames.get(position)));
@@ -151,6 +171,26 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 		new AlertDialog.Builder(this).setTitle(R.string.info_title).setMessage(message).show();
 	}
 
+	private void shareAsPng()
+	{
+		int position = gallery.getSelectedItemPosition();
+		Bitmap bitmap;
+		try {
+			bitmap = getBitmap(position);
+		}
+		catch (RECOILException ex) {
+			// whole screen already contains the error message
+			return;
+		}
+		String uri = MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, filenames.get(position), null);
+		if (uri != null) {
+			Intent intent = new Intent(Intent.ACTION_SEND);
+			intent.setType("image/png");
+			intent.putExtra(Intent.EXTRA_STREAM, Uri.parse(uri));
+			startActivity(intent);
+		}
+	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
@@ -164,6 +204,9 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 		switch (item.getItemId()) {
 		case R.id.menu_info:
 			showInfo();
+			return true;
+		case R.id.menu_share_as_png:
+			shareAsPng();
 			return true;
 		case R.id.menu_about:
 			About.show(this);

@@ -11,6 +11,7 @@
 	<string name="error_decoding_file">Błąd dekodowania pliku %1$s</string>
 	<string name="menu_search">Szukaj</string>
 	<string name="menu_info">Informacje o pliku</string>
+	<string name="menu_share_as_png">Prześlij jako PNG</string>
 	<string name="menu_about">Informacja o RECOIL</string>
 	<string name="info_title">Informacje o pliku</string>
 	<string name="info_message">Komputer: %1$s\nRozdzielczość: %2$dx%3$d\nKolorów: %4$d</string>
