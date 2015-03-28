@@ -2377,23 +2377,23 @@ public class RECOIL
 			for (int col = 0; col < 40; col++) {
 				int offset = y * 40 + col;
 				int b = content[bitmapOffset + offset];
+				int inverse = b >= 0x80 ? 7 : 0;
 				switch (b & 0x78) {
 				case 0x00:
 					ink = b & 7;
-					b &= 0x80;
+					b = 0;
 					break;
 				case 0x08:
 				case 0x18:
-					b &= 0x80;
+					b = 0;
 					break;
 				case 0x10:
 					paper = b & 7;
-					b &= 0x80;
+					b = 0;
 					break;
 				default:
 					break;
 				}
-				int inverse = b >= 0x80 ? 7 : 0;
 				for (int x = 0; x < 6; x++)
 					Pixels[offset * 6 + x] = BbcPalette[((b >> (5 - x) & 1) == 0 ? paper : ink) ^ inverse];
 			}
