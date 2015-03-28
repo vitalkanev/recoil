@@ -337,6 +337,9 @@
 		</format>
 		<format name="Graph Saurus" width="256" height="212" colors="256" compressed="optionally"><ext>SR8</ext></format>
 	</platform>
+	<platform name="Oric">
+		<format width="240" height="200" colors="8"><ext>HRS</ext></format>
+	</platform>
 	<platform name="PC">
 		<format name="Award BIOS logo"><ext>EPA</ext></format>
 		<format name="Microsoft Paint version 1 or 2" colors="2"><ext>MSP</ext></format>

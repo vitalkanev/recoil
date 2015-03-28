@@ -200,6 +200,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".hpm", "Grass' Slideshow; 160x192, 4 colors, compressed"),
 				new RecoilFileType(".hr", "256x239, 3 colors, 2 frames"),
 				new RecoilFileType(".hr2", "320x200, 5 colors, 2 frames"),
+				new RecoilFileType(".hrs", "240x200, 8 colors"),
 				new RecoilFileType(".ice", "Interlace Character Editor font, 2 frames"),
 				new RecoilFileType(".icn", "DEGAS Elite Icon or ICE CIN"),
 				new RecoilFileType(".ifl", "C64 Gunpaint or ZX Spectrum Multicolor 8x2"),

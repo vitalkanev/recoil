@@ -50,6 +50,7 @@ enum RECOILResolution
 	C642x1,
 	Msx1x1,
 	Msx1x2,
+	Oric1x1,
 	Pc1x1,
 	SamCoupe1x1,
 	Spectrum1x1,
@@ -1909,6 +1910,8 @@ public class RECOIL
 		case RECOILResolution.Msx1x1:
 		case RECOILResolution.Msx1x2:
 			return "MSX";
+		case RECOILResolution.Oric1x1:
+			return "Oric";
 		case RECOILResolution.Pc1x1:
 			return "PC";
 		case RECOILResolution.SamCoupe1x1:
@@ -2347,6 +2350,55 @@ public class RECOIL
 		default:
 			return false;
 		}
+	}
+
+	// Oric formats.
+
+	bool DecodeHrs(byte[] content, int contentLength)
+	{
+		if (contentLength < 8014
+		 || content[0] != 0x16 || content[1] != 0x16 || content[2] != 0x16 || content[3] != 0x24
+		 || content[4] != 0x00 || content[5] != 0x00 || content[6] != 0x80 || content[7] != 0x00
+		 || content[8] != 0xbf || content[9] != 0x3f || content[10] != 0xa0 || content[11] != 0x00
+		 || content[12] != 0x00)
+			return false;
+		int bitmapOffset = 13;
+		while (content[bitmapOffset++] != 0) {
+			if (bitmapOffset >= 0x1a)
+				return false;
+		}
+		if (bitmapOffset + 8000 != contentLength)
+			return false;
+
+		SetSize(240, 200, RECOILResolution.Oric1x1);
+		for (int y = 0; y < 200; y++) {
+			int paper = 0;
+			int ink = 7;
+			for (int col = 0; col < 40; col++) {
+				int offset = y * 40 + col;
+				int b = content[bitmapOffset + offset];
+				switch (b & 0x78) {
+				case 0x00:
+					ink = b & 7;
+					b &= 0x80;
+					break;
+				case 0x08:
+				case 0x18:
+					b &= 0x80;
+					break;
+				case 0x10:
+					paper = b & 7;
+					b &= 0x80;
+					break;
+				default:
+					break;
+				}
+				int inverse = b >= 0x80 ? 7 : 0;
+				for (int x = 0; x < 6; x++)
+					Pixels[offset * 6 + x] = BbcPalette[((b >> (5 - x) & 1) == 0 ? paper : ink) ^ inverse];
+			}
+		}
+		return true;
 	}
 
 	// Amstrad CPC formats.
@@ -8613,6 +8665,7 @@ public class RECOIL
 		case PackExt("HR"):
 		case PackExt("HR2"):
 		case PackExt("HCI"):
+		case PackExt("HRS"):
 		case PackExt("ICE"):
 		case PackExt("ICN"):
 		case PackExt("IFF"):
@@ -8985,6 +9038,8 @@ public class RECOIL
 		case PackExt("HR2"):
 		case PackExt("HCI"):
 			return DecodeHr2(content, contentLength);
+		case PackExt("HRS"):
+			return DecodeHrs(content, contentLength);
 		case PackExt("ICE"):
 			return contentLength > 1024 && DecodeAtari8Ice(content, contentLength, true, content[0]);
 		case PackExt("ICN"):

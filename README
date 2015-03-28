@@ -23,6 +23,7 @@ http://en.wikipedia.org/wiki/Commodore_16[Commodore 16],
 http://en.wikipedia.org/wiki/Commodore_64[Commodore 64],
 http://en.wikipedia.org/wiki/Macintosh_128K[Macintosh 128K],
 http://en.wikipedia.org/wiki/MSX[MSX],
+http://en.wikipedia.org/wiki/Oric[Oric],
 http://en.wikipedia.org/wiki/SAM_Coupé[SAM Coupé],
 http://en.wikipedia.org/wiki/ZX81[ZX81]
 and http://en.wikipedia.org/wiki/ZX_Spectrum[ZX Spectrum] computers.
@@ -348,6 +349,11 @@ SCC, SRS, YJK:: "Screen 12", 256x212, 19268 colors.
 SR5+PL5:: "Screen 5", 256x212, 16 colors.
 SR7+PL7:: "Screen 7", 512x212, 16 colors, compressed.
 SR8:: "Graph Saurus", 256x212, 256 colors, compressed.
+
+Oric
+~~~~
+[horizontal]
+HRS:: 240x200, 8 colors.
 
 PC
 ~~
