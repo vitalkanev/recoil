@@ -338,6 +338,7 @@
 		<format name="Graph Saurus" width="256" height="212" colors="256" compressed="optionally"><ext>SR8</ext></format>
 	</platform>
 	<platform name="Oric">
+		<format name="6x8 font" tileWidth="6" tileHeight="8" colors="2"><ext>CHS</ext></format>
 		<format width="240" height="200" colors="8"><ext>HRS</ext></format>
 	</platform>
 	<platform name="PC">

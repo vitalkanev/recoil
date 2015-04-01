@@ -353,6 +353,7 @@ SR8:: "Graph Saurus", 256x212, 256 colors, compressed.
 Oric
 ~~~~
 [horizontal]
+CHS:: 6x8 font, mono.
 HRS:: 240x200, 8 colors.
 
 PC

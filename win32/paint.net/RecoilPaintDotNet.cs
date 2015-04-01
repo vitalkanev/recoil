@@ -124,6 +124,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".ch8", "8x8 font; mono"),
 				new RecoilFileType(".che", "Cheese; 160x200, 16 colors"),
 				new RecoilFileType(".chr", "Blazing Paddles font; mono"),
+				new RecoilFileType(".chs", "6x8 font; mono"),
 				new RecoilFileType(".cin", "Champions' Interlace; 160x192 or 160x200, 2 frames"),
 				new RecoilFileType(".cpi", "Marco Pixel Editor; 160x192, 4 colors, compressed"),
 				new RecoilFileType(".cpr", "Trzmiel; 320x192, mono, compressed"),

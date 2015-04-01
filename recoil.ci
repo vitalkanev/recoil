@@ -2354,20 +2354,45 @@ public class RECOIL
 
 	// Oric formats.
 
-	bool DecodeHrs(byte[] content, int contentLength)
+	static int GetOricHeader(byte[] content, int contentLength)
 	{
-		if (contentLength < 8014
+		if (contentLength < 26
 		 || content[0] != 0x16 || content[1] != 0x16 || content[2] != 0x16 || content[3] != 0x24
 		 || content[4] != 0x00 || content[5] != 0x00 || content[6] != 0x80 || content[7] != 0x00
-		 || content[8] != 0xbf || content[9] != 0x3f || content[10] != 0xa0 || content[11] != 0x00
 		 || content[12] != 0x00)
-			return false;
-		int bitmapOffset = 13;
-		while (content[bitmapOffset++] != 0) {
-			if (bitmapOffset >= 0x1a)
-				return false;
+			return -1;
+		int contentOffset = 13;
+		while (content[contentOffset++] != 0) {
+			if (contentOffset >= 0x1a)
+				return -1;
 		}
-		if (bitmapOffset + 8000 != contentLength)
+		return contentOffset;
+	}
+
+	bool DecodeChs(byte[] content, int contentLength)
+	{
+		int contentOffset = GetOricHeader(content, contentLength);
+		if (contentOffset < 0)
+			return false;
+		switch (contentLength - contentOffset) {
+		case 768:
+		case 769:
+			break;
+		default:
+			return false;
+		}
+
+		SetSize(256, 24, RECOILResolution.Oric1x1);
+		DecodeBlackAndWhiteFont(content, contentOffset, contentLength);
+		return true;
+	}
+
+	bool DecodeHrs(byte[] content, int contentLength)
+	{
+		int contentOffset = GetOricHeader(content, contentLength);
+		if (contentOffset < 0
+		 || content[8] != 0xbf || content[9] != 0x3f || content[10] != 0xa0 || content[11] != 0x00
+		 || contentOffset + 8000 != contentLength)
 			return false;
 
 		SetSize(240, 200, RECOILResolution.Oric1x1);
@@ -2376,7 +2401,7 @@ public class RECOIL
 			int ink = 7;
 			for (int col = 0; col < 40; col++) {
 				int offset = y * 40 + col;
-				int b = content[bitmapOffset + offset];
+				int b = content[contentOffset + offset];
 				int inverse = b >= 0x80 ? 7 : 0;
 				switch (b & 0x78) {
 				case 0x00:
@@ -8597,6 +8622,7 @@ public class RECOIL
 		case PackExt("CH8"):
 		case PackExt("CHE"):
 		case PackExt("CHR"):
+		case PackExt("CHS"):
 		case PackExt("CIN"):
 		case PackExt("CPI"):
 		case PackExt("CPR"):
@@ -8913,6 +8939,8 @@ public class RECOIL
 			return contentLength == 20482 && DecodeC64Multicolor(320, content, 2, 0x4202, 0x4802, 0);
 		case PackExt("CHR"):
 			return DecodeChr(content, contentLength);
+		case PackExt("CHS"):
+			return DecodeChs(content, contentLength);
 		case PackExt("CIN"):
 			return DecodeCin(content, contentLength);
 		case PackExt("CPI"):
