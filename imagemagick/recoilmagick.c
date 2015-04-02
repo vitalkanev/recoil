@@ -269,6 +269,7 @@ static const struct Format {
 	{ "KOA", "Koala Painter; 160x200, 16 colors" },
 	{ "KPR", "Kompresor do Animatora; 4 colors" },
 	{ "LBM", "Interleaved Bitmap" },
+	{ "LDM", "Ludek Maker; 16x30 tiles, 4 colors" },
 	{ "LEO", "Larka Edytor Obiektow trybu $4+; 8x16 tiles, 5 colors" },
 	{ "LP3", "Logo Painter 3/3+; 160x400, 4 colors" },
 	{ "LUM", "Technicolor Dream luminance; 80x119, 16-level grayscale" },

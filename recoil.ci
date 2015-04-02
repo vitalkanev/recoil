@@ -6131,6 +6131,40 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeLdm(byte[] content, int contentLength)
+	{
+		if (contentLength < 281)
+			return false;
+		for (int i = 0; i < 21; i++)
+			if (content[i] != "Ludek Maker data file"[i] + 128)
+				return false;
+		int shapes = content[0x18] - content[0x17];
+		const int maxShapes = 100;
+		if (shapes <= 0 || shapes > maxShapes)
+			return false;
+		// 8 shapes per row * (16 pixels + 4 pixels gap) = 160 pixels wide
+		int rows = shapes + 7 >> 3;
+		const int maxRows = maxShapes + 7 >> 3;
+		const int height = 30;
+		const int horizontalGap = 4;
+		const int verticalGap = 2;
+		if (rows == 1)
+			SetSize(shapes * (16 + horizontalGap << 1), height, RECOILResolution.Xe2x1);
+		else
+			SetSize(320, rows * (height + verticalGap) - verticalGap, RECOILResolution.Xe2x1);
+
+		byte[320 * (maxRows * (height + verticalGap) - verticalGap)] frame = 0;
+		for (int shape = 0; shape < shapes; shape++) {
+			int contentOffset = 0x119 + shape * (4 * height);
+			int frameOffset = (shape >> 3) * (height + verticalGap) * 320 + (shape & 7) * (16 + horizontalGap << 1);
+			DecodeAtari8Player(content, contentOffset, content[0x15], frame, frameOffset, height);
+			DecodeAtari8Player(content, contentOffset + height, content[0x16], frame, frameOffset, height);
+			DecodeAtari8Player(content, contentOffset + 2 * height, content[0x15], frame, frameOffset + 16, height);
+			DecodeAtari8Player(content, contentOffset + 3 * height, content[0x16], frame, frameOffset + 16, height);
+		}
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodePmd(byte[] content, int contentLength)
 	{
 		if (contentLength < 3 + 4 + 4 + 1
@@ -6152,14 +6186,14 @@ public class RECOIL
 		if (multi)
 			totalShapes >>= 1;
 		// 16 shapes per row * (8 pixels + 2 pixels gap) = 160 pixels wide
-		int rows = (totalShapes + 15 >> 4);
+		int rows = totalShapes + 15 >> 4;
 		const int horizontalGap = 2;
 		const int verticalGap = 2;
 		const int maxHeight = 560;
 		if (rows == 1)
 			SetSize(totalShapes * (8 + horizontalGap << 1), height, RECOILResolution.Xe2x1);
 		else {
-			int totalHeight = rows * height + (rows - 1) * verticalGap;
+			int totalHeight = rows * (height + verticalGap) - verticalGap;
 			if (totalHeight > maxHeight)
 				return false;
 			SetSize(320, totalHeight, RECOILResolution.Xe2x1);
@@ -8758,6 +8792,7 @@ public class RECOIL
 		case PackExt("GIG"):
 		case PackExt("RPM"):
 		case PackExt("KPR"):
+		case PackExt("LDM"):
 		case PackExt("LEO"):
 		case PackExt("LP3"):
 		case PackExt("LUM"):
@@ -9162,6 +9197,8 @@ public class RECOIL
 			return DecodeKoa(content, contentLength);
 		case PackExt("KPR"):
 			return DecodeKpr(content, contentLength);
+		case PackExt("LDM"):
+			return DecodeLdm(content, contentLength);
 		case PackExt("LEO"):
 			return DecodeLeo(content, contentLength);
 		case PackExt("LP3"):

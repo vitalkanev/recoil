@@ -229,6 +229,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".koa", "Koala Painter; 160x200, 16 colors"),
 				new RecoilFileType(".kpr", "Kompresor do Animatora; 4 colors"),
 				new RecoilFileType(".lbm", "Interleaved Bitmap"),
+				new RecoilFileType(".ldm", "Ludek Maker; 16x30 tiles, 4 colors"),
 				new RecoilFileType(".leo", "Larka Edytor Obiektow trybu $4+; 8x16 tiles, 5 colors"),
 				new RecoilFileType(".lp3", "Logo Painter 3/3+; 160x400, 4 colors"),
 				new RecoilFileType(".lum", "Technicolor Dream luminance; 80x119, 16-level grayscale"),
