@@ -7369,6 +7369,38 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeKpr(byte[] content, int contentLength)
+	{
+		if (contentLength < 11 || GetAtari8ExecutableOffset(content, contentLength) != 6)
+			return false;
+		// The manual: http://atarionline.pl/biblioteka/materialy_ksiazkowe/Animator.djvu
+		// says the format is cols,rows,frames while actually it is frames,cols,rows.
+		// They are followed by tile numbers then tile graphics.
+		// Tiles are like Graphics 12 characters but there might be up to 256 different tiles.
+		// Tile numbers are stored in the following order: for each frame, from top to bottom row, cols tiles.
+		int frames = content[8];
+		int cols = content[9];
+		int rows = content[10];
+		int tiles = frames * cols * rows;
+		if (contentLength < 11 + tiles
+		 || !SetSize(frames * cols << 3, rows << 3, RECOILResolution.Xe2x1))
+			return false;
+		int pixelsOffset = 0;
+		for (int y = 0; y < rows << 3; y++) {
+			for (int f = 0; f < frames; f++) {
+				for (int x = 0; x < cols << 3; x++) {
+					int c = content[11 + (f * rows + (y >> 3)) * cols + (x >> 3)]; // tile number
+					c = 11 + tiles + (c << 3) + (y & 7); // offset in tile graphics
+					if (c >= contentLength)
+						return false;
+					c = content[c] >> (~x & 6) & 3; // color
+					Pixels[pixelsOffset++] = Atari8Palette[c << 2];
+				}
+			}
+		}
+		return true;
+	}
+
 	bool DecodeMcs(byte[] content, int contentLength)
 	{
 		if (contentLength != 10185)
@@ -8725,6 +8757,7 @@ public class RECOIL
 		case PackExt("KOA"):
 		case PackExt("GIG"):
 		case PackExt("RPM"):
+		case PackExt("KPR"):
 		case PackExt("LEO"):
 		case PackExt("LP3"):
 		case PackExt("LUM"):
@@ -9127,6 +9160,8 @@ public class RECOIL
 		case PackExt("GIG"):
 		case PackExt("RPM"):
 			return DecodeKoa(content, contentLength);
+		case PackExt("KPR"):
+			return DecodeKpr(content, contentLength);
 		case PackExt("LEO"):
 			return DecodeLeo(content, contentLength);
 		case PackExt("LP3"):

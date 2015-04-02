@@ -153,6 +153,7 @@ IR2:: "Super IRG 2", 160x192, 25 colors, 2 frames.
 IRG:: "Super IRG", 160x192, 15 colors, 2 frames.
 IST:: "Interlace Studio", 160x200, 2 frames.
 JGP:: "Jet Graphics Planner", 8x16 tiles, 4 colors.
+KPR:: "Kompresor do Animatora", 4 colors.
 LEO:: "Larka Edytor Obiektów trybu $4+", 8x16 tiles, 5 colors.
 LUM+COL:: "Technicolor Dream", 80x119, 256 colors.
 MAX:: "XL-Paint MAX", 160x192, 2 frames, compressed.

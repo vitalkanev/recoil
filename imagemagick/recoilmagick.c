@@ -267,6 +267,7 @@ static const struct Format {
 	{ "JJ", "Doodle; 320x200, 16 colors, compressed" },
 	{ "KLA", "Koala Painter; 160x200, 16 colors" },
 	{ "KOA", "Koala Painter; 160x200, 16 colors" },
+	{ "KPR", "Kompresor do Animatora; 4 colors" },
 	{ "LBM", "Interleaved Bitmap" },
 	{ "LEO", "Larka Edytor Obiektow trybu $4+; 8x16 tiles, 5 colors" },
 	{ "LP3", "Logo Painter 3/3+; 160x400, 4 colors" },
