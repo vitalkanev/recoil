@@ -2360,11 +2360,11 @@ public class RECOIL
 		 || content[0] != 0x16 || content[1] != 0x16 || content[2] != 0x16 || content[3] != 0x24
 		 || content[4] != 0x00 || content[5] != 0x00 || content[6] != 0x80 || content[7] != 0x00
 		 || content[12] != 0x00)
-			return -1;
+			return 0;
 		int contentOffset = 13;
 		while (content[contentOffset++] != 0) {
 			if (contentOffset >= 0x1a)
-				return -1;
+				return 0;
 		}
 		return contentOffset;
 	}
@@ -2372,8 +2372,6 @@ public class RECOIL
 	bool DecodeChs(byte[] content, int contentLength)
 	{
 		int contentOffset = GetOricHeader(content, contentLength);
-		if (contentOffset < 0)
-			return false;
 		switch (contentLength - contentOffset) {
 		case 768:
 		case 769:
@@ -2390,9 +2388,7 @@ public class RECOIL
 	bool DecodeHrs(byte[] content, int contentLength)
 	{
 		int contentOffset = GetOricHeader(content, contentLength);
-		if (contentOffset < 0
-		 || content[8] != 0xbf || content[9] != 0x3f || content[10] != 0xa0 || content[11] != 0x00
-		 || contentOffset + 8000 != contentLength)
+		if (contentOffset + 8000 != contentLength)
 			return false;
 
 		SetSize(240, 200, RECOILResolution.Oric1x1);
