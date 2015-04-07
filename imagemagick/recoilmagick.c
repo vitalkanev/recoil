@@ -234,7 +234,7 @@ static const struct Format {
 	{ "HGR", "High Resolution; 280x192, mono" },
 	{ "HIM", "Hires Manager by Cosmos; 296x192, 16 colors, compressed" },
 	{ "HIP", "Hard Interlace Picture; 160x200, grayscale, 2 frames" },
-	{ "HIR", "Hires; 320x200, mono" },
+	{ "HIR", "C64 Hires or Oric Hires" },
 	{ "HLF", "Hires Interlace by Feniks; 320x200, 2 frames" },
 	{ "HLR", "ZX Spectrum attributes gigascreen; 256x192, 2 frames" },
 	{ "HPC", "Hi-Pic Creator; 320x200, 16 colors" },

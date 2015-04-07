@@ -9115,6 +9115,8 @@ public class RECOIL
 		case PackExt("HIP"):
 			return DecodeHip(content, contentLength);
 		case PackExt("HIR"):
+			return DecodeHir(content, contentLength)
+				|| DecodeHrs(content, contentLength);
 		case PackExt("HBM"):
 		case PackExt("GIH"):
 		case PackExt("FGS"):

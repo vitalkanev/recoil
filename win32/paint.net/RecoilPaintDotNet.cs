@@ -194,7 +194,7 @@ namespace Recoil.PaintDotNet
 				new RecoilFileType(".hgr", "High Resolution; 280x192, mono"),
 				new RecoilFileType(".him", "Hires Manager by Cosmos; 296x192, 16 colors, compressed"),
 				new RecoilFileType(".hip", "Hard Interlace Picture; 160x200, grayscale, 2 frames"),
-				new RecoilFileType(".hir", "Hires; 320x200, mono"),
+				new RecoilFileType(".hir", "C64 Hires or Oric Hires"),
 				new RecoilFileType(".hlf", "Hires Interlace by Feniks; 320x200, 2 frames"),
 				new RecoilFileType(".hlr", "ZX Spectrum attributes gigascreen; 256x192, 2 frames"),
 				new RecoilFileType(".hpc", "Hi-Pic Creator; 320x200, 16 colors"),

@@ -356,7 +356,7 @@ Oric
 ~~~~
 [horizontal]
 CHS:: 6x8 font, mono.
-HRS:: 240x200, 8 colors.
+HIR, HRS:: 240x200, 8 colors.
 
 PC
 ~~
