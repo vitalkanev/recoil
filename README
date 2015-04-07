@@ -25,6 +25,7 @@ http://en.wikipedia.org/wiki/Macintosh_128K[Macintosh 128K],
 http://en.wikipedia.org/wiki/MSX[MSX],
 http://en.wikipedia.org/wiki/Oric[Oric],
 http://en.wikipedia.org/wiki/SAM_Coupé[SAM Coupé],
+http://en.wikipedia.org/wiki/TRS-80[TRS-80],
 http://en.wikipedia.org/wiki/ZX81[ZX81]
 and http://en.wikipedia.org/wiki/ZX_Spectrum[ZX Spectrum] computers.
 
@@ -368,6 +369,11 @@ SAM Coupé
 ~~~~~~~~~
 [horizontal]
 SCS4:: "Mode 4", 256x192, 16 colors.
+
+TRS-80
+~~~~~~
+[horizontal]
+HR:: 640x240, mono.
 
 ZX81
 ~~~~

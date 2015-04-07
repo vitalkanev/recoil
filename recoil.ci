@@ -54,6 +54,7 @@ enum RECOILResolution
 	Pc1x1,
 	SamCoupe1x1,
 	Spectrum1x1,
+	Trs1x2,
 	Zx811x1
 }
 
@@ -1918,6 +1919,8 @@ public class RECOIL
 			return "SAM Coupe";
 		case RECOILResolution.Spectrum1x1:
 			return "ZX Spectrum";
+		case RECOILResolution.Trs1x2:
+			return "TRS-80";
 		case RECOILResolution.Zx811x1:
 			return "ZX81";
 		default:
@@ -1957,6 +1960,7 @@ public class RECOIL
 		case RECOILResolution.Ste1x2:
 		case RECOILResolution.Bbc1x2:
 		case RECOILResolution.Msx1x2:
+		case RECOILResolution.Trs1x2:
 			return Height >> 1;
 		case RECOILResolution.Xe4x4:
 			return Height >> 2;
@@ -2157,6 +2161,30 @@ public class RECOIL
 			unpacked[unpackedOffset] = b;
 		}
 		return DecodePgf(unpacked, 1920);
+	}
+
+	// TRS-80 formats.
+	bool DecodeTrsHr(byte[] content, int contentLength)
+	{
+		switch (contentLength) {
+		case 19200:
+		case 19328: // 128 garbage bytes
+		case 19456: // 256 garbage bytes
+			break;
+		default:
+			return false;
+		}
+		SetSize(640, 480, RECOILResolution.Trs1x2);
+		for (int y = 0; y < 240; y++) {
+			for (int x = 0; x < 640; x++) {
+				int c = content[y * 80 + (x >> 3)] >> (~x & 7) & 1;
+				if (c != 0)
+					c = 0xffffff;
+				int pixelsOffset = y * 1280 + x;
+				Pixels[pixelsOffset + 640] = Pixels[pixelsOffset] = c;
+			}
+		}
+		return true;
 	}
 
 	// Apple Macintosh formats.
@@ -6232,7 +6260,7 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
-	bool DecodeHr(byte[] content, int contentLength)
+	bool DecodeAtari8Hr(byte[] content, int contentLength)
 	{
 		if (contentLength != 16384)
 			return false;
@@ -9128,7 +9156,8 @@ public class RECOIL
 		case PackExt("HPM"):
 			return DecodeHpm(content, contentLength);
 		case PackExt("HR"):
-			return DecodeHr(content, contentLength);
+			return DecodeTrsHr(content, contentLength)
+				|| DecodeAtari8Hr(content, contentLength);
 		case PackExt("HR2"):
 		case PackExt("HCI"):
 			return DecodeHr2(content, contentLength);

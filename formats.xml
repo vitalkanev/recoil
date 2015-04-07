@@ -350,6 +350,9 @@
 	<platform name="SAM Coupe">
 		<format name="Mode 4" width="256" height="192" colors="16"><ext>SCS4</ext></format>
 	</platform>
+	<platform name="TRS-80">
+		<format width="640" height="240" colors="2"><ext>HR</ext></format>
+	</platform>
 	<platform name="ZX81">
 		<format name="Sinclair BASIC" width="32" height="24" unit="characters" colors="2"><ext>P</ext></format>
 	</platform>
