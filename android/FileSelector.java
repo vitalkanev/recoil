@@ -1,7 +1,7 @@
 /*
  * FileSelector.java - RECOIL for Android
  *
- * Copyright (C) 2013-2014  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2013-2015  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -55,7 +55,7 @@ public class FileSelector extends ListActivity
 		setTitle(getString(R.string.selector_title, uri.getPath()));
 
 		ArrayList<String> files;
-		TreeSet<String> directories = new TreeSet<String>();
+		TreeSet<String> directories = new TreeSet<String>(FileUtil.getComparator());
 		try {
 			files = FileUtil.list(uri, directories);
 			files.addAll(0, directories);

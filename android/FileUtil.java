@@ -1,7 +1,7 @@
 /*
  * FileUtil.java - RECOIL for Android
  *
- * Copyright (C) 2013  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2013-2015  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -27,8 +27,10 @@ import android.net.Uri;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.TreeSet;
 import java.util.zip.ZipFile;
@@ -92,6 +94,11 @@ abstract class FileUtil
 		}
 	}
 
+	static Comparator<? super String> getComparator()
+	{
+		return Collator.getInstance();
+	}
+
 	static ArrayList<String> list(Uri uri, TreeSet<String> directories) throws IOException
 	{
 		ArrayList<String> files = new ArrayList<String>();
@@ -100,7 +107,7 @@ abstract class FileUtil
 			listDirectory(file, directories, files);
 		else
 			listZipDirectory(file, uri.getFragment(), directories, files);
-		Collections.sort(files);
+		Collections.sort(files, getComparator());
 		return files;
 	}
 
