@@ -55,6 +55,7 @@ enum RECOILResolution
 	SamCoupe1x1,
 	Spectrum1x1,
 	Trs1x2,
+	Coco1x1,
 	Zx811x1
 }
 
@@ -1864,7 +1865,7 @@ public class RECOIL
 		return Pixels;
 
 	/// Maximum length of a string returned by `GetPlatform()`.
-	public const int MaxPlatformLength = "Atari Portfolio".Length;
+	public const int MaxPlatformLength = "TRS-80 Color Computer".Length;
 
 	/// Returns the computer family of the decoded file format.
 	public string GetPlatform()
@@ -1921,6 +1922,8 @@ public class RECOIL
 			return "ZX Spectrum";
 		case RECOILResolution.Trs1x2:
 			return "TRS-80";
+		case RECOILResolution.Coco1x1:
+			return "TRS-80 Color Computer";
 		case RECOILResolution.Zx811x1:
 			return "ZX81";
 		default:
@@ -2164,6 +2167,7 @@ public class RECOIL
 	}
 
 	// TRS-80 formats.
+
 	bool DecodeTrsHr(byte[] content, int contentLength)
 	{
 		switch (contentLength) {
@@ -2185,6 +2189,16 @@ public class RECOIL
 			}
 		}
 		return true;
+	}
+
+	// TRS-80 Color Computer formats.
+
+	bool DecodeCocoMax(byte[] content, int contentLength)
+	{
+		if (contentLength != 6154
+		 || content[0] != 0 || content[1] != 0x18 || content[2] != 0 || content[3] != 0x0e || content[4] != 0)
+			return false;
+		return DecodeBlackAndWhite(content, 5, 256, 192, 0, RECOILResolution.Coco1x1);
 	}
 
 	// Apple Macintosh formats.
@@ -6425,7 +6439,7 @@ public class RECOIL
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
-	bool DecodeMax(byte[] content, int contentLength)
+	bool DecodeAtari8Max(byte[] content, int contentLength)
 	{
 		if (contentLength < 4 + 9 * 192 || !IsStringAt(content, 0, "XLPM"))
 			return false;
@@ -9235,7 +9249,8 @@ public class RECOIL
 		case PackExt("MAC"):
 			return DecodeMac(content, contentLength);
 		case PackExt("MAX"):
-			return DecodeMax(content, contentLength);
+			return DecodeAtari8Max(content, contentLength)
+				|| DecodeCocoMax(content, contentLength);
 		case PackExt("MBG"):
 			return DecodeMbg(content, contentLength);
 		case PackExt("MC"):
