@@ -2208,7 +2208,7 @@ public class RECOIL
 		if (contentLength < 512)
 			return false;
 		int contentOffset = IsStringAt(content, 0x41, "PNTG") ? 128 : 0;
-		if (content[contentOffset] != 0 || content[contentOffset + 1] != 0 || content[contentOffset + 2] != 0 || (content[contentOffset + 3] & ~2) != 0)
+		if (content[contentOffset] != 0 || content[contentOffset + 1] != 0 || content[contentOffset + 2] != 0 || content[contentOffset + 3] > 3)
 				return false;
 		PackBitsStream() rle;
 		rle.Content = content;
