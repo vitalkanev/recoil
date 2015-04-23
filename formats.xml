@@ -354,7 +354,7 @@
 		<format width="640" height="240" colors="2"><ext>HR</ext></format>
 	</platform>
 	<platform name="TRS-80 Color Computer">
-		<format width="256" height="192" colors="2"><ext>MAX</ext></format>
+		<format width="256" height="192" colors="2"><ext>MAX</ext><ext>P41</ext></format>
 	</platform>
 	<platform name="ZX81">
 		<format name="Sinclair BASIC" width="32" height="24" unit="characters" colors="2"><ext>P</ext></format>

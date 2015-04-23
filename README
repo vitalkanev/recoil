@@ -379,7 +379,7 @@ HR:: 640x240, mono.
 TRS-80 Color Computer
 ~~~~~~~~~~~~~~~~~~~~~
 [horizontal]
-MAX:: 256x192, mono.
+MAX, P41:: 256x192, mono.
 
 ZX81
 ~~~~
