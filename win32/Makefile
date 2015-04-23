@@ -30,10 +30,10 @@ all: $(WIN32_BIN) thumbrecoil.dll
 recoil2png.exe: ../recoil2png.c ../pngsave.c ../pngsave.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
 	$(RECOIL_CC) ../recoil2png.c ../pngsave.c ../recoil-stdio.c ../recoil.c -static -lpng -lz
 
-IM_MOD_RL_recoil_.dll: ../imagemagick/recoilmagick.c ../recoil.c ../recoil.h
+IM_MOD_RL_recoil_.dll: ../imagemagick/recoilmagick.c ../formats.h ../recoil.c ../recoil.h
 	$(RECOIL_CC_DLL) ../imagemagick/recoilmagick.c ../recoil.c -lCORE_RL_magick_
  
-x64/IM_MOD_RL_recoil_.dll: ../imagemagick/recoilmagick.c ../recoil.c ../recoil.h
+x64/IM_MOD_RL_recoil_.dll: ../imagemagick/recoilmagick.c ../formats.h ../recoil.c ../recoil.h
 	test -d x64 || mkdir x64
 	$(X64_RECOIL_CC_DLL) ../imagemagick/recoilmagick.c ../recoil.c -I"$(IMAGEMAGICK_X64_INST_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_X64_INST_DIR)"
 

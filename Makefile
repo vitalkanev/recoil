@@ -40,6 +40,9 @@ else
 endif
 endif
 
+formats.h: formats.h.xsl formats.xml
+	xsltproc -o $@ formats.h.xsl formats.xml
+
 # http://www.cmcrossroads.com/article/rules-multiple-outputs-gnu-make
 %.c %.h: %.ci atari8.fnt altirrapal.pal c16.pal zx81.fnt
 	$(CITO) -o $*.c $<
@@ -51,7 +54,7 @@ benchmark: benchmark.c recoil-stdio.c recoil-stdio.h recoil.c recoil.h
 	$(CC) $(CFLAGS) benchmark.c recoil-stdio.c recoil.c -o $@
 
 clean:
-	rm -f recoil2png imagemagick/recoil.so imagemagick/coder.xml.new recoil-mime.xml benchmark
+	rm -f recoil2png imagemagick/recoil.so imagemagick/coder.xml.new formats.h recoil-mime.xml benchmark
 
 install: install-thumbnailer $(if $(CAN_INSTALL_MAGICK),install-magick)
 

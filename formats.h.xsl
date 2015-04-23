@@ -54,7 +54,7 @@
 		<xsl:text>&#9;"\0"&#10;&#10;</xsl:text>
 
 		<xsl:text>#define MAGICK_RECOIL_FORMATS </xsl:text>
-		<xsl:for-each select="platform/format/ext[not(. = following::ext)]">
+		<xsl:for-each select="platform/format/ext[not(../companionExt)][not(. = following::ext)]">
 			<xsl:sort />
 			<xsl:if test="position() != 1">
 				<xsl:text>, \&#10;&#9;</xsl:text>
