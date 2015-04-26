@@ -60,8 +60,11 @@ x64/RECOIL.plg64: imagine/recoilimagine.c ../formats.h ../recoil.c ../recoil.h
 	test -d x64 || mkdir x64
 	$(X64_RECOIL_CC_DLL) imagine/recoilimagine.c ../recoil.c
 
-RecoilPaintDotNet.dll: paint.net/RecoilPaintDotNet.cs paint.net/RECOIL.cs
-	$(CSC) -t:library paint.net\\RecoilPaintDotNet.cs paint.net\\RECOIL.cs -r:"$(PAINT_NET_DIR)\PaintDotNet.Base.dll" -r:"$(PAINT_NET_DIR)\PaintDotNet.Data.dll"
+RecoilPaintDotNet.dll: paint.net/RecoilPaintDotNet.cs paint.net/RecoilFileTypeFactory.cs paint.net/RECOIL.cs
+	$(CSC) -t:library paint.net\\RecoilPaintDotNet.cs paint.net\\RecoilFileTypeFactory.cs paint.net\\RECOIL.cs -r:"$(PAINT_NET_DIR)\PaintDotNet.Base.dll" -r:"$(PAINT_NET_DIR)\PaintDotNet.Data.dll"
+
+paint.net/RecoilFileTypeFactory.cs: paint.net/RecoilFileTypeFactory.cs.xsl ../formats.xml
+	$(XSLTPROC) paint.net/RecoilFileTypeFactory.cs.xsl ../formats.xml
 
 paint.net/RECOIL.cs: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../zx81.fnt
 	$(CITO) -o $@ -I .. -n Recoil $<
@@ -137,7 +140,9 @@ www: ../../www/index.html
 
 clean:
 	$(RM) $(WIN32_BIN) thumbrecoil.dll recoilwin/recoilwin-res.o recoil.ico COPYING.txt \
-		../README.html README_Windows.html README_WindowsSetup.html setup/formats.wxi setup/recoil.wixobj setup/dialog.jpg setup/banner.jpg x64/recoil.wixobj x64/IM_MOD_RL_recoil_.dll x64/thumbrecoil.dll x64/RECOIL.plg64 RecoilPaintDotNet.dll
+		../README.html README_Windows.html README_WindowsSetup.html setup/formats.wxi setup/recoil.wixobj setup/dialog.jpg setup/banner.jpg x64/recoil.wixobj \
+		x64/IM_MOD_RL_recoil_.dll x64/thumbrecoil.dll x64/RECOIL.plg64 RecoilPaintDotNet.dll \
+		paint.net/RecoilFileTypeFactory.cs paint.net/RECOIL.cs ../formats.h
 
 .PHONY: all clean setup x64-setup ../MANIFEST srcdist dist www
 
