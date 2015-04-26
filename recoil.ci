@@ -2196,7 +2196,7 @@ public class RECOIL
 	bool DecodeCocoMax(byte[] content, int contentLength)
 	{
 		if ((contentLength != 6154 && contentLength != 6155)
-		 || content[0] != 0 || content[1] != 0x18 || content[2] != 1 || content[3] != 0x0e || content[4] != 0)
+		 || content[0] != 0 || content[1] != 0x18 || content[2] > 1 || content[3] != 0x0e || content[4] != 0)
 			return false;
 		return DecodeBlackAndWhite(content, 5, 256, 192, 0, RECOILResolution.Coco1x1);
 	}
