@@ -2193,6 +2193,22 @@ public class RECOIL
 
 	// TRS-80 Color Computer formats.
 
+	bool DecodeClp(byte[] content, int contentLength)
+	{
+		if (contentLength != 306 || content[305] != 0x64)
+			return false;
+		for (int i = 0; i < 25; i++) {
+			const byte[25] header = {
+				0x00, 0x00, 0x00, 0x03, 0x01, 0x5e, 0x00, 0x00,
+				0x20, 0x00, 0x20, 0x01, 0x01, 0x2c, 0x00, 0x0a,
+				0x00, 0x38, 0x00, 0x20, 0x00, 0x38, 0x00, 0x20,
+				0x05 };
+			if (content[i] != header[i])
+				return false;
+		}
+		return DecodeBlackAndWhite(content, 25, 40, 56, 0xffffff, RECOILResolution.Coco1x1);
+	}
+
 	bool DecodeCocoMax(byte[] content, int contentLength)
 	{
 		if ((contentLength != 6154 && contentLength != 6155)
@@ -8730,6 +8746,7 @@ public class RECOIL
 		case PackExt("CHR"):
 		case PackExt("CHS"):
 		case PackExt("CIN"):
+		case PackExt("CLP"):
 		case PackExt("CPI"):
 		case PackExt("CPR"):
 		case PackExt("CPT"):
@@ -9052,6 +9069,8 @@ public class RECOIL
 			return DecodeChs(content, contentLength);
 		case PackExt("CIN"):
 			return DecodeCin(content, contentLength);
+		case PackExt("CLP"):
+			return DecodeClp(content, contentLength);
 		case PackExt("CPI"):
 			return DecodeCpi(content, contentLength);
 		case PackExt("CPR"):

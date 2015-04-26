@@ -354,6 +354,7 @@
 		<format width="640" height="240" colors="2"><ext>HR</ext></format>
 	</platform>
 	<platform name="TRS-80 Color Computer">
+		<format width="40" height="56" colors="2"><ext>CLP</ext></format>
 		<format width="256" height="192" colors="2"><ext>MAX</ext><ext>P41</ext></format>
 	</platform>
 	<platform name="ZX81">
