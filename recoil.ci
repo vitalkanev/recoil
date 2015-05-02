@@ -2215,8 +2215,16 @@ public class RECOIL
 
 	bool DecodeCocoMax(byte[] content, int contentLength)
 	{
-		if ((contentLength != 6154 && contentLength != 6155)
-		 || content[0] != 0 || content[1] != 0x18 || content[2] > 1 || content[3] != 0x0e || content[4] != 0)
+		switch (contentLength) {
+		case 6154:
+		case 6155:
+		case 6272:
+		case 7168:
+			break;
+		default:
+			return false;
+		}
+		if (content[0] != 0 || content[1] != 0x18 || content[2] > 1 || content[3] != 0x0e || content[4] != 0)
 			return false;
 		return DecodeBlackAndWhite(content, 5, 256, 192, 0, RECOILResolution.Coco1x1);
 	}
@@ -8900,6 +8908,8 @@ public class RECOIL
 		case PackExt("P"):
 		case PackExt("P11"):
 		case PackExt("P41"):
+		case PackExt("GRF"):
+		case PackExt("PIX"):
 		case PackExt("P4I"):
 		case PackExt("P64"):
 		case PackExt("PAC"):
@@ -9340,6 +9350,8 @@ public class RECOIL
 		case PackExt("P11"):
 			return DecodeP11(content, contentLength);
 		case PackExt("P41"):
+		case PackExt("GRF"):
+		case PackExt("PIX"):
 			return DecodeCocoMax(content, contentLength);
 		case PackExt("P4I"):
 			return DecodeP4i(content, contentLength);
