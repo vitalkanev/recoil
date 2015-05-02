@@ -56,6 +56,7 @@ enum RECOILResolution
 	Spectrum1x1,
 	Trs1x2,
 	Coco1x1,
+	Coco2x2,
 	Zx811x1
 }
 
@@ -1923,6 +1924,7 @@ public class RECOIL
 		case RECOILResolution.Trs1x2:
 			return "TRS-80";
 		case RECOILResolution.Coco1x1:
+		case RECOILResolution.Coco2x2:
 			return "TRS-80 Color Computer";
 		case RECOILResolution.Zx811x1:
 			return "ZX81";
@@ -1941,6 +1943,7 @@ public class RECOIL
 		case RECOILResolution.Bbc2x1:
 		case RECOILResolution.C162x1:
 		case RECOILResolution.C642x1:
+		case RECOILResolution.Coco2x2:
 			return Width >> 1;
 		case RECOILResolution.Xe4x1:
 		case RECOILResolution.Xe4x2:
@@ -1964,6 +1967,7 @@ public class RECOIL
 		case RECOILResolution.Bbc1x2:
 		case RECOILResolution.Msx1x2:
 		case RECOILResolution.Trs1x2:
+		case RECOILResolution.Coco2x2:
 			return Height >> 1;
 		case RECOILResolution.Xe4x4:
 			return Height >> 2;
@@ -2215,6 +2219,22 @@ public class RECOIL
 		 || content[0] != 0 || content[1] != 0x18 || content[2] > 1 || content[3] != 0x0e || content[4] != 0)
 			return false;
 		return DecodeBlackAndWhite(content, 5, 256, 192, 0, RECOILResolution.Coco1x1);
+	}
+
+	bool DecodeP11(byte[] content, int contentLength)
+	{
+		if ((contentLength != 3083 && contentLength != 3243)
+		 || content[0] != 0 || content[1] != 0x0c || content[3] != 0x0e || content[4] != 0)
+			return false;
+		SetSize(256, 192, RECOILResolution.Coco2x2);
+		for (int y = 0; y < 192; y++) {
+			for (int x = 0; x < 256; x++) {
+				const int[4] palette = { 0x07ff00, 0xffff00, 0x3b08ff, 0xcc003b };
+				int c = content[5 + ((y & ~1) << 4) + (x >> 3)] >> (~x & 6) & 3;
+				Pixels[(y << 8) + x] = palette[c];
+			}
+		}
+		return true;
 	}
 
 	// Apple Macintosh formats.
@@ -8878,6 +8898,7 @@ public class RECOIL
 		case PackExt("NLQ"):
 		case PackExt("OCP"):
 		case PackExt("P"):
+		case PackExt("P11"):
 		case PackExt("P41"):
 		case PackExt("P4I"):
 		case PackExt("P64"):
@@ -9316,6 +9337,8 @@ public class RECOIL
 			return DecodeOcp(content, contentLength);
 		case PackExt("P"):
 			return DecodeP(content, contentLength);
+		case PackExt("P11"):
+			return DecodeP11(content, contentLength);
 		case PackExt("P41"):
 			return DecodeCocoMax(content, contentLength);
 		case PackExt("P4I"):
