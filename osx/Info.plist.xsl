@@ -15,7 +15,7 @@
 						<array>
 							<xsl:for-each select="platform/format/ext[not(. = ../following-sibling::format/ext)]">
 								<string>
-									<xsl:value-of select="translate(../../@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ- ','abcdefghijklmnopqrstuvwxyz')" />.<xsl:value-of select="translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')" />
+									<xsl:value-of select="translate(../../@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-/ ','abcdefghijklmnopqrstuvwxyz')" />.<xsl:value-of select="translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')" />
 								</string>
 							</xsl:for-each>
 						</array>
@@ -77,7 +77,7 @@
 							<key>UTTypeDescription</key>
 							<string><xsl:value-of select="../../@name" /><xsl:text> </xsl:text><xsl:value-of select="../@name" /></string>
 							<key>UTTypeIdentifier</key>
-							<string><xsl:value-of select="translate(../../@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ- ','abcdefghijklmnopqrstuvwxyz')" />.<xsl:value-of select="$ext" /></string>
+							<string><xsl:value-of select="translate(../../@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-/ ','abcdefghijklmnopqrstuvwxyz')" />.<xsl:value-of select="$ext" /></string>
 							<key>UTTypeTagSpecification</key>
 							<dict>
 								<key>public.filename-extension</key>
