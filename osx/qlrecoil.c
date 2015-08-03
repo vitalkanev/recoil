@@ -1,7 +1,7 @@
 /*
  * qlrecoil.c - RECOIL plugin for OS X QuickLook
  *
- * Copyright (C) 2014  Petri Pyy and Piotr Fusik
+ * Copyright (C) 2014-2015  Petri Pyy and Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -21,25 +21,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <stdio.h>
 #include <libkern/OSAtomic.h>
 #include <CoreFoundation/CFPlugInCOM.h>
 #include <QuickLook/QuickLook.h>
 
-#include "recoil.h"
-
-#define RECOIL_MAX_EXT_CHARS 5
+#include "recoil-stdio.h"
 
 static CGImageRef CreateImage(CFURLRef url)
 {
-	CFStringRef ext = CFURLCopyPathExtension(url);
-	if (ext == NULL)
-		return NULL;
-	char filename[2 + RECOIL_MAX_EXT_CHARS + 1];
-	filename[0] = 'x';
-	filename[1] = '.';
-	bool ok = CFStringGetCString(ext, filename + 2, RECOIL_MAX_EXT_CHARS + 1, kCFStringEncodingMacRoman);
-	CFRelease(ext);
-	if (!ok)
+	char filename[FILENAME_MAX];
+	if (!CFURLGetFileSystemRepresentation(url, false, (UInt8 *) filename, sizeof(filename)))
 		return NULL;
 
 	CFDataRef data;
@@ -47,12 +39,12 @@ static CGImageRef CreateImage(CFURLRef url)
 	if (!CFURLCreateDataAndPropertiesFromResource(NULL, url, &data, NULL, NULL, &errorCode))
 		return NULL;
 
-	RECOIL *recoil = RECOIL_New();
+	RECOIL *recoil = RECOILStdio_New();
 	if (recoil == NULL) {
 		CFRelease(data);
 		return NULL;
 	}
-	ok = RECOIL_Decode(recoil, filename, CFDataGetBytePtr(data), CFDataGetLength(data));
+	bool ok = RECOIL_Decode(recoil, filename, CFDataGetBytePtr(data), CFDataGetLength(data));
 	CFRelease(data);
 	if (!ok) {
 		RECOIL_Delete(recoil);
