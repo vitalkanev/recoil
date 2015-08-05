@@ -243,10 +243,6 @@
 						<CreateFolder />
 					</Component>
 
-					<Component Id="README_WindowsSetup.html">
-						<File Name="README_WindowsSetup.html" Source="README_WindowsSetup.html" KeyPath="yes" />
-					</Component>
-
 					<Component Id="thumbrecoil.dll" Win64="no">
 						<File Name="thumbrecoil.dll" Source="thumbrecoil.dll" Checksum="yes" KeyPath="yes">
 							<Class Id="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Context="InprocServer32" Description="RECOIL Thumbnail Handler" ThreadingModel="both" />
@@ -393,15 +389,7 @@
 					<Component Id="RECOILWin.lnk">
 						<RegistryValue Root="HKCU" Key="Software\RECOIL" Name="ProgramsMenuRECOILWin" Type="integer" Value="1" KeyPath="yes" />
 						<Shortcut Id="RECOILWin.lnk" Name="RECOILWin" Target="[#recoilwin.exe]" />
-					</Component>
-					<Component Id="Documentation.lnk">
-						<RemoveFolder Id="menu.dir" On="uninstall" />
-						<RegistryValue Root="HKCU" Key="Software\RECOIL" Name="ProgramsMenuDoc" Type="integer" Value="1" KeyPath="yes" />
-						<Shortcut Id="Documentation.lnk" Name="Documentation" Target="[#README_WindowsSetup.html]" />
-					</Component>
-					<Component Id="Website.url" Guid="517E5616-5C8E-428B-834E-5059C00947F2">
-						<RegistryValue Root="HKCU" Key="Software\RECOIL" Name="ProgramsMenuWebsite" Type="integer" Value="1" KeyPath="yes" />
-						<File Name="Website.url" Source="Website.url" />
+						<RemoveFolder Id="menu.dir.remove" On="uninstall" />
 					</Component>
 					<Component Id="uninstall.lnk">
 						<RegistryValue Root="HKCU" Key="Software\RECOIL" Name="ProgramsMenuUninstall" Type="integer" Value="1" KeyPath="yes" />
@@ -495,14 +483,6 @@
 		<Feature Id="paintdotnet" Title="Paint.NET plugin" Level="9" ConfigurableDirectory="PAINTDOTNETFILETYPES.DIR" Description="Plugin for Paint.NET" AllowAdvertise="no">
 			<Condition Level="1">PAINTDOTNET.DIR</Condition>
 			<ComponentRef Id="RecoilPaintDotNet.dll" />
-		</Feature>
-
-		<Feature Id="docs" Title="Documentation" Level="1" ConfigurableDirectory="RECOIL.DIR" Description="Documentation file." AllowAdvertise="no">
-			<ComponentRef Id="README_WindowsSetup.html" />
-			<Feature Id="docs.lnk" Title="Start menu shortcuts" Level="1" Description="Adds documentation and website links to the Programs menu." AllowAdvertise="no">
-				<ComponentRef Id="Documentation.lnk" />
-				<ComponentRef Id="Website.url" />
-			</Feature>
 		</Feature>
 
 		<Feature Id="uninstall" Title="Uninstall shortcut" Level="1" Description="Adds the uninstall shortcut to the Programs menu (in addition to the Control Panel which is always available)." AllowAdvertise="no">

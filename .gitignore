@@ -1,7 +1,6 @@
 *.exe
 *.so
 /MANIFEST
-/README.html
 /formats.h
 /recoil2png
 /recoil-mime.xml

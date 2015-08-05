@@ -1,4 +1,4 @@
-VERSION = 3.2.0
+VERSION = 3.3.0
 
 CITO = cito
 XSLTPROC = xsltproc -o $@
@@ -13,8 +13,6 @@ X64_WINDRES = x86_64-w64-mingw32-windres -o $@
 CSC = C:/Windows/Microsoft.NET/Framework/v3.5/csc.exe -nologo -o+ -out:$@
 RM = rm -f
 UNIX2DOS = unix2dos
-ASCIIDOC_START = asciidoc -o -
-ASCIIDOC_END = | sed -e "s/527bbd;/800080;/" | xmllint --valid --nonet -o $@ -
 GIT = git
 TAR = tar
 SEVENZIP = 7z a -mx=9 -bd
@@ -82,18 +80,9 @@ recoil.ico: ../recoil-512x512.png
 COPYING.txt: ../COPYING
 	$(UNIX2DOS) <$< >$@
 
-../README.html: ../README ../INSTALL
-	$(ASCIIDOC_START) -a recoilsrc ../README $(ASCIIDOC_END)
-
-README_Windows.html: ../README USAGE
-	$(ASCIIDOC_START) -a recoilwin ../README $(ASCIIDOC_END)
-
-README_WindowsSetup.html: ../README USAGE
-	$(ASCIIDOC_START) ../README $(ASCIIDOC_END)
-
 setup: ../../recoil-$(VERSION)-win32.msi
 
-../../recoil-$(VERSION)-win32.msi: setup/recoil.wixobj recoil.ico setup/dialog.jpg setup/banner.jpg setup/license.rtf setup/Website.url README_WindowsSetup.html $(WIN32_BIN) thumbrecoil.dll
+../../recoil-$(VERSION)-win32.msi: setup/recoil.wixobj recoil.ico setup/dialog.jpg setup/banner.jpg setup/license.rtf $(WIN32_BIN) thumbrecoil.dll
 	$(LIGHT) -ext WixUIExtension -sice:ICE69 $<
 
 setup/recoil.wixobj: setup/recoil.wxs setup/formats.wxi
@@ -110,7 +99,7 @@ setup/banner.jpg: ../recoil-512x512.png
 
 x64-setup: ../../recoil-$(VERSION)-win64.msi
 
-../../recoil-$(VERSION)-win64.msi: x64/recoil.wixobj recoil.ico setup/dialog.jpg setup/banner.jpg setup/license.rtf setup/Website.url README_WindowsSetup.html $(WIN32_BIN) thumbrecoil.dll x64/thumbrecoil.dll x64/IM_MOD_RL_recoil_.dll x64/RECOIL.plg64
+../../recoil-$(VERSION)-win64.msi: x64/recoil.wixobj recoil.ico setup/dialog.jpg setup/banner.jpg setup/license.rtf $(WIN32_BIN) thumbrecoil.dll x64/thumbrecoil.dll x64/IM_MOD_RL_recoil_.dll x64/RECOIL.plg64
 	$(LIGHT) -ext WixUIExtension -sice:ICE69 -sice:ICE80 -b setup $<
 
 x64/recoil.wixobj: setup/recoil.wxs setup/formats.wxi
@@ -120,27 +109,22 @@ x64/recoil.wixobj: setup/recoil.wxs setup/formats.wxi
 ../MANIFEST:
 	test -e ../.git && ( \
 		($(GIT) --git-dir=../.git ls-files | grep -vF .gitignore \
-			&& echo MANIFEST && echo README.html && echo recoil.c && echo recoil.h) | sort >$@; \
+			&& echo MANIFEST && echo recoil.c && echo recoil.h) | sort >$@; \
 	)
 
-srcdist: ../MANIFEST ../README.html ../recoil.c ../recoil.h
+srcdist: ../MANIFEST ../recoil.c ../recoil.h
 	$(RM) ../../recoil-$(VERSION).tar.gz
 	cd .. && $(TAR) -c --numeric-owner --owner=0 --group=0 --mode=644 -T MANIFEST --transform=s,,recoil-$(VERSION)/, | $(SEVENZIP) -tgzip -si ../recoil-$(VERSION).tar.gz
 
 dist: srcdist ../../recoil-$(VERSION)-win32.zip setup x64-setup
 
-../../recoil-$(VERSION)-win32.zip: COPYING.txt README_Windows.html $(WIN32_BIN)
+../../recoil-$(VERSION)-win32.zip: COPYING.txt $(WIN32_BIN)
 	$(RM) ../../recoil-$(VERSION)-win32.zip
-	$(SEVENZIP) -tzip ../../recoil-$(VERSION)-win32.zip COPYING.txt README_Windows.html $(WIN32_BIN)
-
-www: ../../www/index.html
-
-../../www/index.html: ../README
-	$(ASCIIDOC_START) -a recoilwww ../README $(ASCIIDOC_END)
+	$(SEVENZIP) -tzip ../../recoil-$(VERSION)-win32.zip COPYING.txt $(WIN32_BIN)
 
 clean:
 	$(RM) $(WIN32_BIN) thumbrecoil.dll recoilwin/recoilwin-res.o recoil.ico COPYING.txt \
-		../README.html README_Windows.html README_WindowsSetup.html setup/formats.wxi setup/recoil.wixobj setup/dialog.jpg setup/banner.jpg x64/recoil.wixobj \
+		setup/formats.wxi setup/recoil.wixobj setup/dialog.jpg setup/banner.jpg x64/recoil.wixobj \
 		x64/IM_MOD_RL_recoil_.dll x64/thumbrecoil.dll x64/RECOIL.plg64 RecoilPaintDotNet.dll \
 		paint.net/RecoilFileTypeFactory.cs paint.net/RECOIL.cs ../formats.h
 

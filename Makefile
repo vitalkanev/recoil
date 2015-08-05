@@ -47,9 +47,6 @@ formats.h: formats.h.xsl formats.xml
 %.c %.h: %.ci atari8.fnt altirrapal.pal c16.pal zx81.fnt
 	$(CITO) -o $*.c $<
 
-README.html: README INSTALL
-	asciidoc -o - -a recoilsrc README | sed -e "s/527bbd;/800080;/" >$@
-
 benchmark: benchmark.c recoil-stdio.c recoil-stdio.h recoil.c recoil.h
 	$(CC) $(CFLAGS) benchmark.c recoil-stdio.c recoil.c -o $@
 
