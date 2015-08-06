@@ -385,17 +385,10 @@
 			</Directory>
 
 			<Directory Id="ProgramMenuFolder" Name="Programs">
-				<Directory Id="menu.dir" Name="RECOIL">
-					<Component Id="RECOILWin.lnk">
-						<RegistryValue Root="HKCU" Key="Software\RECOIL" Name="ProgramsMenuRECOILWin" Type="integer" Value="1" KeyPath="yes" />
-						<Shortcut Id="RECOILWin.lnk" Name="RECOILWin" Target="[#recoilwin.exe]" />
-						<RemoveFolder Id="menu.dir.remove" On="uninstall" />
-					</Component>
-					<Component Id="uninstall.lnk">
-						<RegistryValue Root="HKCU" Key="Software\RECOIL" Name="ProgramsMenuUninstall" Type="integer" Value="1" KeyPath="yes" />
-						<Shortcut Id="uninstall.lnk" Name="Uninstall" Target="[System64Folder]msiexec.exe" Arguments="/x [ProductCode]" />
-					</Component>
-				</Directory>
+				<Component Id="RECOILWin.lnk">
+					<RegistryValue Root="HKCU" Key="Software\RECOIL" Name="ProgramsMenuRECOILWin" Type="integer" Value="1" KeyPath="yes" />
+					<Shortcut Id="RECOILWin.lnk" Name="RECOILWin" Target="[#recoilwin.exe]" />
+				</Component>
 			</Directory>
 			<Directory Id="DesktopFolder" Name="Desktop">
 				<Component Id="RECOILWin.desktop">
@@ -483,10 +476,6 @@
 		<Feature Id="paintdotnet" Title="Paint.NET plugin" Level="9" ConfigurableDirectory="PAINTDOTNETFILETYPES.DIR" Description="Plugin for Paint.NET" AllowAdvertise="no">
 			<Condition Level="1">PAINTDOTNET.DIR</Condition>
 			<ComponentRef Id="RecoilPaintDotNet.dll" />
-		</Feature>
-
-		<Feature Id="uninstall" Title="Uninstall shortcut" Level="1" Description="Adds the uninstall shortcut to the Programs menu (in addition to the Control Panel which is always available)." AllowAdvertise="no">
-			<ComponentRef Id="uninstall.lnk" />
 		</Feature>
 
 	</Product>
