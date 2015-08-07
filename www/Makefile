@@ -14,7 +14,7 @@ contact.html: www.xsl contact.xml
 
 html5recoil.html: www.xsl html5recoil.xml
 	xsltproc --stringparam title HTML5 $^ \
-		| sed -e '/^<!DOCTYPE /d' \
+		| grep -v '^<!DOCTYPE ' \
 		| xmllint --schema /etc/xml/xhtml5.xsd --nonet -o $@ -
 
 recoil.js: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../zx81.fnt
