@@ -3,7 +3,7 @@
 	<xsl:template match="/formats">
 		<xsl:comment>Generated automatically from formats.xml and AppxManifest.xsl. Do not edit.</xsl:comment>
 		<Package xmlns="http://schemas.microsoft.com/appx/2010/manifest">
-			<Identity Name="RECOIL" Publisher="CN=foxoft.com.pl" Version="3.2.0.0" />
+			<Identity Name="RECOIL" Publisher="CN=foxoft.com.pl" Version="3.3.0.0" />
 			<Properties>
 				<DisplayName>RECOIL</DisplayName>
 				<PublisherDisplayName>Piotr Fusik</PublisherDisplayName>

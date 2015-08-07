@@ -1,5 +1,5 @@
 Name: recoil
-Version: 3.2.0
+Version: 3.3.0
 Release: 1
 Summary: Viewer of retro computer image files
 License: GPLv2+
@@ -13,7 +13,7 @@ BuildRoot: %{_tmppath}/%{name}-root
 Decoder of pictures in native formats of
 Amiga, Amstrad CPC, Apple II, Atari 8-bit/Portfolio/ST/Falcon, BBC Micro,
 Commodore 16, Commodore 64, Macintosh 128K, MSX, Oric, SAM Coupe, TRS-80,
-ZX81 and ZX Spectrum computers.
+TRS-80 Color Computer, ZX81 and ZX Spectrum computers.
 
 %package 2png
 Summary: Converter of retro computer image files
@@ -22,7 +22,7 @@ Summary: Converter of retro computer image files
 Provides "recoil2png" command-line converter of pictures in native formats of
 Amiga, Amstrad CPC, Apple II, Atari 8-bit/Portfolio/ST/Falcon, BBC Micro,
 Commodore 16, Commodore 64, Macintosh 128K, MSX, Oric, SAM Coupe, TRS-80,
-ZX81 and ZX Spectrum computers.
+TRS-80 Color Computer, ZX81 and ZX Spectrum computers.
 
 %package thumbnailer
 Summary: GNOME thumbnailer for retro computer image files
@@ -33,7 +33,7 @@ BuildArch: noarch
 GNOME thumbnailer for pictures in native formats of
 Amiga, Amstrad CPC, Apple II, Atari 8-bit/Portfolio/ST/Falcon, BBC Micro,
 Commodore 16, Commodore 64, Macintosh 128K, MSX, Oric, SAM Coupe, TRS-80,
-ZX81 and ZX Spectrum computers.
+TRS-80 Color Computer, ZX81 and ZX Spectrum computers.
 
 %prep
 %setup -q
@@ -64,6 +64,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/update-mime-database %{_datadir}/mime &> /dev/null || :
 
 %changelog
+* Fri Aug 7 2015 Piotr Fusik <fox@scene.pl>
+- 3.3.0-1
+
 * Wed Jan 28 2015 Piotr Fusik <fox@scene.pl>
 - 3.2.0-1
 

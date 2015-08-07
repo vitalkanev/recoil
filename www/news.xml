@@ -1,10 +1,9 @@
 ﻿<div>
-	<release project="RECOIL" version="3.3.0" date="2015-08-08">
+	<release project="RECOIL" version="3.3.0" date="2015-08-07">
 		<ul>
 			<li>Added support for multi-file pictures (extensions listed below with a plus sign).</li>
-			<li>Added more ICE modes.</li>
-			<li>Added more MAC variants.</li>
-			<li>LUM is 119 lines and not only 96.</li>
+			<li>Added more variants of ICE and MAC formats.</li>
+			<li>The LUM format contains 119 lines and not only 96.</li>
 			<li>Fixed crash saving a PNG on Windows.</li>
 			<li>Fixed Atari ST/STE formats unavailable on OS X.</li>
 			<li>On Android, files are now sorted case-insensitively.</li>

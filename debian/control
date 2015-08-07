@@ -11,7 +11,8 @@ Depends: ${shlibs:Depends}
 Description: Provides "recoil2png" command-line converter of pictures
  in native formats of Amiga, Amstrad CPC, Apple II,
  Atari 8-bit/Portfolio/ST/Falcon, BBC Micro, Commodore 16, Commodore 64,
- Macintosh 128K, MSX, Oric, SAM Coupe, TRS-80, ZX81 and ZX Spectrum computers.
+ Macintosh 128K, MSX, Oric, SAM Coupe, TRS-80, TRS-80 Color Computer,
+ ZX81 and ZX Spectrum computers.
 
 Package: recoil-thumbnailer
 Architecture: all
@@ -19,4 +20,4 @@ Depends: recoil-2png
 Description: GNOME thumbnailer for pictures in native formats of
  Amiga, Amstrad CPC, Apple II, Atari 8-bit/Portfolio/ST/Falcon, BBC Micro,
  Commodore 16, Commodore 64, Macintosh 128K, MSX, Oric, SAM Coupe, TRS-80,
- ZX81 and ZX Spectrum computers.
+ TRS-80 Color Computer, ZX81 and ZX Spectrum computers.

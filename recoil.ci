@@ -1803,7 +1803,7 @@ public class RECOIL
 	/// RECOIL version - major part.
 	public const int VersionMajor = 3;
 	/// RECOIL version - minor part.
-	public const int VersionMinor = 2;
+	public const int VersionMinor = 3;
 	/// RECOIL version - micro part.
 	public const int VersionMicro = 0;
 	/// RECOIL version as a string.

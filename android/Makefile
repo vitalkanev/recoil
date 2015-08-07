@@ -10,7 +10,7 @@ ADB = $(ANDROID_SDK)/platform-tools/adb
 ANDROID = $(ANDROID_SDK)/tools/android.bat
 EMULATOR = $(ANDROID_SDK)/tools/emulator
 
-ANDROID_RELEASE = recoil-3.2.0-android.apk
+ANDROID_RELEASE = recoil-3.3.0-android.apk
 
 all: $(ANDROID_RELEASE) recoil-1024x500.png
 
