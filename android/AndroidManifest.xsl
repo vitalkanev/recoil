@@ -8,12 +8,13 @@
 			<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 			<supports-screens android:largeScreens="true" android:xlargeScreens="true" />
 			<application android:label="@string/app_name" android:icon="@drawable/ic_launcher" android:description="@string/app_description">
-				<activity android:name=".FileSelector" android:label="@string/app_name">
+				<activity android:name=".FavoriteSelector" android:label="@string/app_name">
 					<intent-filter>
 						<action android:name="android.intent.action.MAIN" />
 						<category android:name="android.intent.category.LAUNCHER" />
 					</intent-filter>
 				</activity>
+				<activity android:name=".FileSelector" android:label="@string/app_name" />
 				<activity android:name=".Viewer" android:label="@string/view_in_recoil" android:launchMode="singleTop" android:configChanges="mcc|mnc|keyboard|keyboardHidden|orientation|screenSize">
 					<intent-filter>
 						<action android:name="android.intent.action.VIEW" />
