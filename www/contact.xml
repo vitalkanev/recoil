@@ -1,7 +1,7 @@
 ﻿<div>
 	<authors>
 		<author name="Piotr Fusik" email="fox@scene.pl">Idea, programming.</author>
-		<author name="Mariusz Rozwadowski" email="ramosc64@o2.pl">Formats research, testing.</author>
+		<author name="Mariusz Rozwadowski" rip="true">Formats research, testing.</author>
 		<author name="Adrian Matoga" email="epi@atari8.info">Programming.</author>
 		<author name="Petri Pyy" email="laskipeto@gmail.com">OS X Quick Look plugin.</author>
 		<author name="Paweł Szewczyk" email="ripek77@gmail.com">Icons, testing.</author>

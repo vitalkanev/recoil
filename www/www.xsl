@@ -206,7 +206,14 @@
 		<h2>Authors</h2>
 		<dl>
 			<xsl:for-each select="author">
-				<dt><xsl:value-of select="@name" /></dt>
+				<dt>
+					<span>
+						<xsl:if test="@rip">
+							<xsl:attribute name="style">border: solid #000 1px;</xsl:attribute>
+						</xsl:if>
+						<xsl:value-of select="@name" />
+					</span>
+				</dt>
 				<dd><xsl:apply-templates /></dd>
 			</xsl:for-each>
 		</dl>
