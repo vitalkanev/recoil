@@ -21,11 +21,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/* There are two separate implementations for different Windows versions:
-   IPersistFile+IExtractImage for Windows 2000 and XP.
-   IInitializeWithStream+IThumbnailProvider for Windows Vista+
-   (even though the Windows 2000/XP interfaces could work). */
-
 #include <windows.h>
 
 #include "recoil-win32.h"
