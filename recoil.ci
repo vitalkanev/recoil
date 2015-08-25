@@ -4661,7 +4661,7 @@ public class RECOIL
 		for (int unpackedOffset = 32000; unpackedOffset < 51104; ) {
 			if (contentOffset + 1 >= contentLength)
 				return false;
-			int got = content[contentOffset] << 8 | content[contentOffset + 1];
+			int got = (content[contentOffset] & 0x7f) << 8 | content[contentOffset + 1];
 			contentOffset += 2;
 			for (int i = 0; i < 16; i++) {
 				if ((got >> i & 1) == 0) {
