@@ -23,7 +23,9 @@
 
 package net.sf.recoil;
 
+import android.content.Context;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -32,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipEntry;
@@ -123,5 +126,10 @@ abstract class FileUtil
 			return baseUri.buildUpon().fragment(zipPath).build();
 		}
 		return Uri.fromFile(new File(path, relativePath));
+	}
+
+	static Set<String> getUserFavorites(Context context)
+	{
+		return PreferenceManager.getDefaultSharedPreferences(context).getStringSet("favorites", Collections.EMPTY_SET);
 	}
 }

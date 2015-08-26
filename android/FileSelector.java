@@ -25,8 +25,10 @@ package net.sf.recoil;
 
 import android.app.ListActivity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -36,6 +38,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.TreeSet;
 
 public class FileSelector extends ListActivity
@@ -77,10 +80,35 @@ public class FileSelector extends ListActivity
 		startActivity(intent);
 	}
 
+	private boolean isFavorite()
+	{
+		return FileUtil.getUserFavorites(this).contains(uri.toString());
+	}
+
+	private boolean toggleFavorite()
+	{
+		String s = uri.toString();
+		// must not modify the set instance returned by getStringSet
+		Set<String> favorites = new TreeSet(FileUtil.getUserFavorites(this));
+		boolean added = favorites.add(s);
+		if (!added)
+			favorites.remove(s);
+		SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
+		editor.putStringSet("favorites", favorites);
+		editor.commit();
+		return added;
+	}
+
+	static private void setFavoriteIcon(MenuItem item, boolean checked)
+	{
+		item.setIcon(checked ? android.R.drawable.btn_star_big_on : android.R.drawable.btn_star_big_off);
+	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		getMenuInflater().inflate(R.menu.file_selector, menu);
+		setFavoriteIcon(menu.findItem(R.id.menu_favorite), isFavorite());
 		return true;
 	}
 
@@ -99,6 +127,9 @@ public class FileSelector extends ListActivity
 				imm.showSoftInput(getListView(), 0);
 				isSearch = true;
 			}
+			return true;
+		case R.id.menu_favorite:
+			setFavoriteIcon(item, toggleFavorite());
 			return true;
 		case R.id.menu_about:
 			About.show(this);

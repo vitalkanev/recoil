@@ -36,72 +36,76 @@ import android.widget.ListView;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Set;
 
-interface FavoriteFile
+class FavoriteUri
 {
-	File getFile();
+	private final String displayName;
+	private final Uri uri;
+
+	FavoriteUri(String displayName, Uri uri)
+	{
+		this.displayName = displayName;
+		this.uri = uri;
+	}
+
+	@Override
+	public String toString()
+	{
+		return displayName;
+	}
+
+	public Uri getUri()
+	{
+		return uri;
+	}
 }
 
 public class FavoriteSelector extends ListActivity
 {
-	private class RootFavoriteFile implements FavoriteFile
-	{
-		@Override
-		public String toString()
-		{
-			return getString(R.string.root_directory);
-		}
-
-		public File getFile()
-		{
-			return new File("/");
-		}
-	}
-
-	private class DownloadsFavoriteFile implements FavoriteFile
-	{
-		private final File directory;
-
-		DownloadsFavoriteFile() throws ReflectiveOperationException
-		{
-			Object directoryDownloads = Environment.class.getField("DIRECTORY_DOWNLOADS").get(null);
-			Method method = Environment.class.getMethod("getExternalStoragePublicDirectory", String.class);
-			directory = (File) method.invoke(null, directoryDownloads);
-		}
-
-		@Override
-		public String toString()
-		{
-			return getString(R.string.downloads_directory);
-		}
-
-		public File getFile()
-		{
-			return directory;
-		}
-	}
-
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
 		getListView().setTextFilterEnabled(true);
+		setListAdapter(new ArrayAdapter<FavoriteUri>(this, R.layout.filename_list_item));
+	}
 
-		ArrayList<FavoriteFile> favorites = new ArrayList<FavoriteFile>();
-		favorites.add(new RootFavoriteFile());
+	@Override
+	protected void onStart()
+	{
+		super.onStart();
+		ArrayAdapter<FavoriteUri> adapter = (ArrayAdapter<FavoriteUri>) getListAdapter();
+		adapter.clear();
+		adapter.add(new FavoriteUri(getString(R.string.root_directory), Uri.parse("file:///")));
 		try {
-			favorites.add(new DownloadsFavoriteFile());
+			Object directoryDownloads = Environment.class.getField("DIRECTORY_DOWNLOADS").get(null);
+			Method method = Environment.class.getMethod("getExternalStoragePublicDirectory", String.class);
+			Uri uri = Uri.fromFile((File) method.invoke(null, directoryDownloads));
+			adapter.add(new FavoriteUri(getString(R.string.downloads_directory), uri));
 		}
 		catch (ReflectiveOperationException ex) {
 		}
-		setListAdapter(new ArrayAdapter<FavoriteFile>(this, R.layout.filename_list_item, favorites));
+
+		Set<String> userFavoritesSet = FileUtil.getUserFavorites(this);
+		String[] userFavorites = userFavoritesSet.toArray(new String[userFavoritesSet.size()]);
+		Arrays.sort(userFavorites);
+		for (String s : userFavorites) {
+			Uri uri = Uri.parse(s);
+			String displayName = uri.getPath();
+			String fragment = uri.getFragment();
+			if (fragment != null)
+				displayName += "#" + fragment;
+			adapter.add(new FavoriteUri(displayName, uri));
+		}
 	}
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id)
 	{
-		FavoriteFile favorite = (FavoriteFile) l.getItemAtPosition(position);
-		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.fromFile(favorite.getFile()), this, FileSelector.class);
+		FavoriteUri favorite = (FavoriteUri) l.getItemAtPosition(position);
+		Intent intent = new Intent(Intent.ACTION_VIEW, favorite.getUri(), this, FileSelector.class);
 		startActivity(intent);
 	}
 
