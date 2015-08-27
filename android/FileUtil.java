@@ -25,10 +25,12 @@ package net.sf.recoil;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,6 +50,23 @@ abstract class FileUtil
 		if (fragment != null)
 			displayName += "#" + fragment;
 		return displayName;
+	}
+
+	static Uri getRootDirectory()
+	{
+		return Uri.parse("file:///");
+	}
+
+	static Uri getDownloadsDirectory()
+	{
+		try {
+			Object directoryDownloads = Environment.class.getField("DIRECTORY_DOWNLOADS").get(null);
+			Method method = Environment.class.getMethod("getExternalStoragePublicDirectory", String.class);
+			return Uri.fromFile((File) method.invoke(null, directoryDownloads));
+		}
+		catch (ReflectiveOperationException ex) {
+			return null;
+		}
 	}
 
 	static boolean isZip(String filename)

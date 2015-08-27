@@ -27,14 +27,12 @@ import android.app.ListActivity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
@@ -78,21 +76,16 @@ public class FavoriteSelector extends ListActivity
 		super.onStart();
 		ArrayAdapter<FavoriteUri> adapter = (ArrayAdapter<FavoriteUri>) getListAdapter();
 		adapter.clear();
-		adapter.add(new FavoriteUri(getString(R.string.root_directory), Uri.parse("file:///")));
-		try {
-			Object directoryDownloads = Environment.class.getField("DIRECTORY_DOWNLOADS").get(null);
-			Method method = Environment.class.getMethod("getExternalStoragePublicDirectory", String.class);
-			Uri uri = Uri.fromFile((File) method.invoke(null, directoryDownloads));
+		adapter.add(new FavoriteUri(getString(R.string.root_directory), FileUtil.getRootDirectory()));
+		Uri uri = FileUtil.getDownloadsDirectory();
+		if (uri != null)
 			adapter.add(new FavoriteUri(getString(R.string.downloads_directory), uri));
-		}
-		catch (ReflectiveOperationException ex) {
-		}
 
 		Set<String> userFavoritesSet = FileUtil.getUserFavorites(this);
 		String[] userFavorites = userFavoritesSet.toArray(new String[userFavoritesSet.size()]);
 		Arrays.sort(userFavorites);
 		for (String s : userFavorites) {
-			Uri uri = Uri.parse(s);
+			uri = Uri.parse(s);
 			adapter.add(new FavoriteUri(FileUtil.getDisplayName(uri), uri));
 		}
 	}

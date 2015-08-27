@@ -53,7 +53,7 @@ public class FileSelector extends ListActivity
 		getListView().setTextFilterEnabled(true);
 		uri = getIntent().getData();
 		if (uri == null)
-			uri = Uri.parse("file:///");
+			uri = FileUtil.getRootDirectory();
 
 		setTitle(getString(R.string.selector_title, FileUtil.getDisplayName(uri)));
 
@@ -80,7 +80,13 @@ public class FileSelector extends ListActivity
 		startActivity(intent);
 	}
 
-	private boolean isFavorite()
+	private boolean isBuiltinFavorite()
+	{
+		return uri.equals(FileUtil.getRootDirectory())
+			|| uri.equals(FileUtil.getDownloadsDirectory());
+	}
+
+	private boolean isUserFavorite()
 	{
 		return FileUtil.getUserFavorites(this).contains(uri.toString());
 	}
@@ -108,7 +114,11 @@ public class FileSelector extends ListActivity
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		getMenuInflater().inflate(R.menu.file_selector, menu);
-		setFavoriteIcon(menu.findItem(R.id.menu_favorite), isFavorite());
+		MenuItem favoriteMenuItem = menu.findItem(R.id.menu_favorite);
+		if (isBuiltinFavorite())
+			favoriteMenuItem.setVisible(false);
+		else
+			setFavoriteIcon(favoriteMenuItem, isUserFavorite());
 		return true;
 	}
 
