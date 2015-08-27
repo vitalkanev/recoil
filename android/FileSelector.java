@@ -141,9 +141,6 @@ public class FileSelector extends ListActivity
 		case R.id.menu_favorite:
 			setFavoriteIcon(item, toggleFavorite());
 			return true;
-		case R.id.menu_about:
-			About.show(this);
-			return true;
 		default:
 			return false;
 		}

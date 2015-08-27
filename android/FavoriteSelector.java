@@ -27,8 +27,6 @@ import android.app.ListActivity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -96,24 +94,5 @@ public class FavoriteSelector extends ListActivity
 		FavoriteUri favorite = (FavoriteUri) l.getItemAtPosition(position);
 		Intent intent = new Intent(Intent.ACTION_VIEW, favorite.getUri(), this, FileSelector.class);
 		startActivity(intent);
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu)
-	{
-		getMenuInflater().inflate(R.menu.favorite_selector, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item)
-	{
-		switch (item.getItemId()) {
-		case R.id.menu_about:
-			About.show(this);
-			return true;
-		default:
-			return false;
-		}
 	}
 }

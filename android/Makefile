@@ -35,8 +35,8 @@ AndroidRECOIL-unsigned.apk: AndroidRECOIL-resources.apk classes.dex
 classes.dex: classes/net/sf/recoil/RECOIL.class
 	$(DX) --dex --output=$@ classes
 
-classes/net/sf/recoil/RECOIL.class: About.java FavoriteSelector.java FileSelector.java FileUtil.java GalleryAdapter.java JavaRECOIL.java Viewer.java gen/net/sf/recoil/RECOIL.java AndroidRECOIL-resources.apk
-	mkdir -p classes && javac -d classes -bootclasspath $(ANDROID_JAR) About.java FavoriteSelector.java FileSelector.java FileUtil.java GalleryAdapter.java JavaRECOIL.java Viewer.java gen/net/sf/recoil/*.java
+classes/net/sf/recoil/RECOIL.class: FavoriteSelector.java FileSelector.java FileUtil.java GalleryAdapter.java JavaRECOIL.java Viewer.java gen/net/sf/recoil/RECOIL.java AndroidRECOIL-resources.apk
+	mkdir -p classes && javac -d classes -bootclasspath $(ANDROID_JAR) FavoriteSelector.java FileSelector.java FileUtil.java GalleryAdapter.java JavaRECOIL.java Viewer.java gen/net/sf/recoil/*.java
 
 gen/net/sf/recoil/RECOIL.java: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../zx81.fnt
 	mkdir -p $(@D) && cito -n net.sf.recoil -o $@ -I .. $<
