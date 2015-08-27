@@ -55,7 +55,7 @@ public class FileSelector extends ListActivity
 		if (uri == null)
 			uri = Uri.parse("file:///");
 
-		setTitle(getString(R.string.selector_title, uri.getPath()));
+		setTitle(getString(R.string.selector_title, FileUtil.getDisplayName(uri)));
 
 		ArrayList<String> files;
 		TreeSet<String> directories = new TreeSet<String>(FileUtil.getComparator());

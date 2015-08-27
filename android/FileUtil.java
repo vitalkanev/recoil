@@ -41,6 +41,15 @@ import java.util.zip.ZipEntry;
 
 abstract class FileUtil
 {
+	static String getDisplayName(Uri uri)
+	{
+		String displayName = uri.getPath();
+		String fragment = uri.getFragment();
+		if (fragment != null)
+			displayName += "#" + fragment;
+		return displayName;
+	}
+
 	static boolean isZip(String filename)
 	{
 		int n = filename.length();

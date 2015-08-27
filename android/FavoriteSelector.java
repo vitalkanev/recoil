@@ -93,11 +93,7 @@ public class FavoriteSelector extends ListActivity
 		Arrays.sort(userFavorites);
 		for (String s : userFavorites) {
 			Uri uri = Uri.parse(s);
-			String displayName = uri.getPath();
-			String fragment = uri.getFragment();
-			if (fragment != null)
-				displayName += "#" + fragment;
-			adapter.add(new FavoriteUri(displayName, uri));
+			adapter.add(new FavoriteUri(FileUtil.getDisplayName(uri), uri));
 		}
 	}
 
