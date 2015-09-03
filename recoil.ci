@@ -5409,7 +5409,7 @@ public class RECOIL
 				return DecodeIffUnpacked(unpacked, bitplanes, colors, camg);
 			}
 			else if (IsStringAt(content, contentOffset, "ABIT")) {
-				if (width == 0 || compression != 0 || chunkLength != (width >> 3) * height * bitplanes)
+				if (width == 0 || chunkLength != (width >> 3) * height * bitplanes)
 					return false;
 				contentOffset += 8;
 				byte[] unpacked = new byte[chunkLength];
