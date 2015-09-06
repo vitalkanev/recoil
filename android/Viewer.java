@@ -36,6 +36,7 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.TreeSet;
 import java.util.zip.ZipFile;
 
 class RECOILException extends Exception
@@ -51,6 +52,8 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 	private Uri baseUri;
 	private ArrayList<String> filenames;
 	private Gallery gallery;
+	private TreeSet<String> favorites;
+	private MenuItem favoriteMenuItem;
 
 	private String split(Uri uri)
 	{
@@ -104,9 +107,19 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 		}
 	}
 
+	private void setFavoriteIcon(String filename)
+	{
+		if (favoriteMenuItem != null) {
+			Uri uri = FileUtil.buildUri(baseUri, filename);
+			FileUtil.setFavoriteIcon(favoriteMenuItem, favorites.contains(uri.toString()));
+		}
+	}
+
 	public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
 	{
-		setTitle(getString(R.string.viewing_title, filenames.get(position)));
+		String filename = filenames.get(position);
+		setTitle(getString(R.string.viewing_title, filename));
+		setFavoriteIcon(filename);
 	}
 
 	public void onNothingSelected(AdapterView<?> parent)
@@ -128,6 +141,8 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 			Toast.makeText(this, R.string.error_listing_files, Toast.LENGTH_SHORT).show();
 			return;
 		}
+
+		favorites = new TreeSet<String>(FileUtil.getUserFavorites(this));
 
 		gallery = (Gallery) getLayoutInflater().inflate(R.layout.gallery, null);
 		gallery.setHorizontalFadingEdgeEnabled(false);
@@ -155,6 +170,8 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		getMenuInflater().inflate(R.menu.viewer, menu);
+		favoriteMenuItem = menu.findItem(R.id.menu_favorite);
+		setFavoriteIcon(filenames.get(gallery.getSelectedItemPosition()));
 		return true;
 	}
 
@@ -164,6 +181,10 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 		switch (item.getItemId()) {
 		case R.id.menu_info:
 			showInfo();
+			return true;
+		case R.id.menu_favorite:
+			Uri uri = FileUtil.buildUri(baseUri, filenames.get(gallery.getSelectedItemPosition()));
+			FileUtil.setFavoriteIcon(item, FileUtil.toggleFavorite(this, favorites, uri));
 			return true;
 		default:
 			return false;

@@ -25,7 +25,6 @@ package net.sf.recoil;
 
 import android.app.ListActivity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -38,7 +37,6 @@ import android.widget.ListView;
 import android.widget.Toast;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.TreeSet;
 
 public class FileSelector extends ListActivity
@@ -91,25 +89,6 @@ public class FileSelector extends ListActivity
 		return FileUtil.getUserFavorites(this).contains(uri.toString());
 	}
 
-	private boolean toggleFavorite()
-	{
-		String s = uri.toString();
-		// must not modify the set instance returned by getStringSet
-		Set<String> favorites = new TreeSet(FileUtil.getUserFavorites(this));
-		boolean added = favorites.add(s);
-		if (!added)
-			favorites.remove(s);
-		SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
-		editor.putStringSet("favorites", favorites);
-		editor.commit();
-		return added;
-	}
-
-	static private void setFavoriteIcon(MenuItem item, boolean checked)
-	{
-		item.setIcon(checked ? android.R.drawable.btn_star_big_on : android.R.drawable.btn_star_big_off);
-	}
-
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
@@ -118,7 +97,7 @@ public class FileSelector extends ListActivity
 		if (isBuiltinFavorite())
 			favoriteMenuItem.setVisible(false);
 		else
-			setFavoriteIcon(favoriteMenuItem, isUserFavorite());
+			FileUtil.setFavoriteIcon(favoriteMenuItem, isUserFavorite());
 		return true;
 	}
 
@@ -139,7 +118,7 @@ public class FileSelector extends ListActivity
 			}
 			return true;
 		case R.id.menu_favorite:
-			setFavoriteIcon(item, toggleFavorite());
+			FileUtil.setFavoriteIcon(item, FileUtil.toggleFavorite(this, new TreeSet(FileUtil.getUserFavorites(this)), uri));
 			return true;
 		default:
 			return false;

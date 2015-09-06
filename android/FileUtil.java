@@ -24,9 +24,11 @@
 package net.sf.recoil;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.view.MenuItem;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -158,6 +160,24 @@ abstract class FileUtil
 
 	static Set<String> getUserFavorites(Context context)
 	{
+		// as per reference, must not modify the set instance returned by getStringSet
 		return PreferenceManager.getDefaultSharedPreferences(context).getStringSet("favorites", Collections.EMPTY_SET);
+	}
+
+	static void setFavoriteIcon(MenuItem item, boolean checked)
+	{
+		item.setIcon(checked ? android.R.drawable.btn_star_big_on : android.R.drawable.btn_star_big_off);
+	}
+
+	static boolean toggleFavorite(Context context, TreeSet<String> favorites, Uri uri)
+	{
+		String s = uri.toString();
+		boolean added = favorites.add(s);
+		if (!added)
+			favorites.remove(s);
+		SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+		editor.putStringSet("favorites", favorites);
+		editor.commit();
+		return added;
 	}
 }

@@ -92,7 +92,9 @@ public class FavoriteSelector extends ListActivity
 	protected void onListItemClick(ListView l, View v, int position, long id)
 	{
 		FavoriteUri favorite = (FavoriteUri) l.getItemAtPosition(position);
-		Intent intent = new Intent(Intent.ACTION_VIEW, favorite.getUri(), this, FileSelector.class);
+		Uri uri = favorite.getUri();
+		Class klass = RECOIL.isOurFile(uri.toString()) ? Viewer.class : FileSelector.class;
+		Intent intent = new Intent(Intent.ACTION_VIEW, uri, this, klass);
 		startActivity(intent);
 	}
 }
