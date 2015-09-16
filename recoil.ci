@@ -23,6 +23,11 @@
 enum RECOILResolution
 {
 	Amiga1x1,
+	Amiga2x1,
+	Amiga4x1,
+	Amiga8x1,
+	Amiga1x2,
+	Amiga1x4,
 	Amstrad1x1,
 	Amstrad2x1,
 	Amstrad1x2,
@@ -1835,7 +1840,7 @@ public class RECOIL
 	/// Maximum width of a decoded image.
 	public const int MaxWidth = 2048;
 	/// Maximum height of a decoded image.
-	public const int MaxHeight = 1024;
+	public const int MaxHeight = 1200;
 	/// Maximum number of pixels in a decoded image.
 	public const int MaxPixelsLength = 3 << 19;
 
@@ -1873,6 +1878,11 @@ public class RECOIL
 	{
 		switch (Resolution) {
 		case RECOILResolution.Amiga1x1:
+		case RECOILResolution.Amiga2x1:
+		case RECOILResolution.Amiga4x1:
+		case RECOILResolution.Amiga8x1:
+		case RECOILResolution.Amiga1x2:
+		case RECOILResolution.Amiga1x4:
 			return "Amiga";
 		case RECOILResolution.Amstrad1x1:
 		case RECOILResolution.Amstrad2x1:
@@ -1937,6 +1947,7 @@ public class RECOIL
 	public int GetOriginalWidth()
 	{
 		switch (Resolution) {
+		case RECOILResolution.Amiga2x1:
 		case RECOILResolution.Amstrad2x1:
 		case RECOILResolution.Xe2x1:
 		case RECOILResolution.Xe2x2:
@@ -1945,10 +1956,13 @@ public class RECOIL
 		case RECOILResolution.C642x1:
 		case RECOILResolution.Coco2x2:
 			return Width >> 1;
+		case RECOILResolution.Amiga4x1:
 		case RECOILResolution.Xe4x1:
 		case RECOILResolution.Xe4x2:
 		case RECOILResolution.Xe4x4:
 			return Width >> 2;
+		case RECOILResolution.Amiga8x1:
+			return Width >> 3;
 		default:
 			return Width;
 		}
@@ -1958,6 +1972,7 @@ public class RECOIL
 	public int GetOriginalHeight()
 	{
 		switch (Resolution) {
+		case RECOILResolution.Amiga1x2:
 		case RECOILResolution.Amstrad1x2:
 		case RECOILResolution.AppleII1x2:
 		case RECOILResolution.Xe2x2:
@@ -1969,6 +1984,7 @@ public class RECOIL
 		case RECOILResolution.Trs1x2:
 		case RECOILResolution.Coco2x2:
 			return Height >> 1;
+		case RECOILResolution.Amiga1x4:
 		case RECOILResolution.Xe4x4:
 			return Height >> 2;
 		default:
@@ -5179,15 +5195,87 @@ public class RECOIL
 		return true;
 	}
 
-	void DecodeHam(byte[] unpacked, int bitplanes)
+	bool SetScaledSize(int width, int height, RECOILResolution resolution)
+	{
+		switch (resolution) {
+		case RECOILResolution.Amiga2x1:
+			width <<= 1;
+			break;
+		case RECOILResolution.Amiga4x1:
+			width <<= 2;
+			break;
+		case RECOILResolution.Amiga8x1:
+			width <<= 3;
+			break;
+		case RECOILResolution.Amiga1x2:
+		case RECOILResolution.St1x2:
+		case RECOILResolution.Ste1x2:
+			height <<= 1;
+			break;
+		case RECOILResolution.Amiga1x4:
+			height <<= 2;
+			break;
+		default:
+			break;
+		}
+		return SetSize(width, height, resolution);
+	}
+
+	void SetScaledPixel(int x, int y, int rgb)
+	{
+		int offset = y * Width;
+		switch (Resolution) {
+		case RECOILResolution.Amiga2x1:
+			offset += x << 1;
+			Pixels[offset + 1] = Pixels[offset] = rgb;
+			break;
+		case RECOILResolution.Amiga4x1:
+			offset += x << 2;
+			Pixels[offset + 3] = Pixels[offset + 2] = Pixels[offset + 1] = Pixels[offset] = rgb;
+			break;
+		case RECOILResolution.Amiga8x1:
+			offset += x << 3;
+			for (x = 0; x < 8; x++)
+				Pixels[offset + x] = rgb;
+			break;
+		case RECOILResolution.Amiga1x2:
+		case RECOILResolution.St1x2:
+		case RECOILResolution.Ste1x2:
+			offset = (offset << 1) + x;
+			Pixels[offset + Width] = Pixels[offset] = rgb;
+			break;
+		case RECOILResolution.Amiga1x4:
+			offset = (offset << 2) + x;
+			Pixels[offset + Width * 3] = Pixels[offset + Width * 2] = Pixels[offset + Width] = Pixels[offset] = rgb;
+			break;
+		default:
+			Pixels[offset + x] = rgb;
+			break;
+		}
+	}
+
+	void DecodeScaledBitplanes(byte[] unpacked, int width, int height, int bitplanes)
+	{
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int offset = (y * width + x >> 3 & ~1) * bitplanes + (x >> 3 & 1);
+				int bit = ~x & 7;
+				int c = 0;
+				for (int bitplane = bitplanes; --bitplane >= 0; )
+					c = c << 1 | unpacked[offset + (bitplane << 1)] >> bit & 1;
+				SetScaledPixel(x, y, ContentPalette[c]);
+			}
+		}
+	}
+
+	void DecodeHam(byte[] unpacked, int width, int height, int bitplanes)
 	{
 		int holdBits = bitplanes > 6 ? 6 : 4;
-		int i = 0;
-		for (int y = 0; y < Height; y++) {
+		for (int y = 0; y < height; y++) {
 			int rgb = ContentPalette[0];
-			for (int x = 0; x < Width; x++) {
-				int offset = (i >> 3 & ~1) * bitplanes + (i >> 3 & 1);
-				int bit = ~i & 7;
+			for (int x = 0; x < width; x++) {
+				int offset = (y * width + x >> 3 & ~1) * bitplanes + (x >> 3 & 1);
+				int bit = ~x & 7;
 				int c = 0;
 				for (int bitplane = bitplanes; --bitplane >= 0; )
 					c = c << 1 | unpacked[offset + (bitplane << 1)] >> bit & 1;
@@ -5212,13 +5300,15 @@ public class RECOIL
 					rgb = (rgb & 0xff00ff) | c << 8;
 					break;
 				}
-				Pixels[i++] = rgb;
+				SetScaledPixel(x, y, rgb);
 			}
 		}
 	}
 
-	bool DecodeIffUnpacked(byte[] unpacked, int bitplanes, int colors, int camg)
+	bool DecodeIffUnpacked(byte[] unpacked, int width, int height, RECOILResolution resolution, int bitplanes, int colors, int camg)
 	{
+		if (!SetScaledSize(width, height, resolution))
+			return false;
 		if (bitplanes <= 8) {
 			if (colors == 0) {
 				// grayscale
@@ -5236,24 +5326,25 @@ public class RECOIL
 			}
 			if ((camg & 0x800) != 0) {
 				// Amiga Hold-And-Modify
-				DecodeHam(unpacked, bitplanes);
+				DecodeHam(unpacked, width, height, bitplanes);
 			}
 			else {
 				// palette
-				DecodeBitplanes(unpacked, 0, bitplanes, 0, Width * Height);
+				DecodeScaledBitplanes(unpacked, width, height, bitplanes);
 			}
 		}
 		else {
 			// 24-bit or 32-bit true color
-			int pixelsCount = Width * Height;
-			for (int i = 0; i < pixelsCount; i++) {
-				int offset = (i >> 3 & ~1) * bitplanes + (i >> 3 & 1);
-				int bit = ~i & 7;
-				int c = 0;
-				for (int bitplane = 24; --bitplane >= 0; )
-					c = c << 1 | unpacked[offset + (bitplane << 1)] >> bit & 1;
-				// 0xBBGGRR -> 0xRRGGBB
-				Pixels[i] = (c & 0xff) << 16 | (c & 0xff00) | c >> 16;
+			for (int y = 0; y < height; y++) {
+				for (int x = 0; x < width; x++) {
+					int offset = (y * width + x >> 3 & ~1) * bitplanes + (x >> 3 & 1);
+					int bit = ~x & 7;
+					int c = 0;
+					for (int bitplane = 24; --bitplane >= 0; )
+						c = c << 1 | unpacked[offset + (bitplane << 1)] >> bit & 1;
+					// 0xBBGGRR -> 0xRRGGBB
+					SetScaledPixel(x, y, (c & 0xff) << 16 | (c & 0xff00) | c >> 16);
+				}
 			}
 		}
 		delete unpacked;
@@ -5283,6 +5374,7 @@ public class RECOIL
 		int bitplanes = 0;
 		bool hasMask = false;
 		int compression = 0;
+		RECOILResolution resolution = RECOILResolution.Amiga1x1;
 		int colors = 0;
 		int camg = 0;
 		while (contentOffset + 7 < contentLength) {
@@ -5312,6 +5404,20 @@ public class RECOIL
 				int pixelsCount = width * height;
 				if (pixelsCount <= 0 || pixelsCount > MaxPixelsLength)
 					return false;
+				int xRatio = content[contentOffset + 22];
+				int yRatio = content[contentOffset + 23];
+				if (xRatio > 0 && yRatio > 0) {
+					if (xRatio > yRatio * 6)
+						resolution = RECOILResolution.Amiga8x1;
+					else if (xRatio > yRatio * 3)
+						resolution = RECOILResolution.Amiga4x1;
+					else if (xRatio * 2 > yRatio * 3)
+						resolution = RECOILResolution.Amiga2x1;
+					else if (yRatio > xRatio * 3)
+						resolution = RECOILResolution.Amiga1x4;
+					else if (yRatio * 2 > xRatio * 3)
+						resolution = RECOILResolution.Amiga1x2;
+				}
 			}
 			else if (IsStringAt(content, contentOffset, "CMAP")) {
 				colors = chunkLength / 3;
@@ -5360,7 +5466,14 @@ public class RECOIL
 						}
 						rle.ContentOffset = nextContentOffset;
 					}
-					SetSizeStOrFalcon(width, height, bitplanes);
+					if (bitplanes == 1 && width <= 640 && height <= 400)
+						resolution = RECOILResolution.St1x1;
+					else if (bitplanes == 2 && width <= 640 && height <= 200)
+						resolution = RECOILResolution.St1x2;
+					else if (bitplanes <= 4 && width <= 320 && height <= 200)
+						resolution = RECOILResolution.St1x1;
+					else
+						resolution = RECOILResolution.Falcon1x1; // or return false maybe?
 				}
 				else {
 					PackBitsStream() rle;
@@ -5369,15 +5482,14 @@ public class RECOIL
 					rle.ContentLength = contentOffset + 8 + chunkLength;
 
 					if (type == IffType.Pbm) {
-						if (colors == 0)
+						if (colors == 0 || !SetScaledSize(width, height, resolution))
 							return false;
-						SetSize(width, height, RECOILResolution.Amiga1x1);
 						for (int y = 0; y < height; y++) {
 							for (int x = 0; x < width; x++) {
 								int b = compression == 0 ? rle.ReadByte() : rle.ReadRle();
 								if (b < 0)
 									return false;
-								Pixels[y * width + x] = ContentPalette[b];
+								SetScaledPixel(x, y, ContentPalette[b]);
 							}
 						}
 						return true;
@@ -5404,9 +5516,8 @@ public class RECOIL
 							}
 						}
 					}
-					SetSize(width, height, RECOILResolution.Amiga1x1);
 				}
-				return DecodeIffUnpacked(unpacked, bitplanes, colors, camg);
+				return DecodeIffUnpacked(unpacked, width, height, resolution, bitplanes, colors, camg);
 			}
 			else if (IsStringAt(content, contentOffset, "ABIT")) {
 				if (width == 0 || chunkLength != (width >> 3) * height * bitplanes)
@@ -5415,12 +5526,11 @@ public class RECOIL
 				byte[] unpacked = new byte[chunkLength];
 				for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
 					for (int unpackedOffset = bitplane << 1; unpackedOffset < chunkLength; unpackedOffset += bitplanes << 1) {
-						for (int x = 0; x < 2; x++)
-							unpacked[unpackedOffset + x] = content[contentOffset++];
+						unpacked[unpackedOffset] = content[contentOffset++];
+						unpacked[unpackedOffset + 1] = content[contentOffset++];
 					}
 				}
-				SetSize(width, height, RECOILResolution.Amiga1x1);
-				return DecodeIffUnpacked(unpacked, bitplanes, colors, camg);
+				return DecodeIffUnpacked(unpacked, width, height, resolution, bitplanes, colors, camg);
 			}
 			contentOffset += 8 + (chunkLength + 1 & ~1); // round up to even bytes
 		}
