@@ -5351,7 +5351,7 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodeIff(byte[] content, int contentLength)
+	bool DecodeIff(byte[] content, int contentLength, RECOILResolution resolution)
 	{
 		if (contentLength < 56 || !IsStringAt(content, 0, "FORM"))
 			return false;
@@ -5374,7 +5374,6 @@ public class RECOIL
 		int bitplanes = 0;
 		bool hasMask = false;
 		int compression = 0;
-		RECOILResolution resolution = RECOILResolution.Amiga1x1;
 		int colors = 0;
 		int camg = 0;
 		while (contentOffset + 7 < contentLength) {
@@ -5416,7 +5415,7 @@ public class RECOIL
 					else if (yRatio > xRatio * 3)
 						resolution = RECOILResolution.Amiga1x4;
 					else if (yRatio * 2 > xRatio * 3)
-						resolution = RECOILResolution.Amiga1x2;
+						resolution = resolution == RECOILResolution.Amiga1x1 ? RECOILResolution.Amiga1x2 : RECOILResolution.St1x2;
 				}
 			}
 			else if (IsStringAt(content, contentOffset, "CMAP")) {
@@ -5466,14 +5465,7 @@ public class RECOIL
 						}
 						rle.ContentOffset = nextContentOffset;
 					}
-					if (bitplanes == 1 && width <= 640 && height <= 400)
-						resolution = RECOILResolution.St1x1;
-					else if (bitplanes == 2 && width <= 640 && height <= 200)
-						resolution = RECOILResolution.St1x2;
-					else if (bitplanes <= 4 && width <= 320 && height <= 200)
-						resolution = RECOILResolution.St1x1;
-					else
-						resolution = RECOILResolution.Falcon1x1; // or return false maybe?
+					resolution = resolution == RECOILResolution.Amiga1x2 ? RECOILResolution.St1x2 : RECOILResolution.St1x1;
 				}
 				else {
 					PackBitsStream() rle;
@@ -8870,6 +8862,9 @@ public class RECOIL
 		case PackExt("G09"):
 		case PackExt("BGP"):
 		case PackExt("BKG"):
+		case PackExt("BL1"):
+		case PackExt("BL2"):
+		case PackExt("BL3"):
 		case PackExt("BML"):
 		case PackExt("BRU"):
 		case PackExt("CA1"):
@@ -8957,9 +8952,6 @@ public class RECOIL
 		case PackExt("ICN"):
 		case PackExt("IFF"):
 		case PackExt("ACBM"):
-		case PackExt("BL1"):
-		case PackExt("BL2"):
-		case PackExt("BL3"):
 		case PackExt("HAM6"):
 		case PackExt("HAM8"):
 		case PackExt("LBM"):
@@ -9186,6 +9178,10 @@ public class RECOIL
 			return DecodeBgp(content, contentLength);
 		case PackExt("BKG"):
 			return DecodeBkg(content, contentLength);
+		case PackExt("BL1"):
+		case PackExt("BL2"):
+		case PackExt("BL3"):
+			return DecodeIff(content, contentLength, RECOILResolution.St1x1);
 		case PackExt("BML"):
 			return DecodeBml(content, contentLength);
 		case PackExt("BRU"):
@@ -9347,13 +9343,10 @@ public class RECOIL
 				|| DecodeAtari8Ice(content, contentLength, false, 17);
 		case PackExt("IFF"):
 		case PackExt("ACBM"):
-		case PackExt("BL1"):
-		case PackExt("BL2"):
-		case PackExt("BL3"):
 		case PackExt("HAM6"):
 		case PackExt("HAM8"):
 		case PackExt("LBM"):
-			return DecodeIff(content, contentLength);
+			return DecodeIff(content, contentLength, RECOILResolution.Amiga1x1);
 		case PackExt("IFL"):
 			return DecodeGun(content, contentLength)
 				|| DecodeZxIfl(content, contentLength);
