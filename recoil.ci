@@ -5777,25 +5777,62 @@ public class RECOIL
 		}
 	}
 
-	void DecodeAtari8Gr0(byte[] characters, int charactersStride, byte[] font, int fontOffset, byte[] frame)
+	void DecodeAtari8Gr0Line(byte[] characters, int charactersOffset, byte[] font, int fontOffset, byte[] frame, int frameOffset, int lines)
 	{
-		for (int y = 0; y < Height; y++) {
+		byte[2] colors;
+		colors[0] = GtiaColors[6];
+		colors[1] = GtiaColors[6] & 0xf0 | GtiaColors[5] & 0x0e;
+		for (int y = 0; y < lines; y++) {
 			for (int x = 0; x < Width; x++) {
-				int ch = characters[(y >> 3) * charactersStride + (x >> 3)];
+				int ch = characters[charactersOffset + (x >> 3)];
 				int b = font[fontOffset + ((ch & 0x7f) << 3) + (y & 7)];
+				if (lines == 10) {
+					// ANTIC 3 instead of ANTIC 2 / GR.0
+					switch ((ch & 0x60) + y >> 1) {
+					case 0x04:
+					case 0x14:
+					case 0x24:
+					case 0x30:
+						b = 0;
+						break;
+					default:
+						break;
+					}
+				}
 				if (ch >= 0x80)
 					b ^= 0xff;
-				frame[y * Width + x] = (b >> (~x & 7) & 1) == 0 ? 0x00 : 0x0e;
+				frame[frameOffset + x] = colors[b >> (~x & 7) & 1];
 			}
+			frameOffset += Width;
 		}
 	}
 
-	void DecodeAtari8Gr12Line(byte[] characters, int charactersOffset, byte[] font, int fontOffset, byte[] frame, int frameOffset)
+	void DecodeAtari8Gr0(byte[] characters, int charactersStride, byte[] font, int fontOffset, byte[] frame)
 	{
-		for (int y = 0; y < 8; y++) {
+		GtiaColors[6] = 0x00;
+		GtiaColors[5] = 0x0e;
+		for (int y = 0; y < Height; y += 8)
+			DecodeAtari8Gr0Line(characters, (y >> 3) * charactersStride, font, fontOffset, frame, y * Width, 8);
+	}
+
+	void DecodeAtari8Gr1Line(byte[] content, int charactersOffset, int fontOffset, byte[] frame, int frameOffset, int doubleLine)
+	{
+		for (int y = 0; y < 8 << doubleLine; y++) {
+			for (int x = 0; x < Width; x++) {
+				int ch = content[charactersOffset + (x >> 4)];
+				int b = content[fontOffset + ((ch & 0x3f) << 3) + (y >> doubleLine)] >> (~(x >> 1) & 7) & 1;
+				frame[frameOffset + x] = GtiaColors[b == 0 ? 8 : 4 + (ch >> 6)];
+			}
+			frameOffset += Width;
+		}
+	}
+
+	void DecodeAtari8Gr12Line(byte[] characters, int charactersOffset, byte[] font, int fontOffset, byte[] frame, int frameOffset, int doubleLine)
+	{
+		for (int y = 0; y < 8 << doubleLine; y++) {
 			for (int x = 0; x < Width; x++) {
 				int ch = characters[charactersOffset + (x >> 3)];
-				int c = font[fontOffset + ((ch & 0x7f) << 3) + y] >> (~x & 6) & 3;
+				int c = font[fontOffset + ((ch & 0x7f) << 3) + (y >> doubleLine)] >> (~x & 6) & 3;
 				int gr12Registers = ch >= 0x80 ? 0x7548 : 0x6548;
 				frame[frameOffset + x] = GtiaColors[gr12Registers >> (c << 2) & 0xf];
 			}
@@ -7403,7 +7440,7 @@ public class RECOIL
 		SetSize(128, 64, RECOILResolution.Xe2x1);
 		byte[128 * 64] frame;
 		for (int y = 0; y < 8; y++)
-			DecodeAtari8Gr12Line(characters, 0, content, 4 + (y << 7), frame, y << 10);
+			DecodeAtari8Gr12Line(characters, 0, content, 4 + (y << 7), frame, y << 10, 0);
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -7418,7 +7455,7 @@ public class RECOIL
 		SetSize(256, 64, RECOILResolution.Xe2x1);
 		byte[256 * 64] frame;
 		for (int y = 0; y < 8; y++)
-			DecodeAtari8Gr12Line(characters, 0, content, 6 + ((y & 6) << 7) + ((y & 1) << 10), frame, y << 11);
+			DecodeAtari8Gr12Line(characters, 0, content, 6 + ((y & 6) << 7) + ((y & 1) << 10), frame, y << 11, 0);
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -7435,7 +7472,7 @@ public class RECOIL
 		for (int y = 0; y < 8; y++) {
 			for (int x = 0; x < 32; x++)
 				characters[x] = content[0x800 + ((x & 1) << 7) + ((y & 1) << 6) + ((y & 6) << 3) + (x >> 1)];
-			DecodeAtari8Gr12Line(characters, 0, content, (y & 1) << 10, frame, y << 11);
+			DecodeAtari8Gr12Line(characters, 0, content, (y & 1) << 10, frame, y << 11, 0);
 		}
 		return ApplyAtari8Palette(frame);
 	}
@@ -7455,8 +7492,8 @@ public class RECOIL
 		for (int i = 0; i < 32; i++)
 			characters[i] = i;
 		for (int y = 0; y < 4; y++) {
-			DecodeAtari8Gr12Line(characters, 0, content, y << 8, frame1, y << 11);
-			DecodeAtari8Gr12Line(characters, 0, content, 1024 + (y << 8), frame2, y << 11);
+			DecodeAtari8Gr12Line(characters, 0, content, y << 8, frame1, y << 11, 0);
+			DecodeAtari8Gr12Line(characters, 0, content, 1024 + (y << 8), frame2, y << 11, 0);
 		}
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
@@ -7584,7 +7621,7 @@ public class RECOIL
 			int fontOffset = 24 + (content[y] << 10);
 			if (fontOffset >= contentLength - 965)
 				return false;
-			DecodeAtari8Gr12Line(content, contentLength - 965 + y * 40, content, fontOffset, frame, y * (8 * 320));
+			DecodeAtari8Gr12Line(content, contentLength - 965 + y * 40, content, fontOffset, frame, y * (8 * 320), 0);
 		}
 		return ApplyAtari8Palette(frame);
 	}
@@ -7618,6 +7655,85 @@ public class RECOIL
 				}
 			}
 		}
+		return true;
+	}
+
+	bool DecodeMap(byte[] content, int contentLength)
+	{
+		if (contentLength < 8 + 1 + 256 + 204 + 3 + 1 + 8 + 1024)
+			return false;
+		int mode = content[0] & 0x7f;
+		int charWidth;
+		int charHeight;
+		RECOILResolution resolution;
+		switch (mode) {
+		case 2:
+			charWidth = 8;
+			charHeight = 8;
+			resolution = RECOILResolution.Xe1x1;
+			break;
+		case 3:
+			charWidth = 8;
+			charHeight = 10;
+			resolution = RECOILResolution.Xe1x1;
+			break;
+		case 4:
+			charWidth = 8;
+			charHeight = 8;
+			resolution = RECOILResolution.Xe2x1;
+			break;
+		case 5:
+			charWidth = 8;
+			charHeight = 16;
+			resolution = RECOILResolution.Xe2x2;
+			break;
+		case 6:
+			charWidth = 16;
+			charHeight = 8;
+			resolution = RECOILResolution.Xe2x1;
+			break;
+		case 7:
+			charWidth = 16;
+			charHeight = 16;
+			resolution = RECOILResolution.Xe2x2;
+			break;
+		default:
+			return false;
+		}
+		int columns = content[1] + 1;
+		int rows = content[2] + 1;
+		if (rows > 204)
+			return false;
+		int rowFonts = 8 + columns * rows + 256;
+		int fontOffset = rowFonts + 204 + 3;
+		if (contentLength != fontOffset + content[fontOffset - 1] * (1 + 8 + 1024)
+		 || !SetSize(columns * charWidth, rows * charHeight, resolution))
+			return false;
+		int[256] fontId2Offset = 0;
+		for (; fontOffset < contentLength; fontOffset += 1 + 8 + 1024)
+			fontId2Offset[content[fontOffset]] = fontOffset + 1 + 8;
+		SetPF0123Bak(content, 3);
+		byte[] frame = new byte[Width * Height];
+		for (int row = 0; row < rows; row++) {
+			fontOffset = fontId2Offset[content[rowFonts + row]];
+			if (fontOffset == 0)
+				return false;
+			int charactersOffset = 8 + row * columns;
+			int frameOffset = row * charHeight * Width;
+			switch (mode >> 1) {
+			case 1:
+				DecodeAtari8Gr0Line(content, charactersOffset, content, fontOffset, frame, frameOffset, charHeight);
+				break;
+			case 2:
+				DecodeAtari8Gr12Line(content, charactersOffset, content, fontOffset, frame, frameOffset, mode & 1);
+				break;
+			case 3:
+				DecodeAtari8Gr1Line(content, charactersOffset, fontOffset, frame, frameOffset, mode & 1);
+				break;
+			}
+		}
+		ApplyAtari8Palette(frame);
+		delete frame;
 		return true;
 	}
 
@@ -8984,6 +9100,7 @@ public class RECOIL
 		case PackExt("LP3"):
 		case PackExt("LUM"):
 		case PackExt("MAC"):
+		case PackExt("MAP"):
 		case PackExt("MAX"):
 		case PackExt("MBG"):
 		case PackExt("MC"):
@@ -9404,6 +9521,8 @@ public class RECOIL
 			return DecodeLum(filename, content, contentLength);
 		case PackExt("MAC"):
 			return DecodeMac(content, contentLength);
+		case PackExt("MAP"):
+			return DecodeMap(content, contentLength);
 		case PackExt("MAX"):
 			return DecodeAtari8Max(content, contentLength)
 				|| DecodeCocoMax(content, contentLength);
