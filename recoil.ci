@@ -1010,7 +1010,8 @@ class CaStream : RleStream
 		int unpackedOffset = 0;
 		for (int block = 0; block < blocks; block++) {
 			int nextContentOffset = contentOffset + RECOIL.Get32BigEndian(content, block << 2);
-			if (!UnpackCa(content, contentOffset, nextContentOffset, unpacked, unpackedOffset))
+			if (nextContentOffset > contentLength
+			 || !UnpackCa(content, contentOffset, nextContentOffset, unpacked, unpackedOffset))
 				return false;
 			contentOffset = nextContentOffset;
 			unpackedOffset += 32000;
@@ -1492,7 +1493,7 @@ class IcnParser : Stream
 			return false;
 		int length = s.Length;
 		for (int i = 0; i < length; i++)
-			if (Content[ContentOffset++] != s[i])
+			if (ReadByte() != s[i])
 				return false;
 		return true;
 	}
@@ -5177,7 +5178,7 @@ public class RECOIL
 		}
 		width = width + 15 & ~15; // round up to 16 pixels, FIXME
 		contentOffset += 0x14;
-		if (contentOffset + height * (width >> 3) > contentLength)
+		if (contentLength < contentOffset + bitplanes * height * (width >> 3))
 			return false;
 		if (!SetSize(width, height, RECOILResolution.Amiga1x1))
 			return false;
@@ -5935,7 +5936,7 @@ public class RECOIL
 			return false;
 		int width = ((content[0] | content[1] << 8) + 7) & ~7; // round up to 8 pixels
 		int height = content[2];
-		if (width == 0 || width > 320 || height == 0 || height > 200)
+		if (width == 0 || width > 320 || height == 0 || height > 200 || contentLength != 3 + (width >> 3) * height)
 			return false;
 		SetSize(width, height, RECOILResolution.Xe1x1);
 		byte[320 * 200] frame;
@@ -6363,12 +6364,12 @@ public class RECOIL
 				return false;
 		int shapes = content[0x18] - content[0x17];
 		const int maxShapes = 100;
-		if (shapes <= 0 || shapes > maxShapes)
+		const int height = 30;
+		if (shapes <= 0 || shapes > maxShapes || contentLength < 281 + shapes * (4 * height))
 			return false;
 		// 8 shapes per row * (16 pixels + 4 pixels gap) = 160 pixels wide
 		int rows = shapes + 7 >> 3;
 		const int maxRows = maxShapes + 7 >> 3;
-		const int height = 30;
 		const int horizontalGap = 4;
 		const int verticalGap = 2;
 		if (rows == 1)
@@ -7706,7 +7707,8 @@ public class RECOIL
 			return false;
 		int rowFonts = 8 + columns * rows + 256;
 		int fontOffset = rowFonts + 204 + 3;
-		if (contentLength != fontOffset + content[fontOffset - 1] * (1 + 8 + 1024)
+		if (contentLength < fontOffset
+		 || contentLength != fontOffset + content[fontOffset - 1] * (1 + 8 + 1024)
 		 || !SetSize(columns * charWidth, rows * charHeight, resolution))
 			return false;
 		int[256] fontId2Offset = 0;
@@ -8380,6 +8382,8 @@ public class RECOIL
 		if (contentLength < 9 || !IsStringAt(content, 0, "RGB1"))
 			return false;
 		int titleLength = content[4];
+		if (contentLength < 9 + titleLength)
+			return false;
 		int width = content[6 + titleLength];
 		int height = content[7 + titleLength];
 		if (width == 0 || (width & 1) != 0 || width > 80 || height == 0 || height > 192 || content[8 + titleLength] != 1)
@@ -8824,7 +8828,7 @@ public class RECOIL
 
 	bool DecodeAwbmPalette(byte[] content, int contentLength, int paletteOffset, int colors)
 	{
-		if (!IsStringAt(content, paletteOffset, "RGB ") || contentLength < paletteOffset + 4 + colors * 3)
+		if (contentLength < paletteOffset + 4 + colors * 3 || !IsStringAt(content, paletteOffset, "RGB "))
 			return false;
 		for (int i = 0; i < colors; i++) {
 			int r = content[paletteOffset + 4 + i * 3];
@@ -9388,7 +9392,7 @@ public class RECOIL
 			return DecodeAtari8Fnt(content, contentLength)
 				|| DecodeAmstradFnt(content, contentLength);
 		case PackExt("FPT"):
-			return contentLength == 10004 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2714]);
+			return contentLength == 10004 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2712]);
 		case PackExt("FTC"):
 			return DecodeFtc(content, contentLength);
 		case PackExt("FUN"):
@@ -9636,7 +9640,7 @@ public class RECOIL
 		case PackExt("RYS"):
 			return DecodeRys(content, contentLength);
 		case PackExt("SAR"):
-			return contentLength == 10018 && DecodeC64Multicolor(320, content, 0x402, 2, 0x2402, content[0x3f2]);
+			return contentLength == 10219 && DecodeC64Multicolor(320, content, 0x402, 2, 0x2402, content[0x3f2]);
 		case PackExt("SC2"):
 		case PackExt("GRP"):
 			return DecodeSc2(content, contentLength);
