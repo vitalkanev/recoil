@@ -312,24 +312,26 @@ static BOOL OpenImage(BOOL show_error)
 	bitmap.bmiHeader.biXPelsPerMeter = 1000;
 	bitmap.bmiHeader.biYPelsPerMeter = 1000;
 	if (palette != NULL) {
+		int bytesPerLine = (width + 3) & ~3;
 		int y;
-		bitmap.bmiHeader.biSizeImage = sizeof(BITMAPINFOHEADER) + colors * sizeof(RGBQUAD) + width * height;
+		bitmap.bmiHeader.biSizeImage = sizeof(BITMAPINFOHEADER) + colors * sizeof(RGBQUAD) + height * bytesPerLine;
 		bitmap.bmiHeader.biClrUsed = colors;
 		bitmap.bmiHeader.biClrImportant = colors;
 		memcpy(bitmap.bmiColors, palette, colors * 4);
-		bitmap_pixels = (byte *) (bitmap.bmiColors + colors);
+		bitmap_pixels = (BYTE *) (bitmap.bmiColors + colors);
 		for (y = 0; y < height; y++)
-			memcpy(bitmap_pixels + (height - 1 - y) * width, bitmap.pixels + RECOIL_MAX_PIXELS_LENGTH + y * width, width);
+			memcpy(bitmap_pixels + (height - 1 - y) * bytesPerLine, bitmap.pixels + RECOIL_MAX_PIXELS_LENGTH + y * width, width);
 	}
 	else {
+		int bytesPerLine = (width * 3 + 3) & ~3;
 		const int *pixels = RECOIL_GetPixels(recoil);
 		int y;
-		bitmap.bmiHeader.biSizeImage = sizeof(BITMAPINFOHEADER) + width * height * 3;
+		bitmap.bmiHeader.biSizeImage = sizeof(BITMAPINFOHEADER) + height * bytesPerLine;
 		bitmap.bmiHeader.biClrUsed = 0;
 		bitmap.bmiHeader.biClrImportant = 0;
 		bitmap_pixels = (BYTE *) bitmap.bmiColors;
 		for (y = 0; y < height; y++) {
-			BYTE *dest = bitmap_pixels + (height - 1 - y) * width * 3;
+			BYTE *dest = bitmap_pixels + (height - 1 - y) * bytesPerLine;
 			int x;
 			for (x = 0; x < width; x++) {
 				int rgb = *pixels++;
