@@ -31,10 +31,10 @@ import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.TreeSet;
@@ -48,7 +48,8 @@ public class FileSelector extends ListActivity
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		getListView().setTextFilterEnabled(true);
+		ListView listView = getListView();
+		listView.setTextFilterEnabled(true);
 		uri = getIntent().getData();
 		if (uri == null)
 			uri = FileUtil.getRootDirectory();
@@ -57,15 +58,19 @@ public class FileSelector extends ListActivity
 
 		ArrayList<String> files;
 		TreeSet<String> directories = new TreeSet<String>(FileUtil.getComparator());
+		int emptyViewId;
 		try {
 			files = FileUtil.list(uri, directories);
 			files.addAll(0, directories);
+			emptyViewId = R.layout.no_files;
 		}
 		catch (IOException ex) {
-			Toast.makeText(this, R.string.access_denied, Toast.LENGTH_SHORT).show();
 			files = new ArrayList<String>();
+			emptyViewId = R.layout.access_denied;
 		}
-
+		View emptyView = getLayoutInflater().inflate(emptyViewId, null);
+		((ViewGroup) listView.getParent()).addView(emptyView);
+		listView.setEmptyView(emptyView);
 		setListAdapter(new ArrayAdapter<String>(this, R.layout.filename_list_item, files));
 	}
 

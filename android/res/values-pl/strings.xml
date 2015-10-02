@@ -7,8 +7,8 @@
 	<string name="view_in_recoil">Obejrzyj w RECOIL</string>
 	<string name="selector_title">RECOIL - %1$s</string>
 	<string name="viewing_title">RECOIL - %1$s</string>
+	<string name="no_files">Brak obsługiwanych plików</string>
 	<string name="access_denied">Brak dostępu</string>
-	<string name="error_listing_files">Błąd pobierania listy plików</string>
 	<string name="error_reading_file">Błąd odczytu pliku %1$s</string>
 	<string name="error_decoding_file">Błąd dekodowania pliku %1$s</string>
 	<string name="menu_search">Szukaj</string>

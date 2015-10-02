@@ -32,7 +32,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Gallery;
-import android.widget.Toast;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -138,7 +137,7 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 			filenames = FileUtil.list(baseUri, null);
 		}
 		catch (IOException ex) {
-			Toast.makeText(this, R.string.error_listing_files, Toast.LENGTH_SHORT).show();
+			setContentView(R.layout.access_denied);
 			return;
 		}
 
@@ -169,6 +168,8 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
+		if (gallery == null)
+			return false;
 		getMenuInflater().inflate(R.menu.viewer, menu);
 		favoriteMenuItem = menu.findItem(R.id.menu_favorite);
 		setFavoriteIcon(filenames.get(gallery.getSelectedItemPosition()));
