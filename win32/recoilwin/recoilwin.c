@@ -124,8 +124,9 @@ static void UpdateText(void)
 	SetWindowText(hWnd, buf);
 	frames = RECOIL_GetFrames(recoil);
 	if (image_loaded) {
-		sprintf(buf, "%s, %dx%d, %d colors, %s%d%%", RECOIL_GetPlatform(recoil), RECOIL_GetOriginalWidth(recoil), RECOIL_GetOriginalHeight(recoil),
-			RECOIL_GetColors(recoil), frames == 2 ? "2 frames, " : frames == 3 ? "3 frames, " : "", zoom);
+		int colors = RECOIL_GetColors(recoil);
+		sprintf(buf, "%s, %dx%d, %d color%s, %s%d%%", RECOIL_GetPlatform(recoil), RECOIL_GetOriginalWidth(recoil), RECOIL_GetOriginalHeight(recoil),
+			colors, colors == 1 ? "" : "s", frames == 2 ? "2 frames, " : frames == 3 ? "3 frames, " : "", zoom);
 		SetWindowText(hStatus, buf);
 	}
 }
