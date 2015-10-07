@@ -5499,6 +5499,9 @@ public class RECOIL
 									return false;
 								SetScaledPixel(x, y, ContentPalette[b]);
 							}
+							// handle padding to even bytes
+							if ((width & 1) != 0 && (compression == 0 ? rle.ReadByte() : rle.ReadRle()) < 0)
+								return false;
 						}
 						return true;
 					}
