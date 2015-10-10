@@ -5213,6 +5213,98 @@ public class RECOIL
 		return true;
 	}
 
+	static RECOILResolution GetCamgAspectRatio(int camg, RECOILResolution resolution)
+	{
+		int log; // log2 of x/y aspect ratio
+		switch (camg & ~0xefff) {
+		case 0: // default
+		case 0x11000: // NTSC
+		case 0x21000: // PAL
+		case 0x71000: // EURO36
+		case 0xc1000: // Film24
+		case 0xd1000: // Super+
+			// 15 kHz
+			camg &= 0x802c;
+			log = 0;
+			break;
+		case 0x41000: // A2024
+			return RECOILResolution.Amiga1x1;
+		case 0x51000: // HighGFX
+		case 0x81000: // SUPER72
+		case 0xb1000: // HD720
+		case 0xe1000: // Xtreme
+			// 24 kHz
+			camg &= 0x802c;
+			log = -1;
+			break;
+		case 0x31000: // Mutiscan
+		case 0x61000: // EURO72
+			// 31 kHz
+			camg &= 0x8025;
+			log = -1;
+			break;
+		case 0x91000: // DBL NTSC
+		case 0xa1000: // DBL PAL
+			// 30 kHz
+			camg &= 0x8205;
+			log = 0;
+			break;
+		default:
+			return resolution;
+		}
+
+		// horizontal resolution
+		switch (camg & 0x8220) {
+		case 0:
+			break;
+		case 0x8000:
+			log++;
+			break;
+		case 0x8020:
+			log += 2;
+			break;
+		case 0x0200:
+			log--;
+			break;
+		default:
+			return resolution;
+		}
+
+		// vertical resolution
+		switch (camg & 0xd) {
+		case 0:
+			break;
+		case 4:
+			log--;
+			break;
+		case 5:
+			log -= 2;
+			break;
+		case 8:
+			log++;
+			break;
+		default:
+			return resolution;
+		}
+
+		switch (log) {
+		case 0:
+			return RECOILResolution.Amiga1x1;
+		case -1:
+			return RECOILResolution.Amiga2x1;
+		case -2:
+			return RECOILResolution.Amiga4x1;
+		case -3:
+			return RECOILResolution.Amiga8x1;
+		case 1:
+			return RECOILResolution.Amiga1x2;
+		case 2:
+			return RECOILResolution.Amiga1x4;
+		default:
+			return resolution;
+		}
+	}
+
 	bool SetScaledSize(int width, int height, RECOILResolution resolution)
 	{
 		switch (resolution) {
@@ -5445,8 +5537,10 @@ public class RECOIL
 				for ( ; c < 256; c++)
 					ContentPalette[c] = 0;
 			}
-			else if (IsStringAt(content, contentOffset, "CAMG") && chunkLength >= 4)
+			else if (IsStringAt(content, contentOffset, "CAMG") && chunkLength >= 4) {
 				camg = Get32BigEndian(content, contentOffset + 8);
+				resolution = GetCamgAspectRatio(camg, resolution);
+			}
 			else if (IsStringAt(content, contentOffset, "BODY")) {
 				if (width == 0)
 					return false;
