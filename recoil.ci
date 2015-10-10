@@ -5419,8 +5419,10 @@ public class RECOIL
 
 	bool DecodeIffUnpacked(byte[] unpacked, int width, int height, RECOILResolution resolution, int bitplanes, int colors, int camg)
 	{
-		if (!SetScaledSize(width, height, resolution))
+		if (!SetScaledSize(width, height, resolution)) {
+			delete unpacked;
 			return false;
+		}
 		if (bitplanes <= 8) {
 			if (colors == 0) {
 				// grayscale
