@@ -5430,20 +5430,17 @@ public class RECOIL
 				for (int c = 0; c < colors; c++)
 					ContentPalette[c] = c * 255 / colors * 0x010101;
 			}
-			else if ((camg & 0x880) == 0x80 && bitplanes == 6 && colors < 64) {
-				// Amiga Extra Half-Brite
-				// atarist.c by Hans Wessels says bitplanes check is necessary.
-				// I also check if we don't already have 64 colors,
-				// because I found such EHB files.
-				for (int c = 0; c < 32; c++)
-					ContentPalette[32 + c] = ContentPalette[c] >> 1 & 0x7f7f7f;
-			}
 			if ((camg & 0x800) != 0) {
 				// Amiga Hold-And-Modify
 				DecodeHam(unpacked, width, height, bitplanes);
 			}
 			else {
 				// palette
+				if ((camg & 0x80) != 0 && bitplanes == 6) {
+					// Amiga Extra Half-Brite
+					for (int c = 0; c < 32; c++)
+						ContentPalette[32 + c] = ContentPalette[c] >> 1 & 0x7f7f7f;
+				}
 				DecodeScaledBitplanes(unpacked, width, height, bitplanes);
 			}
 		}
