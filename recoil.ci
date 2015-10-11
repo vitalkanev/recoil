@@ -5436,7 +5436,7 @@ public class RECOIL
 			}
 			else {
 				// palette
-				if ((camg & 0x80) != 0 && bitplanes == 6) {
+				if (bitplanes == 6 && ((camg & 0x80) != 0 || colors <= 32)) {
 					// Amiga Extra Half-Brite
 					for (int c = 0; c < 32; c++)
 						ContentPalette[32 + c] = ContentPalette[c] >> 1 & 0x7f7f7f;
