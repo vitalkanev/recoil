@@ -547,6 +547,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 				rect.bottom -= GetStatusBarHeight();
 				x = rect.right > show_width ? (rect.right - show_width) >> 1 : 0;
 				y = rect.bottom > show_height ? (rect.bottom - show_height) >> 1 : 0;
+				SetStretchBltMode(hdc, COLORONCOLOR);
 				StretchDIBits(hdc, x, y, show_width, show_height, 0, 0, RECOIL_GetWidth(recoil), RECOIL_GetHeight(recoil),
 					bitmap_pixels, (CONST BITMAPINFO *) &bitmap, DIB_RGB_COLORS, SRCCOPY);
 			}
