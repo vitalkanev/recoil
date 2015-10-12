@@ -5430,13 +5430,13 @@ public class RECOIL
 				for (int c = 0; c < colors; c++)
 					ContentPalette[c] = c * 255 / colors * 0x010101;
 			}
-			if ((camg & 0x800) != 0) {
+			if ((camg & 0x800) != 0 || (bitplanes == 6 && colors == 16)) {
 				// Amiga Hold-And-Modify
 				DecodeHam(unpacked, width, height, bitplanes);
 			}
 			else {
 				// palette
-				if (bitplanes == 6 && ((camg & 0x80) != 0 || colors <= 32)) {
+				if (bitplanes == 6 && ((camg & 0x80) != 0 || colors == 32)) {
 					// Amiga Extra Half-Brite
 					for (int c = 0; c < 32; c++)
 						ContentPalette[32 + c] = ContentPalette[c] >> 1 & 0x7f7f7f;
