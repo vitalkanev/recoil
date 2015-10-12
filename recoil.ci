@@ -5470,6 +5470,8 @@ public class RECOIL
 		int contentOffset = 8;
 		if (IsStringAt(content, 8, "DPSTDPAH") && Get32BigEndian(content, 16) == 24 && IsStringAt(content, 44, "FORM"))
 			contentOffset = 52;
+		else if (IsStringAt(content, 8, "ANIMFORM"))
+			contentOffset = 20;
 		IffType type;
 		if (IsStringAt(content, contentOffset, "ILBM"))
 			type = IffType.Ilbm;
