@@ -5488,6 +5488,7 @@ public class RECOIL
 		int bitplanes = 0;
 		bool hasMask = false;
 		int compression = 0;
+		bool ocsPalette = false;
 		int colors = 0;
 		int camg = 0;
 		while (contentOffset + 7 < contentLength) {
@@ -5511,6 +5512,7 @@ public class RECOIL
 				int pixelsCount = width * height;
 				if (pixelsCount <= 0 || pixelsCount > MaxPixelsLength)
 					return false;
+				ocsPalette = content[contentOffset + 19] != 0x80;
 				int xRatio = content[contentOffset + 22];
 				int yRatio = content[contentOffset + 23];
 				if (xRatio > 0 && yRatio > 0) {
@@ -5530,13 +5532,22 @@ public class RECOIL
 				colors = chunkLength / 3;
 				if (colors > 256)
 					return false;
+				if (colors > 32)
+					ocsPalette = false;
 				int c;
 				for (c = 0; c < colors; c++) {
 					int offset = contentOffset + 8 + c * 3;
 					ContentPalette[c] = content[offset] << 16 | content[offset + 1] << 8 | content[offset + 2];
+					if ((ContentPalette[c] & 0x0f0f0f) != 0)
+						ocsPalette = false;
 				}
 				for ( ; c < 256; c++)
 					ContentPalette[c] = 0;
+				if (ocsPalette) {
+					// 0xR0G0B0 -> 0xRRGGBB
+					for (c = 0; c < colors; c++)
+						ContentPalette[c] |= ContentPalette[c] >> 4;
+				}
 			}
 			else if (IsStringAt(content, contentOffset, "CAMG") && chunkLength >= 4) {
 				camg = Get32BigEndian(content, contentOffset + 8);
