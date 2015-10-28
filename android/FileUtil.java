@@ -66,7 +66,7 @@ abstract class FileUtil
 			Method method = Environment.class.getMethod("getExternalStoragePublicDirectory", String.class);
 			return Uri.fromFile((File) method.invoke(null, directoryDownloads));
 		}
-		catch (ReflectiveOperationException ex) {
+		catch (Exception ex) {
 			return null;
 		}
 	}
