@@ -7782,11 +7782,8 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodeMap(byte[] content, int contentLength)
+	bool DecodeEnvisionCommon(byte[] content, int mode, int columns, int rows, int charactersOffset, int[] fontId2Offset)
 	{
-		if (contentLength < 8 + 1 + 256 + 204 + 3 + 1 + 8 + 1024)
-			return false;
-		int mode = content[0] & 0x7f;
 		int charWidth;
 		int charHeight;
 		RECOILResolution resolution;
@@ -7824,26 +7821,21 @@ public class RECOIL
 		default:
 			return false;
 		}
-		int columns = content[1] + 1;
-		int rows = content[2] + 1;
-		if (rows > 204)
+		if (!SetSize(columns * charWidth, rows * charHeight, resolution))
 			return false;
-		int rowFonts = 8 + columns * rows + 256;
-		int fontOffset = rowFonts + 204 + 3;
-		if (contentLength < fontOffset
-		 || contentLength != fontOffset + content[fontOffset - 1] * (1 + 8 + 1024)
-		 || !SetSize(columns * charWidth, rows * charHeight, resolution))
-			return false;
-		int[256] fontId2Offset = 0;
-		for (; fontOffset < contentLength; fontOffset += 1 + 8 + 1024)
-			fontId2Offset[content[fontOffset]] = fontOffset + 1 + 8;
-		SetPF0123Bak(content, 3);
 		byte[] frame = new byte[Width * Height];
 		for (int row = 0; row < rows; row++) {
-			fontOffset = fontId2Offset[content[rowFonts + row]];
-			if (fontOffset == 0)
-				return false;
-			int charactersOffset = 8 + row * columns;
+			int fontOffset;
+			if (fontId2Offset != null) {
+				fontOffset = fontId2Offset[content[8 + columns * rows + 256 + row]];
+				if (fontOffset == 0) {
+					delete frame;
+					return false;
+				}
+			}
+			else {
+				fontOffset = 10 + columns * rows;
+			}
 			int frameOffset = row * charHeight * Width;
 			switch (mode >> 1) {
 			case 1:
@@ -7856,10 +7848,64 @@ public class RECOIL
 				DecodeAtari8Gr1Line(content, charactersOffset, fontOffset, frame, frameOffset, mode & 1);
 				break;
 			}
+			charactersOffset += columns;
 		}
 		ApplyAtari8Palette(frame);
 		delete frame;
 		return true;
+	}
+
+	bool DecodeEnvision(byte[] content, int contentLength)
+	{
+		if (contentLength < 8 + 1 + 256 + 204 + 3 + 1 + 8 + 1024)
+			return false;
+		int columns = content[1] + 1;
+		int rows = content[2] + 1;
+		if (rows > 204)
+			return false;
+		int fontOffset = 8 + columns * rows + (256 + 204 + 3);
+		if (contentLength < fontOffset
+		 || contentLength != fontOffset + content[fontOffset - 1] * (1 + 8 + 1024))
+			return false;
+		int[256] fontId2Offset = 0;
+		for (; fontOffset < contentLength; fontOffset += 1 + 8 + 1024)
+			fontId2Offset[content[fontOffset]] = fontOffset + 1 + 8;
+		SetPF0123Bak(content, 3);
+		return DecodeEnvisionCommon(content, content[0] & 0x7f, columns, rows, 8, fontId2Offset);
+	}
+
+	bool DecodeEnvisionPC(byte[] content, int contentLength)
+	{
+		if (contentLength < 10 + 1 + 1024)
+			return false;
+		int columns = content[1] | content[2] << 8;
+		int rows = content[3] | content[4] << 8;
+		int contentOffset = 10 + columns * rows + 1024;
+		while (contentOffset < contentLength) {
+			switch (content[contentOffset++]) {
+			case 0:
+				break;
+			case 1:
+				if (contentOffset + 6 >= contentLength)
+					return false;
+				contentOffset += (content[contentOffset] + (content[contentOffset + 1] << 8))
+					* (content[contentOffset + 2] + (content[contentOffset + 3] << 8))
+					* (content[contentOffset + 4] + (content[contentOffset + 5] << 8) + 1);
+				break;
+			case 2:
+				contentOffset += columns * rows;
+				break;
+			case 3:
+				contentOffset += 3 + 1024;
+				break;
+			default:
+				return false;
+			}
+		}
+		if (contentOffset > contentLength)
+			return false;
+		SetBakPF0123(content, 5);
+		return DecodeEnvisionCommon(content, content[0], columns, rows, 10, null);
 	}
 
 	bool DecodeMcs(byte[] content, int contentLength)
@@ -9648,7 +9694,8 @@ public class RECOIL
 		case PackExt("MAC"):
 			return DecodeMac(content, contentLength);
 		case PackExt("MAP"):
-			return DecodeMap(content, contentLength);
+			return DecodeEnvision(content, contentLength)
+				|| DecodeEnvisionPC(content, contentLength);
 		case PackExt("MAX"):
 			return DecodeAtari8Max(content, contentLength)
 				|| DecodeCocoMax(content, contentLength);

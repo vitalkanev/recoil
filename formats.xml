@@ -110,6 +110,7 @@
 			<companionExt>COL</companionExt>
 		</format>
 		<format name="Envision"><ext>MAP</ext></format>
+		<format name="EnvisionPC"><ext>MAP</ext></format>
 		<format name="XL-Paint MAX" width="160" height="192" frames="2"><ext>MAX</ext></format>
 		<format name="Mad Designer" width="512" height="256" colors="2"><ext>MBG</ext></format>
 		<format name="Graph2Font" maxWidth="176" height="240" colors="128"><ext>MCH</ext></format>
