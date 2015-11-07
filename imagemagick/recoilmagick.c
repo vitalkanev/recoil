@@ -50,10 +50,10 @@ static MagickBooleanType IsRECOIL(const unsigned char *magick, const size_t leng
 
 static Image *ReadRECOILImage(const ImageInfo *image_info, ExceptionInfo *exception)
 {
-	unsigned char content[RECOIL_MAX_CONTENT_LENGTH];
-	int content_len;
-	RECOIL *recoil;
 	Image *image;
+	MagickSizeType content_len;
+	RECOIL *recoil;
+	unsigned char *content;
 	PixelPacket *q;
 	const int *pixels;
 	int num_pixels;
@@ -71,16 +71,31 @@ static Image *ReadRECOILImage(const ImageInfo *image_info, ExceptionInfo *except
 		return NULL;
 	}
 
-	content_len = ReadBlob(image, RECOIL_MAX_CONTENT_LENGTH, content);
-	if (content_len < 0)
-		ThrowReaderException(CorruptImageError, "UnableToReadImageData");
+	content_len = GetBlobSize(image);
+	if (content_len > RECOIL_MAX_CONTENT_LENGTH)
+		ThrowReaderException(CorruptImageError, "FileDecodingError");
+	if (content_len == 0) /* failed to get file length */
+		content_len = RECOIL_MAX_CONTENT_LENGTH;
 	recoil = RECOIL_New();
 	if (recoil == NULL)
 		ThrowReaderException(ResourceLimitError, "MemoryAllocationFailed");
+	content = malloc(content_len);
+	if (content == NULL) {
+		RECOIL_Delete(recoil);
+		ThrowReaderException(ResourceLimitError, "MemoryAllocationFailed");
+	}
+	content_len = ReadBlob(image, content_len, content);
+	if (content_len < 0) {
+		free(content);
+		RECOIL_Delete(recoil);
+		ThrowReaderException(CorruptImageError, "UnableToReadImageData");
+	}
 	if (!RECOIL_Decode(recoil, image_info->filename, content, content_len)) {
+		free(content);
 		RECOIL_Delete(recoil);
 		ThrowReaderException(CorruptImageError, "FileDecodingError");
 	}
+	free(content);
 
 	image->depth = 8;
 	if (!SetImageExtent(image, RECOIL_GetWidth(recoil), RECOIL_GetHeight(recoil))) {
