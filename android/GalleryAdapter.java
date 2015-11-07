@@ -1,7 +1,7 @@
 /*
  * GalleryAdapter.java - RECOIL for Android
  *
- * Copyright (C) 2013-2014  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2013-2015  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -30,6 +30,7 @@ import android.widget.BaseAdapter;
 import android.widget.Gallery;
 import android.widget.ImageView;
 import android.widget.TextView;
+import java.lang.reflect.Method;
 
 class GalleryAdapter extends BaseAdapter
 {
@@ -38,6 +39,17 @@ class GalleryAdapter extends BaseAdapter
 	GalleryAdapter(Viewer viewer)
 	{
 		this.viewer = viewer;
+	}
+
+	private static void setHasAlphaCompat(Bitmap bitmap, boolean hasAlpha)
+	{
+		try {
+			Method method = Bitmap.class.getMethod("setHasAlpha", Boolean.class);
+			method.invoke(bitmap, hasAlpha);
+		}
+		catch (Exception ex) {
+			// ignore
+		}
 	}
 
 	public View getView(int position, View convertView, ViewGroup parent)
@@ -63,9 +75,9 @@ class GalleryAdapter extends BaseAdapter
 
 		// Display
 		Bitmap bitmap = Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888);
-		bitmap.setHasAlpha(false);
+		setHasAlphaCompat(bitmap, false);
 		ImageView imageView = convertView instanceof ImageView ? (ImageView) convertView : new ImageView(viewer);
-		imageView.setLayoutParams(new Gallery.LayoutParams(Gallery.LayoutParams.MATCH_PARENT, Gallery.LayoutParams.MATCH_PARENT));
+		imageView.setLayoutParams(new Gallery.LayoutParams(Gallery.LayoutParams.FILL_PARENT, Gallery.LayoutParams.FILL_PARENT));
 		imageView.setImageBitmap(bitmap);
 		return imageView;
 	}
