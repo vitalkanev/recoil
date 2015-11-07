@@ -9887,73 +9887,85 @@ public class RECOIL
 		}
 	}
 
+	// One bit for each RGB value.
+	byte[256 * 256 * 256 / 8] ColorInUse;
+
 	// Number of unique colors in `pixels`.
 	int Colors;
 	const int UnknownColors = -1;
-	// Special case when palette-indexed conversion fails.
-	const int MoreThan256Colors = 0;
 
 	// Unique colors.
 	// Values are in ascending order for the sake of binary search.
 	int[256] Palette;
 
-	/// Find the `rgb` value in `palette`.
-	/// Searches `paletteEnd` entries.
-	static int FindColor(int[] palette, int paletteEnd, int rgb)
-	{
-		int paletteBegin = 0;
-		while (paletteBegin < paletteEnd) {
-			int index = (paletteBegin + paletteEnd) >> 1;
-			int paletteRgb = palette[index];
-			if (rgb == paletteRgb)
-				return index;
-			if (rgb < paletteRgb)
-				paletteEnd = index;
-			else
-				paletteBegin = index + 1;
-		}
-		return paletteBegin;
-	}
-
 	/// Calculates palette for the decoded picture.
-	/// On entry, `palette` contains `paletteOffset` colors.
-	void CalculatePalette(int[] palette, int paletteOffset, int paletteLength)
+	void CalculatePalette()
 	{
+		ColorInUse.Clear();
+		Colors = 0;
+		Palette.Clear();
 		int pixelsCount = Width * Height;
 		for (int pixelsOffset = 0; pixelsOffset < pixelsCount; pixelsOffset++) {
 			int rgb = Pixels[pixelsOffset];
-			int index = FindColor(palette, paletteOffset, rgb);
-			if (index >= paletteOffset || palette[index] != rgb) {
-				if (paletteOffset == paletteLength) {
-					Colors = MoreThan256Colors;
-					return;
-				}
-				for (int j = paletteOffset; --j >= index; )
-					palette[j + 1] = palette[j];
-				palette[index] = rgb;
-				paletteOffset++;
+			int i = rgb >> 3;
+			int mask = 1 << (rgb & 7);
+			if ((ColorInUse[i] & mask) == 0) {
+				ColorInUse[i] |= mask;
+				if (Colors < 256)
+					Palette[Colors] = rgb;
+				Colors++;
 			}
 		}
-		Colors = paletteOffset;
 	}
 
 	/// Returns number of unique colors in the decoded picture.
 	public int GetColors()
 	{
-		if (Colors == UnknownColors) {
-			Palette.Clear();
-			CalculatePalette(Palette, 0, 256);
-		}
-		if (Colors == MoreThan256Colors) {
-			int[] palette = new int[Width * Height];
-			// Copy already found colors
-			// - will be faster than starting from scratch.
-			for (int j = 0; j < 256; j++)
-				palette[j] = Palette[j];
-			CalculatePalette(palette, 256, -1);
-			delete palette;
-		}
+		if (Colors == UnknownColors)
+			CalculatePalette();
 		return Colors;
+	}
+
+	void SortPalette(int start, int end)
+	{
+		while (start + 1 < end) {
+			int left = start + 1;
+			int right = end;
+			int pivot = Palette[start];
+			int rgb;
+			while (left < right) {
+				rgb = Palette[left];
+				if (rgb <= pivot)
+					left++;
+				else {
+					Palette[left] = Palette[--right];
+					Palette[right] = rgb;
+				}
+			}
+			rgb = Palette[--left];
+			Palette[left] = Palette[start];
+			Palette[start] = rgb;
+			SortPalette(start, left);
+			start = right;
+		}
+	}
+
+	/// Find the index of the `rgb` color in the sorted palette.
+	int FindInSortedPalette(int rgb)
+	{
+		int left = 0;
+		int right = Colors;
+		while (left < right) {
+			int index = (left + right) >> 1;
+			int paletteRgb = Palette[index];
+			if (rgb == paletteRgb)
+				return index;
+			if (rgb < paletteRgb)
+				right = index;
+			else
+				left = index + 1;
+		}
+		throw "Internal error";
 	}
 
 	/// Converts the decoded picture to palette-indexed.
@@ -9966,15 +9978,14 @@ public class RECOIL
 		/// It must be caller-allocated of length `GetWidth() * GetHeight()`.
 		byte[] indexes)
 	{
-		if (Colors == UnknownColors) {
-			Palette.Clear();
-			CalculatePalette(Palette, 0, 256);
-		}
-		if (Colors == MoreThan256Colors || Colors > 256)
+		if (Colors == UnknownColors)
+			CalculatePalette();
+		if (Colors > 256)
 			return null;
+		SortPalette(0, Colors);
 		int pixelsCount = Width * Height;
 		for (int i = 0; i < pixelsCount; i++)
-			indexes[i] = FindColor(Palette, Colors, Pixels[i]);
+			indexes[i] = FindInSortedPalette(Pixels[i]);
 		return Palette;
 	}
 }
