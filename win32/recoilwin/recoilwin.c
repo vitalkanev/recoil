@@ -263,7 +263,7 @@ static void ZoomOut(void)
 
 static BOOL OpenImage(BOOL show_error)
 {
-	BYTE content[RECOIL_MAX_CONTENT_LENGTH];
+	static BYTE content[RECOIL_MAX_CONTENT_LENGTH];
 	int content_len;
 	int width;
 	int height;

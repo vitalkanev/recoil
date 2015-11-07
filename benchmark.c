@@ -39,9 +39,9 @@ int main(int argc, char **argv)
 	for (i = 1; i < argc; i++) {
 		const char *arg = argv[i];
 		FILE *fp;
-		unsigned char content[RECOIL_MAX_CONTENT_LENGTH];
+		static unsigned char content[RECOIL_MAX_CONTENT_LENGTH];
 		int content_len;
-		unsigned char indexes[RECOIL_MAX_PIXELS_LENGTH];
+		static unsigned char indexes[RECOIL_MAX_PIXELS_LENGTH];
 		int colors;
 		clock_t start_time;
 		clock_t decode_time;

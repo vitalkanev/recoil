@@ -1836,7 +1836,7 @@ public class RECOIL
 
 	/// Maximum length of a supported input file.
 	/// You may assume that files longer than this are not supported by RECOIL.
-	public const int MaxContentLength = 350000;
+	public const int MaxContentLength = 6 * 1024 * 1024;
 
 	/// Maximum width of a decoded image.
 	public const int MaxWidth = 2048;
