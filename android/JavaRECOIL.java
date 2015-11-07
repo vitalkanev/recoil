@@ -23,6 +23,7 @@
 
 package net.sf.recoil;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -32,6 +33,8 @@ import java.util.zip.ZipFile;
 
 abstract class JavaRECOIL extends RECOIL
 {
+	abstract long getLength(String filename);
+
 	abstract InputStream openFile(String filename) throws IOException;
 
 	int readFileOrThrow(String filename, byte[] content, int contentLength) throws IOException
@@ -65,14 +68,24 @@ abstract class JavaRECOIL extends RECOIL
 
 	boolean load(String filename) throws IOException
 	{
-		byte[] content = new byte[MAX_CONTENT_LENGTH];
-		int contentLength = readFileOrThrow(filename, content, MAX_CONTENT_LENGTH);
+		long longLength = getLength(filename);
+		if (longLength > MAX_CONTENT_LENGTH)
+			throw new IOException("File too long");
+		int contentLength = (int) longLength;
+		byte[] content = new byte[contentLength];
+		contentLength = readFileOrThrow(filename, content, contentLength);
 		return decode(filename, content, contentLength);
 	}
 }
 
 class FileRECOIL extends JavaRECOIL
 {
+	@Override
+	long getLength(String filename)
+	{
+		return new File(filename).length();
+	}
+
 	@Override
 	InputStream openFile(String filename) throws IOException
 	{
@@ -87,6 +100,15 @@ class ZipRECOIL extends JavaRECOIL
 	ZipRECOIL(ZipFile zip)
 	{
 		this.zip = zip;
+	}
+
+	@Override
+	long getLength(String filename)
+	{
+		ZipEntry entry = zip.getEntry(filename);
+		if (entry == null)
+			return 0;
+		return entry.getSize();
 	}
 
 	@Override
