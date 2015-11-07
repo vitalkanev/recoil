@@ -21,12 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#define _WIN32_WINNT 0x0500
 #include <windows.h>
 
-#include <stdio.h>
 #include <stdlib.h>
 
-#include "recoil-stdio.h"
+#include "recoil-win32.h"
 #include "formats.h"
 
 #define API __stdcall
@@ -89,38 +89,43 @@ DLL_EXPORT BOOL API gfpGetPluginInfo(DWORD version, LPSTR label, INT label_max_s
 
 DLL_EXPORT void * API gfpLoadPictureInit(LPCSTR filename)
 {
-	FILE *fp;
+	HANDLE fh = CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+	LARGE_INTEGER size;
+	int content_len;
 	RECOIL *recoil;
 	unsigned char *content;
-	int content_len;
+	BOOL ok;
 
-	fp = fopen(filename, "rb");
-	if (fp == NULL)
+	if (fh == INVALID_HANDLE_VALUE)
 		return NULL;
+	if (!GetFileSizeEx(fh, &size) || size.HighPart != 0 || size.LowPart > RECOIL_MAX_CONTENT_LENGTH) {
+		CloseHandle(fh);
+		return NULL;
+	}
+	content_len = size.LowPart;
 
-	recoil = RECOILStdio_New();
+	recoil = RECOILWin32_New();
 	if (recoil == NULL) {
-		fclose(fp);
+		CloseHandle(fh);
 		return NULL;
 	}
 
-	content = (unsigned char *) malloc(RECOIL_MAX_CONTENT_LENGTH);
+	content = (unsigned char *) malloc(content_len);
 	if (content == NULL) {
 		RECOIL_Delete(recoil);
-		fclose(fp);
+		CloseHandle(fh);
 		return NULL;
 	}
-	content_len = fread(content, 1, RECOIL_MAX_CONTENT_LENGTH, fp);
+	ok = ReadFile(fh, content, content_len, (LPDWORD) &content_len, NULL);
+	CloseHandle(fh);
 
-	if (!RECOIL_Decode(recoil, filename, content, content_len)) {
+	if (!ok || !RECOIL_Decode(recoil, filename, content, content_len)) {
 		free(content);
 		RECOIL_Delete(recoil);
-		fclose(fp);
 		return NULL;
 	}
 
 	free(content);
-	fclose(fp);
 	return recoil;
 }
 

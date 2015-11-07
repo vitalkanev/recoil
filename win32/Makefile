@@ -35,8 +35,8 @@ x64/IM_MOD_RL_recoil_.dll: ../imagemagick/recoilmagick.c ../formats.h ../recoil.
 	test -d x64 || mkdir x64
 	$(X64_RECOIL_CC_DLL) ../imagemagick/recoilmagick.c ../recoil.c -I"$(IMAGEMAGICK_X64_INST_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_X64_INST_DIR)"
 
-Xrecoil.usr: xnview/Xrecoil.c ../formats.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
-	$(RECOIL_CC_DLL) xnview/Xrecoil.c ../recoil-stdio.c ../recoil.c
+Xrecoil.usr: xnview/Xrecoil.c ../formats.h recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h
+	$(RECOIL_CC_DLL) -I. xnview/Xrecoil.c recoil-win32.c ../recoil.c
 
 recoilwin.exe: recoilwin/recoilwin.c recoilwin/recoilwin.h recoil-win32.c recoil-win32.h recoilwin/recoilwin-res.o ../pngsave.c ../pngsave.h ../formats.h ../recoil.c ../recoil.h
 	$(RECOIL_CC) -I. -Wl,-subsystem,windows recoilwin/recoilwin.c recoil-win32.c recoilwin/recoilwin-res.o ../pngsave.c ../recoil.c -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng -lz
