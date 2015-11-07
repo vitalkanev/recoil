@@ -52,8 +52,12 @@ namespace Recoil.PaintDotNet
 		protected override Document OnLoad(System.IO.Stream input)
 		{
 			// Read.
-			byte[] content = new byte[RECOIL.MaxContentLength];
-			int contentLength = input.Read(content, 0, content.Length);
+			long longLength = input.Length;
+			if (longLength > RECOIL.MaxContentLength)
+				throw new Exception("File too long");
+			int contentLength = (int) longLength;
+			byte[] content = new byte[contentLength];
+			contentLength = input.Read(content, 0, contentLength);
 
 			// Decode.
 			RECOIL recoil = new RECOIL();
