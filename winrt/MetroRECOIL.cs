@@ -52,10 +52,13 @@ class MetroRECOIL : Application
 		}
 
 		// Read.
-		byte[] content = new byte[RECOIL.MaxContentLength];
-		int contentLength;
+		ulong longLength = (await sf.GetBasicPropertiesAsync()).Size;
+		if (longLength > RECOIL.MaxContentLength)
+			throw new Exception("File too long");
+		int contentLength = (int) longLength;
+		byte[] content = new byte[contentLength];
 		using (IInputStream iis = await sf.OpenSequentialReadAsync()) {
-			IBuffer buf = await iis.ReadAsync(content.AsBuffer(), (uint) RECOIL.MaxContentLength, InputStreamOptions.None);
+			IBuffer buf = await iis.ReadAsync(content.AsBuffer(), (uint) contentLength, InputStreamOptions.None);
 			contentLength = (int) buf.Length;
 		}
 
