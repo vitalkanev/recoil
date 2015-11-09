@@ -866,7 +866,7 @@ class ImgStream : RleStream
 	int GetLineRepeatCount()
 	{
 		if (RepeatCount == 0
-		 && ContentOffset + 4 < ContentLength
+		 && ContentOffset < ContentLength - 4
 		 && Content[ContentOffset] == 0
 		 && Content[ContentOffset + 1] == 0
 		 && Content[ContentOffset + 2] == 0xff) {
@@ -970,7 +970,7 @@ class CaStream : RleStream
 
 	static bool UnpackCa(byte[] content, int contentOffset, int contentLength, byte[] unpacked, int unpackedOffset)
 	{
-		if (contentOffset + 4 > contentLength)
+		if (contentOffset > contentLength - 4)
 			return false;
 		CaStream() rle;
 		rle.Content = content;
@@ -1010,7 +1010,7 @@ class CaStream : RleStream
 		int unpackedOffset = 0;
 		for (int block = 0; block < blocks; block++) {
 			int nextContentOffset = contentOffset + RECOIL.Get32BigEndian(content, block << 2);
-			if (nextContentOffset > contentLength
+			if (nextContentOffset > contentLength || nextContentOffset < 0
 			 || !UnpackCa(content, contentOffset, nextContentOffset, unpacked, unpackedOffset))
 				return false;
 			contentOffset = nextContentOffset;
@@ -1069,7 +1069,7 @@ abstract class TnyPcsStream : RleStream
 			return false;
 		if (b < 128) {
 			if (b == 0 || b == 1) {
-				if (ContentOffset + 1 >= ContentLength)
+				if (ContentOffset >= ContentLength - 1)
 					return false;
 				RepeatCount = Content[ContentOffset] << 8 | Content[ContentOffset + 1];
 				ContentOffset += 2;
@@ -1113,7 +1113,7 @@ class PcsStream : TnyPcsStream
 			return ReadByte();
 
 		// one word for palette
-		if (ContentOffset + 1 >= ContentLength)
+		if (ContentOffset >= ContentLength - 1)
 			return -1;
 		int value = Content[ContentOffset] << 8 | Content[ContentOffset + 1];
 		ContentOffset += 2;
@@ -1324,7 +1324,7 @@ class A4rStream : Stream
 					return false;
 				case 0:
 					// new address, first byte literal
-					if (ContentOffset + 2 >= ContentLength)
+					if (ContentOffset >= ContentLength - 2)
 						return false;
 					b = ReadByte();
 					UnpackedOffset = b + (ReadByte() << 8) + 0x80 - MinAddress;
@@ -1471,7 +1471,7 @@ class IcnParser : Stream
 				got = true;
 				break;
 			case '/':
-				if (ContentOffset + 3 >= ContentLength || Content[ContentOffset + 1] != '*')
+				if (ContentOffset >= ContentLength - 3 || Content[ContentOffset + 1] != '*')
 					return false;
 				ContentOffset += 3;
 				do {
@@ -1581,7 +1581,7 @@ class PInterpreter : Stream
 			case 0x2a: // E
 				break;
 			case 0x7e:
-				if (ContentOffset + 5 > ContentLength)
+				if (ContentOffset > ContentLength - 5)
 					return -1;
 				int exp = ReadByte();
 				int m0 = ReadByte();
@@ -1756,7 +1756,7 @@ class PInterpreter : Stream
 		BottomCode = 0;
 
 		for (;;) {
-			if (ContentOffset + 8 > ContentLength)
+			if (ContentOffset > ContentLength - 8)
 				return false;
 			if (ReadByte() == 0x76)
 				return true; // no more lines
@@ -4300,8 +4300,14 @@ public class RECOIL
 		default: return false;
 		}
 		int width = Get32BigEndian(content, 8);
+		if (width <= 0)
+			return false;
 		int height = Get32BigEndian(content, 12);
+		if (height <= 0)
+			return false;
 		int bitmapLength = Get32BigEndian(content, 16);
+		if (bitmapLength <= 0)
+			return false;
 		int contentStride = (width + 15 >> 4 << 1) * bitplanes;
 		if (1556 + bitmapLength != contentLength || bitmapLength != contentStride * height)
 			return false;
@@ -4361,11 +4367,12 @@ public class RECOIL
 			if (contentOffset + 32000 != contentLength)
 				return false;
 			return DecodeSt(content, contentOffset, content, 4, content[3]);
-		case 1:
-			byte[32000] unpacked;
-			if (!CaStream.UnpackCa(content, contentOffset, contentLength, unpacked, 0))
-				return false;
-			return DecodeSt(unpacked, 0, content, 4, content[3]);
+		case 1: {
+				byte[32000] unpacked;
+				if (!CaStream.UnpackCa(content, contentOffset, contentLength, unpacked, 0))
+					return false;
+				return DecodeSt(unpacked, 0, content, 4, content[3]);
+			}
 		default:
 			return false;
 		}
@@ -4447,7 +4454,7 @@ public class RECOIL
 		// fill in holes
 		for (int offset = 0; offset < 16000; offset++) {
 			if (isFilled[offset] == 0) {
-				if (contentOffset + 1 >= contentLength)
+				if (contentOffset >= contentLength - 1)
 					return false;
 				unpacked[offset * 2] = content[contentOffset++];
 				unpacked[offset * 2 + 1] = content[contentOffset++];
@@ -4594,7 +4601,7 @@ public class RECOIL
 					break;
 
 				// LZ77
-				if (stream.ContentOffset + 2 > stream.ContentLength)
+				if (stream.ContentOffset > stream.ContentLength - 2)
 					return false;
 				int offset = stream.ReadByte();
 				offset += stream.ReadByte() << 8;
@@ -4694,8 +4701,10 @@ public class RECOIL
 
 		// palettes
 		int contentOffset = 12 + Get32BigEndian(content, 4);
+		if (contentOffset < 0)
+			return false;
 		for (int unpackedOffset = 32000; unpackedOffset < 51104; ) {
-			if (contentOffset + 1 >= contentLength)
+			if (contentOffset >= contentLength - 1)
 				return false;
 			int got = (content[contentOffset] & 0x7f) << 8 | content[contentOffset + 1];
 			contentOffset += 2;
@@ -4705,7 +4714,7 @@ public class RECOIL
 					unpacked[unpackedOffset + 1] = 0;
 				}
 				else {
-					if (contentOffset + 1 >= contentLength)
+					if (contentOffset >= contentLength - 1)
 						return false;
 					unpacked[unpackedOffset] = content[contentOffset];
 					unpacked[unpackedOffset + 1] = content[contentOffset + 1];
@@ -4751,6 +4760,8 @@ public class RECOIL
 		BitStream() bitStream;
 		bitStream.Content = content;
 		bitStream.ContentOffset = 12 + Get32BigEndian(content, 4);
+		if (bitStream.ContentOffset < 0)
+			return false;
 		bitStream.ContentLength = contentLength;
 		for (int unpackedOffset = 32000; unpackedOffset < 51104; ) {
 			int got = bitStream.ReadBits(14);
@@ -4940,6 +4951,8 @@ public class RECOIL
 		}
 		paletteLength = paletteLength + 15 >> 4 << 1;
 		int paletteOffset = 12 + Get32BigEndian(content, 8);
+		if (paletteOffset < 12)
+			return false;
 		int pixelsLength = width * height;
 		if (contentLength != paletteOffset + (paletteLength + (pixelsLength >> 1) << (content[4] >> 2 & 1)))
 			return false;
@@ -5493,7 +5506,8 @@ public class RECOIL
 		int camg = 0;
 		while (contentOffset + 7 < contentLength) {
 			int chunkLength = Get32BigEndian(content, contentOffset + 4);
-			if (contentOffset + 8 + chunkLength > contentLength)
+			int nextChunkOffset = contentOffset + 8 + (chunkLength + 1 & ~1); // round up to even bytes
+			if (nextChunkOffset > contentLength || nextChunkOffset < 0)
 				break;
 			if (IsStringAt(content, contentOffset, "BMHD") && chunkLength >= 16) {
 				width = content[contentOffset + 8] << 8 | content[contentOffset + 9];
@@ -5649,7 +5663,7 @@ public class RECOIL
 				}
 				return DecodeIffUnpacked(unpacked, width, height, resolution, bitplanes, colors, camg);
 			}
-			contentOffset += 8 + (chunkLength + 1 & ~1); // round up to even bytes
+			contentOffset = nextChunkOffset;
 		}
 		return false;
 	}
@@ -6281,7 +6295,7 @@ public class RECOIL
 
 		// Colors aren't stored in the file.
 		// Yvonne (http://atari8.sourceforge.net) sets colors according to filenames
-		// (note Grass' Slideshow and Yvonne were programmed by the same guy).
+		// (note that Grass' Slideshow and Yvonne were programmed by the same guy).
 		// I have found out that the last byte of the file is COLPF0.
 		// Other colors can be deduced from this one.
 		// One exception is JORDAN.HPM, which I additionally match by length (3494 bytes).
