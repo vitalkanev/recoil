@@ -3311,7 +3311,7 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodeDhr(byte[] content, int contentLength)
+	bool DecodeAppleIIDhr(byte[] content, int contentLength)
 	{
 		if (contentLength != 16384)
 			return false;
@@ -5379,10 +5379,23 @@ public class RECOIL
 		}
 	}
 
-	void DecodeScaledBitplanes(byte[] unpacked, int width, int height, int bitplanes)
+	void DecodeCtblPalette(byte[] content, int ctblOffset, int y)
+	{
+		if (ctblOffset <= 0)
+			return;
+		ctblOffset += y << 5;
+		for (int c = 0; c < 16; c++) {
+			int rgb = content[ctblOffset + c * 2 + 1]; // 0xGB
+			rgb = (content[ctblOffset + c * 2] & 0xf) << 16 | (rgb & 0xf0) << 4 | (rgb & 0xf); // 0x0R0G0B;
+			ContentPalette[c] = rgb * 0x11;
+		}
+	}
+
+	void DecodeScaledBitplanes(byte[] unpacked, int width, int height, int bitplanes, byte[] content, int ctblOffset)
 	{
 		int bytesPerBitplane = width + 15 >> 4 << 1;
 		for (int y = 0; y < height; y++) {
+			DecodeCtblPalette(content, ctblOffset, y);
 			for (int x = 0; x < width; x++) {
 				int offset = (y * bytesPerBitplane + (x >> 3 & ~1)) * bitplanes + (x >> 3 & 1);
 				int bit = ~x & 7;
@@ -5436,11 +5449,12 @@ public class RECOIL
 		return true;
 	}
 
-	void DecodeHam(byte[] unpacked, int width, int height, int bitplanes)
+	void DecodeHam(byte[] unpacked, int width, int height, int bitplanes, byte[] content, int ctblOffset)
 	{
 		int bytesPerBitplane = width + 15 >> 4 << 1;
 		int holdBits = bitplanes > 6 ? 6 : 4;
 		for (int y = 0; y < height; y++) {
+			DecodeCtblPalette(content, ctblOffset, y);
 			int rgb = ContentPalette[0];
 			for (int x = 0; x < width; x++) {
 				int offset = (y * bytesPerBitplane + (x >> 3 & ~1)) * bitplanes + (x >> 3 & 1);
@@ -5474,7 +5488,7 @@ public class RECOIL
 		}
 	}
 
-	bool DecodeIffUnpacked(byte[] unpacked, int width, int height, RECOILResolution resolution, int bitplanes, int colors, int camg)
+	bool DecodeIffUnpacked(byte[] unpacked, int width, int height, RECOILResolution resolution, int bitplanes, int colors, int camg, byte[] content, int ctblOffset)
 	{
 		if (!SetScaledSize(width, height, resolution)) {
 			delete unpacked;
@@ -5489,7 +5503,7 @@ public class RECOIL
 			}
 			if ((camg & 0x800) != 0 || (bitplanes == 6 && colors == 16)) {
 				// Amiga Hold-And-Modify
-				DecodeHam(unpacked, width, height, bitplanes);
+				DecodeHam(unpacked, width, height, bitplanes, content, ctblOffset);
 			}
 			else {
 				// palette
@@ -5498,7 +5512,7 @@ public class RECOIL
 					for (int c = 0; c < 32; c++)
 						ContentPalette[32 + c] = ContentPalette[c] >> 1 & 0x7f7f7f;
 				}
-				DecodeScaledBitplanes(unpacked, width, height, bitplanes);
+				DecodeScaledBitplanes(unpacked, width, height, bitplanes, content, ctblOffset);
 			}
 		}
 		else {
@@ -5552,6 +5566,7 @@ public class RECOIL
 		bool ocsPalette = false;
 		int colors = 0;
 		int camg = 0;
+		int ctblOffset = 0;
 		while (contentOffset + 7 < contentLength) {
 			int chunkLength = Get32BigEndian(content, contentOffset + 4);
 			int nextChunkOffset = contentOffset + 8 + (chunkLength + 1 & ~1); // round up to even bytes
@@ -5626,6 +5641,11 @@ public class RECOIL
 				camg = Get32BigEndian(content, contentOffset + 8);
 				resolution = GetCamgAspectRatio(camg, resolution);
 			}
+			else if ((IsStringAt(content, contentOffset, "CTBL") || IsStringAt(content, contentOffset, "BEAM")) && chunkLength == height << 5)
+				ctblOffset = contentOffset + 8;
+			else if (IsStringAt(content, contentOffset, "SHAM") && chunkLength == 2 + (height << 5)
+				&& content[contentOffset + 8] == 0 && content[contentOffset + 9] == 0)
+				ctblOffset = contentOffset + 10;
 			else if (IsStringAt(content, contentOffset, "BODY")) {
 				if (width == 0)
 					return false;
@@ -5709,7 +5729,7 @@ public class RECOIL
 						}
 					}
 				}
-				return DecodeIffUnpacked(unpacked, width, height, resolution, bitplanes, colors, camg);
+				return DecodeIffUnpacked(unpacked, width, height, resolution, bitplanes, colors, camg, content, ctblOffset);
 			}
 			else if (IsStringAt(content, contentOffset, "ABIT")) {
 				if (width == 0 || chunkLength != (width + 15 >> 4 << 1) * height * bitplanes)
@@ -5722,7 +5742,7 @@ public class RECOIL
 						unpacked[unpackedOffset + 1] = content[contentOffset++];
 					}
 				}
-				return DecodeIffUnpacked(unpacked, width, height, resolution, bitplanes, colors, camg);
+				return DecodeIffUnpacked(unpacked, width, height, resolution, bitplanes, colors, camg, content, ctblOffset);
 			}
 			contentOffset = nextChunkOffset;
 		}
@@ -9315,11 +9335,15 @@ public class RECOIL
 		case PackExt("ICN"):
 		case PackExt("IFF"):
 		case PackExt("ACBM"):
+		case PackExt("BEAM"):
+		case PackExt("DR"):
 		case PackExt("HAM6"):
 		case PackExt("HAM8"):
 		case PackExt("LBM"):
+		case PackExt("MP"):
 		case PackExt("RGB8"):
 		case PackExt("RGBN"):
+		case PackExt("SHAM"):
 		case PackExt("IFL"):
 		case PackExt("IGE"):
 		case PackExt("IHE"):
@@ -9595,7 +9619,8 @@ public class RECOIL
 		case PackExt("DGU"):
 			return DecodeDgu(content, contentLength);
 		case PackExt("DHR"):
-			return DecodeDhr(content, contentLength);
+			return DecodeIff(content, contentLength, RECOILResolution.Amiga1x1)
+				|| DecodeAppleIIDhr(content, contentLength);
 		case PackExt("DIN"):
 			return DecodeAtari8Ice(content, contentLength, false, 3);
 		case PackExt("DLM"):
@@ -9709,11 +9734,15 @@ public class RECOIL
 				|| DecodeAtari8Ice(content, contentLength, false, 17);
 		case PackExt("IFF"):
 		case PackExt("ACBM"):
+		case PackExt("BEAM"):
+		case PackExt("DR"):
 		case PackExt("HAM6"):
 		case PackExt("HAM8"):
 		case PackExt("LBM"):
+		case PackExt("MP"):
 		case PackExt("RGB8"):
 		case PackExt("RGBN"):
+		case PackExt("SHAM"):
 			return DecodeIff(content, contentLength, RECOILResolution.Amiga1x1);
 		case PackExt("IFL"):
 			return DecodeGun(content, contentLength)

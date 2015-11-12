@@ -6,8 +6,15 @@
 		<format name="Interchange File Format"><ext>IFF</ext></format>
 		<format name="Icon" colors="8"><ext>INFO</ext></format>
 		<format name="Interleaved Bitmap"><ext>LBM</ext></format>
-		<format name="Turbo Silver"><ext>RGB8</ext></format>
-		<format name="Turbo Silver"><ext>RGBN</ext></format>
+		<format name="Multi-palette" colors="4096">
+			<ext>DHR</ext>
+			<ext>DR</ext>
+			<ext>MP</ext>
+			<ext>BEAM</ext>
+		</format>
+		<format name="Turbo Silver" colors="16777216"><ext>RGB8</ext></format>
+		<format name="Turbo Silver" colors="4096"><ext>RGBN</ext></format>
+		<format name="Sliced HAM" colors="4096"><ext>SHAM</ext></format>
 	</platform>
 	<platform name="Amstrad CPC" href="http://en.wikipedia.org/wiki/Amstrad_CPC">
 		<format name="8x8 font" colors="2"><ext>FNT</ext></format>
