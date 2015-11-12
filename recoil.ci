@@ -279,6 +279,96 @@ class MppPaletteStream : BitStream
 	}
 }
 
+abstract class AmigaMultiPalette : Stream
+{
+	int GetOcsColor(int contentOffset)
+	{
+		int rgb = Content[contentOffset + 1]; // 0xGB
+		rgb = (Content[contentOffset] & 0xf) << 16 | (rgb & 0xf0) << 4 | (rgb & 0xf); // 0x0R0G0B
+		return rgb * 0x11; // 0xRRGGBB
+	}
+
+	virtual void SetLinePalette(int[] palette, int y)
+	{
+		ContentOffset = 0; // HACK around cito 0 to make this method a mutator
+	}
+}
+
+class CtblPalette : AmigaMultiPalette
+{
+	override void SetLinePalette(int[] palette, int y)
+	{
+		int offset = ContentOffset + (y << 5);
+		for (int c = 0; c < 16; c++)
+			palette[c] = GetOcsColor(offset + c * 2);
+	}
+}
+
+class PchgPalette : AmigaMultiPalette
+{
+	bool ocs;
+	int LineCount;
+	int ChangeOffset;
+
+	bool Init()
+	{
+		if (ContentOffset + 20 > ContentLength || Content[ContentOffset] != 0 || Content[ContentOffset + 1] != 0)
+			return false;
+		switch (Content[ContentOffset + 3] & 3) {
+		case 1:
+			ocs = true;
+			break;
+		case 2:
+			ocs = false;
+			break;
+		default:
+			return false;
+		}
+		LineCount = Content[ContentOffset + 6] << 8 | Content[ContentOffset + 7];
+		ChangeOffset = ContentOffset + 20 + (LineCount + 31 >> 5 << 2);
+		return ChangeOffset <= ContentLength;
+	}
+
+	void SetOcsColors(int[] palette, int paletteOffset, int count)
+	{
+		if (ChangeOffset > ContentLength - count * 2)
+			return; // error
+		while (--count >= 0) {
+			palette[paletteOffset + (Content[ChangeOffset] >> 4)] = GetOcsColor(ChangeOffset);
+			ChangeOffset += 2;
+		}
+	}
+
+	override void SetLinePalette(int[] palette, int y)
+	{
+		y -= Content[ContentOffset + 4] << 8 | Content[ContentOffset + 5];
+		if (y < 0 || y >= LineCount)
+			return;
+		if ((Content[ContentOffset + 20 + (y >> 3)] >> (~y & 7) & 1) == 0)
+			return;
+		if (ChangeOffset > ContentLength - 2)
+			return; // error
+		if (ocs) {
+			int count16 = Content[ChangeOffset++];
+			int count32 = Content[ChangeOffset++];
+			SetOcsColors(palette, 0, count16);
+			SetOcsColors(palette, 16, count32);
+		}
+		else {
+			int count = Content[ChangeOffset] << 8 | Content[ChangeOffset + 1];
+			ChangeOffset += 2;
+			if (ChangeOffset > ContentLength - count * 6)
+				return; // error
+			while (--count >= 0) {
+				if (Content[ChangeOffset] != 0)
+					return; // error
+				palette[Content[ChangeOffset + 1]] = Content[ChangeOffset + 3] << 16 | Content[ChangeOffset + 5] << 8 | Content[ChangeOffset + 4];
+				ChangeOffset += 6;
+			}
+		}
+	}
+}
+
 /// Readable in-memory Run-Length-Encoded stream.
 /// This class contains the compression logic.
 /// Subclasses must implement `ReadCommand()`
@@ -5379,23 +5469,16 @@ public class RECOIL
 		}
 	}
 
-	void DecodeCtblPalette(byte[] content, int ctblOffset, int y)
-	{
-		if (ctblOffset <= 0)
-			return;
-		ctblOffset += y << 5;
-		for (int c = 0; c < 16; c++) {
-			int rgb = content[ctblOffset + c * 2 + 1]; // 0xGB
-			rgb = (content[ctblOffset + c * 2] & 0xf) << 16 | (rgb & 0xf0) << 4 | (rgb & 0xf); // 0x0R0G0B;
-			ContentPalette[c] = rgb * 0x11;
-		}
-	}
-
-	void DecodeScaledBitplanes(byte[] unpacked, int width, int height, int bitplanes, byte[] content, int ctblOffset)
+	void DecodeScaledBitplanes(byte[] unpacked, int width, int height, int bitplanes, bool ehb, AmigaMultiPalette multiPalette)
 	{
 		int bytesPerBitplane = width + 15 >> 4 << 1;
 		for (int y = 0; y < height; y++) {
-			DecodeCtblPalette(content, ctblOffset, y);
+			if (multiPalette != null)
+				multiPalette.SetLinePalette(ContentPalette, y);
+			if (ehb) {
+				for (int c = 0; c < 32; c++)
+					ContentPalette[32 + c] = ContentPalette[c] >> 1 & 0x7f7f7f;
+			}
 			for (int x = 0; x < width; x++) {
 				int offset = (y * bytesPerBitplane + (x >> 3 & ~1)) * bitplanes + (x >> 3 & 1);
 				int bit = ~x & 7;
@@ -5449,12 +5532,13 @@ public class RECOIL
 		return true;
 	}
 
-	void DecodeHam(byte[] unpacked, int width, int height, int bitplanes, byte[] content, int ctblOffset)
+	void DecodeHam(byte[] unpacked, int width, int height, int bitplanes, AmigaMultiPalette multiPalette)
 	{
 		int bytesPerBitplane = width + 15 >> 4 << 1;
 		int holdBits = bitplanes > 6 ? 6 : 4;
 		for (int y = 0; y < height; y++) {
-			DecodeCtblPalette(content, ctblOffset, y);
+			if (multiPalette != null)
+				multiPalette.SetLinePalette(ContentPalette, y);
 			int rgb = ContentPalette[0];
 			for (int x = 0; x < width; x++) {
 				int offset = (y * bytesPerBitplane + (x >> 3 & ~1)) * bitplanes + (x >> 3 & 1);
@@ -5488,7 +5572,7 @@ public class RECOIL
 		}
 	}
 
-	bool DecodeIffUnpacked(byte[] unpacked, int width, int height, RECOILResolution resolution, int bitplanes, int colors, int camg, byte[] content, int ctblOffset)
+	bool DecodeIffUnpacked(byte[] unpacked, int width, int height, RECOILResolution resolution, int bitplanes, int colors, int camg, AmigaMultiPalette multiPalette)
 	{
 		if (!SetScaledSize(width, height, resolution)) {
 			delete unpacked;
@@ -5503,16 +5587,11 @@ public class RECOIL
 			}
 			if ((camg & 0x800) != 0 || (bitplanes == 6 && colors == 16)) {
 				// Amiga Hold-And-Modify
-				DecodeHam(unpacked, width, height, bitplanes, content, ctblOffset);
+				DecodeHam(unpacked, width, height, bitplanes, multiPalette);
 			}
 			else {
 				// palette
-				if (bitplanes == 6 && ((camg & 0x80) != 0 || colors == 32)) {
-					// Amiga Extra Half-Brite
-					for (int c = 0; c < 32; c++)
-						ContentPalette[32 + c] = ContentPalette[c] >> 1 & 0x7f7f7f;
-				}
-				DecodeScaledBitplanes(unpacked, width, height, bitplanes, content, ctblOffset);
+				DecodeScaledBitplanes(unpacked, width, height, bitplanes, bitplanes == 6 && ((camg & 0x80) != 0 || colors == 32), multiPalette);
 			}
 		}
 		else {
@@ -5566,7 +5645,9 @@ public class RECOIL
 		bool ocsPalette = false;
 		int colors = 0;
 		int camg = 0;
-		int ctblOffset = 0;
+		CtblPalette() ctbl;
+		PchgPalette() pchg;
+		AmigaMultiPalette multiPalette = null;
 		while (contentOffset + 7 < contentLength) {
 			int chunkLength = Get32BigEndian(content, contentOffset + 4);
 			int nextChunkOffset = contentOffset + 8 + (chunkLength + 1 & ~1); // round up to even bytes
@@ -5641,11 +5722,25 @@ public class RECOIL
 				camg = Get32BigEndian(content, contentOffset + 8);
 				resolution = GetCamgAspectRatio(camg, resolution);
 			}
-			else if ((IsStringAt(content, contentOffset, "CTBL") || IsStringAt(content, contentOffset, "BEAM")) && chunkLength == height << 5)
-				ctblOffset = contentOffset + 8;
+			else if ((IsStringAt(content, contentOffset, "CTBL") || IsStringAt(content, contentOffset, "BEAM")) && chunkLength == height << 5) {
+				ctbl.Content = content;
+				ctbl.ContentOffset = contentOffset + 8;
+				multiPalette = ctbl;
+			}
 			else if (IsStringAt(content, contentOffset, "SHAM") && chunkLength == 2 + (height << 5)
-				&& content[contentOffset + 8] == 0 && content[contentOffset + 9] == 0)
-				ctblOffset = contentOffset + 10;
+				&& content[contentOffset + 8] == 0 && content[contentOffset + 9] == 0) {
+				ctbl.Content = content;
+				ctbl.ContentOffset = contentOffset + 10;
+				multiPalette = ctbl;
+			}
+			else if (IsStringAt(content, contentOffset, "PCHG")) {
+				pchg.Content = content;
+				pchg.ContentOffset = contentOffset + 8;
+				pchg.ContentLength = nextChunkOffset;
+				if (!pchg.Init())
+					return false;
+				multiPalette = pchg;
+			}
 			else if (IsStringAt(content, contentOffset, "BODY")) {
 				if (width == 0)
 					return false;
@@ -5729,7 +5824,7 @@ public class RECOIL
 						}
 					}
 				}
-				return DecodeIffUnpacked(unpacked, width, height, resolution, bitplanes, colors, camg, content, ctblOffset);
+				return DecodeIffUnpacked(unpacked, width, height, resolution, bitplanes, colors, camg, multiPalette);
 			}
 			else if (IsStringAt(content, contentOffset, "ABIT")) {
 				if (width == 0 || chunkLength != (width + 15 >> 4 << 1) * height * bitplanes)
@@ -5742,7 +5837,7 @@ public class RECOIL
 						unpacked[unpackedOffset + 1] = content[contentOffset++];
 					}
 				}
-				return DecodeIffUnpacked(unpacked, width, height, resolution, bitplanes, colors, camg, content, ctblOffset);
+				return DecodeIffUnpacked(unpacked, width, height, resolution, bitplanes, colors, camg, multiPalette);
 			}
 			contentOffset = nextChunkOffset;
 		}
