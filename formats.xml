@@ -6,6 +6,8 @@
 		<format name="Interchange File Format"><ext>IFF</ext></format>
 		<format name="Icon" colors="8"><ext>INFO</ext></format>
 		<format name="Interleaved Bitmap"><ext>LBM</ext></format>
+		<format name="Turbo Silver"><ext>RGB8</ext></format>
+		<format name="Turbo Silver"><ext>RGBN</ext></format>
 	</platform>
 	<platform name="Amstrad CPC" href="http://en.wikipedia.org/wiki/Amstrad_CPC">
 		<format name="8x8 font" colors="2"><ext>FNT</ext></format>

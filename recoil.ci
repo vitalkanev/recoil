@@ -69,7 +69,9 @@ enum IffType
 {
 	Ilbm,
 	Pbm,
-	Acbm
+	Acbm,
+	Rgb8,
+	Rgbn
 }
 
 enum IceFrameMode
@@ -5392,6 +5394,48 @@ public class RECOIL
 		}
 	}
 
+	bool DecodeRgbn(byte[] content, int contentOffset, int contentEnd, int width, int height, bool rgb8)
+	{
+		int rgb = 0;
+		int count = 0;
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				if (count == 0) {
+					if (rgb8) {
+						if (contentOffset > contentEnd - 4)
+							return false;
+						rgb = content[contentOffset] << 16 | content[contentOffset + 1] << 8 | content[contentOffset + 2];
+						count = content[contentOffset + 3] & 0x7f;
+						contentOffset += 4;
+					}
+					else {
+						if (contentOffset > contentEnd - 2)
+							return false;
+						rgb = content[contentOffset]; // 0xRG
+						count = content[contentOffset + 1]; // 0xBC
+						rgb = (((rgb & 0xf0) << 4 | (rgb & 0xf)) << 8 | count >> 4) * 0x11; // 0xRRGGBB
+						count &= 7;
+						contentOffset += 2;
+					}
+					if (count == 0) {
+						if (contentOffset >= contentEnd)
+							return false;
+						count = content[contentOffset++];
+						if (count == 0) {
+							if (contentOffset > contentEnd - 2)
+								return false;
+							count = content[contentOffset] << 8 | content[contentOffset + 1];
+							contentOffset += 2;
+						}
+					}
+				}
+				SetScaledPixel(x, y, rgb);
+				count--;
+			}
+		}
+		return true;
+	}
+
 	void DecodeHam(byte[] unpacked, int width, int height, int bitplanes)
 	{
 		int bytesPerBitplane = width + 15 >> 4 << 1;
@@ -5492,6 +5536,10 @@ public class RECOIL
 			type = IffType.Pbm;
 		else if (IsStringAt(content, contentOffset, "ACBM"))
 			type = IffType.Acbm;
+		else if (IsStringAt(content, contentOffset, "RGB8"))
+			type = IffType.Rgb8;
+		else if (IsStringAt(content, contentOffset, "RGBN"))
+			type = IffType.Rgbn;
 		else
 			return false;
 		contentOffset += 4;
@@ -5515,14 +5563,25 @@ public class RECOIL
 				bitplanes = content[contentOffset + 16];
 				hasMask = content[contentOffset + 17] == 1;
 				compression = content[contentOffset + 18];
-				if (type == IffType.Pbm) {
-					if (bitplanes != 8
-					 || compression > 1)
+				switch (type) {
+				case IffType.Pbm:
+					if (bitplanes != 8 || compression > 1)
 						return false;
+					break;
+				case IffType.Rgb8:
+					if (bitplanes != 25 || compression != 4)
+						return false;
+					break;
+				case IffType.Rgbn:
+					if (bitplanes != 13 || compression != 4)
+						return false;
+					break;
+				default:
+					if (bitplanes == 0 || (bitplanes > 8 && bitplanes != 24 && bitplanes != 32)
+						|| compression > 2)
+						return false;
+					break;
 				}
-				else if (bitplanes == 0 || (bitplanes > 8 && bitplanes != 24 && bitplanes != 32)
-				 || compression > 2)
-					return false;
 				int pixelsCount = width * height;
 				if (pixelsCount <= 0 || pixelsCount > MaxPixelsLength)
 					return false;
@@ -5570,9 +5629,11 @@ public class RECOIL
 			else if (IsStringAt(content, contentOffset, "BODY")) {
 				if (width == 0)
 					return false;
+				if (compression == 4)
+					return SetScaledSize(width, height, resolution)
+						&& DecodeRgbn(content, contentOffset + 8, contentOffset + 8 + chunkLength, width, height, type == IffType.Rgb8);
 				int bytesPerBitplane = width + 15 >> 4 << 1;
 				int bytesPerLine = bitplanes * bytesPerBitplane;
-
 				byte[] unpacked;
 				if (compression == 2) {
 					unpacked = new byte[bytesPerLine * height];
@@ -9257,6 +9318,8 @@ public class RECOIL
 		case PackExt("HAM6"):
 		case PackExt("HAM8"):
 		case PackExt("LBM"):
+		case PackExt("RGB8"):
+		case PackExt("RGBN"):
 		case PackExt("IFL"):
 		case PackExt("IGE"):
 		case PackExt("IHE"):
@@ -9649,6 +9712,8 @@ public class RECOIL
 		case PackExt("HAM6"):
 		case PackExt("HAM8"):
 		case PackExt("LBM"):
+		case PackExt("RGB8"):
+		case PackExt("RGBN"):
 			return DecodeIff(content, contentLength, RECOILResolution.Amiga1x1);
 		case PackExt("IFL"):
 			return DecodeGun(content, contentLength)
