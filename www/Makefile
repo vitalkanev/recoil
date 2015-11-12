@@ -18,7 +18,7 @@ html5recoil.html: www.xsl html5recoil.xml
 		| xmllint --schema /etc/xml/xhtml5.xsd --nonet -o $@ -
 
 recoil.js: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../zx81.fnt
-	cito -o $@ -I .. $<
+	cito -o $@ -l js-ta -I .. $<
 
 clean:
 	$(RM) index.html formats.html html5recoil.html news.html contact.html recoil.js
