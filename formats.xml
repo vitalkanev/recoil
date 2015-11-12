@@ -183,6 +183,7 @@
 		<format name="GEM Bit Image"><ext>IMG</ext></format>
 		<format name="Multi Palette Picture" maxWidth="416" maxHeight="273" maxFrames="2"><ext>MPP</ext></format>
 		<format name="NEOchrome"><ext>NEO</ext></format>
+		<format name="NEOchrome Master" colors="512"><ext>NEO</ext></format>
 		<format name="STAD" width="640" height="400" colors="2"><ext>PAC</ext></format>
 		<format name="DEGAS Elite" width="320" height="200" colors="16"><ext>PC1</ext></format>
 		<format name="DEGAS Elite" width="640" height="200" colors="4"><ext>PC2</ext></format>
@@ -192,9 +193,9 @@
 		<format name="DEGAS" width="640" height="200" colors="4"><ext>PI2</ext></format>
 		<format name="DEGAS" width="640" height="400" colors="2"><ext>PI3</ext></format>
 		<format width="320" height="200" colors="256" frames="2"><ext>PL4</ext></format>
-		<format name="Spectrum 512 (compressed)" width="320" height="199" colors="512"><ext>SPC</ext></format>
+		<format name="Spectrum 512 (compressed)" width="320" height="199" colors="4096"><ext>SPC</ext></format>
 		<format name="Spectrum 512 (smooshed)" width="320" height="199" colors="512"><ext>SPS</ext></format>
-		<format name="Spectrum 512" width="320" height="199" colors="512"><ext>SPU</ext></format>
+		<format name="Spectrum 512" width="320" height="199" colors="4096"><ext>SPU</ext></format>
 		<format name="Tiny Stuff" width="320" height="200" colors="16"><ext>TN1</ext></format>
 		<format name="Tiny Stuff" width="640" height="200" colors="4"><ext>TN2</ext></format>
 		<format name="Tiny Stuff" width="640" height="400" colors="2"><ext>TN3</ext></format>
