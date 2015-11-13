@@ -9332,7 +9332,7 @@ public class RECOIL
 		bool colors256;
 		if (DecodeAwbmPalette(content, contentLength, 8 + width * height, 256))
 			colors256 = true;
-		else if ((width & 3) == 0 && DecodeAwbmPalette(content, contentLength, 8 + (height * planeStride << 2), 16))
+		else if (DecodeAwbmPalette(content, contentLength, 8 + (height * planeStride << 2), 16))
 			colors256 = false;
 		else
 			return false;
