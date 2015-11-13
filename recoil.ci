@@ -4507,10 +4507,26 @@ public class RECOIL
 			&& DecodeSt(unpacked, 0, content, 2, content[1]);
 	}
 
-	bool DecodeNeo(byte[] content, int contentLength)
+	bool DecodeNeo(string filename, byte[] content, int contentLength)
 	{
 		if (contentLength != 32128 || content[0] != 0 || content[1] != 0 || content[2] != 0)
 			return false;
+		if (content[3] == 0) {
+			byte[6800 + 1] rst;
+			if (ReadCompanionFile(filename, "RST", "rst", rst, rst.Length) == 6800) {
+				SetSize(320, 200, RECOILResolution.St1x1);
+				SetStPalette(content, 4, 16);
+				RastPalette() palette;
+				palette.Content = rst;
+				palette.ContentOffset = 0;
+				palette.ContentLength = 6800;
+				for (int y = 0; y < 200; y++) {
+					palette.SetLinePalette(this, y);
+					DecodeBitplanes(content, 128 + y * 160, 0, 4, y * 320, 320, 1);
+				}
+				return true;
+			}
+		}
 		return DecodeSt(content, 128, content, 4, content[3]);
 	}
 
@@ -10052,7 +10068,7 @@ public class RECOIL
 		case PackExt("MSP"):
 			return DecodeMsp(content, contentLength);
 		case PackExt("NEO"):
-			return DecodeNeo(content, contentLength)
+			return DecodeNeo(filename, content, contentLength)
 				|| DecodeIff(content, contentLength, RECOILResolution.St1x1);
 		case PackExt("NLQ"):
 			return DecodeNlq(content, contentLength);

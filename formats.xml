@@ -184,6 +184,10 @@
 		<format name="Multi Palette Picture" maxWidth="416" maxHeight="273" maxFrames="2"><ext>MPP</ext></format>
 		<format name="NEOchrome"><ext>NEO</ext></format>
 		<format name="NEOchrome Master" colors="512"><ext>NEO</ext></format>
+		<format name="NEOchrome Master" width="320" height="200" colors="512">
+			<ext>NEO</ext>
+			<companionExt>RST</companionExt>
+		</format>
 		<format name="STAD" width="640" height="400" colors="2"><ext>PAC</ext></format>
 		<format name="DEGAS Elite" width="320" height="200" colors="16"><ext>PC1</ext></format>
 		<format name="DEGAS Elite" width="640" height="200" colors="4"><ext>PC2</ext></format>
