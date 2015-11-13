@@ -221,6 +221,7 @@
 		</format>
 		<format name="EggPaint" colors="65536"><ext>TRP</ext></format>
 		<format name="IndyPaint" colors="65536"><ext>TRU</ext></format>
+		<format colors="65536"><ext>XGA</ext></format>
 	</platform>
 	<platform name="BBC Micro" href="http://en.wikipedia.org/wiki/BBC_Micro">
 		<format name="Mode 0" width="640" height="256" colors="2"><ext>BB0</ext></format>

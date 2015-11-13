@@ -46,6 +46,7 @@ enum RECOILResolution
 	Ste1x1,
 	Ste1x2,
 	Falcon1x1,
+	Falcon2x1,
 	Bbc1x1,
 	Bbc2x1,
 	Bbc1x2,
@@ -2016,6 +2017,7 @@ public class RECOIL
 		case RECOILResolution.Ste1x2:
 			return "Atari STE";
 		case RECOILResolution.Falcon1x1:
+		case RECOILResolution.Falcon2x1:
 			return "Atari Falcon";
 		case RECOILResolution.Bbc1x1:
 		case RECOILResolution.Bbc2x1:
@@ -2058,6 +2060,7 @@ public class RECOIL
 		case RECOILResolution.Amstrad2x1:
 		case RECOILResolution.Xe2x1:
 		case RECOILResolution.Xe2x2:
+		case RECOILResolution.Falcon2x1:
 		case RECOILResolution.Bbc2x1:
 		case RECOILResolution.C162x1:
 		case RECOILResolution.C642x1:
@@ -2127,6 +2130,67 @@ public class RECOIL
 		return SetSize(width, height, (bitplanes == 1 && width <= 640 && height <= 400)
 			|| (bitplanes <= 4 && width <= 320 && height <= 200)
 			? RECOILResolution.St1x1 : RECOILResolution.Falcon1x1);
+	}
+
+	bool SetScaledSize(int width, int height, RECOILResolution resolution)
+	{
+		switch (resolution) {
+		case RECOILResolution.Amiga2x1:
+		case RECOILResolution.Falcon2x1:
+			width <<= 1;
+			break;
+		case RECOILResolution.Amiga4x1:
+			width <<= 2;
+			break;
+		case RECOILResolution.Amiga8x1:
+			width <<= 3;
+			break;
+		case RECOILResolution.Amiga1x2:
+		case RECOILResolution.St1x2:
+		case RECOILResolution.Ste1x2:
+			height <<= 1;
+			break;
+		case RECOILResolution.Amiga1x4:
+			height <<= 2;
+			break;
+		default:
+			break;
+		}
+		return SetSize(width, height, resolution);
+	}
+
+	void SetScaledPixel(int x, int y, int rgb)
+	{
+		int offset = y * Width;
+		switch (Resolution) {
+		case RECOILResolution.Amiga2x1:
+		case RECOILResolution.Falcon2x1:
+			offset += x << 1;
+			Pixels[offset + 1] = Pixels[offset] = rgb;
+			break;
+		case RECOILResolution.Amiga4x1:
+			offset += x << 2;
+			Pixels[offset + 3] = Pixels[offset + 2] = Pixels[offset + 1] = Pixels[offset] = rgb;
+			break;
+		case RECOILResolution.Amiga8x1:
+			offset += x << 3;
+			for (x = 0; x < 8; x++)
+				Pixels[offset + x] = rgb;
+			break;
+		case RECOILResolution.Amiga1x2:
+		case RECOILResolution.St1x2:
+		case RECOILResolution.Ste1x2:
+			offset = (offset << 1) + x;
+			Pixels[offset + Width] = Pixels[offset] = rgb;
+			break;
+		case RECOILResolution.Amiga1x4:
+			offset = (offset << 2) + x;
+			Pixels[offset + Width * 3] = Pixels[offset + Width * 2] = Pixels[offset + Width] = Pixels[offset] = rgb;
+			break;
+		default:
+			Pixels[offset + x] = rgb;
+			break;
+		}
 	}
 
 	/// Reads a 32-bit big endian integer from a byte array.
@@ -5231,21 +5295,22 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodeFalconTrueColor(byte[] content, int contentLength, int contentOffset, int width, int height)
+	bool DecodeFalconTrueColor(byte[] content, int contentLength, int contentOffset, int width, int height, RECOILResolution resolution)
 	{
-		int pixelsCount = width * height;
-		if (contentOffset + pixelsCount * 2 != contentLength
-		 || !SetSize(width, height, RECOILResolution.Falcon1x1))
+		if (contentOffset + width * height * 2 != contentLength
+		 || !SetScaledSize(width, height, resolution))
 			return false;
-		for (int i = 0; i < pixelsCount; i++) {
-			int rg = content[contentOffset + i * 2];
-			int gb = content[contentOffset + i * 2 + 1];
-			int r = rg & 0xf8 | rg >> 5;
-			int g = (rg & 7) << 3 | gb >> 5;
-			g = g << 2 | g >> 4;
-			int b = gb & 0x1f;
-			b = b << 3 | b >> 2;
-			Pixels[i] = r << 16 | g << 8 | b;
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int rg = content[contentOffset++];
+				int gb = content[contentOffset++];
+				int r = rg & 0xf8 | rg >> 5;
+				int g = (rg & 7) << 3 | gb >> 5;
+				g = g << 2 | g >> 4;
+				int b = gb & 0x1f;
+				b = b << 3 | b >> 2;
+				SetScaledPixel(x, y, r << 16 | g << 8 | b);
+			}
 		}
 		return true;
 	}
@@ -5254,11 +5319,23 @@ public class RECOIL
 	{
 		int width = content[widthOffset] << 8 | content[widthOffset + 1];
 		int height = content[widthOffset + 2] << 8 | content[widthOffset + 3];
-		return DecodeFalconTrueColor(content, contentLength, dataOffset, width, height);
+		return DecodeFalconTrueColor(content, contentLength, dataOffset, width, height, RECOILResolution.Falcon1x1);
 	}
 
 	bool DecodeFtc(byte[] content, int contentLength)
-		return DecodeFalconTrueColor(content, contentLength, 0, 384, 240);
+		return DecodeFalconTrueColor(content, contentLength, 0, 384, 240, RECOILResolution.Falcon1x1);
+
+	bool DecodeXga(byte[] content, int contentLength)
+	{
+		switch (contentLength) {
+		case 153600:
+			return DecodeFalconTrueColor(content, contentLength, 0, 320, 240, RECOILResolution.Falcon1x1);
+		case 368640:
+			return DecodeFalconTrueColor(content, contentLength, 0, 384, 480, RECOILResolution.Falcon2x1);
+		default:
+			return false;
+		}
+	}
 
 	bool DecodeGod(byte[] content, int contentLength)
 		return contentLength > 6 && DecodeFalconTrueColorVariable(content, contentLength, 2, 6);
@@ -5421,65 +5498,6 @@ public class RECOIL
 			return RECOILResolution.Amiga1x4;
 		default:
 			return resolution;
-		}
-	}
-
-	bool SetScaledSize(int width, int height, RECOILResolution resolution)
-	{
-		switch (resolution) {
-		case RECOILResolution.Amiga2x1:
-			width <<= 1;
-			break;
-		case RECOILResolution.Amiga4x1:
-			width <<= 2;
-			break;
-		case RECOILResolution.Amiga8x1:
-			width <<= 3;
-			break;
-		case RECOILResolution.Amiga1x2:
-		case RECOILResolution.St1x2:
-		case RECOILResolution.Ste1x2:
-			height <<= 1;
-			break;
-		case RECOILResolution.Amiga1x4:
-			height <<= 2;
-			break;
-		default:
-			break;
-		}
-		return SetSize(width, height, resolution);
-	}
-
-	void SetScaledPixel(int x, int y, int rgb)
-	{
-		int offset = y * Width;
-		switch (Resolution) {
-		case RECOILResolution.Amiga2x1:
-			offset += x << 1;
-			Pixels[offset + 1] = Pixels[offset] = rgb;
-			break;
-		case RECOILResolution.Amiga4x1:
-			offset += x << 2;
-			Pixels[offset + 3] = Pixels[offset + 2] = Pixels[offset + 1] = Pixels[offset] = rgb;
-			break;
-		case RECOILResolution.Amiga8x1:
-			offset += x << 3;
-			for (x = 0; x < 8; x++)
-				Pixels[offset + x] = rgb;
-			break;
-		case RECOILResolution.Amiga1x2:
-		case RECOILResolution.St1x2:
-		case RECOILResolution.Ste1x2:
-			offset = (offset << 1) + x;
-			Pixels[offset + Width] = Pixels[offset] = rgb;
-			break;
-		case RECOILResolution.Amiga1x4:
-			offset = (offset << 2) + x;
-			Pixels[offset + Width * 3] = Pixels[offset + Width * 2] = Pixels[offset + Width] = Pixels[offset] = rgb;
-			break;
-		default:
-			Pixels[offset + x] = rgb;
-			break;
 		}
 	}
 
@@ -9598,6 +9616,7 @@ public class RECOIL
 		case PackExt("VZI"):
 		case PackExt("WIN"):
 		case PackExt("WND"):
+		case PackExt("XGA"):
 		case PackExt("XLP"):
 		case PackExt("ZXP"):
 			return true;
@@ -10112,6 +10131,8 @@ public class RECOIL
 			return DecodeWin(filename, content, contentLength);
 		case PackExt("WND"):
 			return DecodeWnd(content, contentLength);
+		case PackExt("XGA"):
+			return DecodeXga(content, contentLength);
 		case PackExt("XLP"):
 			return DecodeXlp(content, contentLength);
 		case PackExt("ZXP"):
