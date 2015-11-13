@@ -688,6 +688,34 @@ class PackBitsStream : RleStream
 			RepeatCount = 0;
 		return true;
 	}
+
+	bool UnpackBitplaneLines(byte[] unpacked, int width, int height, int bitplanes, bool compressed, bool hasMask)
+	{
+		int bytesPerBitplane = width + 15 >> 4 << 1;
+		int bytesPerLine = bitplanes * bytesPerBitplane;
+		for (int y = 0; y < height; y++) {
+			// reorder bitplane lines to bitplane words
+			for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
+				for (int w = bitplane << 1; w < bytesPerLine; w += bitplanes << 1) {
+					for (int x = 0; x < 2; x++) {
+						int b = compressed ? ReadRle() : ReadByte();
+						if (b < 0)
+							return false;
+						unpacked[y * bytesPerLine + w + x] = b;
+					}
+				}
+			}
+			if (hasMask) {
+				// ignore transparency mask
+				for (int x = 0; x < bytesPerBitplane; x++) {
+					int b = compressed ? ReadRle() : ReadByte();
+					if (b < 0)
+						return false;
+				}
+			}
+		}
+		return true;
+	}
 }
 
 class SpcStream : RleStream
@@ -4358,6 +4386,35 @@ public class RECOIL
 		return rgb;
 	}
 
+	bool SetStPalette1000(byte[] content, int contentOffset, int colors, int bitplanes)
+	{
+		for (int i = 0; i < colors; i++) {
+			int j;
+			int rgb = GetStColor1000(content, contentOffset + i * 6);
+			if (rgb < 0)
+				return false;
+			switch (i) {
+			case   1: j = (1 << bitplanes) - 1; break;
+			case   2: j = 1; break;
+			case   3: j = 2; break;
+			case   5: j = 6; break;
+			case   6: j = 3; break;
+			case   7: j = 5; break;
+			case   8: j = 7; break;
+			case   9: j = 8; break;
+			case  10: j = 9; break;
+			case  11: j = 10; break;
+			case  13: j = 14; break;
+			case  14: j = 11; break;
+			case  15: j = 13; break;
+			case 255: j = 15; break;
+			default:  j = i; break;
+			}
+			ContentPalette[j] = rgb;
+		}
+		return true;
+	}
+
 	bool DecodeStLow(byte[] bitmap, int bitmapOffset, byte[] palette, int paletteOffset, int width, int height)
 	{
 		SetSize(width, height, IsStePalette(palette, paletteOffset, 16) ? RECOILResolution.Ste1x1 : RECOILResolution.St1x1);
@@ -4430,17 +4487,8 @@ public class RECOIL
 		rle.ContentOffset = 34;
 		rle.ContentLength = contentLength;
 		byte[32000] unpacked;
-		for (int y = 0; y < 200; y++) {
-			for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
-				for (int x = 0; x < 40 << content[1]; x++) {
-					int b = rle.ReadRle();
-					if (b < 0)
-						return false;
-					unpacked[y * 160 + (x & ~1) * bitplanes + (bitplane << 1) + (x & 1)] = b;
-				}
-			}
-		}
-		return DecodeSt(unpacked, 0, content, 2, content[1]);
+		return rle.UnpackBitplaneLines(unpacked, 320 << content[1], 200, bitplanes, true, false) // handle 640x400 as 1280x200 ;)
+			&& DecodeSt(unpacked, 0, content, 2, content[1]);
 	}
 
 	bool DecodeNeo(byte[] content, int contentLength)
@@ -4479,35 +4527,9 @@ public class RECOIL
 		if (bitmapLength <= 0)
 			return false;
 		int contentStride = (width + 15 >> 4 << 1) * bitplanes;
-		if (1556 + bitmapLength != contentLength || bitmapLength != contentStride * height)
-			return false;
-
-		for (int i = 0; i < 1 << bitplanes; i++) {
-			int j;
-			switch (i) {
-			case   1: j = (1 << bitplanes) - 1; break;
-			case   2: j = 1; break;
-			case   3: j = 2; break;
-			case   5: j = 6; break;
-			case   6: j = 3; break;
-			case   7: j = 5; break;
-			case   8: j = 7; break;
-			case   9: j = 8; break;
-			case  10: j = 9; break;
-			case  11: j = 10; break;
-			case  13: j = 14; break;
-			case  14: j = 11; break;
-			case  15: j = 13; break;
-			case 255: j = 15; break;
-			default:  j = i; break;
-			}
-			int rgb = GetStColor1000(content, 20 + bitmapLength + i * 6);
-			if (rgb < 0)
-				return false;
-			ContentPalette[j] = rgb;
-		}
-
-		if (!SetSizeStOrFalcon(width, height, bitplanes))
+		if (1556 + bitmapLength != contentLength || bitmapLength != contentStride * height
+		 || !SetStPalette1000(content, 20 + bitmapLength, 1 << bitplanes, bitplanes)
+		 || !SetSizeStOrFalcon(width, height, bitplanes))
 			return false;
 		DecodeBitplanes(content, 20, contentStride, bitplanes, 0, width, height);
 		return true;
@@ -5354,6 +5376,49 @@ public class RECOIL
 		return DecodeFalconTrueColorVariable(content, contentLength, 4, 256);
 	}
 
+	bool DecodePnt(byte[] content, int contentLength)
+	{
+		if (contentLength < 128 || content[0] != 'P' || content[1] != 'N' || content[2] != 'T' || content[3] != 0
+			|| content[4] != 1 || content[5] != 0)
+			return false;
+		int paletteLength = content[6] << 8 | content[7];
+		int width = content[8] << 8 | content[9];
+		int height = content[10] << 8 | content[11];
+		int bitplanes = content[12] << 8 | content[13];
+		if (bitplanes == 0 || bitplanes > 8) // TODO: 16 bitplanes = Falcon True Color
+			return false;
+		int bitmapOffset = 128 + paletteLength * 6;
+		int bitmapLength = Get32BigEndian(content, 16);
+		if (bitmapLength <= 0 || contentLength < bitmapOffset + bitmapLength)
+			return false;
+		if (!SetStPalette1000(content, 128, paletteLength, bitplanes)
+		 || !SetSizeStOrFalcon(width, height, bitplanes))
+			return false;
+		int bytesPerLine = (width + 15 >> 4 << 1) * bitplanes;
+		switch (content[14] << 8 | content[15]) {
+		case 0:
+			if (bitmapLength != bytesPerLine * height)
+				return false;
+			DecodeBitplanes(content, bitmapOffset, bytesPerLine, bitplanes, 0, width, height);
+			return true;
+		case 1:
+			byte[] unpacked = new byte[bytesPerLine * height];
+			PackBitsStream() rle;
+			rle.Content = content;
+			rle.ContentOffset = bitmapOffset;
+			rle.ContentLength = contentLength;
+			if (!rle.UnpackBitplaneLines(unpacked, width, height, bitplanes, true, false)) {
+				delete unpacked;
+				return false;
+			}
+			DecodeBitplanes(unpacked, 0, bytesPerLine, bitplanes, 0, width, height);
+			delete unpacked;
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	// Amiga formats.
 
 	bool DecodeInfo(byte[] content, int contentLength)
@@ -5779,8 +5844,7 @@ public class RECOIL
 				if (compression == 4)
 					return SetScaledSize(width, height, resolution)
 						&& DecodeRgbn(content, contentOffset + 8, contentOffset + 8 + chunkLength, width, height, type == IffType.Rgb8);
-				int bytesPerBitplane = width + 15 >> 4 << 1;
-				int bytesPerLine = bitplanes * bytesPerBitplane;
+				int bytesPerLine = (width + 15 >> 4 << 1) * bitplanes;
 				byte[] unpacked;
 				if (compression == 2) {
 					unpacked = new byte[bytesPerLine * height];
@@ -5835,26 +5899,8 @@ public class RECOIL
 					}
 
 					unpacked = new byte[bytesPerLine * height];
-					for (int y = 0; y < height; y++) {
-						for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
-							for (int w = bitplane << 1; w < bytesPerLine; w += bitplanes << 1) {
-								for (int x = 0; x < 2; x++) {
-									int b = compression == 0 ? rle.ReadByte() : rle.ReadRle();
-									if (b < 0)
-										return false;
-									unpacked[y * bytesPerLine + w + x] = b;
-								}
-							}
-						}
-						if (hasMask) {
-							// ignore transparency mask
-							for (int x = 0; x < bytesPerBitplane; x++) {
-								int b = compression == 0 ? rle.ReadByte() : rle.ReadRle();
-								if (b < 0)
-									return false;
-							}
-						}
-					}
+					if (!rle.UnpackBitplaneLines(unpacked, width, height, bitplanes, compression == 1, hasMask))
+						return false;
 				}
 				RastPalette() rast;
 				if (nextChunkOffset < contentLength - 8) {
@@ -9566,6 +9612,8 @@ public class RECOIL
 		case PackExt("PLM"):
 		case PackExt("PMD"):
 		case PackExt("PMG"):
+		case PackExt("PNT"):
+		case PackExt("TPI"):
 		case PackExt("RAP"):
 		case PackExt("RAW"):
 		case PackExt("RGB"):
@@ -10038,6 +10086,9 @@ public class RECOIL
 			return DecodePmd(content, contentLength);
 		case PackExt("PMG"):
 			return DecodePmg(content, contentLength);
+		case PackExt("PNT"):
+		case PackExt("TPI"):
+			return DecodePnt(content, contentLength);
 		case PackExt("RAP"):
 			return DecodeRap(content, contentLength);
 		case PackExt("RAW"):
