@@ -54,6 +54,7 @@ enum RECOILResolution
 	C162x1,
 	C641x1,
 	C642x1,
+	C1281x1,
 	Msx1x1,
 	Msx1x2,
 	Oric1x1,
@@ -2057,6 +2058,8 @@ public class RECOIL
 		case RECOILResolution.C641x1:
 		case RECOILResolution.C642x1:
 			return "Commodore 64";
+		case RECOILResolution.C1281x1:
+			return "Commodore 128";
 		case RECOILResolution.Msx1x1:
 		case RECOILResolution.Msx1x2:
 			return "MSX";
@@ -3650,6 +3653,19 @@ public class RECOIL
 			}
 		}
 		return true;
+	}
+
+	// Commodore 128 formats.
+
+	bool DecodeVbm(byte[] content, int contentLength)
+	{
+		if (contentLength < 9 || content[0] != 'B' || content[1] != 'M' || content[2] != 0xcb || content[3] != 2)
+			return false;
+		int width = content[4] << 8 | content[5];
+		int height = content[6] << 8 | content[7];
+		if (contentLength != 8 + (width + 7 >> 3) * height)
+			return false;
+		return DecodeBlackAndWhite(content, 8, 0, width, height, 0xffffff, RECOILResolution.C1281x1);
 	}
 
 	// Commodore 16 formats.
@@ -9660,6 +9676,7 @@ public class RECOIL
 		case PackExt("TRP"):
 		case PackExt("TRU"):
 		case PackExt("TXS"):
+		case PackExt("VBM"):
 		case PackExt("VIC"):
 		case PackExt("VZI"):
 		case PackExt("WIN"):
@@ -10174,6 +10191,8 @@ public class RECOIL
 			return DecodeTru(content, contentLength);
 		case PackExt("TXS"):
 			return DecodeTxs(content, contentLength);
+		case PackExt("VBM"):
+			return DecodeVbm(content, contentLength);
 		case PackExt("VIC"):
 			return DecodeVic(content, contentLength);
 		case PackExt("VZI"):
