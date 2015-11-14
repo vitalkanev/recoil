@@ -320,6 +320,16 @@ class CtblPalette : MultiPalette
 	}
 }
 
+class ShamLacePalette : MultiPalette
+{
+	override void SetLinePalette(RECOIL recoil, int y)
+	{
+		int offset = ContentOffset + (y >> 1 << 5);
+		for (int c = 0; c < 16; c++)
+			recoil.ContentPalette[c] = GetOcsColor(offset + c * 2);
+	}
+}
+
 class PchgPalette : MultiPalette
 {
 	bool ocs;
@@ -5775,6 +5785,7 @@ public class RECOIL
 		int colors = 0;
 		int camg = 0;
 		CtblPalette() ctbl;
+		ShamLacePalette() sham;
 		PchgPalette() pchg;
 		MultiPalette multiPalette = null;
 		while (contentOffset < contentLength - 7) {
@@ -5856,11 +5867,18 @@ public class RECOIL
 				ctbl.ContentOffset = contentOffset + 8;
 				multiPalette = ctbl;
 			}
-			else if (IsStringAt(content, contentOffset, "SHAM") && chunkLength == 2 + (height << 5)
+			else if (IsStringAt(content, contentOffset, "SHAM") && chunkLength >= 2
 				&& content[contentOffset + 8] == 0 && content[contentOffset + 9] == 0) {
-				ctbl.Content = content;
-				ctbl.ContentOffset = contentOffset + 10;
-				multiPalette = ctbl;
+				if (chunkLength == 2 + (height << 5)) {
+					ctbl.Content = content;
+					ctbl.ContentOffset = contentOffset + 10;
+					multiPalette = ctbl;
+				}
+				else if (chunkLength == 2 + (height >> 1 << 5)) {
+					sham.Content = content;
+					sham.ContentOffset = contentOffset + 10;
+					multiPalette = sham;
+				}
 			}
 			else if (IsStringAt(content, contentOffset, "PCHG")) {
 				pchg.Content = content;
