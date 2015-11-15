@@ -3539,28 +3539,42 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodeShr(byte[] content, int contentLength)
+	void DecodeShrLine(byte[] content, int y, int paletteOffset)
 	{
-		if (contentLength != 32768)
-			return false;
-		SetSize(320, 200, RECOILResolution.AppleII1x1);
-		for (int c = 0; c < 256; c++) {
-			int gb = content[0x7e00 + (c << 1)];
-			int r = content[0x7e01 + (c << 1)] & 0xf;
+		for (int c = 0; c < 16; c++) {
+			int offset = paletteOffset ^ c << 1; // xor enables reverse color order in SH3
+			int gb = content[offset];
+			int r = content[offset + 1] & 0xf;
 			int g = gb >> 4;
 			int b = gb & 0xf;
 			int rgb = r << 16 | g << 8 | b;
 			rgb |= rgb << 4;
 			ContentPalette[c] = rgb;
 		}
-		for (int y = 0; y < 200; y++) {
-			int linePalette = (content[0x7d00 + y] & 0xf) << 4;
-			for (int x = 0; x < 320; x++) {
-				int b = content[y * 160 + (x >> 1)];
-				int c = (x & 1) == 0 ? b >> 4 : b & 0xf;
-				Pixels[y * 320 + x] = ContentPalette[linePalette + c];
-			}
+		for (int x = 0; x < 320; x++) {
+			int b = content[y * 160 + (x >> 1)];
+			int c = (x & 1) == 0 ? b >> 4 : b & 0xf;
+			Pixels[y * 320 + x] = ContentPalette[c];
 		}
+	}
+
+	bool DecodeShr(byte[] content, int contentLength)
+	{
+		if (contentLength != 32768)
+			return false;
+		SetSize(320, 200, RECOILResolution.AppleII1x1);
+		for (int y = 0; y < 200; y++)
+			DecodeShrLine(content, y, 0x7e00 + ((content[0x7d00 + y] & 0xf) << 5));
+		return true;
+	}
+
+	bool DecodeSh3(byte[] content, int contentLength)
+	{
+		if (contentLength != 38400)
+			return false;
+		SetSize(320, 200, RECOILResolution.AppleII1x1);
+		for (int y = 0; y < 200; y++)
+			DecodeShrLine(content, y, 0x7d1e + (y << 5));
 		return true;
 	}
 
@@ -9691,6 +9705,7 @@ public class RECOIL
 		case PackExt("SCR"):
 		case PackExt("SCS4"):
 		case PackExt("SGE"):
+		case PackExt("SH3"):
 		case PackExt("SHC"):
 		case PackExt("SHP"):
 		case PackExt("SHR"):
@@ -10189,12 +10204,15 @@ public class RECOIL
 			return DecodeScs4(content, contentLength);
 		case PackExt("SGE"):
 			return DecodeSge(content, contentLength);
+		case PackExt("SH3"):
+			return DecodeSh3(content, contentLength);
 		case PackExt("SHC"):
 			return DecodeShc(content, contentLength);
 		case PackExt("SHP"):
 			return DecodeShp(content, contentLength);
 		case PackExt("SHR"):
-			return DecodeShr(content, contentLength);
+			return DecodeShr(content, contentLength)
+				|| DecodeSh3(content, contentLength);
 		case PackExt("SIF"):
 			return DecodeSif(content, contentLength);
 		case PackExt("SPC"):
