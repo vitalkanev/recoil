@@ -283,11 +283,19 @@ class MppPaletteStream : BitStream
 
 abstract class MultiPalette : Stream
 {
-	int GetOcsColor(int contentOffset)
+	static int GetOcsColor(int r, int gb)
 	{
-		int rgb = Content[contentOffset + 1]; // 0xGB
-		rgb = (Content[contentOffset] & 0xf) << 16 | (rgb & 0xf0) << 4 | (rgb & 0xf); // 0x0R0G0B
+		int rgb = (r & 0xf) << 16 | (gb & 0xf0) << 4 | (gb & 0xf); // 0x0R0G0B
 		return rgb * 0x11; // 0xRRGGBB
+	}
+
+	void SetOcsPalette(RECOIL recoil, int contentOffset)
+	{
+		for (int c = 0; c < 16; c++) {
+			int r = Content[contentOffset++];
+			int gb = Content[contentOffset++];
+			recoil.ContentPalette[c] = GetOcsColor(r, gb);
+		}
 	}
 
 	virtual void SetLinePalette(RECOIL recoil, int y)
@@ -314,9 +322,7 @@ class CtblPalette : MultiPalette
 {
 	override void SetLinePalette(RECOIL recoil, int y)
 	{
-		int offset = ContentOffset + (y << 5);
-		for (int c = 0; c < 16; c++)
-			recoil.ContentPalette[c] = GetOcsColor(offset + c * 2);
+		SetOcsPalette(recoil, ContentOffset + (y << 5));
 	}
 }
 
@@ -324,44 +330,117 @@ class ShamLacePalette : MultiPalette
 {
 	override void SetLinePalette(RECOIL recoil, int y)
 	{
-		int offset = ContentOffset + (y >> 1 << 5);
-		for (int c = 0; c < 16; c++)
-			recoil.ContentPalette[c] = GetOcsColor(offset + c * 2);
+		SetOcsPalette(recoil, ContentOffset + (y >> 1 << 5));
+	}
+}
+
+class PchgStream : BitStream
+{
+	int TreeOffset;
+	int TreeLastOffset;
+
+	int ReadHuffman()
+	{
+		int offset = TreeLastOffset;
+		for (;;) {
+			switch (ReadBit()) {
+			case 0:
+				offset -= 2;
+				if (offset < TreeOffset)
+					return -1;
+				if ((Content[offset] & 0x81) == 1)
+					return Content[offset + 1];
+				break;
+			case 1:
+				int hi = Content[offset];
+				int lo = Content[offset + 1];
+				if (hi < 0x80)
+					return lo;
+				offset += (hi - 0x100) << 8 | lo;
+				if (offset < TreeOffset)
+					return -1;
+				break;
+			default:
+				return -1;
+			}
+		}
 	}
 }
 
 class PchgPalette : MultiPalette
 {
-	bool ocs;
+	bool Ocs;
 	int LineCount;
-	int ChangeOffset;
+	PchgStream() Huffman;
+	bool Compressed;
+	byte[RECOIL.MaxHeight / 8] UnpackedHavePaletteChange;
 
 	bool Init()
 	{
-		if (ContentOffset + 20 > ContentLength || Content[ContentOffset] != 0 || Content[ContentOffset + 1] != 0)
+		if (ContentOffset + 20 > ContentLength || Content[ContentOffset] != 0)
 			return false;
 		switch (Content[ContentOffset + 3] & 3) {
 		case 1:
-			ocs = true;
+			Ocs = true;
 			break;
 		case 2:
-			ocs = false;
+			Ocs = false;
 			break;
 		default:
 			return false;
 		}
 		LineCount = Content[ContentOffset + 6] << 8 | Content[ContentOffset + 7];
-		ChangeOffset = ContentOffset + 20 + (LineCount + 31 >> 5 << 2);
-		return ChangeOffset <= ContentLength;
+		int havePaletteChangeLength = LineCount + 31 >> 5 << 2;
+
+		Huffman.Content = Content;
+		Huffman.ContentLength = ContentLength;
+		switch (Content[ContentOffset + 1]) {
+		case 0:
+			Huffman.ContentOffset = ContentOffset + 20 + havePaletteChangeLength;
+			if (Huffman.ContentOffset >= ContentLength)
+				return false;
+			Compressed = false;
+			break;
+		case 1:
+			if (havePaletteChangeLength > UnpackedHavePaletteChange.Length)
+				return false;
+			Huffman.TreeOffset = ContentOffset + 28;
+			if (Huffman.TreeOffset >= ContentLength)
+				return false;
+			int treeLength = RECOIL.Get32BigEndian(Content, ContentOffset + 20);
+			if (treeLength < 2 || treeLength > 1022)
+				return false;
+			Huffman.ContentOffset = ContentOffset + 28 + treeLength;
+			Huffman.TreeLastOffset = Huffman.ContentOffset - 2;
+			for (int i = 0; i < havePaletteChangeLength; i++) {
+				int b = Huffman.ReadHuffman();
+				if (b < 0)
+					return false;
+				UnpackedHavePaletteChange[i] = b;
+			}
+			Compressed = true;
+			break;
+		default:
+			return false;
+		}
+		return true;
+	}
+
+	int UnpackByte()
+	{
+		return Compressed ? Huffman.ReadHuffman() : Huffman.ReadByte();
 	}
 
 	void SetOcsColors(RECOIL recoil, int paletteOffset, int count)
 	{
-		if (ChangeOffset > ContentLength - count * 2)
-			return; // error
 		while (--count >= 0) {
-			recoil.ContentPalette[paletteOffset + (Content[ChangeOffset] >> 4)] = GetOcsColor(ChangeOffset);
-			ChangeOffset += 2;
+			int rr = UnpackByte();
+			if (rr < 0)
+				return; // error
+			int gb = UnpackByte();
+			if (gb < 0)
+				return; // error
+			recoil.ContentPalette[paletteOffset + (rr >> 4)] = GetOcsColor(rr, gb);
 		}
 	}
 
@@ -370,26 +449,37 @@ class PchgPalette : MultiPalette
 		y -= Content[ContentOffset + 4] << 8 | Content[ContentOffset + 5];
 		if (y < 0 || y >= LineCount)
 			return;
-		if ((Content[ContentOffset + 20 + (y >> 3)] >> (~y & 7) & 1) == 0)
+		int b = Compressed ? UnpackedHavePaletteChange[y >> 3] : Content[ContentOffset + 20 + (y >> 3)];
+		if ((b >> (~y & 7) & 1) == 0)
 			return;
-		if (ChangeOffset > ContentLength - 2)
+		int count = UnpackByte();
+		if (count < 0)
 			return; // error
-		if (ocs) {
-			int count16 = Content[ChangeOffset++];
-			int count32 = Content[ChangeOffset++];
-			SetOcsColors(recoil, 0, count16);
-			SetOcsColors(recoil, 16, count32);
+		int count2 = UnpackByte();
+		if (count2 < 0)
+			return; // error
+		if (Ocs) {
+			SetOcsColors(recoil, 0, count);
+			SetOcsColors(recoil, 16, count2);
 		}
 		else {
-			int count = Content[ChangeOffset] << 8 | Content[ChangeOffset + 1];
-			ChangeOffset += 2;
-			if (ChangeOffset > ContentLength - count * 6)
-				return; // error
+			count = count << 8 | count2;
 			while (--count >= 0) {
-				if (Content[ChangeOffset] != 0)
+				if (UnpackByte() != 0)
 					return; // error
-				recoil.ContentPalette[Content[ChangeOffset + 1]] = Content[ChangeOffset + 3] << 16 | Content[ChangeOffset + 5] << 8 | Content[ChangeOffset + 4];
-				ChangeOffset += 6;
+				int c = UnpackByte();
+				if (c < 0 || UnpackByte() < 0)
+					return; // error
+				int r = UnpackByte();
+				if (r < 0)
+					return; // error
+				b = UnpackByte();
+				if (b < 0)
+					return; // error
+				int g = UnpackByte();
+				if (g < 0)
+					return; // error;
+				recoil.ContentPalette[c] = r << 16 | g << 8 | b;
 			}
 		}
 	}
