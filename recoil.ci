@@ -281,7 +281,7 @@ class MppPaletteStream : BitStream
 	}
 }
 
-abstract class MultiPalette : Stream
+abstract class MultiPalette : BitStream
 {
 	static int GetOcsColor(int r, int gb)
 	{
@@ -334,10 +334,15 @@ class ShamLacePalette : MultiPalette
 	}
 }
 
-class PchgStream : BitStream
+class PchgPalette : MultiPalette
 {
+	bool Ocs;
+	int StartLine;
+	int LineCount;
+	byte[RECOIL.MaxHeight / 8] HavePaletteChange;
 	int TreeOffset;
 	int TreeLastOffset;
+	bool Compressed;
 
 	int ReadHuffman()
 	{
@@ -365,15 +370,6 @@ class PchgStream : BitStream
 			}
 		}
 	}
-}
-
-class PchgPalette : MultiPalette
-{
-	bool Ocs;
-	int LineCount;
-	PchgStream() Huffman;
-	bool Compressed;
-	byte[RECOIL.MaxHeight / 8] UnpackedHavePaletteChange;
 
 	bool Init()
 	{
@@ -389,34 +385,35 @@ class PchgPalette : MultiPalette
 		default:
 			return false;
 		}
+		StartLine = Content[ContentOffset + 4] << 8 | Content[ContentOffset + 5];
 		LineCount = Content[ContentOffset + 6] << 8 | Content[ContentOffset + 7];
 		int havePaletteChangeLength = LineCount + 31 >> 5 << 2;
+		if (havePaletteChangeLength > HavePaletteChange.Length)
+			return false;
 
-		Huffman.Content = Content;
-		Huffman.ContentLength = ContentLength;
 		switch (Content[ContentOffset + 1]) {
 		case 0:
-			Huffman.ContentOffset = ContentOffset + 20 + havePaletteChangeLength;
-			if (Huffman.ContentOffset >= ContentLength)
+			int changeOffset = ContentOffset + 20 + havePaletteChangeLength;
+			if (changeOffset > ContentLength)
 				return false;
+			Content.CopyTo(ContentOffset + 20, HavePaletteChange, 0, havePaletteChangeLength);
+			ContentOffset = changeOffset;
 			Compressed = false;
 			break;
 		case 1:
-			if (havePaletteChangeLength > UnpackedHavePaletteChange.Length)
-				return false;
-			Huffman.TreeOffset = ContentOffset + 28;
-			if (Huffman.TreeOffset >= ContentLength)
+			TreeOffset = ContentOffset + 28;
+			if (TreeOffset > ContentLength)
 				return false;
 			int treeLength = RECOIL.Get32BigEndian(Content, ContentOffset + 20);
 			if (treeLength < 2 || treeLength > 1022)
 				return false;
-			Huffman.ContentOffset = ContentOffset + 28 + treeLength;
-			Huffman.TreeLastOffset = Huffman.ContentOffset - 2;
+			ContentOffset = TreeOffset + treeLength;
+			TreeLastOffset = ContentOffset - 2;
 			for (int i = 0; i < havePaletteChangeLength; i++) {
-				int b = Huffman.ReadHuffman();
+				int b = ReadHuffman();
 				if (b < 0)
 					return false;
-				UnpackedHavePaletteChange[i] = b;
+				HavePaletteChange[i] = b;
 			}
 			Compressed = true;
 			break;
@@ -428,7 +425,7 @@ class PchgPalette : MultiPalette
 
 	int UnpackByte()
 	{
-		return Compressed ? Huffman.ReadHuffman() : Huffman.ReadByte();
+		return Compressed ? ReadHuffman() : ReadByte();
 	}
 
 	void SetOcsColors(RECOIL recoil, int paletteOffset, int count)
@@ -446,11 +443,10 @@ class PchgPalette : MultiPalette
 
 	override void SetLinePalette(RECOIL recoil, int y)
 	{
-		y -= Content[ContentOffset + 4] << 8 | Content[ContentOffset + 5];
+		y -= StartLine;
 		if (y < 0 || y >= LineCount)
 			return;
-		int b = Compressed ? UnpackedHavePaletteChange[y >> 3] : Content[ContentOffset + 20 + (y >> 3)];
-		if ((b >> (~y & 7) & 1) == 0)
+		if ((HavePaletteChange[y >> 3] >> (~y & 7) & 1) == 0)
 			return;
 		int count = UnpackByte();
 		if (count < 0)
@@ -473,7 +469,7 @@ class PchgPalette : MultiPalette
 				int r = UnpackByte();
 				if (r < 0)
 					return; // error
-				b = UnpackByte();
+				int b = UnpackByte();
 				if (b < 0)
 					return; // error
 				int g = UnpackByte();
