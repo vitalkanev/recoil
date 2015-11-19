@@ -7043,6 +7043,22 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeIld(byte[] content, int contentLength)
+	{
+		if (contentLength != 8195)
+			return false;
+		SetSize(256, 128, RECOILResolution.Xe2x1);
+		GtiaColors[8] = 0x00;
+		GtiaColors[4] = 0x06;
+		GtiaColors[5] = 0x02;
+		GtiaColors[6] = 0x0a;
+		byte[256 * 128] frame1;
+		DecodeAtari8Gr15(content, 0, 32, frame1, 0, 256, 128);
+		byte[256 * 128] frame2;
+		DecodeAtari8Gr15(content, 4096, 32, frame2, 0, 256, 128);
+		return ApplyAtari8PaletteBlend(frame1, frame2);
+	}
+
 	// INP, ING
 	bool DecodeInp(byte[] content, int contentLength)
 	{
@@ -9685,6 +9701,7 @@ public class RECOIL
 		case PackExt("IFL"):
 		case PackExt("IGE"):
 		case PackExt("IHE"):
+		case PackExt("ILD"):
 		case PackExt("IMG"):
 		case PackExt("XIMG"):
 		case PackExt("IMN"):
@@ -10096,6 +10113,8 @@ public class RECOIL
 			return DecodeIge(content, contentLength);
 		case PackExt("IHE"):
 			return DecodeIhe(content, contentLength);
+		case PackExt("ILD"):
+			return DecodeIld(content, contentLength);
 		case PackExt("IMG"):
 			return DecodeStImg(content, contentLength)
 				|| DecodeZxImg(content, contentLength);

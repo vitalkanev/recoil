@@ -102,6 +102,7 @@
 		<format name="Interlace Character Editor font" frames="2"><ext>ICE</ext></format>
 		<format name="ICE CIN" width="160" height="192" colors="80" frames="2"><ext>ICN</ext></format>
 		<format name="Interlace Graphics Editor" width="128" height="96" colors="16" frames="2"><ext>IGE</ext></format>
+		<format name="Interlace Logo Designer" width="128" height="128" colors="7" frames="2"><ext>ILD</ext></format>
 		<format name="ICE MIN" width="160" height="192" colors="80" frames="2"><ext>IMN</ext></format>
 		<format name="ING 15" width="160" height="200" colors="7" frames="2"><ext>ING</ext></format>
 		<format width="160" height="200" colors="7" frames="2"><ext>INP</ext></format>
