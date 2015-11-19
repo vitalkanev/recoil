@@ -119,6 +119,7 @@
 			<ext>LUM</ext>
 			<companionExt>COL</companionExt>
 		</format>
+		<format width="56" height="60" colors="2"><ext>KFX</ext></format>
 		<format name="Envision"><ext>MAP</ext></format>
 		<format name="EnvisionPC"><ext>MAP</ext></format>
 		<format name="XL-Paint MAX" width="160" height="192" frames="2"><ext>MAX</ext></format>

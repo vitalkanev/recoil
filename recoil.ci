@@ -2428,16 +2428,21 @@ public class RECOIL
 		}
 	}
 
-	bool DecodeBlackAndWhite(byte[] content, int contentOffset, int wordAlign, int width, int height, int backgroundColor, RECOILResolution resolution)
+	bool DecodeMono(byte[] content, int contentOffset, int wordAlign, int width, int height, int backgroundColor, int inkColor, RECOILResolution resolution)
 	{
 		if (!SetSize(width, height, resolution))
 			return false;
-		ContentPalette[0] = backgroundColor; // 0 or 0xffffff
-		ContentPalette[1] = backgroundColor ^ 0xffffff;
+		ContentPalette[0] = backgroundColor;
+		ContentPalette[1] = inkColor;
 		int contentStride = width + 7 >> 3;
 		contentStride += contentStride & wordAlign;
 		DecodeBitplanes(content, contentOffset, contentStride, 1, 0, width, height);
 		return true;
+	}
+
+	bool DecodeBlackAndWhite(byte[] content, int contentOffset, int wordAlign, int width, int height, int backgroundColor, RECOILResolution resolution)
+	{
+		return DecodeMono(content, contentOffset, wordAlign, width, height, backgroundColor, backgroundColor ^ 0xffffff, resolution);
 	}
 
 	void DecodeBlackAndWhiteFont(byte[] content, int contentOffset, int contentLength)
@@ -6464,28 +6469,10 @@ public class RECOIL
 	bool DecodeDrg(byte[] content, int contentLength)
 		return contentLength == 6400 && DecodeGr8(content, contentLength);
 
-	bool DecodeMbg(byte[] content, int contentLength)
+	bool DecodeGr8Raw(byte[] content, int contentLength, int width, int height)
 	{
-		if (contentLength != 16384)
-			return false;
-		SetSize(512, 256, RECOILResolution.Xe1x1);
-		GtiaColors[6] = 0x00;
-		GtiaColors[5] = 0x0e;
-		byte[512 * 256] frame;
-		DecodeAtari8Gr8(content, 0, frame, 0, 256);
-		return ApplyAtari8Palette(frame);
-	}
-
-	bool DecodeCut(byte[] content, int contentLength)
-	{
-		if (contentLength != 1188)
-			return false;
-		SetSize(96, 99, RECOILResolution.Xe1x1);
-		GtiaColors[6] = 0x00;
-		GtiaColors[5] = 0x0e;
-		byte[96 * 99] frame;
-		DecodeAtari8Gr8(content, 0, frame, 0, 99);
-		return ApplyAtari8Palette(frame);
+		return contentLength == (width >> 3) * height
+			&& DecodeMono(content, 0, 0, width, height, Atari8Palette[0x00], Atari8Palette[0x0e], RECOILResolution.Xe1x1);
 	}
 
 	bool DecodeGhg(byte[] content, int contentLength)
@@ -9702,6 +9689,7 @@ public class RECOIL
 		case PackExt("IST"):
 		case PackExt("JGP"):
 		case PackExt("JJ"):
+		case PackExt("KFX"):
 		case PackExt("KLA"):
 		case PackExt("KOA"):
 		case PackExt("GIG"):
@@ -9949,7 +9937,7 @@ public class RECOIL
 		case PackExt("CPT"):
 			return DecodeCpt(content, contentLength);
 		case PackExt("CUT"):
-			return DecodeCut(content, contentLength);
+			return DecodeGr8Raw(content, contentLength, 96, 99);
 		case PackExt("CWG"):
 			return contentLength == 10007 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2713]);
 		case PackExt("DC1"):
@@ -10128,6 +10116,8 @@ public class RECOIL
 			return DecodeJgp(content, contentLength);
 		case PackExt("JJ"):
 			return DecodeJj(content, contentLength);
+		case PackExt("KFX"):
+			return DecodeGr8Raw(content, contentLength, 56, 60);
 		case PackExt("KLA"):
 		case PackExt("KOA"):
 		case PackExt("GIG"):
@@ -10152,7 +10142,7 @@ public class RECOIL
 			return DecodeAtari8Max(content, contentLength)
 				|| DecodeCocoMax(content, contentLength);
 		case PackExt("MBG"):
-			return DecodeMbg(content, contentLength);
+			return DecodeGr8Raw(content, contentLength, 512, 256);
 		case PackExt("MC"):
 			return DecodeMcMlt(content, contentLength, ZxBitmapLinear);
 		case PackExt("MCH"):
