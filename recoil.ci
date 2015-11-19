@@ -6568,6 +6568,18 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeTxe(byte[] content, int contentLength)
+	{
+		if (contentLength != 3840)
+			return false;
+		SetSize(320, 192, RECOILResolution.Xe4x2);
+		byte[320 * 192] frame;
+		GtiaColors[8] = 0x00;
+		DecodeAtari8Gr9(content, 0, 40, frame, 320, 640, 320, 96);
+		DecodeAtari8Gr9(content, 0, 40, frame, 0, 640, 320, 96); // the original program uses empty lines, but that doesn't look well scaled
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodeTxs(byte[] content, int contentLength)
 	{
 		if (contentLength != 262
@@ -9798,6 +9810,7 @@ public class RECOIL
 		case PackExt("TNY"):
 		case PackExt("TRP"):
 		case PackExt("TRU"):
+		case PackExt("TXE"):
 		case PackExt("TXS"):
 		case PackExt("VBM"):
 		case PackExt("VIC"):
@@ -10317,6 +10330,8 @@ public class RECOIL
 			return DecodeTrp(content, contentLength);
 		case PackExt("TRU"):
 			return DecodeTru(content, contentLength);
+		case PackExt("TXE"):
+			return DecodeTxe(content, contentLength);
 		case PackExt("TXS"):
 			return DecodeTxs(content, contentLength);
 		case PackExt("VBM"):
