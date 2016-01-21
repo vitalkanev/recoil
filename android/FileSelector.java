@@ -54,6 +54,7 @@ public class FileSelector extends ListActivity
 		if (uri == null)
 			uri = FileUtil.getRootDirectory();
 
+		AndroidSupport.getInstance().setDisplayHomeAsUpEnabled(this);
 		setTitle(getString(R.string.selector_title, FileUtil.getDisplayName(uri)));
 
 		ArrayList<String> files;
@@ -110,6 +111,9 @@ public class FileSelector extends ListActivity
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
 		switch (item.getItemId()) {
+		case android.R.id.home:
+			finish();
+			return true;
 		case R.id.menu_search:
 			InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
 			if (isSearch) {

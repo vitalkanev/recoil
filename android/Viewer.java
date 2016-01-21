@@ -1,7 +1,7 @@
 /*
  * Viewer.java - RECOIL for Android
  *
- * Copyright (C) 2013-2015  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2013-2016  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -130,6 +130,7 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+		AndroidSupport.getInstance().setDisplayHomeAsUpEnabled(this);
 
 		Uri uri = getIntent().getData();
 		String filename = split(uri);
@@ -180,6 +181,9 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
 		switch (item.getItemId()) {
+		case android.R.id.home:
+			finish();
+			return true;
 		case R.id.menu_info:
 			showInfo();
 			return true;

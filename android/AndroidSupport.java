@@ -23,6 +23,7 @@
 
 package net.sf.recoil;
 
+import android.app.Activity;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -65,6 +66,10 @@ class AndroidSupport
 		editor.putString(key, TextUtils.join("|", values));
 	}
 
+	void setDisplayHomeAsUpEnabled(Activity activity)
+	{
+	}
+
 	void setHasAlpha(Bitmap bitmap, boolean hasAlpha)
 	{
 	}
@@ -91,6 +96,12 @@ class Android11Support extends Android8Support
 	void putStringSet(SharedPreferences.Editor editor, String key, Set<String> values)
 	{
 		editor.putStringSet(key, values);
+	}
+
+	@Override
+	void setDisplayHomeAsUpEnabled(Activity activity)
+	{
+		activity.getActionBar().setDisplayHomeAsUpEnabled(true);
 	}
 }
 
