@@ -1,6 +1,5 @@
 ANDROID_SDK = C:/bin/android-sdk-windows
-ANDROID_RESOURCES_JAR = $(ANDROID_SDK)/platforms/android-19/android.jar
-ANDROID_COMPILE_JAR = $(ANDROID_SDK)/platforms/android-4/android.jar
+ANDROID_JAR = $(ANDROID_SDK)/platforms/android-19/android.jar
 ANDROID_BUILD_TOOLS = $(ANDROID_SDK)/build-tools/21.1.2
 
 AAPT = $(ANDROID_BUILD_TOOLS)/aapt
@@ -36,8 +35,8 @@ AndroidRECOIL-unsigned.apk: AndroidRECOIL-resources.apk classes.dex
 classes.dex: classes/net/sf/recoil/RECOIL.class
 	$(DX) --dex --output=$@ classes
 
-classes/net/sf/recoil/RECOIL.class: FavoriteSelector.java FileSelector.java FileUtil.java GalleryAdapter.java JavaRECOIL.java Viewer.java gen/net/sf/recoil/RECOIL.java AndroidRECOIL-resources.apk
-	mkdir -p classes && javac -d classes -bootclasspath $(ANDROID_COMPILE_JAR) FavoriteSelector.java FileSelector.java FileUtil.java GalleryAdapter.java JavaRECOIL.java Viewer.java gen/net/sf/recoil/*.java
+classes/net/sf/recoil/RECOIL.class: AndroidSupport.java FavoriteSelector.java FileSelector.java FileUtil.java GalleryAdapter.java JavaRECOIL.java Viewer.java gen/net/sf/recoil/RECOIL.java AndroidRECOIL-resources.apk
+	mkdir -p classes && javac -d classes -bootclasspath $(ANDROID_JAR) AndroidSupport.java FavoriteSelector.java FileSelector.java FileUtil.java GalleryAdapter.java JavaRECOIL.java Viewer.java gen/net/sf/recoil/*.java
 
 gen/net/sf/recoil/RECOIL.java: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../zx81.fnt
 	mkdir -p $(@D) && cito -n net.sf.recoil -o $@ -I .. $<
@@ -45,7 +44,7 @@ gen/net/sf/recoil/RECOIL.java: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c
 AndroidRECOIL-resources.apk: AndroidManifest.xml res/drawable/ic_launcher.png res/layout/access_denied.xml res/layout/error.xml res/layout/filename_list_item.xml res/layout/gallery.xml res/layout/no_files.xml \
 	res/menu/file_selector.xml res/menu/viewer.xml res/values/strings.xml res/values-pl/strings.xml \
 	assets/net/sf/recoil/atari8.fnt assets/net/sf/recoil/altirrapal.pal assets/net/sf/recoil/c16.pal assets/net/sf/recoil/zx81.fnt
-	mkdir -p gen && $(AAPT) p -f -m -M $< -I $(ANDROID_RESOURCES_JAR) -S res -F $@ -J gen assets
+	mkdir -p gen && $(AAPT) p -f -m -M $< -I $(ANDROID_JAR) -S res -F $@ -J gen assets
 
 res/drawable/ic_launcher.png: ../recoil-512x512.png
 	mkdir -p $(@D) && convert $< -resize 72x72 -quality 95 -strip $@

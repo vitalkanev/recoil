@@ -1,7 +1,7 @@
 /*
  * FavoriteSelector.java - RECOIL for Android
  *
- * Copyright (C) 2015  Piotr Fusik
+ * Copyright (C) 2015-2016  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -75,7 +75,7 @@ public class FavoriteSelector extends ListActivity
 		ArrayAdapter<FavoriteUri> adapter = (ArrayAdapter<FavoriteUri>) getListAdapter();
 		adapter.clear();
 		adapter.add(new FavoriteUri(getString(R.string.root_directory), FileUtil.getRootDirectory()));
-		Uri uri = FileUtil.getDownloadsDirectory();
+		Uri uri = AndroidSupport.getInstance().getDownloadsDirectory();
 		if (uri != null)
 			adapter.add(new FavoriteUri(getString(R.string.downloads_directory), uri));
 

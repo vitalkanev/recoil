@@ -1,7 +1,7 @@
 /*
  * FileUtil.java - RECOIL for Android
  *
- * Copyright (C) 2013-2015  Piotr Fusik
+ * Copyright (C) 2013-2016  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -26,17 +26,13 @@ package net.sf.recoil;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.text.TextUtils;
 import android.view.MenuItem;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.text.Collator;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
@@ -59,18 +55,6 @@ abstract class FileUtil
 	static Uri getRootDirectory()
 	{
 		return Uri.parse("file:///");
-	}
-
-	static Uri getDownloadsDirectory()
-	{
-		try {
-			Object directoryDownloads = Environment.class.getField("DIRECTORY_DOWNLOADS").get(null);
-			Method method = Environment.class.getMethod("getExternalStoragePublicDirectory", String.class);
-			return Uri.fromFile((File) method.invoke(null, directoryDownloads));
-		}
-		catch (Exception ex) {
-			return null;
-		}
 	}
 
 	static boolean isZip(String filename)
@@ -160,35 +144,10 @@ abstract class FileUtil
 		return Uri.fromFile(new File(path, relativePath));
 	}
 
-	private static Set<String> getStringSetCompat(SharedPreferences preferences, String key, Set<String> defValues)
-	{
-		try {
-			Method method = SharedPreferences.class.getMethod("getStringSet", String.class, Set.class);
-			return (Set<String>) method.invoke(preferences, key, defValues);
-		}
-		catch (Exception ex) {
-			String value = preferences.getString(key, null);
-			if (value == null)
-				return defValues;
-			return new TreeSet<String>(Arrays.asList(value.split("\\|")));
-		}
-	}
-
-	private static void putStringSetCompat(SharedPreferences.Editor editor, String key, Set<String> values)
-	{
-		try {
-			Method method = SharedPreferences.Editor.class.getMethod("putStringSet", String.class, Set.class);
-			method.invoke(editor, key, values);
-		}
-		catch (Exception ex) {
-			editor.putString(key, TextUtils.join("|", values));
-		}
-	}
-
 	static Set<String> getUserFavorites(Context context)
 	{
 		// as per reference, must not modify the set instance returned by getStringSet
-		return getStringSetCompat(PreferenceManager.getDefaultSharedPreferences(context), "favorites", Collections.EMPTY_SET);
+		return AndroidSupport.getInstance().getStringSet(PreferenceManager.getDefaultSharedPreferences(context), "favorites", Collections.EMPTY_SET);
 	}
 
 	static void setFavoriteIcon(MenuItem item, boolean checked)
@@ -203,7 +162,7 @@ abstract class FileUtil
 		if (!added)
 			favorites.remove(s);
 		SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-		putStringSetCompat(editor, "favorites", favorites);
+		AndroidSupport.getInstance().putStringSet(editor, "favorites", favorites);
 		editor.commit();
 		return added;
 	}

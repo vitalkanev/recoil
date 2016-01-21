@@ -1,7 +1,7 @@
 /*
  * FileSelector.java - RECOIL for Android
  *
- * Copyright (C) 2013-2015  Piotr Fusik
+ * Copyright (C) 2013-2016  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -86,7 +86,7 @@ public class FileSelector extends ListActivity
 	private boolean isBuiltinFavorite()
 	{
 		return uri.equals(FileUtil.getRootDirectory())
-			|| uri.equals(FileUtil.getDownloadsDirectory());
+			|| uri.equals(AndroidSupport.getInstance().getDownloadsDirectory());
 	}
 
 	private boolean isUserFavorite()
