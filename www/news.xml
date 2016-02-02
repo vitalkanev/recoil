@@ -1,4 +1,35 @@
 ﻿<div>
+	<release project="RECOIL" version="3.4.0" date="2016-02-02">
+		<ul>
+			<li>Decoding the exact width of several formats, no more right-padding.</li>
+			<li>Fixed crashes on invalid files.</li>
+			<li>Faster calculation of unique colors.</li>
+			<li>Honoring the aspect ratio of IFF and IMG.</li>
+			<li>Fixed decoding of some Spectrum 512 SPC.</li>
+			<li>Fixed downscaling artifacts in RECOILWin.</li>
+		</ul>
+		<ul title="IFF improvements">
+			<li>Added decoding of multi-palette.</li>
+			<li>Added decoding of RGB8 and RGBN.</li>
+			<li>Ignoring the compression field of ACBM.</li>
+			<li>Improved EHB and HAM detection.</li>
+			<li>Improved contrast for 12-bit CMAP.</li>
+		</ul>
+		<ul title="New formats">
+			<li>Apple IIGS: SH3.</li>
+			<li>Atari 8-bit: Envision (MAP), EnvisionPC (MAP), KFX, Texture Editor (TXE), Interlace Logo Designer (ILD).</li>
+			<li>Atari ST: NEOchrome Master (NEO, NEO+RST).</li>
+			<li>Atari Falcon: XGA, Prism Paint (PNT, TPI).</li>
+			<li>Commodore 128: VBM.</li>
+		</ul>
+		<ul title="Android changes">
+			<li>Favorite files and folders and a shortcut to the downloads.</li>
+			<li>Additional "back" on the action bar.</li>
+			<li>Compatibility with old Androids.</li>
+			<li>Full-screen error messages.</li>
+		</ul>
+	</release>
+
 	<release project="RECOIL" version="3.3.0" date="2015-08-07">
 		<ul>
 			<li>Added support for multi-file pictures (extensions listed below with a plus sign).</li>

@@ -1,6 +1,6 @@
 // recoil.ci - RECOIL core
 //
-// Copyright (C) 2009-2015  Piotr Fusik and Adrian Matoga
+// Copyright (C) 2009-2016  Piotr Fusik and Adrian Matoga
 //
 // This file is part of RECOIL (Retro Computer Image Library),
 // see http://recoil.sourceforge.net
@@ -2041,17 +2041,17 @@ public class RECOIL
 	/// RECOIL version - major part.
 	public const int VersionMajor = 3;
 	/// RECOIL version - minor part.
-	public const int VersionMinor = 3;
+	public const int VersionMinor = 4;
 	/// RECOIL version - micro part.
 	public const int VersionMicro = 0;
 	/// RECOIL version as a string.
 	public const string Version = VersionMajor + "." + VersionMinor + "." + VersionMicro;
 
 	/// Years RECOIL was created in.
-	public const string Years = "2009-2015";
+	public const string Years = "2009-2016";
 
 	/// Short credits for RECOIL.
-	public const string Credits = "Retro Computer Image Library (C) 2009-2015 Piotr Fusik and Adrian Matoga\n";
+	public const string Credits = "Retro Computer Image Library (C) 2009-2016 Piotr Fusik and Adrian Matoga\n";
 
 	/// Short license notice.
 	/// Display after the credits.

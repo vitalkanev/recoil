@@ -61,7 +61,7 @@
 					<a href="/">Home</a>
 				</xsl:when>
 				<xsl:when test="$page = 'Download'">
-					<a href="http://sourceforge.net/projects/recoil/files/recoil/3.3.0/">Download</a>
+					<a href="http://sourceforge.net/projects/recoil/files/recoil/3.4.0/">Download</a>
 				</xsl:when>
 				<xsl:when test="$page = 'HTML5'">
 					<a href="html5recoil.html">HTML5</a>
