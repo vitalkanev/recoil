@@ -36,7 +36,10 @@
 		<format name="Sprites" colors="2"><ext>SPR</ext></format>
 	</platform>
 	<platform name="Apple Macintosh" href="http://en.wikipedia.org/wiki/Macintosh_128K">
-		<format name="MacPaint" width="576" height="720" colors="2"><ext>MAC</ext></format>
+		<format name="MacPaint" width="576" height="720" colors="2">
+			<ext>MAC</ext>
+			<ext>PNTG</ext>
+		</format>
 	</platform>
 	<platform name="Atari 8-bit" href="http://en.wikipedia.org/wiki/Atari_8-bit_family">
 		<format width="80" height="96" colors="256">

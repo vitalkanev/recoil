@@ -9729,6 +9729,7 @@ public class RECOIL
 		case PackExt("LP3"):
 		case PackExt("LUM"):
 		case PackExt("MAC"):
+		case PackExt("PNTG"):
 		case PackExt("MAP"):
 		case PackExt("MAX"):
 		case PackExt("MBG"):
@@ -10166,6 +10167,7 @@ public class RECOIL
 		case PackExt("LUM"):
 			return DecodeLum(filename, content, contentLength);
 		case PackExt("MAC"):
+		case PackExt("PNTG"):
 			return DecodeMac(content, contentLength);
 		case PackExt("MAP"):
 			return DecodeEnvision(content, contentLength)
