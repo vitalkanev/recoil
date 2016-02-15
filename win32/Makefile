@@ -128,6 +128,6 @@ clean:
 		x64/IM_MOD_RL_recoil_.dll x64/thumbrecoil.dll x64/RECOIL.plg64 RecoilPaintDotNet.dll \
 		paint.net/RecoilFileTypeFactory.cs paint.net/RECOIL.cs ../formats.h
 
-.PHONY: all clean setup x64-setup ../MANIFEST srcdist dist www
+.PHONY: all clean setup x64-setup ../MANIFEST srcdist dist
 
 .DELETE_ON_ERROR:
