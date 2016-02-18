@@ -5621,6 +5621,23 @@ public class RECOIL
 		return true;
 	}
 
+	static RECOILResolution GetAmigaAspectRatio(int xRatio, int yRatio, RECOILResolution resolution)
+	{
+		if (xRatio <= 0 || yRatio <= 0)
+			return resolution;
+		if (xRatio > yRatio * 6)
+			return RECOILResolution.Amiga8x1;
+		if (xRatio > yRatio * 3)
+			return RECOILResolution.Amiga4x1;
+		if (xRatio * 2 > yRatio * 3)
+			return RECOILResolution.Amiga2x1;
+		if (yRatio > xRatio * 3)
+			return RECOILResolution.Amiga1x4;
+		if (yRatio * 2 > xRatio * 3)
+			return resolution == RECOILResolution.Amiga1x1 ? RECOILResolution.Amiga1x2 : RECOILResolution.St1x2;
+		return resolution;
+	}
+
 	static RECOILResolution GetCamgAspectRatio(int camg, RECOILResolution resolution)
 	{
 		int log; // log2 of x/y aspect ratio
@@ -5732,6 +5749,89 @@ public class RECOIL
 				SetScaledPixel(x, y, ContentPalette[c]);
 			}
 		}
+	}
+
+	bool DecodeDeep(byte[] content, int contentLength)
+	{
+		int width = 0;
+		int height = 0;
+		RECOILResolution resolution = RECOILResolution.Amiga1x1;
+		int components = 0;
+		int[6] componentShift;
+		for (int contentOffset = 12; contentOffset < contentLength - 7; ) {
+			int chunkLength = Get32BigEndian(content, contentOffset + 4);
+			int nextChunkOffset = contentOffset + 8 + chunkLength; // don't round yet, some files are of odd length
+			if (nextChunkOffset > contentLength || nextChunkOffset < 0)
+				break;
+			if (IsStringAt(content, contentOffset, "DGBL")) {
+				if (chunkLength < 8 || content[contentOffset + 12] != 0 || content[contentOffset + 13] != 0)
+					return false;
+				// not sure if DLOC is mandatory, get width and height here just in case
+				width = content[contentOffset + 8] << 8 | content[contentOffset + 9];
+				height = content[contentOffset + 10] << 8 | content[contentOffset + 11];
+				resolution = GetAmigaAspectRatio(content[contentOffset + 14], content[contentOffset + 15], resolution);
+			}
+			else if (IsStringAt(content, contentOffset, "DPEL")) {
+				if (chunkLength < 8)
+					return false;
+				components = Get32BigEndian(content, contentOffset + 8);
+				if (components > componentShift.Length || chunkLength != components + 1 << 2)
+					return false;
+				for (int c = 0; c < components; c++) {
+					int offset = contentOffset + 12 + c * 4;
+					if (content[offset] != 0 || content[offset + 2] != 0 || content[offset + 3] != 8)
+						return false;
+					int shift;
+					switch (content[offset + 1]) {
+					case 1: // red
+						shift = 16;
+						break;
+					case 2: // green
+						shift = 8;
+						break;
+					case 3: // blue
+						shift = 0;
+						break;
+					case 4: // alpha
+					case 9: // mask (?)
+					case 10: // zbuffer (?)
+					case 11: // opacity (?)
+					case 17: // density
+						shift = -1;
+						break;
+					default:
+						return false;
+					}
+					componentShift[c] = shift;
+				}
+			}
+			else if (IsStringAt(content, contentOffset, "DLOC")) {
+				if (chunkLength < 4)
+					return false;
+				width = content[contentOffset + 8] << 8 | content[contentOffset + 9];
+				height = content[contentOffset + 10] << 8 | content[contentOffset + 11];
+			}
+			else if (IsStringAt(content, contentOffset, "DBOD")) {
+				if (components <= 0 || chunkLength != width * height * components || !SetScaledSize(width, height, resolution))
+					return false;
+				contentOffset += 8;
+				for (int y = 0; y < height; y++) {
+					for (int x = 0; x < width; x++) {
+						int rgb = 0;
+						for (int c = 0; c < components; c++) {
+							int shift = componentShift[c];
+							if (shift >= 0)
+								rgb |= content[contentOffset] << shift;
+							contentOffset++;
+						}
+						SetScaledPixel(x, y, rgb);
+					}
+				}
+				return true;
+			}
+			contentOffset = nextChunkOffset + 1 & ~1; // round up to even bytes
+		}
+		return false;
 	}
 
 	bool DecodeRgbn(byte[] content, int contentOffset, int contentLength, int width, int height, bool rgb8)
@@ -5861,6 +5961,8 @@ public class RECOIL
 	{
 		if (contentLength < 56 || !IsStringAt(content, 0, "FORM"))
 			return false;
+		if (IsStringAt(content, 8, "DEEP") || IsStringAt(content, 8, "TVPP"))
+			return DecodeDeep(content, contentLength);
 		int contentOffset = 8;
 		if (IsStringAt(content, 8, "DPSTDPAH") && Get32BigEndian(content, 16) == 24 && IsStringAt(content, 44, "FORM"))
 			contentOffset = 52;
@@ -5927,20 +6029,7 @@ public class RECOIL
 				if (pixelsCount <= 0 || pixelsCount > MaxPixelsLength)
 					return false;
 				ocsPalette = content[contentOffset + 19] != 0x80;
-				int xRatio = content[contentOffset + 22];
-				int yRatio = content[contentOffset + 23];
-				if (xRatio > 0 && yRatio > 0) {
-					if (xRatio > yRatio * 6)
-						resolution = RECOILResolution.Amiga8x1;
-					else if (xRatio > yRatio * 3)
-						resolution = RECOILResolution.Amiga4x1;
-					else if (xRatio * 2 > yRatio * 3)
-						resolution = RECOILResolution.Amiga2x1;
-					else if (yRatio > xRatio * 3)
-						resolution = RECOILResolution.Amiga1x4;
-					else if (yRatio * 2 > xRatio * 3)
-						resolution = resolution == RECOILResolution.Amiga1x1 ? RECOILResolution.Amiga1x2 : RECOILResolution.St1x2;
-				}
+				resolution = GetAmigaAspectRatio(content[contentOffset + 22], content[contentOffset + 23], resolution);
 			}
 			else if (IsStringAt(content, contentOffset, "CMAP")) {
 				colors = chunkLength / 3;
@@ -9690,6 +9779,7 @@ public class RECOIL
 		case PackExt("IFF"):
 		case PackExt("ACBM"):
 		case PackExt("BEAM"):
+		case PackExt("DEEP"):
 		case PackExt("DR"):
 		case PackExt("HAM6"):
 		case PackExt("HAM8"):
@@ -10098,6 +10188,7 @@ public class RECOIL
 		case PackExt("IFF"):
 		case PackExt("ACBM"):
 		case PackExt("BEAM"):
+		case PackExt("DEEP"):
 		case PackExt("DR"):
 		case PackExt("HAM6"):
 		case PackExt("HAM8"):
