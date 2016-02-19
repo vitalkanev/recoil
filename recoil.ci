@@ -5760,8 +5760,8 @@ public class RECOIL
 		int[6] componentShift;
 		for (int contentOffset = 12; contentOffset < contentLength - 7; ) {
 			int chunkLength = Get32BigEndian(content, contentOffset + 4);
-			int nextChunkOffset = contentOffset + 8 + chunkLength; // don't round yet, some files are of odd length
-			if (nextChunkOffset > contentLength || nextChunkOffset < 0)
+			int chunkEndOffset = contentOffset + 8 + chunkLength; // don't round yet, some files are of odd length
+			if (chunkEndOffset > contentLength || chunkEndOffset < 0)
 				break;
 			if (IsStringAt(content, contentOffset, "DGBL")) {
 				if (chunkLength < 8 || content[contentOffset + 12] != 0 || content[contentOffset + 13] != 0)
@@ -5829,7 +5829,7 @@ public class RECOIL
 				}
 				return true;
 			}
-			contentOffset = nextChunkOffset + 1 & ~1; // round up to even bytes
+			contentOffset = chunkEndOffset + 1 & ~1; // round up to even bytes
 		}
 		return false;
 	}
@@ -5997,8 +5997,8 @@ public class RECOIL
 		MultiPalette multiPalette = null;
 		while (contentOffset < contentLength - 7) {
 			int chunkLength = Get32BigEndian(content, contentOffset + 4);
-			int nextChunkOffset = contentOffset + 8 + (chunkLength + 1 & ~1); // round up to even bytes
-			if (nextChunkOffset > contentLength || nextChunkOffset < 0)
+			int chunkEndOffset = contentOffset + 8 + chunkLength;
+			if (chunkEndOffset > contentLength || chunkEndOffset < 0)
 				break;
 			if (IsStringAt(content, contentOffset, "BMHD") && chunkLength >= 16) {
 				width = content[contentOffset + 8] << 8 | content[contentOffset + 9];
@@ -6077,7 +6077,7 @@ public class RECOIL
 			else if (IsStringAt(content, contentOffset, "PCHG")) {
 				pchg.Content = content;
 				pchg.ContentOffset = contentOffset + 8;
-				pchg.ContentLength = nextChunkOffset;
+				pchg.ContentLength = chunkEndOffset;
 				if (!pchg.Init())
 					return false;
 				multiPalette = pchg;
@@ -6087,7 +6087,7 @@ public class RECOIL
 					return false;
 				if (compression == 4)
 					return SetScaledSize(width, height, resolution)
-						&& DecodeRgbn(content, contentOffset + 8, contentOffset + 8 + chunkLength, width, height, type == IffType.Rgb8);
+						&& DecodeRgbn(content, contentOffset + 8, chunkEndOffset, width, height, type == IffType.Rgb8);
 				int bytesPerLine = (width + 15 >> 4 << 1) * bitplanes;
 				byte[] unpacked;
 				if (compression == 2) {
@@ -6096,10 +6096,10 @@ public class RECOIL
 					rle.Content = content;
 					rle.ContentOffset = contentOffset + 8;
 					for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
-						if (rle.ContentOffset + 14 > contentLength || !IsStringAt(content, rle.ContentOffset, "VDAT"))
+						if (rle.ContentOffset + 14 > chunkEndOffset || !IsStringAt(content, rle.ContentOffset, "VDAT"))
 							return false;
 						int nextContentOffset = rle.ContentOffset + 8 + Get32BigEndian(content, rle.ContentOffset + 4);
-						if (nextContentOffset > contentOffset + 8 + chunkLength)
+						if (nextContentOffset > chunkEndOffset)
 							return false;
 						rle.ValueOffset = rle.ContentLength = rle.ContentOffset + 8 + (content[rle.ContentOffset + 8] << 8) + content[rle.ContentOffset + 9];
 						rle.ValueLength = nextContentOffset;
@@ -6123,7 +6123,7 @@ public class RECOIL
 					PackBitsStream() rle;
 					rle.Content = content;
 					rle.ContentOffset = contentOffset + 8;
-					rle.ContentLength = contentOffset + 8 + chunkLength;
+					rle.ContentLength = chunkEndOffset;
 
 					if (type == IffType.Pbm) {
 						if (colors == 0 || !SetScaledSize(width, height, resolution))
@@ -6147,17 +6147,18 @@ public class RECOIL
 						return false;
 				}
 				RastPalette() rast;
-				if (nextChunkOffset < contentLength - 8) {
+				if (chunkEndOffset < contentLength - 8) {
+					int nextChunkOffset = chunkEndOffset + 1 & ~1;
 					if (IsStringAt(content, nextChunkOffset, "RAST")) {
 						rast.Content = content;
 						rast.ContentOffset = nextChunkOffset + 8;
 						rast.ContentLength = contentLength;
 						multiPalette = rast;
 					}
-					else if ((chunkLength & 1) != 0 && IsStringAt(content, nextChunkOffset - 1, "RAST")) {
-						// not conforming to the IFF format
+					else if (IsStringAt(content, chunkEndOffset, "RAST")) {
+						// unaligned chunk, not conforming to the IFF format
 						rast.Content = content;
-						rast.ContentOffset = nextChunkOffset + 7;
+						rast.ContentOffset = chunkEndOffset + 8;
 						rast.ContentLength = contentLength;
 						multiPalette = rast;
 					}
@@ -6177,7 +6178,7 @@ public class RECOIL
 				}
 				return DecodeIffUnpacked(unpacked, width, height, resolution, bitplanes, colors, camg, multiPalette);
 			}
-			contentOffset = nextChunkOffset;
+			contentOffset = chunkEndOffset + 1 & ~1; // round up to even bytes
 		}
 		return false;
 	}
