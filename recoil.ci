@@ -779,7 +779,7 @@ class PackBitsStream : RleStream
 		}
 		else if (b > 128) {
 			RepeatCount = 257 - b;
-			RepeatValue = ReadByte();
+			RepeatValue = ReadValue();
 		}
 		else
 			RepeatCount = 0;
@@ -1437,6 +1437,69 @@ class HimStream : RleStream
 			RepeatValue = -1;
 			return true;
 		}
+	}
+}
+
+class DeepStream : PackBitsStream
+{
+	int Components;
+	int[6] ComponentShift;
+
+	DeepStream()
+	{
+		Components = 0;
+	}
+
+	bool SetDpel(int chunkOffset, int chunkLength)
+	{
+		if (chunkLength < 8 // also rules out zero components
+		 || Content[chunkOffset + 8] != 0 || Content[chunkOffset + 9] != 0 || Content[chunkOffset + 10] != 0)
+			return false;
+		Components = Content[chunkOffset + 11];
+		if (Components > ComponentShift.Length || chunkLength != Components + 1 << 2)
+			return false;
+		for (int c = 0; c < Components; c++) {
+			int offset = chunkOffset + 12 + c * 4;
+			if (Content[offset] != 0 || Content[offset + 2] != 0 || Content[offset + 3] != 8)
+				return false;
+			int shift;
+			switch (Content[offset + 1]) {
+			case 1: // red
+				shift = 16;
+				break;
+			case 2: // green
+				shift = 8;
+				break;
+			case 3: // blue
+				shift = 0;
+				break;
+			case 4: // alpha
+			case 9: // mask (untested)
+			case 10: // zbuffer (untested)
+			case 11: // opacity (untested)
+			case 17: // density (unknown meaning)
+				shift = -1;
+				break;
+			default:
+				return false;
+			}
+			ComponentShift[c] = shift;
+		}
+		return true;
+	}
+
+	override int ReadValue()
+	{
+		int rgb = 0;
+		for (int c = 0; c < Components; c++) {
+			int b = ReadByte();
+			if (b < 0)
+				return -1;
+			int shift = ComponentShift[c];
+			if (shift >= 0)
+				rgb |= b << shift;
+		}
+		return rgb;
 	}
 }
 
@@ -5753,57 +5816,38 @@ public class RECOIL
 
 	bool DecodeDeep(byte[] content, int contentLength)
 	{
+		bool compressed = false;
 		int width = 0;
 		int height = 0;
 		RECOILResolution resolution = RECOILResolution.Amiga1x1;
-		int components = 0;
-		int[6] componentShift;
+		DeepStream() rle;
+		rle.Content = content;
 		for (int contentOffset = 12; contentOffset < contentLength - 7; ) {
 			int chunkLength = Get32BigEndian(content, contentOffset + 4);
 			int chunkEndOffset = contentOffset + 8 + chunkLength; // don't round yet, some files are of odd length
 			if (chunkEndOffset > contentLength || chunkEndOffset < 0)
 				break;
 			if (IsStringAt(content, contentOffset, "DGBL")) {
-				if (chunkLength < 8 || content[contentOffset + 12] != 0 || content[contentOffset + 13] != 0)
+				if (chunkLength < 8 || content[contentOffset + 12] != 0)
 					return false;
+				switch (content[contentOffset + 13]) {
+				case 0:
+					compressed = false;
+					break;
+				case 1:
+					compressed = true;
+					break;
+				default:
+					return false;
+				}
 				// not sure if DLOC is mandatory, get width and height here just in case
 				width = content[contentOffset + 8] << 8 | content[contentOffset + 9];
 				height = content[contentOffset + 10] << 8 | content[contentOffset + 11];
 				resolution = GetAmigaAspectRatio(content[contentOffset + 14], content[contentOffset + 15], resolution);
 			}
 			else if (IsStringAt(content, contentOffset, "DPEL")) {
-				if (chunkLength < 8)
+				if (!rle.SetDpel(contentOffset, chunkLength))
 					return false;
-				components = Get32BigEndian(content, contentOffset + 8);
-				if (components > componentShift.Length || chunkLength != components + 1 << 2)
-					return false;
-				for (int c = 0; c < components; c++) {
-					int offset = contentOffset + 12 + c * 4;
-					if (content[offset] != 0 || content[offset + 2] != 0 || content[offset + 3] != 8)
-						return false;
-					int shift;
-					switch (content[offset + 1]) {
-					case 1: // red
-						shift = 16;
-						break;
-					case 2: // green
-						shift = 8;
-						break;
-					case 3: // blue
-						shift = 0;
-						break;
-					case 4: // alpha
-					case 9: // mask (?)
-					case 10: // zbuffer (?)
-					case 11: // opacity (?)
-					case 17: // density
-						shift = -1;
-						break;
-					default:
-						return false;
-					}
-					componentShift[c] = shift;
-				}
 			}
 			else if (IsStringAt(content, contentOffset, "DLOC")) {
 				if (chunkLength < 4)
@@ -5812,18 +5856,15 @@ public class RECOIL
 				height = content[contentOffset + 10] << 8 | content[contentOffset + 11];
 			}
 			else if (IsStringAt(content, contentOffset, "DBOD")) {
-				if (components <= 0 || chunkLength != width * height * components || !SetScaledSize(width, height, resolution))
+				if (rle.Components <= 0 || !SetScaledSize(width, height, resolution))
 					return false;
-				contentOffset += 8;
+				rle.ContentOffset = contentOffset + 8;
+				rle.ContentLength = chunkEndOffset;
 				for (int y = 0; y < height; y++) {
 					for (int x = 0; x < width; x++) {
-						int rgb = 0;
-						for (int c = 0; c < components; c++) {
-							int shift = componentShift[c];
-							if (shift >= 0)
-								rgb |= content[contentOffset] << shift;
-							contentOffset++;
-						}
+						int rgb = compressed ? rle.ReadRle() : rle.ReadValue();
+						if (rgb < 0)
+							return false;
 						SetScaledPixel(x, y, rgb);
 					}
 				}
