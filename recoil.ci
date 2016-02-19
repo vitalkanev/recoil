@@ -1444,6 +1444,8 @@ class DeepStream : PackBitsStream
 {
 	int Components;
 	int[6] ComponentShift;
+	int CurrentByte; // delta compression only
+	int[RECOIL.MaxWidth] Line; // delta compression only
 
 	DeepStream()
 	{
@@ -1500,6 +1502,54 @@ class DeepStream : PackBitsStream
 				rgb |= b << shift;
 		}
 		return rgb;
+	}
+
+	int ReadNibble()
+	{
+		if (CurrentByte < 0) {
+			CurrentByte = ReadByte();
+			if (CurrentByte < 0)
+				return -1;
+			return CurrentByte >> 4;
+		}
+		int result = CurrentByte & 0xf;
+		CurrentByte = -1;
+		return result;
+	}
+
+	bool ReadDeltaLine(int width, int tvdcOffset)
+	{
+		for (int c = 0; c < Components; c++) {
+			int count = 0;
+			int value = 0;
+			CurrentByte = -1;
+			for (int x = 0; x < width; x++) {
+				if (count == 0) {
+					int i = ReadNibble();
+					if (i < 0)
+						return false;
+					int delta = Content[tvdcOffset + i * 2 + 1];
+					if (delta == 0) {
+						if (Content[tvdcOffset + i * 2] == 0) {
+							count = ReadNibble();
+							if (count < 0)
+								return false;
+						}
+					}
+					else
+						value = value + delta & 0xff;
+				}
+				else
+					count--;
+
+				int rgb = c == 0 ? 0 : Line[x];
+				int shift = ComponentShift[c];
+				if (shift >= 0)
+					rgb |= value << shift;
+				Line[x] = rgb;
+			}
+		}
+		return true;
 	}
 }
 
@@ -5816,12 +5866,13 @@ public class RECOIL
 
 	bool DecodeDeep(byte[] content, int contentLength)
 	{
-		bool compressed = false;
 		int width = 0;
 		int height = 0;
+		int compression = 0;
 		RECOILResolution resolution = RECOILResolution.Amiga1x1;
 		DeepStream() rle;
 		rle.Content = content;
+		int tvdcOffset = -1;
 		for (int contentOffset = 12; contentOffset < contentLength - 7; ) {
 			int chunkLength = Get32BigEndian(content, contentOffset + 4);
 			int chunkEndOffset = contentOffset + 8 + chunkLength; // don't round yet, some files are of odd length
@@ -5830,19 +5881,10 @@ public class RECOIL
 			if (IsStringAt(content, contentOffset, "DGBL")) {
 				if (chunkLength < 8 || content[contentOffset + 12] != 0)
 					return false;
-				switch (content[contentOffset + 13]) {
-				case 0:
-					compressed = false;
-					break;
-				case 1:
-					compressed = true;
-					break;
-				default:
-					return false;
-				}
 				// not sure if DLOC is mandatory, get width and height here just in case
 				width = content[contentOffset + 8] << 8 | content[contentOffset + 9];
 				height = content[contentOffset + 10] << 8 | content[contentOffset + 11];
+				compression = content[contentOffset + 13];
 				resolution = GetAmigaAspectRatio(content[contentOffset + 14], content[contentOffset + 15], resolution);
 			}
 			else if (IsStringAt(content, contentOffset, "DPEL")) {
@@ -5855,14 +5897,36 @@ public class RECOIL
 				width = content[contentOffset + 8] << 8 | content[contentOffset + 9];
 				height = content[contentOffset + 10] << 8 | content[contentOffset + 11];
 			}
+			else if (IsStringAt(content, contentOffset, "TVDC")) {
+				if (chunkLength != 32)
+					return false;
+				tvdcOffset = contentOffset + 8;
+			}
 			else if (IsStringAt(content, contentOffset, "DBOD")) {
 				if (rle.Components <= 0 || !SetScaledSize(width, height, resolution))
 					return false;
 				rle.ContentOffset = contentOffset + 8;
 				rle.ContentLength = chunkEndOffset;
 				for (int y = 0; y < height; y++) {
+					if (compression == 5) {
+						if (tvdcOffset < 0 || !rle.ReadDeltaLine(width, tvdcOffset))
+							return false;
+					}
 					for (int x = 0; x < width; x++) {
-						int rgb = compressed ? rle.ReadRle() : rle.ReadValue();
+						int rgb;
+						switch (compression) {
+						case 0:
+							rgb = rle.ReadValue();
+							break;
+						case 1:
+							rgb = rle.ReadRle();
+							break;
+						case 5:
+							rgb = rle.Line[x];
+							break;
+						default:
+							return false;
+						}
 						if (rgb < 0)
 							return false;
 						SetScaledPixel(x, y, rgb);
