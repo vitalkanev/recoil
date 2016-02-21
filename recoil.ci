@@ -5903,6 +5903,9 @@ public class RECOIL
 				tvdcOffset = contentOffset + 8;
 			}
 			else if (IsStringAt(content, contentOffset, "DBOD")) {
+				// reject multi-layer pictures instead of decoding just the first layer
+				if (chunkEndOffset + 8 < contentLength && IsStringAt(content, chunkEndOffset, "DBOD"))
+					return false;
 				if (rle.Components <= 0 || !SetScaledSize(width, height, resolution))
 					return false;
 				rle.ContentOffset = contentOffset + 8;
