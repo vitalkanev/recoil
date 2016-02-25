@@ -5876,7 +5876,7 @@ public class RECOIL
 		for (int contentOffset = 12; contentOffset < contentLength - 7; ) {
 			int chunkLength = Get32BigEndian(content, contentOffset + 4);
 			int chunkEndOffset = contentOffset + 8 + chunkLength; // don't round yet, some files are of odd length
-			if (chunkEndOffset > contentLength || chunkEndOffset < 0)
+			if (chunkEndOffset > contentLength || chunkEndOffset < contentOffset + 8)
 				break;
 			if (IsStringAt(content, contentOffset, "DGBL")) {
 				if (chunkLength < 8 || content[contentOffset + 12] != 0)
@@ -6106,7 +6106,7 @@ public class RECOIL
 		while (contentOffset < contentLength - 7) {
 			int chunkLength = Get32BigEndian(content, contentOffset + 4);
 			int chunkEndOffset = contentOffset + 8 + chunkLength;
-			if (chunkEndOffset > contentLength || chunkEndOffset < 0)
+			if (chunkEndOffset > contentLength || chunkEndOffset < contentOffset + 8)
 				break;
 			if (IsStringAt(content, contentOffset, "BMHD") && chunkLength >= 16) {
 				width = content[contentOffset + 8] << 8 | content[contentOffset + 9];
