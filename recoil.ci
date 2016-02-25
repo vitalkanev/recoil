@@ -1242,7 +1242,7 @@ class CaStream : RleStream
 		int unpackedOffset = 0;
 		for (int block = 0; block < blocks; block++) {
 			int nextContentOffset = contentOffset + RECOIL.Get32BigEndian(content, block << 2);
-			if (nextContentOffset > contentLength || nextContentOffset < 0
+			if (nextContentOffset > contentLength || nextContentOffset < contentOffset
 			 || !UnpackCa(content, contentOffset, nextContentOffset, unpacked, unpackedOffset))
 				return false;
 			contentOffset = nextContentOffset;
@@ -5153,7 +5153,7 @@ public class RECOIL
 
 		// palettes
 		int contentOffset = 12 + Get32BigEndian(content, 4);
-		if (contentOffset < 0)
+		if (contentOffset < 12)
 			return false;
 		for (int unpackedOffset = 32000; unpackedOffset < 51104; ) {
 			if (contentOffset >= contentLength - 1)
@@ -5212,7 +5212,7 @@ public class RECOIL
 		BitStream() bitStream;
 		bitStream.Content = content;
 		bitStream.ContentOffset = 12 + Get32BigEndian(content, 4);
-		if (bitStream.ContentOffset < 0)
+		if (bitStream.ContentOffset < 12)
 			return false;
 		bitStream.ContentLength = contentLength;
 		for (int unpackedOffset = 32000; unpackedOffset < 51104; ) {
