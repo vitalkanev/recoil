@@ -3173,8 +3173,8 @@ public class RECOIL
 	static int GetG3R3B2Color(int c)
 	{
 		// 0bGGGRRRBB -> 0bRRRRRRRRGGGGGGGGBBBBBBBB
-		return (c & 0x1c) * 0x48 >> 3 << 16
-			| (c >> 5) * 0x48 >> 1 << 8
+		return (c & 0x1c) * 0x49 >> 3 << 16
+			| (c >> 5) * 0x49 >> 1 << 8
 			| (c & 3) * 0x55;
 	}
 
