@@ -410,6 +410,7 @@
 		<format width="256" height="192" colors="15"><ext>MLT</ext></format>
 		<format width="256" height="192" colors="8" frames="3"><ext>RGB</ext></format>
 		<format width="256" height="192" colors="15"><ext>SCR</ext></format>
+		<format name="ULAplus" width="256" height="192" colors="64"><ext>SCR</ext></format>
 		<format name="ZX-Paintbrush" width="256" height="192" colors="15"><ext>ZXP</ext></format>
 	</platform>
 </formats>

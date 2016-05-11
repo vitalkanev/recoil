@@ -3154,6 +3154,37 @@ public class RECOIL
 
 	// ZX Spectrum formats.
 
+	void SetZx()
+	{
+		SetSize(256, 192, RECOILResolution.Spectrum1x1);
+		// The original ZX Spectrum palette has 16 entries: 8 normal + 8 bright.
+		// Here we layout them as ULAplus 64-entry palette
+		// so that we can share code in DecodeZx.
+		for (int i = 0; i < 64; i++) {
+			int rgb = (i >> 1 & 1) * 0xff0000
+				| (i >> 2 & 1) * 0x00ff00
+				| (i & 1) * 0x0000ff;
+			if ((i & 0x10) == 0) // not bright
+				rgb &= 0xcdcdcd;
+			ContentPalette[i] = rgb;
+		}
+	}
+
+	static int GetG3R3B2Color(int c)
+	{
+		// 0bGGGRRRBB -> 0bRRRRRRRRGGGGGGGGBBBBBBBB
+		return (c & 0x1c) * 0x48 >> 3 << 16
+			| (c >> 5) * 0x48 >> 1 << 8
+			| (c & 3) * 0x55;
+	}
+
+	void SetUlaPlus(byte[] content, int paletteOffset)
+	{
+		SetSize(256, 192, RECOILResolution.Spectrum1x1);
+		for (int i = 0; i < 64; i++)
+			ContentPalette[i] = GetG3R3B2Color(content[paletteOffset + i]);
+	}
+
 	const int ZxBitmapCheckerboard = -3;
 	const int ZxBitmapHlr = -2;
 	const int ZxBitmapLinear = -1;
@@ -3171,24 +3202,6 @@ public class RECOIL
 		for (int y = 0; y < 192; y++) {
 			for (int x = 0; x < 256; x++) {
 				int col = x >> 3;
-				const int[16] palette = {
-					0x000000,
-					0x0000cd,
-					0xcd0000,
-					0xcd00cd,
-					0x00cd00,
-					0x00cdcd,
-					0xcdcd00,
-					0xcdcdcd,
-					0x000000,
-					0x0000ff,
-					0xff0000,
-					0xff00ff,
-					0x00ff00,
-					0x00ffff,
-					0xffff00,
-					0xffffff
-				};
 				int c;
 				switch (bitmapOffset) {
 				case ZxBitmapCheckerboard:
@@ -3239,8 +3252,7 @@ public class RECOIL
 						break;
 					}
 					a = content[a + col];
-					c = c == 0 ? a >> 3 & 0xf : (a >> 3 & 8) | (a & 7);
-					c = palette[c];
+					c = ContentPalette[(a >> 2 & 0x30) | (c == 0 ? 8 | (a >> 3 & 7) : a & 7)];
 				}
 				Pixels[pixelsOffset + (y << 8) + x] = c;
 			}
@@ -3251,16 +3263,24 @@ public class RECOIL
 	{
 		switch (contentLength) {
 		case 6144:
-			SetSize(256, 192, RECOILResolution.Spectrum1x1);
+			SetZx();
 			DecodeZx(content, 0, -1, ZxAttributesNone, 0);
 			return true;
 		case 6912:
 		case 6913: // border color - ignore
-			SetSize(256, 192, RECOILResolution.Spectrum1x1);
+			SetZx();
+			DecodeZx(content, 0, 0x1800, ZxAttributes8x8, 0);
+			return true;
+		case 6976:
+			SetUlaPlus(content, 0x1b00);
 			DecodeZx(content, 0, 0x1800, ZxAttributes8x8, 0);
 			return true;
 		case 12288:
-			SetSize(256, 192, RECOILResolution.Spectrum1x1);
+			SetZx();
+			DecodeZx(content, 0, 0x1800, ZxAttributesTimex, 0);
+			return true;
+		case 12352: // untested, based on https://web.archive.org/web/20140315185332/http://www.zxshed.co.uk/sinclairfaq/index.php5?title=ULAplus
+			SetUlaPlus(content, 0x3000);
 			DecodeZx(content, 0, 0x1800, ZxAttributesTimex, 0);
 			return true;
 		default:
@@ -3272,7 +3292,7 @@ public class RECOIL
 	{
 		if (contentLength != 9216)
 			return false;
-		SetSize(256, 192, RECOILResolution.Spectrum1x1);
+		SetZx();
 		DecodeZx(content, 0, 0x1800, ZxAttributes8x2, 0);
 		return true;
 	}
@@ -3281,7 +3301,7 @@ public class RECOIL
 	{
 		if (contentLength != 12288)
 			return false;
-		SetSize(256, 192, RECOILResolution.Spectrum1x1);
+		SetZx();
 		DecodeZx(content, bitmapOffset, 0x1800, ZxAttributes8x1, 0);
 		return true;
 	}
@@ -3290,7 +3310,7 @@ public class RECOIL
 	{
 		if (contentLength != 13824)
 			return false;
-		SetSize(256, 192, RECOILResolution.Spectrum1x1);
+		SetZx();
 		DecodeZx(content, 0, 0x1800, ZxAttributes8x8, 0);
 		DecodeZx(content, 0x1b00, 0x3300, ZxAttributes8x8, 256 * 192);
 		return ApplyBlend();
@@ -3308,7 +3328,7 @@ public class RECOIL
 		case 1:
 			if (contentLength != 19456)
 				return false;
-			SetSize(256, 192, RECOILResolution.Spectrum1x1);
+			SetZx();
 			DecodeZx(content, 0x100, 0x4900, ZxAttributesMg1, 0);
 			DecodeZx(content, 0x1900, 0x4a80, ZxAttributesMg1, 256 * 192);
 			return ApplyBlend();
@@ -3326,7 +3346,7 @@ public class RECOIL
 		}
 		if (contentLength != 256 + 2 * 6144 + (2 * 6144 >> attributesMode))
 			return false;
-		SetSize(256, 192, RECOILResolution.Spectrum1x1);
+		SetZx();
 		DecodeZx(content, 0x100, 0x3100, attributesMode, 0);
 		DecodeZx(content, 0x1900, 0x3100 + (6144 >> attributesMode), attributesMode, 256 * 192);
 		return ApplyBlend();
@@ -3336,7 +3356,7 @@ public class RECOIL
 	{
 		if (contentLength != 768)
 			return false;
-		SetSize(256, 192, RECOILResolution.Spectrum1x1);
+		SetZx();
 		DecodeZx(content, ZxBitmapCheckerboard, 0, ZxAttributes8x8, 0);
 		return true;
 	}
@@ -3347,7 +3367,7 @@ public class RECOIL
 		if (contentLength != 1628 || content[0] != 0x76 || content[1] != 0xaf || content[2] != 0xd3 || content[3] != 0xfe
 		 || content[4] != 0x21 || content[5] != 0x00 || content[6] != 0x58)
 			return false;
-		SetSize(256, 192, RECOILResolution.Spectrum1x1);
+		SetZx();
 		DecodeZx(content, ZxBitmapHlr, 0x5c, ZxAttributes8x8, 0);
 		DecodeZx(content, ZxBitmapHlr, 0x35c, ZxAttributes8x8, 256 * 192);
 		return ApplyBlend();
@@ -3447,7 +3467,7 @@ public class RECOIL
 
 		for (int y = 0; y < 192; y++) {
 			if (y == 24 && s.IsEof()) {
-				SetSize(256, 192, RECOILResolution.Spectrum1x1);
+				SetZx();
 				DecodeZx(scr, ZxBitmapLinear, 0x1800, ZxAttributes8x8, 0);
 				return true;
 			}
@@ -3466,7 +3486,7 @@ public class RECOIL
 
 		if (!s.IsEof())
 			return false;
-		SetSize(256, 192, RECOILResolution.Spectrum1x1);
+		SetZx();
 		DecodeZx(scr, ZxBitmapLinear, 0x1800, ZxAttributes8x1, 0);
 		return true;
 	}
@@ -3631,16 +3651,11 @@ public class RECOIL
 		content = UnpackSr(content, contentLength, unpacked);
 		if (content == null)
 			return false;
-		int[256] palette;
-		for (int c = 0; c < 256; c++) {
-			// 0bGGGRRRBB -> 0bRRRRRRRRGGGGGGGGBBBBBBBB
-			palette[c] = (c & 0x1c) * 0x48 >> 3 << 16
-				| (c >> 5) * 0x48 >> 1 << 8
-				| (c & 3) * 0x55;
-		}
+		for (int c = 0; c < 256; c++)
+			ContentPalette[c] = GetG3R3B2Color(c);
 		SetSize(256, 212, RECOILResolution.Msx1x1);
 		for (int i = 0; i < 212 * 256; i++)
-			Pixels[i] = palette[content[7 + i]];
+			Pixels[i] = ContentPalette[content[7 + i]];
 		return true;
 	}
 
