@@ -3508,8 +3508,7 @@ public class RECOIL
 
 	bool DecodeSc2(byte[] content, int contentLength)
 	{
-		// TODO: 16391-byte SC2 files with sprites
-		if (contentLength != 14343 || content[0] != 0xfe || !ExpectMsxHeader(content, 0x3800))
+		if (contentLength < 14343 || content[0] != 0xfe || !ExpectMsxHeader(content, contentLength - 7))
 			return false;
 		SetSize(256, 192, RECOILResolution.Msx1x1);
 		for (int y = 0; y < 192; y++) {
