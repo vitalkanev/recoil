@@ -3588,16 +3588,19 @@ public class RECOIL
 		return DecodeMsx5(content);
 	}
 
+	void SetMsxCompanionPalette(string filename, string upperExt, string lowerExt)
+	{
+		byte[32] palette;
+		SetMsxPalette(ReadCompanionFile(filename, upperExt, lowerExt, palette, 32) == 32 ? palette : Msx1Palette, 0);
+	}
+
 	bool DecodeSr5(string filename, byte[] content, int contentLength)
 	{
 		if (contentLength != 27143 && contentLength != 27144)
 			return false;
 		if (content[0] != 0xfe || GetMsxHeader(content) != 0x6a00)
 			return false;
-		byte[32] palette;
-		if (ReadCompanionFile(filename, "PL5", "pl5", palette, 32) != 32)
-			return false;
-		SetMsxPalette(palette, 0);
+		SetMsxCompanionPalette(filename, "PL5", "pl5");
 		return DecodeMsx5(content);
 	}
 
@@ -3652,10 +3655,7 @@ public class RECOIL
 		content = UnpackSr(content, contentLength, unpacked);
 		if (content == null)
 			return false;
-		byte[32] palette;
-		if (ReadCompanionFile(filename, "PL7", "pl7", palette, 32) != 32)
-			return false;
-		SetMsxPalette(palette, 0);
+		SetMsxCompanionPalette(filename, "PL7", "pl7");
 		return DecodeMsx7(content);
 	}
 
