@@ -3493,6 +3493,25 @@ public class RECOIL
 
 	// MSX formats.
 
+	const byte[32] Msx1Palette = {
+		0x00, 0x0,
+		0x00, 0x0,
+		0x11, 0x6,
+		0x33, 0x7,
+		0x17, 0x1,
+		0x27, 0x3,
+		0x51, 0x1,
+		0x27, 0x6,
+		0x71, 0x1,
+		0x73, 0x3,
+		0x61, 0x6,
+		0x64, 0x6,
+		0x11, 0x4,
+		0x65, 0x2,
+		0x55, 0x5,
+		0x77, 0x7
+	};
+
 	static int GetMsxHeader(byte[] content)
 	{
 		if (content[1] != 0 || content[2] != 0 || content[5] != 0 || content[6] != 0)
@@ -3506,45 +3525,21 @@ public class RECOIL
 		return value == expected || value == expected - 1;
 	}
 
-	bool DecodeSc2(byte[] content, int contentLength)
+	static bool IsMsxPalette(byte[] content, int contentOffset)
 	{
-		if (contentLength < 14343 || content[0] != 0xfe || !ExpectMsxHeader(content, contentLength - 7))
-			return false;
-		SetSize(256, 192, RECOILResolution.Msx1x1);
-		for (int y = 0; y < 192; y++) {
-			int fontOffset = 7 + ((y &0xc0) << 5);
-			for (int x = 0; x < 256; x++) {
-				int b = fontOffset + (content[0x1807 + ((y & ~7) << 2) + (x >> 3)] << 3) + (y & 7);
-				int c = content[0x2000 + b];
-				// TODO: 0xRB 0x0G, 3 bits per component palette at 0x1b87.
-				// Use the following default if all zero.
-				// All files I have either don't specify the palette (all zeros)
-				// or specify a palette that is identical to the default one.
-				const int[16] palette = {
-					0x000000,
-					0x000000,
-					0x3eb849,
-					0x74d07d,
-					0x5955e0,
-					0x8076f1,
-					0xb95e51,
-					0x65dbef,
-					0xdb6559,
-					0xff897d,
-					0xccc35e,
-					0xded087,
-					0x3aa241,
-					0xb766b5,
-					0xcccccc,
-					0xffffff
-				};
-				Pixels[(y << 8) + x] = palette[(content[b] >> (~x & 7) & 1) == 0 ? c & 0xf : c >> 4];
-			}
+		int ored = 0;
+		for (int i = 0; i < 16; i++) {
+			// 0xRB 0x0G, 3 bits per component 
+			int rb = content[contentOffset + (i << 1)];
+			int g = content[contentOffset + (i << 1) + 1];
+			if ((rb & 0x88) != 0 || (g & 0xf8) != 0)
+				return false;
+			ored |= rb | g;
 		}
-		return true;
+		return ored != 0;
 	}
 
-	void SetMsx2Palette(byte[] content, int contentOffset)
+	void SetMsxPalette(byte[] content, int contentOffset)
 	{
 		for (int i = 0; i < 16; i++) {
 			// 0xRB 0x0G, 3 bits per component 
@@ -3553,6 +3548,26 @@ public class RECOIL
 			int rgb = (rb & 0x70) << 12 | (rb & 7) | (g & 7) << 8;
 			ContentPalette[i] = rgb << 5 | rgb << 2 | (rgb >> 1 & 0x030303);
 		}
+	}
+
+	bool DecodeSc2(byte[] content, int contentLength)
+	{
+		if (contentLength < 14343 || content[0] != 0xfe || !ExpectMsxHeader(content, contentLength - 7))
+			return false;
+		if (IsMsxPalette(content, 0x1b87))
+			SetMsxPalette(content, 0x1b87);
+		else
+			SetMsxPalette(Msx1Palette, 0);
+		SetSize(256, 192, RECOILResolution.Msx1x1);
+		for (int y = 0; y < 192; y++) {
+			int fontOffset = 7 + ((y &0xc0) << 5);
+			for (int x = 0; x < 256; x++) {
+				int b = fontOffset + (content[0x1807 + ((y & ~7) << 2) + (x >> 3)] << 3) + (y & 7);
+				int c = content[0x2000 + b];
+				Pixels[(y << 8) + x] = ContentPalette[(content[b] >> (~x & 7) & 1) == 0 ? c & 0xf : c >> 4];
+			}
+		}
+		return true;
 	}
 
 	bool DecodeMsx5(byte[] content)
@@ -3569,7 +3584,7 @@ public class RECOIL
 	{
 		if (contentLength != 30375 || !ExpectMsxHeader(content, 0x76a0))
 			return false;
-		SetMsx2Palette(content, 0x7687);
+		SetMsxPalette(content, 0x7687);
 		return DecodeMsx5(content);
 	}
 
@@ -3582,7 +3597,7 @@ public class RECOIL
 		byte[32] palette;
 		if (ReadCompanionFile(filename, "PL5", "pl5", palette, 32) != 32)
 			return false;
-		SetMsx2Palette(palette, 0);
+		SetMsxPalette(palette, 0);
 		return DecodeMsx5(content);
 	}
 
@@ -3627,7 +3642,7 @@ public class RECOIL
 	{
 		if (contentLength < 64264 || !ExpectMsxHeader(content, 0xfb00))
 			return false;
-		SetMsx2Palette(content, 0xfa87);
+		SetMsxPalette(content, 0xfa87);
 		return DecodeMsx7(content);
 	}
 
@@ -3640,7 +3655,7 @@ public class RECOIL
 		byte[32] palette;
 		if (ReadCompanionFile(filename, "PL7", "pl7", palette, 32) != 32)
 			return false;
-		SetMsx2Palette(palette, 0);
+		SetMsxPalette(palette, 0);
 		return DecodeMsx7(content);
 	}
 
@@ -3706,7 +3721,7 @@ public class RECOIL
 			return false;
 		if (GetMsxHeader(content) < 0xd400)
 			return false;
-		SetMsx2Palette(content, 0xfa87);
+		SetMsxPalette(content, 0xfa87);
 		SetSize(256, 212, RECOILResolution.Msx1x1);
 		for (int i = 0; i < 212 * 256; i++) {
 			int c = content[7 + i];
