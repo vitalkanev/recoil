@@ -289,9 +289,9 @@ abstract class MultiPalette : BitStream
 		return rgb * 0x11; // 0xRRGGBB
 	}
 
-	void SetOcsPalette(RECOIL recoil, int contentOffset)
+	void SetOcsPalette(RECOIL recoil, int contentOffset, int colors)
 	{
-		for (int c = 0; c < 16; c++) {
+		for (int c = 0; c < colors; c++) {
 			int r = Content[contentOffset++];
 			int gb = Content[contentOffset++];
 			recoil.ContentPalette[c] = GetOcsColor(r, gb);
@@ -320,9 +320,11 @@ class RastPalette : MultiPalette
 
 class CtblPalette : MultiPalette
 {
+	int Colors;
+
 	override void SetLinePalette(RECOIL recoil, int y)
 	{
-		SetOcsPalette(recoil, ContentOffset + (y << 5));
+		SetOcsPalette(recoil, ContentOffset + (y * Colors << 1), Colors);
 	}
 }
 
@@ -330,7 +332,7 @@ class ShamLacePalette : MultiPalette
 {
 	override void SetLinePalette(RECOIL recoil, int y)
 	{
-		SetOcsPalette(recoil, ContentOffset + (y >> 1 << 5));
+		SetOcsPalette(recoil, ContentOffset + (y >> 1 << 5), 16);
 	}
 }
 
@@ -6193,16 +6195,20 @@ public class RECOIL
 				camg = Get32BigEndian(content, contentOffset + 8);
 				resolution = GetCamgAspectRatio(camg, resolution);
 			}
-			else if ((IsStringAt(content, contentOffset, "CTBL") || IsStringAt(content, contentOffset, "BEAM")) && chunkLength == height << 5) {
-				ctbl.Content = content;
-				ctbl.ContentOffset = contentOffset + 8;
-				multiPalette = ctbl;
+			else if ((IsStringAt(content, contentOffset, "CTBL") || IsStringAt(content, contentOffset, "BEAM")) && height > 0) {
+				ctbl.Colors = (chunkLength >> 1) / height;
+				if (ctbl.Colors <= 32) {
+					ctbl.Content = content;
+					ctbl.ContentOffset = contentOffset + 8;
+					multiPalette = ctbl;
+				}
 			}
 			else if (IsStringAt(content, contentOffset, "SHAM") && chunkLength >= 2
 				&& content[contentOffset + 8] == 0 && content[contentOffset + 9] == 0) {
 				if (chunkLength == 2 + (height << 5)) {
 					ctbl.Content = content;
 					ctbl.ContentOffset = contentOffset + 10;
+					ctbl.Colors = 16;
 					multiPalette = ctbl;
 				}
 				else if (chunkLength == 2 + (height >> 1 << 5)) {
