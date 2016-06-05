@@ -3614,8 +3614,7 @@ public class RECOIL
 			rle.Content = content;
 			rle.ContentOffset = 7;
 			rle.ContentLength = contentLength;
-			if (!rle.Unpack(unpacked, 7, 1, 54272))
-				return null;
+			rle.Unpack(unpacked, 7, 1, 54272); // ignore decompression errors because some SR7 are truncated
 			return unpacked;
 		default:
 			return null;
@@ -3645,7 +3644,7 @@ public class RECOIL
 
 	bool DecodeSr7(string filename, byte[] content, int contentLength)
 	{
-		byte[54279] unpacked;
+		byte[54279] unpacked = 0;
 		content = UnpackSr(content, contentLength, unpacked);
 		if (content == null)
 			return false;
@@ -3655,7 +3654,7 @@ public class RECOIL
 
 	bool DecodeSc8(byte[] content, int contentLength)
 	{
-		byte[54279] unpacked;
+		byte[54279] unpacked = 0;
 		content = UnpackSr(content, contentLength, unpacked);
 		if (content == null)
 			return false;
@@ -3699,7 +3698,7 @@ public class RECOIL
 
 	bool DecodeScc(byte[] content, int contentLength)
 	{
-		byte[54279] unpacked;
+		byte[54279] unpacked = 0;
 		content = UnpackSr(content, contentLength, unpacked);
 		if (content == null)
 			return false;
