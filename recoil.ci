@@ -3521,12 +3521,6 @@ public class RECOIL
 		return content[3] | content[4] << 8;
 	}
 
-	static bool ExpectMsxHeader(byte[] content, int expected)
-	{
-		int value = GetMsxHeader(content);
-		return value == expected || value == expected - 1;
-	}
-
 	static bool IsMsxPalette(byte[] content, int contentOffset)
 	{
 		int ored = 0;
@@ -3554,7 +3548,7 @@ public class RECOIL
 
 	bool DecodeSc2(byte[] content, int contentLength)
 	{
-		if (contentLength < 14343 || content[0] != 0xfe || !ExpectMsxHeader(content, contentLength - 7))
+		if (contentLength < 14343 || content[0] != 0xfe || GetMsxHeader(content) < 0x37ff)
 			return false;
 		if (IsMsxPalette(content, 0x1b87))
 			SetMsxPalette(content, 0x1b87);
@@ -3584,7 +3578,7 @@ public class RECOIL
 
 	bool DecodeSc5(byte[] content, int contentLength)
 	{
-		if (contentLength != 30375 || !ExpectMsxHeader(content, 0x76a0))
+		if (contentLength < 30375 || content[0] != 0xfe || GetMsxHeader(content) < 0x769f)
 			return false;
 		SetMsxPalette(content, 0x7687);
 		return DecodeMsx5(content);
@@ -3598,9 +3592,7 @@ public class RECOIL
 
 	bool DecodeSr5(string filename, byte[] content, int contentLength)
 	{
-		if (contentLength != 27143 && contentLength != 27144)
-			return false;
-		if (content[0] != 0xfe || GetMsxHeader(content) != 0x6a00)
+		if (contentLength < 27143 || content[0] != 0xfe || GetMsxHeader(content) < 0x69ff)
 			return false;
 		SetMsxCompanionPalette(filename, "PL5", "pl5");
 		return DecodeMsx5(content);
@@ -3612,7 +3604,7 @@ public class RECOIL
 			return null;
 		switch (content[0]) {
 		case 0xfe:
-			if (contentLength < 54279 || !ExpectMsxHeader(content, 0xd400))
+			if (contentLength < 54279 || GetMsxHeader(content) < 0xd3ff)
 				return null;
 			return content;
 		case 0xfd:
@@ -3645,7 +3637,7 @@ public class RECOIL
 
 	bool DecodeSc7(byte[] content, int contentLength)
 	{
-		if (contentLength < 64264 || !ExpectMsxHeader(content, 0xfb00))
+		if (contentLength < 64167 || content[0] != 0xfe || GetMsxHeader(content) < 0xfa9f)
 			return false;
 		SetMsxPalette(content, 0xfa87);
 		return DecodeMsx7(content);
@@ -3719,9 +3711,7 @@ public class RECOIL
 
 	bool DecodeSca(byte[] content, int contentLength)
 	{
-		if (contentLength != 64263 && contentLength != 64384)
-			return false;
-		if (GetMsxHeader(content) < 0xd400)
+		if (contentLength < 64167 || content[0] != 0xfe || GetMsxHeader(content) < 0xd3ff)
 			return false;
 		SetMsxPalette(content, 0xfa87);
 		SetSize(256, 212, RECOILResolution.Msx1x1);
