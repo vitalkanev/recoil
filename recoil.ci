@@ -59,6 +59,7 @@ enum RECOILResolution
 	Msx1x2,
 	Oric1x1,
 	Pc1x1,
+	Pc981x1,
 	SamCoupe1x1,
 	Spectrum1x1,
 	Trs1x2,
@@ -2278,6 +2279,8 @@ public class RECOIL
 			return "Oric";
 		case RECOILResolution.Pc1x1:
 			return "PC";
+		case RECOILResolution.Pc981x1:
+			return "NEC PC-98";
 		case RECOILResolution.SamCoupe1x1:
 			return "SAM Coupe";
 		case RECOILResolution.Spectrum1x1:
@@ -3898,6 +3901,85 @@ public class RECOIL
 				if ((x & 1) == 0)
 					c >>= 4;
 				Pixels[(y << 8) + x] = palette[c & 0xf];
+			}
+		}
+		return true;
+	}
+
+	// NEC PC-98 formats.
+
+	bool DecodeMag(byte[] content, int contentLength)
+	{
+		int headerOffset = 0;
+		do {
+			if (headerOffset >= contentLength)
+				return false;
+		} while (content[headerOffset++] != 0x1a);
+		if (headerOffset + 50 >= contentLength
+		 || content[headerOffset] != 0
+		 || content[headerOffset + 2] != 0
+		 || content[headerOffset + 3] != 0) // TODO: different modes
+			return false;
+		int width = content[headerOffset + 8] - content[headerOffset + 4] + (content[headerOffset + 9] - content[headerOffset + 5] << 8) + 1;
+		if ((width & 7) != 0)
+			return false;
+		int height = content[headerOffset + 10] - content[headerOffset + 6] + (content[headerOffset + 11] - content[headerOffset + 7] << 8) + 1;
+		if (!SetSize(width, height, RECOILResolution.Pc981x1))
+			return false;
+		BitStream() haveDelta;
+		haveDelta.Content = content;
+		haveDelta.ContentOffset = headerOffset + Get32LittleEndian(content, headerOffset + 12);
+		haveDelta.ContentLength = contentLength;
+		int deltaOffset = headerOffset + Get32LittleEndian(content, headerOffset + 16);
+		int colorOffset = headerOffset + Get32LittleEndian(content, headerOffset + 24);
+		if (haveDelta.ContentOffset < 0 || deltaOffset < 0 || colorOffset < 0)
+			return false;
+		for (int c = 0; c < 16; c++) {
+			int offset = headerOffset + 32 + c * 3;
+			ContentPalette[c] = content[offset + 1] << 16 | content[offset] << 8 | content[offset + 2]; // GRB
+		}
+		byte[MaxWidth + 7 >> 3] deltas = 0;
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x += 4) {
+				int delta = deltas[x >> 3];
+				if ((x & 4) == 0) {
+					switch (haveDelta.ReadBit()) {
+					case 0:
+						break;
+					case 1:
+						if (deltaOffset >= contentLength)
+							return false;
+						deltas[x >> 3] = delta ^= content[deltaOffset++];
+						break;
+					default:
+						return false;
+					}
+					delta >>= 4;
+				}
+				else
+					delta &= 0xf;
+				if (delta == 0) {
+					if (colorOffset + 1 >= contentLength)
+						return false;
+					int c = content[colorOffset++];
+					Pixels[y * width + x] = ContentPalette[c >> 4];
+					Pixels[y * width + x + 1] = ContentPalette[c & 0xf];
+					c = content[colorOffset++];
+					Pixels[y * width + x + 2] = ContentPalette[c >> 4];
+					Pixels[y * width + x + 3] = ContentPalette[c & 0xf];
+				}
+				else {
+					const byte[16] deltaX = { 0, 4, 8, 16, 0, 4, 0, 4, 8, 0, 4, 8, 0, 4, 8, 0 };
+					const byte[16] deltaY = { 0, 0, 0, 0, 1, 1, 2, 2, 2, 4, 4, 4, 8, 8, 8, 16 };
+					int sourceX = x - deltaX[delta];
+					int sourceY = y - deltaY[delta];
+					if (sourceX < 0 || sourceY < 0)
+						return false;
+					Pixels[y * width + x] = Pixels[sourceY * width + sourceX];
+					Pixels[y * width + x + 1] = Pixels[sourceY * width + sourceX + 1];
+					Pixels[y * width + x + 2] = Pixels[sourceY * width + sourceX + 2];
+					Pixels[y * width + x + 3] = Pixels[sourceY * width + sourceX + 3];
+				}
 			}
 		}
 		return true;
@@ -9953,6 +10035,7 @@ public class RECOIL
 		case PackExt("LUM"):
 		case PackExt("MAC"):
 		case PackExt("PNTG"):
+		case PackExt("MAG"):
 		case PackExt("MAP"):
 		case PackExt("MAX"):
 		case PackExt("MBG"):
@@ -10393,6 +10476,8 @@ public class RECOIL
 		case PackExt("MAC"):
 		case PackExt("PNTG"):
 			return DecodeMac(content, contentLength);
+		case PackExt("MAG"):
+			return DecodeMag(content, contentLength);
 		case PackExt("MAP"):
 			return DecodeEnvision(content, contentLength)
 				|| DecodeEnvisionPC(content, contentLength);
