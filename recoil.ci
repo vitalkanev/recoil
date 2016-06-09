@@ -2528,6 +2528,22 @@ public class RECOIL
 	/// RGB palette decoded from the image file.
 	int[256] ContentPalette;
 
+	void DecodeBytes(byte[] content, int contentOffset)
+	{
+		int pixelsLength = Width * Height;
+		for (int i = 0; i < pixelsLength; i++)
+			Pixels[i] = ContentPalette[content[contentOffset + i]];
+	}
+
+	void DecodeNibbles(byte[] content, int contentOffset)
+	{
+		int pixelsLength = Width * Height;
+		for (int i = 0; i < pixelsLength; i++) {
+			int b = content[contentOffset + (i >> 1)];
+			Pixels[i] = ContentPalette[(i & 1) == 0 ? b >> 4 : b & 0xf];
+		}
+	}
+
 	/// Decodes Atari ST/Falcon interleaved bitplanes.
 	/// Each 16 pixels are encoded in N consecutive 16-bit words.
 	void DecodeBitplanes(byte[] content, int contentOffset, int contentStride, int bitplanes, int pixelsOffset, int width, int height)
@@ -3572,10 +3588,7 @@ public class RECOIL
 	bool DecodeMsx5(byte[] content)
 	{
 		SetSize(256, 212, RECOILResolution.Msx1x1);
-		for (int i = 0; i < 212 * 256; i++) {
-			int b = content[7 + (i >> 1)];
-			Pixels[i] = ContentPalette[(i & 1) == 0 ? b >> 4 : b & 0xf];
-		}
+		DecodeNibbles(content, 7);
 		return true;
 	}
 
@@ -3664,8 +3677,7 @@ public class RECOIL
 		for (int c = 0; c < 256; c++)
 			ContentPalette[c] = GetG3R3B2Color(c);
 		SetSize(256, 212, RECOILResolution.Msx1x1);
-		for (int i = 0; i < 212 * 256; i++)
-			Pixels[i] = ContentPalette[content[7 + i]];
+		DecodeBytes(content, 7);
 		return true;
 	}
 
@@ -3908,24 +3920,8 @@ public class RECOIL
 
 	// NEC PC-98 formats.
 
-	bool DecodeMag(byte[] content, int contentLength)
+	static bool UnpackMag(byte[] content, int headerOffset, int contentLength, int bytesPerLine, int height, byte[] unpacked)
 	{
-		int headerOffset = 0;
-		do {
-			if (headerOffset >= contentLength)
-				return false;
-		} while (content[headerOffset++] != 0x1a);
-		if (headerOffset + 50 >= contentLength
-		 || content[headerOffset] != 0
-		 || content[headerOffset + 2] != 0
-		 || content[headerOffset + 3] != 0) // TODO: different modes
-			return false;
-		int width = content[headerOffset + 8] - content[headerOffset + 4] + (content[headerOffset + 9] - content[headerOffset + 5] << 8) + 1;
-		if ((width & 7) != 0)
-			return false;
-		int height = content[headerOffset + 10] - content[headerOffset + 6] + (content[headerOffset + 11] - content[headerOffset + 7] << 8) + 1;
-		if (!SetSize(width, height, RECOILResolution.Pc981x1))
-			return false;
 		BitStream() haveDelta;
 		haveDelta.Content = content;
 		haveDelta.ContentOffset = headerOffset + Get32LittleEndian(content, headerOffset + 12);
@@ -3934,22 +3930,18 @@ public class RECOIL
 		int colorOffset = headerOffset + Get32LittleEndian(content, headerOffset + 24);
 		if (haveDelta.ContentOffset < 0 || deltaOffset < 0 || colorOffset < 0)
 			return false;
-		for (int c = 0; c < 16; c++) {
-			int offset = headerOffset + 32 + c * 3;
-			ContentPalette[c] = content[offset + 1] << 16 | content[offset] << 8 | content[offset + 2]; // GRB
-		}
 		byte[MaxWidth + 7 >> 3] deltas = 0;
 		for (int y = 0; y < height; y++) {
-			for (int x = 0; x < width; x += 4) {
-				int delta = deltas[x >> 3];
-				if ((x & 4) == 0) {
+			for (int x = 0; x < bytesPerLine; x += 2) {
+				int delta = deltas[x >> 2];
+				if ((x & 2) == 0) {
 					switch (haveDelta.ReadBit()) {
 					case 0:
 						break;
 					case 1:
 						if (deltaOffset >= contentLength)
 							return false;
-						deltas[x >> 3] = delta ^= content[deltaOffset++];
+						deltas[x >> 2] = delta ^= content[deltaOffset++];
 						break;
 					default:
 						return false;
@@ -3961,27 +3953,74 @@ public class RECOIL
 				if (delta == 0) {
 					if (colorOffset + 1 >= contentLength)
 						return false;
-					int c = content[colorOffset++];
-					Pixels[y * width + x] = ContentPalette[c >> 4];
-					Pixels[y * width + x + 1] = ContentPalette[c & 0xf];
-					c = content[colorOffset++];
-					Pixels[y * width + x + 2] = ContentPalette[c >> 4];
-					Pixels[y * width + x + 3] = ContentPalette[c & 0xf];
+					unpacked[y * bytesPerLine + x] = content[colorOffset];
+					unpacked[y * bytesPerLine + x + 1] = content[colorOffset + 1];
+					colorOffset +=2;
 				}
 				else {
-					const byte[16] deltaX = { 0, 4, 8, 16, 0, 4, 0, 4, 8, 0, 4, 8, 0, 4, 8, 0 };
+					const byte[16] deltaX = { 0, 2, 4, 8, 0, 2, 0, 2, 4, 0, 2, 4, 0, 2, 4, 0 };
 					const byte[16] deltaY = { 0, 0, 0, 0, 1, 1, 2, 2, 2, 4, 4, 4, 8, 8, 8, 16 };
 					int sourceX = x - deltaX[delta];
 					int sourceY = y - deltaY[delta];
 					if (sourceX < 0 || sourceY < 0)
 						return false;
-					Pixels[y * width + x] = Pixels[sourceY * width + sourceX];
-					Pixels[y * width + x + 1] = Pixels[sourceY * width + sourceX + 1];
-					Pixels[y * width + x + 2] = Pixels[sourceY * width + sourceX + 2];
-					Pixels[y * width + x + 3] = Pixels[sourceY * width + sourceX + 3];
+					unpacked[y * bytesPerLine + x] = unpacked[sourceY * bytesPerLine + sourceX];
+					unpacked[y * bytesPerLine + x +1] = unpacked[sourceY * bytesPerLine + sourceX + 1];
 				}
 			}
 		}
+		return true;
+	}
+
+	bool DecodeMag(byte[] content, int contentLength)
+	{
+		int headerOffset = 0;
+		do {
+			if (headerOffset >= contentLength)
+				return false;
+		} while (content[headerOffset++] != 0x1a);
+		if (headerOffset + (32 + 16 * 3) > contentLength
+		 || content[headerOffset] != 0
+		 || content[headerOffset + 2] != 0)
+			return false;
+		int width = content[headerOffset + 8] - content[headerOffset + 4] + (content[headerOffset + 9] - content[headerOffset + 5] << 8) + 1;
+		int height = content[headerOffset + 10] - content[headerOffset + 6] + (content[headerOffset + 11] - content[headerOffset + 7] << 8) + 1;
+		int bytesPerLine;
+		int colors;
+		switch (content[headerOffset + 3]) {
+		case 0:
+			if ((width & 7) != 0)
+				return false;
+			bytesPerLine = width >> 1;
+			colors = 16;
+			break;
+		case 0x80:
+			if (headerOffset + (32 + 256 * 3) >= contentLength
+			 || (width & 3) != 0)
+				return false;
+			bytesPerLine = width;
+			colors = 256;
+			break;
+		default:
+			return false;
+		}
+		if (!SetSize(width, height, RECOILResolution.Pc981x1))
+			return false;
+
+		byte[] unpacked = new byte[bytesPerLine * height];
+		if (!UnpackMag(content, headerOffset, contentLength, bytesPerLine, height, unpacked)) {
+			delete unpacked;
+			return false;
+		}
+		for (int c = 0; c < colors; c++) {
+			int offset = headerOffset + 32 + c * 3;
+			ContentPalette[c] = content[offset + 1] << 16 | content[offset] << 8 | content[offset + 2]; // GRB
+		}
+		if (colors == 16)
+			DecodeNibbles(unpacked, 0);
+		else
+			DecodeBytes(unpacked, 0);
+		delete unpacked;
 		return true;
 	}
 

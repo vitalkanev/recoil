@@ -372,7 +372,7 @@
 		<format name="Graph Saurus" width="256" height="212" colors="256"><ext>SR8</ext></format>
 	</platform>
 	<platform name="NEC PC-98" href="https://en.wikipedia.org/wiki/PC-9800_Series">
-		<format name="Maki-chan Graphics" colors="16"><ext>MAG</ext></format>
+		<format name="Maki-chan Graphics" colors="256"><ext>MAG</ext></format>
 	</platform>
 	<platform name="Oric" href="http://en.wikipedia.org/wiki/Oric">
 		<format name="6x8 font" colors="2"><ext>CHS</ext></format>
