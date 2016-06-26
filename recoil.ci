@@ -3941,7 +3941,8 @@ public class RECOIL
 					case 1:
 						if (deltaOffset >= contentLength)
 							return false;
-						deltas[x >> 2] = delta ^= content[deltaOffset++];
+						delta ^= content[deltaOffset++];
+						deltas[x >> 2] = delta;
 						break;
 					default:
 						return false;
