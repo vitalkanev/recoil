@@ -1,7 +1,4 @@
-*.dll
-*.o
 /recoil.ico
-/Xrecoil.usr
-/RECOIL.plg
 /COPYING.txt
+/i686
 /x86_64

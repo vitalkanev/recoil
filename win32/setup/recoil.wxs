@@ -39,9 +39,9 @@
 		<Icon Id="recoil.ico" SourceFile="recoil.ico" />
 		<Property Id="ARPHELPLINK" Value="http://recoil.sourceforge.net/" />
 		<Property Id="ARPPRODUCTICON" Value="recoil.ico" />
-		<WixVariable Id="WixUILicenseRtf" Value="license.rtf" />
-		<WixVariable Id="WixUIDialogBmp" Value="dialog.jpg" />
-		<WixVariable Id="WixUIBannerBmp" Value="banner.jpg" />
+		<WixVariable Id="WixUILicenseRtf" Value="setup\license.rtf" />
+		<WixVariable Id="WixUIDialogBmp" Value="setup\dialog.jpg" />
+		<WixVariable Id="WixUIBannerBmp" Value="setup\banner.jpg" />
 
 		<UI Id="MyWixUI_FeatureTree">
 			<!-- customized WixUI_FeatureTree from Wix 3.0 - my changes commented -->
@@ -220,7 +220,7 @@
 			<Directory Id="$(var.PROGRAM_FILES_FOLDER)">
 				<Directory Id="RECOIL.DIR" Name="RECOIL">
 					<Component Id="recoilwin.exe" Win64="no">
-						<File Name="recoilwin.exe" Source="recoilwin.exe" Checksum="yes" KeyPath="yes" />
+						<File Name="recoilwin.exe" Source="i686\recoilwin.exe" Checksum="yes" KeyPath="yes" />
 					</Component>
 					<Component Id="recoilwin.ext">
 						<RegistryValue Root="HKCR" Key="recoil.file" Name="recoilwin" Type="integer" Value="1" KeyPath="yes" />
@@ -236,7 +236,7 @@
 					</Component>
 
 					<Component Id="recoil2png.exe" Win64="no">
-						<File Name="recoil2png.exe" Source="recoil2png.exe" Checksum="yes" KeyPath="yes" />
+						<File Name="recoil2png.exe" Source="i686\recoil2png.exe" Checksum="yes" KeyPath="yes" />
 					</Component>
 					<Component Id="path" Guid="496125A6-884C-4A43-B075-268A248EF3E5">
 						<Environment Id="path" Action="set" Name="Path" Part="last" Permanent="no" System="yes" Value="[RECOIL.DIR]" />
@@ -244,7 +244,7 @@
 					</Component>
 
 					<Component Id="thumbrecoil.dll" Win64="no">
-						<File Name="thumbrecoil.dll" Source="thumbrecoil.dll" Checksum="yes" KeyPath="yes">
+						<File Name="thumbrecoil.dll" Source="i686\thumbrecoil.dll" Checksum="yes" KeyPath="yes">
 							<Class Id="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Context="InprocServer32" Description="RECOIL Thumbnail Handler" ThreadingModel="both" />
 						</File>
 						<RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Approved" Name="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Value="RECOIL Thumbnail Handler" Type="string" Action="write" />
@@ -294,7 +294,7 @@
 				<Directory Id="XNVIEW.DIR" Name="XnView">
 					<Directory Id="XNVIEWPLUG.DIR" Name="PlugIns">
 						<Component Id="Xrecoil.usr" Win64="no">
-							<File Name="Xrecoil.usr" Source="Xrecoil.usr" Checksum="yes" KeyPath="yes" />
+							<File Name="Xrecoil.usr" Source="i686\Xrecoil.usr" Checksum="yes" KeyPath="yes" />
 						</Component>
 					</Directory>
 					<Component Id="xnview_recoil.ext">
@@ -313,7 +313,7 @@
 
 				<Directory Id="IMCODERS.DIR" Name="ImageMagick-RECOIL"><!-- fake Name -->
 					<Component Id="IM_MOD_RL_recoil_.dll" Win64="no">
-						<File Name="IM_MOD_RL_recoil_.dll" Source="IM_MOD_RL_recoil_.dll" Checksum="yes" KeyPath="yes" />
+						<File Name="IM_MOD_RL_recoil_.dll" Source="i686\IM_MOD_RL_recoil_.dll" Checksum="yes" KeyPath="yes" />
 						<?foreach EXT in $(var.RECOIL_EXTS)?>
 							<util:XmlConfig Id="coder.xml_$(var.EXT)_Element_create" On="install" Action="create" Node="element" ElementPath="/codermap" Name="coder" File="[CODER.XML]" />
 							<util:XmlConfig Id="coder.xml_$(var.EXT)_Magick_create" ElementPath="coder.xml_$(var.EXT)_Element_create" Name="magick" Value="$(var.EXT)" File="[CODER.XML]" />
@@ -339,7 +339,7 @@
 				<Directory Id="IMAGINE.DIR" Name="Imagine">
 					<Directory Id="IMAGINEPLUG.DIR" Name="Plugin">
 						<Component Id="RECOIL.plg" Win64="no">
-							<File Name="RECOIL.plg" Source="RECOIL.plg" Checksum="yes" KeyPath="yes" />
+							<File Name="RECOIL.plg" Source="i686\RECOIL.plg" Checksum="yes" KeyPath="yes" />
 						</Component>
 					</Directory>
 					<Component Id="imagine.ext">
@@ -378,7 +378,7 @@
 				<Directory Id="PAINTDOTNET.DIR" Name="Paint.NET">
 					<Directory Id="PAINTDOTNETFILETYPES.DIR" Name="FileTypes">
 						<Component Id="RecoilPaintDotNet.dll">
-							<File Name="RecoilPaintDotNet.dll" Source="RecoilPaintDotNet.dll" Checksum="yes" KeyPath="yes" />
+							<File Name="RecoilPaintDotNet.dll" Source="paint.net\RecoilPaintDotNet.dll" Checksum="yes" KeyPath="yes" />
 						</Component>
 					</Directory>
 				</Directory>
