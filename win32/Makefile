@@ -1,116 +1,122 @@
 VERSION = 3.4.0
 
 CITO = cito
-XSLTPROC = xsltproc -o $@
+XSLTPROC = xsltproc -o $@ $^
 CFLAGS = -Wall -O2 -s
+CSOURCES = $(patsubst %/,-I%,$(sort $(dir $(filter %.h,$^)))) $(^:%.h=)
 LDFLAGS_DLL = -shared -Wl,--kill-at -Wl,-subsystem,windows
-CC = $(@D)-w64-mingw32-gcc -o $@ $(CFLAGS)
-CXX = $(@D)-w64-mingw32-g++ -o $@ $(CFLAGS)
+CC = $(@D)-w64-mingw32-gcc -o $@ $(CFLAGS) $(CSOURCES)
+CXX = $(@D)-w64-mingw32-g++ -o $@ $(CFLAGS) $(CSOURCES)
 WINDRES = $(@D)-w64-mingw32-windres -o $@
 CSC = C:/Windows/Microsoft.NET/Framework/v3.5/csc.exe -nologo -o+ -out:$@
 RM = rm -f
-UNIX2DOS = unix2dos
+UNIX2DOS = unix2dos <$< >$@
 GIT = git
 TAR = tar
-SEVENZIP = 7z a -mx=9 -bd
+SEVENZIP = 7z a -mx=9 -bd -bso0
 CANDLE = candle -ext WixUtilExtension -nologo -o $@
 LIGHT = light -ext WixUtilExtension -nologo -o $@ -spdb
 MAGICK = magick
 IMAGEMAGICK_i686_DIR = c:\Program Files (x86)\ImageMagick-6.8.9-Q16
 IMAGEMAGICK_x86_64_DIR = c:\Program Files\ImageMagick-6.8.9-Q16
 PAINT_NET_DIR = c:\Program Files\Paint.NET
+ifdef V
+DO = mkdir -p $(@D) && 
+else
+DO = @echo $@ && mkdir -p $(@D) && 
+endif
 
-WIN32_BIN = i686/recoil2png.exe i686/IM_MOD_RL_recoil_.dll i686/Xrecoil.usr i686/recoilwin.exe i686/RECOIL.plg paint.net/RecoilPaintDotNet.dll
+WIN32_BIN = i686/recoil2png.exe i686/IM_MOD_RL_recoil_.dll i686/Xrecoil.usr i686/recoilwin.exe i686/thumbrecoil.dll i686/RECOIL.plg paint.net/RecoilPaintDotNet.dll
+WIN64_BIN = $(WIN32_BIN) x86_64/IM_MOD_RL_recoil_.dll x86_64/thumbrecoil.dll x86_64/RECOIL.plg64
 
-all: $(WIN32_BIN) i686/thumbrecoil.dll
+all: $(WIN32_BIN)
 
 i686/recoil2png.exe: ../recoil2png.c ../pngsave.c ../pngsave.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
-	mkdir -p $(@D) && $(CC) -I.. ../recoil2png.c ../pngsave.c ../recoil-stdio.c ../recoil.c -static -lpng16 -lz
+	$(DO)$(CC) -static -lpng16 -lz
 
 i686/IM_MOD_RL_recoil_.dll x86_64/IM_MOD_RL_recoil_.dll: ../imagemagick/recoilmagick.c ../formats.h ../recoil.c ../recoil.h
-	mkdir -p $(@D) && $(CC) $(LDFLAGS_DLL) -I.. ../imagemagick/recoilmagick.c ../recoil.c -I"$(IMAGEMAGICK_$(@D)_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_$(@D)_DIR)"
+	$(DO)$(CC) $(LDFLAGS_DLL) -I"$(IMAGEMAGICK_$(@D)_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_$(@D)_DIR)"
  
 i686/Xrecoil.usr: xnview/Xrecoil.c ../formats.h recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h
-	mkdir -p $(@D) && $(CC) $(LDFLAGS_DLL) -I. -I.. xnview/Xrecoil.c recoil-win32.c ../recoil.c
+	$(DO)$(CC) $(LDFLAGS_DLL)
 
 i686/recoilwin.exe: recoilwin/recoilwin.c recoilwin/recoilwin.h recoil-win32.c recoil-win32.h i686/recoilwin-res.o ../pngsave.c ../pngsave.h ../formats.h ../recoil.c ../recoil.h
-	mkdir -p $(@D) && $(CC) -I. -I.. -Wl,-subsystem,windows recoilwin/recoilwin.c recoil-win32.c i686/recoilwin-res.o ../pngsave.c ../recoil.c -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng16 -lz
+	$(DO)$(CC) -Wl,-subsystem,windows -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng16 -lz
 
 i686/recoilwin-res.o: recoilwin/recoilwin.rc recoilwin/recoilwin.h recoil.ico ../recoil.h
-	mkdir -p $(@D) && $(WINDRES) -I.. recoilwin/recoilwin.rc
+	$(DO)$(WINDRES) -I.. $<
 
 i686/thumbrecoil.dll x86_64/thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../formats.h recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h
-	mkdir -p $(@D) && $(CXX) $(LDFLAGS_DLL) -I. -I.. -shared -Wl,-subsystem,windows -Wl,--kill-at thumbrecoil/thumbrecoil.cpp recoil-win32.c ../recoil.c -static -lgdi32 -lole32 -luuid
+	$(DO)$(CXX) $(LDFLAGS_DLL) -static -lgdi32 -lole32 -luuid
 
 i686/RECOIL.plg x86_64/RECOIL.plg64: imagine/recoilimagine.c ../formats.h ../recoil.c ../recoil.h
-	mkdir -p $(@D) && $(CC) $(LDFLAGS_DLL) -I.. imagine/recoilimagine.c ../recoil.c
+	$(DO)$(CC) $(LDFLAGS_DLL)
 
 paint.net/RecoilPaintDotNet.dll: paint.net/RecoilPaintDotNet.cs paint.net/RecoilFileTypeFactory.cs paint.net/RECOIL.cs
-	$(CSC) -t:library paint.net\\RecoilPaintDotNet.cs paint.net\\RecoilFileTypeFactory.cs paint.net\\RECOIL.cs -r:"$(PAINT_NET_DIR)\PaintDotNet.Base.dll" -r:"$(PAINT_NET_DIR)\PaintDotNet.Data.dll"
+	$(DO)$(CSC) -t:library $(subst /,\\,$^) -r:"$(PAINT_NET_DIR)\PaintDotNet.Base.dll" -r:"$(PAINT_NET_DIR)\PaintDotNet.Data.dll"
 
 paint.net/RecoilFileTypeFactory.cs: paint.net/RecoilFileTypeFactory.cs.xsl ../formats.xml
-	$(XSLTPROC) paint.net/RecoilFileTypeFactory.cs.xsl ../formats.xml
+	$(DO)$(XSLTPROC)
 
 paint.net/RECOIL.cs: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../zx81.fnt
-	$(CITO) -o $@ -I .. -n Recoil $<
+	$(DO)$(CITO) -o $@ -I .. -n Recoil $<
 
 ../formats.h: ../formats.h.xsl ../formats.xml
-	$(XSLTPROC) ../formats.h.xsl ../formats.xml
+	$(DO)$(XSLTPROC)
 
 # http://www.cmcrossroads.com/article/rules-multiple-outputs-gnu-make
 %.c %.h: %.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../zx81.fnt
-	$(CITO) -o $*.c -I .. $<
+	$(DO)$(CITO) -o $*.c -I .. $<
 
 recoil.ico: ../recoil-512x512.png
-	$(MAGICK) $< -resize 48x48 $@
+	$(DO)$(MAGICK) $< -resize 48x48 $@
 
 COPYING.txt: ../COPYING
-	$(UNIX2DOS) <$< >$@
+	$(DO)$(UNIX2DOS)
 
 setup: ../../recoil-$(VERSION)-win32.msi
 
 x64-setup: ../../recoil-$(VERSION)-win64.msi
 
-../../recoil-$(VERSION)-win32.msi: i686/recoil.wixobj recoil.ico setup/dialog.jpg setup/banner.jpg setup/license.rtf $(WIN32_BIN) i686/thumbrecoil.dll
-	$(LIGHT) -ext WixUIExtension -sice:ICE69 $<
+../../recoil-$(VERSION)-win32.msi: i686/recoil.wixobj recoil.ico setup/dialog.jpg setup/banner.jpg setup/license.rtf $(WIN32_BIN)
+	$(DO)$(LIGHT) -ext WixUIExtension -sice:ICE69 $<
 
-../../recoil-$(VERSION)-win64.msi: x86_64/recoil.wixobj recoil.ico setup/dialog.jpg setup/banner.jpg setup/license.rtf $(WIN32_BIN) i686/thumbrecoil.dll x86_64/thumbrecoil.dll x86_64/IM_MOD_RL_recoil_.dll x86_64/RECOIL.plg64
-	$(LIGHT) -ext WixUIExtension -sice:ICE69 -sice:ICE80 $<
+../../recoil-$(VERSION)-win64.msi: x86_64/recoil.wixobj recoil.ico setup/dialog.jpg setup/banner.jpg setup/license.rtf $(WIN64_BIN)
+	$(DO)$(LIGHT) -ext WixUIExtension -sice:ICE69 -sice:ICE80 $<
 
 i686/recoil.wixobj x86_64/recoil.wixobj: setup/recoil.wxs setup/formats.wxi
-	mkdir -p $(@D) && $(CANDLE) $(and $(@D:i686=), -arch x64) -dVERSION=$(VERSION) $<
+	$(DO)$(CANDLE) $(and $(@D:i686=), -arch x64) -dVERSION=$(VERSION) $<
 
 setup/formats.wxi: setup/formats.wxi.xsl ../formats.xml
-	$(XSLTPROC) setup/formats.wxi.xsl ../formats.xml
+	$(DO)$(XSLTPROC)
 
 setup/dialog.jpg: ../recoil-512x512.png
-	$(MAGICK) $< -resize 148 -extent 493x312-16-82 -strip $@
+	$(DO)$(MAGICK) $< -resize 148 -extent 493x312-16-82 -strip $@
 
 setup/banner.jpg: ../recoil-512x512.png
-	$(MAGICK) $< -resize 48 -extent 493x58-425-5 -strip $@
+	$(DO)$(MAGICK) $< -resize 48 -extent 493x58-425-5 -strip $@
 
 ../MANIFEST:
-	test -e ../.git && ( \
+	$(DO)test -e ../.git && ( \
 		($(GIT) --git-dir=../.git ls-files | grep -vF .gitignore \
 			&& echo MANIFEST && echo recoil.c && echo recoil.h) | sort >$@; \
 	)
 
-srcdist: ../MANIFEST ../recoil.c ../recoil.h
-	$(RM) ../../recoil-$(VERSION).tar.gz
-	cd .. && $(TAR) -c --numeric-owner --owner=0 --group=0 --mode=644 -T MANIFEST --transform=s,,recoil-$(VERSION)/, | $(SEVENZIP) -tgzip -si ../recoil-$(VERSION).tar.gz
+srcdist: ../../recoil-$(VERSION).tar.gz
+
+../../recoil-$(VERSION).tar.gz: ../MANIFEST ../recoil.c ../recoil.h
+	$(DO)$(RM) $@ && $(TAR) -c --numeric-owner --owner=0 --group=0 --mode=644 -T ../MANIFEST -C .. --transform=s,,recoil-$(VERSION)/, | $(SEVENZIP) -tgzip -si $@
 
 dist: srcdist ../../recoil-$(VERSION)-win32.zip setup x64-setup
 
 ../../recoil-$(VERSION)-win32.zip: COPYING.txt $(WIN32_BIN)
-	$(RM) ../../recoil-$(VERSION)-win32.zip
-	$(SEVENZIP) -tzip ../../recoil-$(VERSION)-win32.zip COPYING.txt $(WIN32_BIN:%=./%)
+	$(DO)$(RM) $@ && $(SEVENZIP) -tzip $@ COPYING.txt $(WIN32_BIN:%=./%)
 
 clean:
-	$(RM) $(WIN32_BIN) i686/thumbrecoil.dll i686/recoilwin-res.o recoil.ico COPYING.txt \
-		setup/formats.wxi setup/dialog.jpg setup/banner.jpg i686/recoil.wixobj x86_64/recoil.wixobj \
-		x86_64/IM_MOD_RL_recoil_.dll x86_64/thumbrecoil.dll x86_64/RECOIL.plg64 paint.net/RecoilPaintDotNet.dll \
+	$(RM) $(WIN64_BIN) i686/recoilwin-res.o recoil.ico COPYING.txt \
+		i686/recoil.wixobj x86_64/recoil.wixobj setup/formats.wxi setup/dialog.jpg setup/banner.jpg \
 		paint.net/RecoilFileTypeFactory.cs paint.net/RECOIL.cs ../formats.h
 
-.PHONY: all clean setup x64-setup ../MANIFEST srcdist dist
+.PHONY: all clean setup x64-setup ../MANIFEST srcdist dist ../../recoil-$(VERSION).tar.gz
 
 .DELETE_ON_ERROR:
