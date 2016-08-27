@@ -18,6 +18,7 @@ TAR = tar
 SEVENZIP = 7z a -mx=9 -bd
 CANDLE = candle -ext WixUtilExtension -nologo -o $@
 LIGHT = light -ext WixUtilExtension -nologo -o $@ -spdb
+MAGICK = magick
 IMAGEMAGICK_X64_INST_DIR = c:\Program Files\ImageMagick-6.8.9-Q16
 PAINT_NET_DIR = c:\Program Files\Paint.NET
 
@@ -75,7 +76,7 @@ paint.net/RECOIL.cs: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../
 	$(CITO) -o $*.c -I .. $<
 
 recoil.ico: ../recoil-512x512.png
-	convert $< -resize 48x48 $@
+	$(MAGICK) $< -resize 48x48 $@
 
 COPYING.txt: ../COPYING
 	$(UNIX2DOS) <$< >$@
@@ -92,10 +93,10 @@ setup/formats.wxi: setup/formats.wxi.xsl ../formats.xml
 	$(XSLTPROC) setup/formats.wxi.xsl ../formats.xml
 
 setup/dialog.jpg: ../recoil-512x512.png
-	convert $< -resize 148 -extent 493x312-16-82 -strip $@
+	$(MAGICK) $< -resize 148 -extent 493x312-16-82 -strip $@
 
 setup/banner.jpg: ../recoil-512x512.png
-	convert $< -resize 48 -extent 493x58-425-5 -strip $@
+	$(MAGICK) $< -resize 48 -extent 493x58-425-5 -strip $@
 
 x64-setup: ../../recoil-$(VERSION)-win64.msi
 
