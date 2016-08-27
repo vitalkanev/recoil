@@ -267,7 +267,7 @@
 					<?endif?>
 					<?if $(sys.BUILDARCH) = x64?>
 						<Component Id="thumbrecoil64.dll" Win64="yes">
-							<File Name="thumbrecoil64.dll" Source="x64\thumbrecoil.dll" Checksum="yes" KeyPath="yes">
+							<File Name="thumbrecoil64.dll" Source="x86_64\thumbrecoil.dll" Checksum="yes" KeyPath="yes">
 								<Class Id="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Context="InprocServer32" Description="RECOIL Thumbnail Handler" ThreadingModel="both" />
 							</File>
 							<RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Approved" Name="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Value="RECOIL Thumbnail Handler" Type="string" Action="write" />
@@ -325,7 +325,7 @@
 				<?if $(sys.BUILDARCH) = x64?>
 					<Directory Id="IMCODERS64.DIR" Name="ImageMagick64-RECOIL"><!-- fake Name -->
 						<Component Id="IM_MOD_RL_recoil_64.dll" Win64="yes">
-							<File Id="IM_MOD_RL_recoil_64.dll" Name="IM_MOD_RL_recoil_.dll" Source="x64\IM_MOD_RL_recoil_.dll" Checksum="yes" KeyPath="yes" />
+							<File Id="IM_MOD_RL_recoil_64.dll" Name="IM_MOD_RL_recoil_.dll" Source="x86_64\IM_MOD_RL_recoil_.dll" Checksum="yes" KeyPath="yes" />
 							<?foreach EXT in $(var.RECOIL_EXTS)?>
 								<util:XmlConfig Id="coder64.xml_$(var.EXT)_Element_create" On="install" Action="create" Node="element" ElementPath="/codermap" Name="coder" File="[CODER64.XML]" />
 								<util:XmlConfig Id="coder64.xml_$(var.EXT)_Magick_create" ElementPath="coder64.xml_$(var.EXT)_Element_create" Name="magick" Value="$(var.EXT)" File="[CODER64.XML]" />
@@ -357,7 +357,7 @@
 					<?if $(sys.BUILDARCH) = x64?>
 						<Directory Id="IMAGINEPLUG64.DIR" Name="Plugin">
 							<Component Id="RECOIL.plg64" Win64="yes">
-								<File Name="RECOIL.plg64" Source="x64\RECOIL.plg64" Checksum="yes" KeyPath="yes" />
+								<File Name="RECOIL.plg64" Source="x86_64\RECOIL.plg64" Checksum="yes" KeyPath="yes" />
 							</Component>
 						</Directory>
 						<Component Id="imagine64.ext">
