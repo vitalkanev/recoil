@@ -1,7 +1,7 @@
 /*
  * recoilwin.c - Windows API port of RECOIL
  *
- * Copyright (C) 2009-2015  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2016  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -22,7 +22,6 @@
  */
 
 #include <windows.h>
-#define _WIN32_IE	0x0300
 #include <commctrl.h>
 #include <stdio.h>
 #include <string.h>

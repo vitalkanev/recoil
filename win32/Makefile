@@ -2,14 +2,13 @@ VERSION = 3.4.0
 
 CITO = cito
 XSLTPROC = xsltproc -o $@
-RECOIL_CC = mingw32-gcc -s -O2 -Wall -o $@ -I..
+RECOIL_CC = i686-w64-mingw32-gcc -s -O2 -Wall -o $@ -I..
 RECOIL_CC_DLL = $(RECOIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
-RECOIL_GPP = mingw32-g++ -static -s -O2 -Wall -o $@ -I..
-WINDRES = windres -o $@
+RECOIL_GPP = i686-w64-mingw32-g++ -static -s -O2 -Wall -o $@ -I..
+WINDRES = i686-w64-mingw32-windres -o $@
 X64_RECOIL_CC = x86_64-w64-mingw32-gcc -s -O2 -Wall -o $@ -I..
 X64_RECOIL_CC_DLL = $(X64_RECOIL_CC) -shared -Wl,--kill-at -Wl,-subsystem,windows
 X64_RECOIL_GPP = x86_64-w64-mingw32-g++ -static -s -O2 -Wall -o $@ -I..
-X64_WINDRES = x86_64-w64-mingw32-windres -o $@
 CSC = C:/Windows/Microsoft.NET/Framework/v3.5/csc.exe -nologo -o+ -out:$@
 RM = rm -f
 UNIX2DOS = unix2dos
@@ -19,7 +18,8 @@ SEVENZIP = 7z a -mx=9 -bd
 CANDLE = candle -ext WixUtilExtension -nologo -o $@
 LIGHT = light -ext WixUtilExtension -nologo -o $@ -spdb
 MAGICK = magick
-IMAGEMAGICK_X64_INST_DIR = c:\Program Files\ImageMagick-6.8.9-Q16
+IMAGEMAGICK_32_DIR = c:\Program Files (x86)\ImageMagick-6.8.9-Q16
+IMAGEMAGICK_64_DIR = c:\Program Files\ImageMagick-6.8.9-Q16
 PAINT_NET_DIR = c:\Program Files\Paint.NET
 
 WIN32_BIN = recoil2png.exe IM_MOD_RL_recoil_.dll Xrecoil.usr recoilwin.exe RECOIL.plg RecoilPaintDotNet.dll
@@ -27,20 +27,20 @@ WIN32_BIN = recoil2png.exe IM_MOD_RL_recoil_.dll Xrecoil.usr recoilwin.exe RECOI
 all: $(WIN32_BIN) thumbrecoil.dll
 
 recoil2png.exe: ../recoil2png.c ../pngsave.c ../pngsave.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
-	$(RECOIL_CC) ../recoil2png.c ../pngsave.c ../recoil-stdio.c ../recoil.c -static -lpng -lz
+	$(RECOIL_CC) ../recoil2png.c ../pngsave.c ../recoil-stdio.c ../recoil.c -static -lpng16 -lz
 
 IM_MOD_RL_recoil_.dll: ../imagemagick/recoilmagick.c ../formats.h ../recoil.c ../recoil.h
-	$(RECOIL_CC_DLL) ../imagemagick/recoilmagick.c ../recoil.c -lCORE_RL_magick_
+	$(RECOIL_CC_DLL) ../imagemagick/recoilmagick.c ../recoil.c -I"$(IMAGEMAGICK_32_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_32_DIR)"
  
 x64/IM_MOD_RL_recoil_.dll: ../imagemagick/recoilmagick.c ../formats.h ../recoil.c ../recoil.h
 	test -d x64 || mkdir x64
-	$(X64_RECOIL_CC_DLL) ../imagemagick/recoilmagick.c ../recoil.c -I"$(IMAGEMAGICK_X64_INST_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_X64_INST_DIR)"
+	$(X64_RECOIL_CC_DLL) ../imagemagick/recoilmagick.c ../recoil.c -I"$(IMAGEMAGICK_64_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_64_DIR)"
 
 Xrecoil.usr: xnview/Xrecoil.c ../formats.h recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h
 	$(RECOIL_CC_DLL) -I. xnview/Xrecoil.c recoil-win32.c ../recoil.c
 
 recoilwin.exe: recoilwin/recoilwin.c recoilwin/recoilwin.h recoil-win32.c recoil-win32.h recoilwin/recoilwin-res.o ../pngsave.c ../pngsave.h ../formats.h ../recoil.c ../recoil.h
-	$(RECOIL_CC) -I. -Wl,-subsystem,windows recoilwin/recoilwin.c recoil-win32.c recoilwin/recoilwin-res.o ../pngsave.c ../recoil.c -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng -lz
+	$(RECOIL_CC) -I. -Wl,-subsystem,windows recoilwin/recoilwin.c recoil-win32.c recoilwin/recoilwin-res.o ../pngsave.c ../recoil.c -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng16 -lz
 
 recoilwin/recoilwin-res.o: recoilwin/recoilwin.rc recoilwin/recoilwin.h recoil.ico ../recoil.h
 	$(WINDRES) -I .. recoilwin/recoilwin.rc

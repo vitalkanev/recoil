@@ -1,7 +1,7 @@
 /*
  * thumbrecoil.cpp - Windows thumbnail provider for RECOIL
  *
- * Copyright (C) 2011-2015  Piotr Fusik
+ * Copyright (C) 2011-2016  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -28,44 +28,7 @@
 
 #include <windows.h>
 #include <objidl.h>
-
-#undef INTERFACE
-
-#ifdef __MINGW64__
-
 #include <shobjidl.h>
-
-#else
-// missing just in 32-bit MinGW
-
-#define IEIFLAG_CACHE 2
-
-const IID IID_IExtractImage =
-	{ 0xbb2e617c, 0x0920, 0x11d1, { 0x9a, 0x0b, 0x00, 0xc0, 0x4f, 0xc2, 0xd6, 0xc1 } };
-#define INTERFACE IExtractImage
-DECLARE_INTERFACE_(IExtractImage, IUnknown)
-{
-	STDMETHOD(QueryInterface)(THIS_ REFIID, PVOID *) PURE;
-	STDMETHOD_(ULONG, AddRef)(THIS) PURE;
-	STDMETHOD_(ULONG, Release)(THIS) PURE;
-	STDMETHOD(GetLocation)(THIS_ LPWSTR, DWORD, DWORD *, const SIZE *, DWORD, DWORD *) PURE;
-	STDMETHOD(Extract)(THIS_ HBITMAP *) PURE;
-};
-#undef INTERFACE
-
-static const IID IID_IInitializeWithStream =
-	{ 0xb824b49d, 0x22ac, 0x4161, { 0xac, 0x8a, 0x99, 0x16, 0xe8, 0xfa, 0x3f, 0x7f } };
-#define INTERFACE IInitializeWithStream
-DECLARE_INTERFACE_(IInitializeWithStream, IUnknown)
-{
-	STDMETHOD(QueryInterface)(THIS_ REFIID, PVOID *) PURE;
-	STDMETHOD_(ULONG, AddRef)(THIS) PURE;
-	STDMETHOD_(ULONG, Release)(THIS) PURE;
-	STDMETHOD(Initialize)(THIS_ IStream *, DWORD) PURE;
-};
-#undef INTERFACE
-
-#endif
 
 enum WTS_ALPHATYPE
 {
@@ -76,6 +39,7 @@ enum WTS_ALPHATYPE
 
 static const IID IID_IThumbnailProvider =
 	{ 0xe357fccd, 0xa995, 0x4576, { 0xb0, 0x1f, 0x23, 0x46, 0x30, 0x15, 0x4e, 0x96 } };
+#undef INTERFACE
 #define INTERFACE IThumbnailProvider
 DECLARE_INTERFACE_(IThumbnailProvider, IUnknown)
 {
