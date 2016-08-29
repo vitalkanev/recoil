@@ -96,23 +96,31 @@ constructed from the input filename with the extension changed to png.
 Building recoil2png, XnView/ImageMagick/Imagine/Windows Explorer plugins and RECOILWin on Windows
 -------------------------------------------------------------------------------------------------
 
-Download MinGW (http://www.mingw.org/) and install binutils, core compiler, w32api and MinGW Make.
+In Cygwin setup (https://www.cygwin.com/) select bash, coreutils, dos2unix, git, libxslt, make, tar,
+mingw64-{i686,x86_64}-{gcc-core,gcc-g++,headers,libpng,runtime,zlib}.
 
-From the command prompt navigate to the win32 directory and run:
+Unfortunately mingw64-libpng is DLL-only, so get libpng source (http://libpng.org/pub/png/libpng.html) and compile it yourself:
 
-    mingw32-make
+    bash ./configure --host=i686-w64-mingw32 && make && mv .libs/libpng16.a /usr/i686-w64-mingw32/sys-root/mingw/lib/
+    bash ./configure --host=x86_64-w64-mingw32 && make && mv .libs/libpng16.a /usr/x86_64-w64-mingw32/sys-root/mingw/lib/
+
+Install ImageMagick (http://www.imagemagick.org/) and edit its directories in RECOIL's win32/Makefile.
+
+To build RECOIL, from the command prompt navigate to the win32 directory and run:
+
+    make
 
 
 Building Paint.NET plugin on Windows
 ------------------------------------
 
-Install .NET Framework 3.5, Paint.NET and MinGW Make.
+Install .NET Framework 3.5, Paint.NET and GNU Make (e.g. Cygwin's, https://www.cygwin.com/).
 
 Make sure cito is on your PATH.
 
 From the command prompt navigate to the win32 directory and run:
 
-    mingw32-make RecoilPaintDotNet.dll
+    make RecoilPaintDotNet.dll
 
 
 Building HTML 5 based viewer
