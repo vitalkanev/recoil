@@ -2393,6 +2393,7 @@ public class RECOIL
 		case RECOILResolution.Amiga1x2:
 		case RECOILResolution.St1x2:
 		case RECOILResolution.Ste1x2:
+		case RECOILResolution.Msx1x2:
 			height <<= 1;
 			break;
 		case RECOILResolution.Amiga1x4:
@@ -2533,15 +2534,6 @@ public class RECOIL
 		int pixelsLength = Width * Height;
 		for (int i = 0; i < pixelsLength; i++)
 			Pixels[i] = ContentPalette[content[contentOffset + i]];
-	}
-
-	void DecodeNibbles(byte[] content, int contentOffset)
-	{
-		int pixelsLength = Width * Height;
-		for (int i = 0; i < pixelsLength; i++) {
-			int b = content[contentOffset + (i >> 1)];
-			Pixels[i] = ContentPalette[(i & 1) == 0 ? b >> 4 : b & 0xf];
-		}
 	}
 
 	/// Decodes Atari ST/Falcon interleaved bitplanes.
@@ -3585,10 +3577,22 @@ public class RECOIL
 		return true;
 	}
 
+	void DecodeMsxNibbles(byte[] content, int contentOffset)
+	{
+		for (int y = 0; y < Height; y++) {
+			for (int x = 0; x < Width; x++) {
+				int b = content[contentOffset + (x >> 1)];
+				Pixels[y * Width + x] = ContentPalette[(x & 1) == 0 ? b >> 4 : b & 0xf];
+			}
+			if ((y & 1) != 0 || Resolution != RECOILResolution.Msx1x2)
+				contentOffset += Width >> 1;
+		}
+	}
+
 	bool DecodeMsx5(byte[] content)
 	{
 		SetSize(256, 212, RECOILResolution.Msx1x1);
-		DecodeNibbles(content, 7);
+		DecodeMsxNibbles(content, 7);
 		return true;
 	}
 
@@ -3639,14 +3643,8 @@ public class RECOIL
 
 	bool DecodeMsx7(byte[] content)
 	{
-		SetSize(512, 424, RECOILResolution.Msx1x2);
-		for (int y = 0; y < 212; y++) {
-			for (int x = 0; x < 512; x++) {
-				int b = content[7 + (y << 8) + (x >> 1)];
-				int pixelsOffset = (y << 10) + x;
-				Pixels[pixelsOffset + 512] = Pixels[pixelsOffset] = ContentPalette[(x & 1) == 0 ? b >> 4 : b & 0xf];
-			}
-		}
+		SetSize(512, 212 * 2, RECOILResolution.Msx1x2);
+		DecodeMsxNibbles(content, 7);
 		return true;
 	}
 
@@ -3681,12 +3679,14 @@ public class RECOIL
 		return true;
 	}
 
-	static int DecodeMsxYjk(byte[] content, int i)
+	int DecodeMsxYjk(byte[] content, int contentOffset, int i, bool usePalette)
 	{
-		int y = content[7 + i] >> 3;
-		i &= ~3;
-		int k = (content[i + 7] & 7) | (content[i + 8] & 7) << 3;
-		int j = (content[i + 9] & 7) | (content[i + 10] & 7) << 3;
+		int y = content[contentOffset + i] >> 3;
+		if (usePalette && (y & 1) != 0)
+			return ContentPalette[y >> 1];
+		i = contentOffset + (i & ~3);
+		int k = (content[i] & 7) | (content[i + 1] & 7) << 3;
+		int j = (content[i + 2] & 7) | (content[i + 3] & 7) << 3;
 		// to 6-bit signed
 		k -= (k & 0x20) << 1;
 		j -= (j & 0x20) << 1;
@@ -3711,6 +3711,13 @@ public class RECOIL
 		return rgb << 3 | (rgb >> 2 & 0x070707);
 	}
 
+	void DecodeMsxYjkScreen(byte[] content, int contentOffset, bool usePalette)
+	{
+		int pixelsLength = Width * Height;
+		for (int i = 0; i < pixelsLength; i++)
+			Pixels[i] = DecodeMsxYjk(content, contentOffset, i, usePalette);
+	}
+
 	bool DecodeScc(byte[] content, int contentLength)
 	{
 		byte[54279] unpacked = 0;
@@ -3718,8 +3725,7 @@ public class RECOIL
 		if (content == null)
 			return false;
 		SetSize(256, 212, RECOILResolution.Msx1x1);
-		for (int i = 0; i < 212 * 256; i++)
-			Pixels[i] = DecodeMsxYjk(content, i);
+		DecodeMsxYjkScreen(content, 7, false);
 		return true;
 	}
 
@@ -3729,14 +3735,7 @@ public class RECOIL
 			return false;
 		SetMsxPalette(content, 0xfa87);
 		SetSize(256, 212, RECOILResolution.Msx1x1);
-		for (int i = 0; i < 212 * 256; i++) {
-			int c = content[7 + i];
-			if ((c & 8) == 0)
-				c = DecodeMsxYjk(content, i);
-			else
-				c = ContentPalette[c >> 4];
-			Pixels[i] = c;
-		}
+		DecodeMsxYjkScreen(content, 7, true);
 		return true;
 	}
 
@@ -3975,14 +3974,15 @@ public class RECOIL
 
 	bool DecodeMag(byte[] content, int contentLength)
 	{
+		if (contentLength < 8 + 1 + 32 || !IsStringAt(content, 0, "MAKI02  "))
+			return false;
 		int headerOffset = 0;
 		do {
 			if (headerOffset >= contentLength)
 				return false;
 		} while (content[headerOffset++] != 0x1a);
 		if (headerOffset + (32 + 16 * 3) > contentLength
-		 || content[headerOffset] != 0
-		 || content[headerOffset + 2] != 0)
+		 || content[headerOffset] != 0)
 			return false;
 		int width = content[headerOffset + 8] - content[headerOffset + 4] + (content[headerOffset + 9] - content[headerOffset + 5] << 8) + 1;
 		int height = content[headerOffset + 10] - content[headerOffset + 6] + (content[headerOffset + 11] - content[headerOffset + 7] << 8) + 1;
@@ -3990,12 +3990,14 @@ public class RECOIL
 		int colors;
 		switch (content[headerOffset + 3]) {
 		case 0:
+		case 1:
 			if ((width & 7) != 0)
 				return false;
 			bytesPerLine = width >> 1;
 			colors = 16;
 			break;
 		case 0x80:
+		case 0x84:
 			if (headerOffset + (32 + 256 * 3) >= contentLength
 			 || (width & 3) != 0)
 				return false;
@@ -4005,7 +4007,27 @@ public class RECOIL
 		default:
 			return false;
 		}
-		if (!SetSize(width, height, RECOILResolution.Pc981x1))
+		RECOILResolution resolution;
+		switch (content[headerOffset + 2]) {
+		case 0x00:
+			resolution = RECOILResolution.Pc981x1;
+			break;
+		case 0x04:
+			resolution = RECOILResolution.Msx1x2;
+			break;
+		case 0x14:
+		case 0x54:
+			resolution = RECOILResolution.Msx1x1;
+			break;
+		case 0x24:
+		case 0x44:
+			width >>= 1;
+			resolution = RECOILResolution.Msx1x1;
+			break;
+		default:
+			return false;
+		}
+		if (!SetScaledSize(width, height, resolution))
 			return false;
 
 		byte[] unpacked = new byte[bytesPerLine * height];
@@ -4017,10 +4039,20 @@ public class RECOIL
 			int offset = headerOffset + 32 + c * 3;
 			ContentPalette[c] = content[offset + 1] << 16 | content[offset] << 8 | content[offset + 2]; // GRB
 		}
-		if (colors == 16)
-			DecodeNibbles(unpacked, 0);
-		else
-			DecodeBytes(unpacked, 0);
+		switch (content[headerOffset + 2]) {
+		case 0x24:
+			DecodeMsxYjkScreen(unpacked, 0, true);
+			break;
+		case 0x44:
+			DecodeMsxYjkScreen(unpacked, 0, false);
+			break;
+		default:
+			if (colors == 16)
+				DecodeMsxNibbles(unpacked, 0);
+			else
+				DecodeBytes(unpacked, 0);
+			break;
+		}
 		delete unpacked;
 		return true;
 	}
@@ -10522,7 +10554,8 @@ public class RECOIL
 			return DecodeEnvision(content, contentLength)
 				|| DecodeEnvisionPC(content, contentLength);
 		case PackExt("MAX"):
-			return DecodeAtari8Max(content, contentLength)
+			return DecodeMag(content, contentLength)
+				|| DecodeAtari8Max(content, contentLength)
 				|| DecodeCocoMax(content, contentLength);
 		case PackExt("MBG"):
 			return DecodeGr8Raw(content, contentLength, 512, 256);

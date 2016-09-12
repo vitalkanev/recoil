@@ -339,6 +339,10 @@
 		<format name="VDC BitMap" colors="2"><ext>VBM</ext></format>
 	</platform>
 	<platform name="MSX" href="http://en.wikipedia.org/wiki/MSX">
+		<format name="Maki-chan Graphics">
+			<ext>MAG</ext>
+			<ext>MAX</ext>
+		</format>
 		<format name="Screen 2" width="256" height="192" colors="15">
 			<ext>SC2</ext>
 			<ext>GRP</ext>
