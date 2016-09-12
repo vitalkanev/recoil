@@ -3944,40 +3944,39 @@ public class RECOIL
 			return false;
 		SetSize(640, 400, RECOILResolution.Pc981x1);
 		SetMagPalette(content, 48, 16);
-		int xorYOffset = content[6] == 'A' ? 2 : 0;
+		int contentOffset = 1096;
 
-		int[80] haveBuffer; // TODO: ushort
-		byte[320 * 4] indexBuffer = 0;
+		int[8000] haveBuffer; // TODO: ushort
 		BitStream() haveBlock;
 		haveBlock.Content = content;
 		haveBlock.ContentOffset = 96;
 		haveBlock.ContentLength = 1096;
-		int haveOffset = 1096;
-		int indexOffset = 1096 + (content[32] << 8) + content[33];
-		for (int row = 0; row < 400; row += 4) {
-			for (int x = 0; x < 80; x++) {
-				int have = 0;
-				if (haveBlock.ReadBit() == 1) {
-					if (haveOffset + 1 >= contentLength)
-						return false;
-					have = content[haveOffset] << 8 | content[haveOffset + 1];
-					haveOffset += 2;
-				}
-				haveBuffer[x] = have;
+		for (int i = 0; i < 8000; i++) {
+			int have = 0;
+			if (haveBlock.ReadBit() == 1) {
+				if (contentOffset + 1 >= contentLength)
+					return false;
+				have = content[contentOffset] << 8 | content[contentOffset + 1];
+				contentOffset += 2;
 			}
-			for (int y = 0; y < 4; y++) {
-				for (int x = 0; x < 320; x++) {
-					int index = indexBuffer[(y ^ xorYOffset) * 320 + x];
-					if ((haveBuffer[x >> 2] >> 15 - (y << 2) - (x & 3) & 1) != 0) {
-						if (indexOffset >= contentLength)
-							return false;
-						index ^= content[indexOffset++];
-					}
-					indexBuffer[y * 320 + x] = index;
-					int pixelsOffset = (row + y) * 320 + x << 1;
-					Pixels[pixelsOffset] = ContentPalette[index >> 4];
-					Pixels[pixelsOffset + 1] = ContentPalette[index & 0xf];
+			haveBuffer[i] = have;
+		}
+
+		int xorYOffset = content[6] == 'A' ? 2 : 0;
+		byte[320 * 4] indexBuffer = 0;
+		for (int y = 0; y < 400; y++) {
+			for (int x = 0; x < 320; x++) {
+				int row = y & 3;
+				int index = indexBuffer[(row ^ xorYOffset) * 320 + x];
+				if ((haveBuffer[(y & ~3) * 20 + (x >> 2)] >> 15 - (row << 2) - (x & 3) & 1) != 0) {
+					if (contentOffset >= contentLength)
+						return false;
+					index ^= content[contentOffset++];
 				}
+				indexBuffer[row * 320 + x] = index;
+				int pixelsOffset = y * 320 + x << 1;
+				Pixels[pixelsOffset] = ContentPalette[index >> 4];
+				Pixels[pixelsOffset + 1] = ContentPalette[index & 0xf];
 			}
 		}
 		return true;
