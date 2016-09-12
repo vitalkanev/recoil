@@ -3928,6 +3928,61 @@ public class RECOIL
 
 	// NEC PC-98 formats.
 
+	void SetMagPalette(byte[] content, int paletteOffset, int colors)
+	{
+		for (int c = 0; c < colors; c++) {
+			int offset = paletteOffset + c * 3;
+			ContentPalette[c] = content[offset + 1] << 16 | content[offset] << 8 | content[offset + 2]; // GRB
+		}
+	}
+
+	bool DecodeMaki1(byte[] content, int contentLength)
+	{
+		if (contentLength < 1096
+		 || content[40] != 0 || content[41] != 0 || content[42] != 0 || content[43] != 0
+		 || content[44] != 2 || content[45] != 0x80 || content[46] != 1 || content[47] != 0x90)
+			return false;
+		SetSize(640, 400, RECOILResolution.Pc981x1);
+		SetMagPalette(content, 48, 16);
+		int xorYOffset = content[6] == 'A' ? 2 : 0;
+
+		int[80] haveBuffer; // TODO: ushort
+		byte[320 * 4] indexBuffer = 0;
+		BitStream() haveBlock;
+		haveBlock.Content = content;
+		haveBlock.ContentOffset = 96;
+		haveBlock.ContentLength = 1096;
+		int haveOffset = 1096;
+		int indexOffset = 1096 + (content[32] << 8) + content[33];
+		for (int row = 0; row < 400; row += 4) {
+			for (int x = 0; x < 80; x++) {
+				int have = 0;
+				if (haveBlock.ReadBit() == 1) {
+					if (haveOffset + 1 >= contentLength)
+						return false;
+					have = content[haveOffset] << 8 | content[haveOffset + 1];
+					haveOffset += 2;
+				}
+				haveBuffer[x] = have;
+			}
+			for (int y = 0; y < 4; y++) {
+				for (int x = 0; x < 320; x++) {
+					int index = indexBuffer[(y ^ xorYOffset) * 320 + x];
+					if ((haveBuffer[x >> 2] >> 15 - (y << 2) - (x & 3) & 1) != 0) {
+						if (indexOffset >= contentLength)
+							return false;
+						index ^= content[indexOffset++];
+					}
+					indexBuffer[y * 320 + x] = index;
+					int pixelsOffset = (row + y) * 320 + x << 1;
+					Pixels[pixelsOffset] = ContentPalette[index >> 4];
+					Pixels[pixelsOffset + 1] = ContentPalette[index & 0xf];
+				}
+			}
+		}
+		return true;
+	}
+
 	static bool UnpackMag(byte[] content, int headerOffset, int contentLength, int bytesPerLine, int height, byte[] unpacked)
 	{
 		BitStream() haveDelta;
@@ -3983,7 +4038,11 @@ public class RECOIL
 
 	bool DecodeMag(byte[] content, int contentLength)
 	{
-		if (contentLength < 8 + 1 + 32 || !IsStringAt(content, 0, "MAKI02  "))
+		if (contentLength < 8)
+			return false;
+		if (IsStringAt(content, 0, "MAKI01A ") || IsStringAt(content, 0, "MAKI01B "))
+			return DecodeMaki1(content, contentLength);
+		if (!IsStringAt(content, 0, "MAKI02  "))
 			return false;
 		int headerOffset = 0;
 		do {
@@ -4038,10 +4097,7 @@ public class RECOIL
 			delete unpacked;
 			return false;
 		}
-		for (int c = 0; c < colors; c++) {
-			int offset = headerOffset + 32 + c * 3;
-			ContentPalette[c] = content[offset + 1] << 16 | content[offset] << 8 | content[offset + 2]; // GRB
-		}
+		SetMagPalette(content, headerOffset + 32, colors);
 		switch (content[headerOffset + 2]) {
 		case 0x24:
 			DecodeMsxYjkScreen(unpacked, 0, true);
@@ -10111,6 +10167,7 @@ public class RECOIL
 		case PackExt("MAC"):
 		case PackExt("PNTG"):
 		case PackExt("MAG"):
+		case PackExt("MKI"):
 		case PackExt("MAP"):
 		case PackExt("MAX"):
 		case PackExt("MBG"):
@@ -10552,6 +10609,7 @@ public class RECOIL
 		case PackExt("PNTG"):
 			return DecodeMac(content, contentLength);
 		case PackExt("MAG"):
+		case PackExt("MKI"):
 			return DecodeMag(content, contentLength);
 		case PackExt("MAP"):
 			return DecodeEnvision(content, contentLength)
