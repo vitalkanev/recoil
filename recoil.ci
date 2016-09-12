@@ -3650,9 +3650,12 @@ public class RECOIL
 
 	bool DecodeSc7(byte[] content, int contentLength)
 	{
-		if (contentLength < 64167 || content[0] != 0xfe || GetMsxHeader(content) < 0xfa9f)
+		if (contentLength < 54279 || content[0] != 0xfe || GetMsxHeader(content) < 0xd3ff)
 			return false;
-		SetMsxPalette(content, 0xfa87);
+		if (contentLength >= 64167)
+			SetMsxPalette(content, 0xfa87);
+		else
+			SetMsxPalette(Msx1Palette, 0);
 		return DecodeMsx7(content);
 	}
 
