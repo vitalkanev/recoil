@@ -12,8 +12,9 @@ BuildRoot: %{_tmppath}/%{name}-root
 %description
 Decoder of pictures in native formats of
 Amiga, Amstrad CPC, Apple II, Atari 8-bit/Portfolio/ST/Falcon, BBC Micro,
-Commodore 16, Commodore 64, Commodore 128, Macintosh 128K, MSX, NEC PC-98,
-Oric, SAM Coupe, TRS-80, TRS-80 Color Computer, ZX81 and ZX Spectrum computers.
+Commodore 16, Commodore 64, Commodore 128, Macintosh 128K, MSX, NEC PC-88,
+NEC PC-98, Oric, SAM Coupe, TRS-80, TRS-80 Color Computer, ZX81
+and ZX Spectrum computers.
 
 %package 2png
 Summary: Converter of retro computer image files
@@ -21,8 +22,9 @@ Summary: Converter of retro computer image files
 %description 2png
 Provides "recoil2png" command-line converter of pictures in native formats of
 Amiga, Amstrad CPC, Apple II, Atari 8-bit/Portfolio/ST/Falcon, BBC Micro,
-Commodore 16, Commodore 64, Commodore 128, Macintosh 128K, MSX, NEC PC-98,
-Oric, SAM Coupe, TRS-80, TRS-80 Color Computer, ZX81 and ZX Spectrum computers.
+Commodore 16, Commodore 64, Commodore 128, Macintosh 128K, MSX, NEC PC-88,
+NEC PC-98, Oric, SAM Coupe, TRS-80, TRS-80 Color Computer, ZX81
+and ZX Spectrum computers.
 
 %package thumbnailer
 Summary: GNOME thumbnailer for retro computer image files
@@ -32,8 +34,9 @@ BuildArch: noarch
 %description thumbnailer
 GNOME thumbnailer for pictures in native formats of
 Amiga, Amstrad CPC, Apple II, Atari 8-bit/Portfolio/ST/Falcon, BBC Micro,
-Commodore 16, Commodore 64, Commodore 128, Macintosh 128K, MSX, NEC PC-98,
-Oric, SAM Coupe, TRS-80, TRS-80 Color Computer, ZX81 and ZX Spectrum computers.
+Commodore 16, Commodore 64, Commodore 128, Macintosh 128K, MSX, NEC PC-88,
+NEC PC-98, Oric, SAM Coupe, TRS-80, TRS-80 Color Computer, ZX81
+and ZX Spectrum computers.
 
 %prep
 %setup -q

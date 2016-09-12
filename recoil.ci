@@ -59,6 +59,7 @@ enum RECOILResolution
 	Msx1x2,
 	Oric1x1,
 	Pc1x1,
+	Pc881x2,
 	Pc981x1,
 	SamCoupe1x1,
 	Spectrum1x1,
@@ -2279,6 +2280,8 @@ public class RECOIL
 			return "Oric";
 		case RECOILResolution.Pc1x1:
 			return "PC";
+		case RECOILResolution.Pc881x2:
+			return "NEC PC-88";
 		case RECOILResolution.Pc981x1:
 			return "NEC PC-98";
 		case RECOILResolution.SamCoupe1x1:
@@ -2336,6 +2339,7 @@ public class RECOIL
 		case RECOILResolution.Ste1x2:
 		case RECOILResolution.Bbc1x2:
 		case RECOILResolution.Msx1x2:
+		case RECOILResolution.Pc881x2:
 		case RECOILResolution.Trs1x2:
 		case RECOILResolution.Coco2x2:
 			return Height >> 1;
@@ -2394,6 +2398,7 @@ public class RECOIL
 		case RECOILResolution.St1x2:
 		case RECOILResolution.Ste1x2:
 		case RECOILResolution.Msx1x2:
+		case RECOILResolution.Pc881x2:
 			height <<= 1;
 			break;
 		case RECOILResolution.Amiga1x4:
@@ -2534,6 +2539,19 @@ public class RECOIL
 		int pixelsLength = Width * Height;
 		for (int i = 0; i < pixelsLength; i++)
 			Pixels[i] = ContentPalette[content[contentOffset + i]];
+	}
+
+	void DecodeNibbles(byte[] content, int contentOffset)
+	{
+		int doubleHeight = Resolution == RECOILResolution.Msx1x2 || Resolution == RECOILResolution.Pc881x2 ? 1 : 0;
+		for (int y = 0; y < Height; ) {
+			for (int x = 0; x < Width; x++) {
+				int b = content[contentOffset + (x >> 1)];
+				Pixels[y * Width + x] = ContentPalette[(x & 1) == 0 ? b >> 4 : b & 0xf];
+			}
+			if ((++y & doubleHeight) == 0)
+				contentOffset += Width >> 1;
+		}
 	}
 
 	/// Decodes Atari ST/Falcon interleaved bitplanes.
@@ -3577,22 +3595,10 @@ public class RECOIL
 		return true;
 	}
 
-	void DecodeMsxNibbles(byte[] content, int contentOffset)
-	{
-		for (int y = 0; y < Height; y++) {
-			for (int x = 0; x < Width; x++) {
-				int b = content[contentOffset + (x >> 1)];
-				Pixels[y * Width + x] = ContentPalette[(x & 1) == 0 ? b >> 4 : b & 0xf];
-			}
-			if ((y & 1) != 0 || Resolution != RECOILResolution.Msx1x2)
-				contentOffset += Width >> 1;
-		}
-	}
-
 	bool DecodeMsx5(byte[] content)
 	{
 		SetSize(256, 212, RECOILResolution.Msx1x1);
-		DecodeMsxNibbles(content, 7);
+		DecodeNibbles(content, 7);
 		return true;
 	}
 
@@ -3644,7 +3650,7 @@ public class RECOIL
 	bool DecodeMsx7(byte[] content)
 	{
 		SetSize(512, 212 * 2, RECOILResolution.Msx1x2);
-		DecodeMsxNibbles(content, 7);
+		DecodeNibbles(content, 7);
 		return true;
 	}
 
@@ -3991,29 +3997,23 @@ public class RECOIL
 		int height = content[headerOffset + 10] - content[headerOffset + 6] + (content[headerOffset + 11] - content[headerOffset + 7] << 8) + 1;
 		int bytesPerLine;
 		int colors;
-		switch (content[headerOffset + 3]) {
-		case 0:
-		case 1:
+		if (content[headerOffset + 3] < 0x80) {
 			if ((width & 7) != 0)
-				return false;
+				return false; // FIXME: ZARTH.MAG
 			bytesPerLine = width >> 1;
 			colors = 16;
-			break;
-		case 0x80:
-		case 0x84:
+		}
+		else {
 			if (headerOffset + (32 + 256 * 3) >= contentLength
 			 || (width & 3) != 0)
 				return false;
 			bytesPerLine = width;
 			colors = 256;
-			break;
-		default:
-			return false;
 		}
 		RECOILResolution resolution;
 		switch (content[headerOffset + 2]) {
 		case 0x00:
-			resolution = RECOILResolution.Pc981x1;
+			resolution = (content[headerOffset + 3] & 1) == 0 ? RECOILResolution.Pc981x1 : RECOILResolution.Pc881x2;
 			break;
 		case 0x04:
 			resolution = RECOILResolution.Msx1x2;
@@ -4051,7 +4051,7 @@ public class RECOIL
 			break;
 		default:
 			if (colors == 16)
-				DecodeMsxNibbles(unpacked, 0);
+				DecodeNibbles(unpacked, 0);
 			else
 				DecodeBytes(unpacked, 0);
 			break;
