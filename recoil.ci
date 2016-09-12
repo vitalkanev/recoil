@@ -2541,7 +2541,7 @@ public class RECOIL
 			Pixels[i] = ContentPalette[content[contentOffset + i]];
 	}
 
-	void DecodeNibbles(byte[] content, int contentOffset)
+	void DecodeNibbles(byte[] content, int contentOffset, int contentStride)
 	{
 		int doubleHeight = Resolution == RECOILResolution.Msx1x2 || Resolution == RECOILResolution.Pc881x2 ? 1 : 0;
 		for (int y = 0; y < Height; ) {
@@ -2550,7 +2550,7 @@ public class RECOIL
 				Pixels[y * Width + x] = ContentPalette[(x & 1) == 0 ? b >> 4 : b & 0xf];
 			}
 			if ((++y & doubleHeight) == 0)
-				contentOffset += Width >> 1;
+				contentOffset += contentStride;
 		}
 	}
 
@@ -3598,7 +3598,7 @@ public class RECOIL
 	bool DecodeMsx5(byte[] content)
 	{
 		SetSize(256, 212, RECOILResolution.Msx1x1);
-		DecodeNibbles(content, 7);
+		DecodeNibbles(content, 7, 128);
 		return true;
 	}
 
@@ -3650,7 +3650,7 @@ public class RECOIL
 	bool DecodeMsx7(byte[] content)
 	{
 		SetSize(512, 212 * 2, RECOILResolution.Msx1x2);
-		DecodeNibbles(content, 7);
+		DecodeNibbles(content, 7, 256);
 		return true;
 	}
 
@@ -4056,9 +4056,7 @@ public class RECOIL
 		int bytesPerLine;
 		int colors;
 		if (content[headerOffset + 3] < 0x80) {
-			if ((width & 7) != 0)
-				return false; // FIXME: ZARTH.MAG
-			bytesPerLine = width >> 1;
+			bytesPerLine = width + 7 >> 1 & ~3;
 			colors = 16;
 		}
 		else {
@@ -4106,7 +4104,7 @@ public class RECOIL
 			break;
 		default:
 			if (colors == 16)
-				DecodeNibbles(unpacked, 0);
+				DecodeNibbles(unpacked, 0, bytesPerLine);
 			else
 				DecodeBytes(unpacked, 0);
 			break;
