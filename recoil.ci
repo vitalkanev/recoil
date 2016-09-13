@@ -248,6 +248,20 @@ class BitStream : Stream
 	}
 }
 
+class X68KPicStream : BitStream
+{
+	bool SkipUntilByte(int expected)
+	{
+		for (;;) {
+			int b = ReadByte();
+			if (b < 0)
+				return false;
+			if (b == expected)
+				return true;
+		}
+	}
+}
+
 class MppPaletteStream : BitStream
 {
 	int Read()
@@ -3590,22 +3604,22 @@ public class RECOIL
 	// MSX formats.
 
 	const byte[32] Msx1Palette = {
-		0x00, 0x0,
-		0x00, 0x0,
-		0x11, 0x6,
-		0x33, 0x7,
-		0x17, 0x1,
-		0x27, 0x3,
-		0x51, 0x1,
-		0x27, 0x6,
-		0x71, 0x1,
-		0x73, 0x3,
-		0x61, 0x6,
-		0x64, 0x6,
-		0x11, 0x4,
-		0x65, 0x2,
-		0x55, 0x5,
-		0x77, 0x7
+		0x00, 0,
+		0x00, 0,
+		0x11, 6,
+		0x33, 7,
+		0x17, 1,
+		0x27, 3,
+		0x51, 1,
+		0x27, 6,
+		0x71, 1,
+		0x73, 3,
+		0x61, 6,
+		0x64, 6,
+		0x11, 4,
+		0x65, 2,
+		0x55, 5,
+		0x77, 7
 	};
 
 	static int GetMsxHeader(byte[] content)
@@ -3993,12 +4007,12 @@ public class RECOIL
 
 	// Sharp X68000 formats.
 
-	bool DecodeX68KPicChain(BitStream bitStream, int pixelsOffset, int color)
+	bool DecodeX68KPicChain(BitStream stream, int pixelsOffset, int color)
 	{
 		for (;;) {
-			switch (bitStream.ReadBits(2)) {
+			switch (stream.ReadBits(2)) {
 			case 0:
-				switch (bitStream.ReadBit()) {
+				switch (stream.ReadBit()) {
 				case 0:
 					return true;
 				case 1:
@@ -4006,7 +4020,7 @@ public class RECOIL
 				default:
 					return false;
 				}
-				switch (bitStream.ReadBit()) {
+				switch (stream.ReadBit()) {
 				case 0:
 					pixelsOffset -= 2;
 					break;
@@ -4039,11 +4053,17 @@ public class RECOIL
 
 	bool DecodeX68KPic(byte[] content, int contentLength)
 	{
-		if (contentLength < 14
-		 || content[0] != 'P' || content[1] != 'I' || content[2] != 'C' || content[3] != 0x1a
-		 || content[4] != 0 || content[5] != 0 || content[6] != 0 || content[7] != 0)
+		if (contentLength < 14 || content[0] != 'P' || content[1] != 'I' || content[2] != 'C')
 			return false;
-		int depth = content[8];
+		X68KPicStream() stream;
+		stream.Content = content;
+		stream.ContentOffset = 3;
+		stream.ContentLength = contentLength;
+		if (!stream.SkipUntilByte(0x1a)
+		 || !stream.SkipUntilByte(0)
+		 || stream.ReadBits(16) != 0)
+			return false;
+		int depth = stream.ReadBits(16);
 		switch (depth) {
 		case 15:
 		case 16:
@@ -4051,30 +4071,26 @@ public class RECOIL
 		default:
 			return false;
 		}
-		int width = content[9] << 8 | content[10];
-		int height = content[11] << 8 | content[12];
+		int width = stream.ReadBits(16);
+		int height = stream.ReadBits(16);
 		if (!SetSize(width, height, RECOILResolution.X68K1x1))
 			return false;
 
 		int pixelsLength = width * height;
 		for (int pixelsOffset = 0; pixelsOffset < pixelsLength; pixelsOffset++)
 			Pixels[pixelsOffset] = -1;
-		BitStream() bitStream;
-		bitStream.Content = content;
-		bitStream.ContentOffset = 13;
-		bitStream.ContentLength = contentLength;
 		RecentInts() colors;
 		int color = 0;
 		for (int pixelsOffset = -1; ;) {
 			int length = 1;
 			for (;;) {
-				int bit = bitStream.ReadBit();
+				int bit = stream.ReadBit();
 				if (bit == 0)
 					break;
 				if (bit < 0 || ++length >= 21)
 					return false;
 			}
-			length = bitStream.ReadBits(length) + (1 << length) - 1;
+			length = stream.ReadBits(length) + (1 << length) - 1;
 
 			while (--length > 0) {
 				int got = Pixels[++pixelsOffset];
@@ -4086,14 +4102,14 @@ public class RECOIL
 					return true;
 			}
 
-			switch (bitStream.ReadBit()) {
+			switch (stream.ReadBit()) {
 			case 0:
-				color = bitStream.ReadBits(15); // GGGGGRR RRRBBBBB
+				color = stream.ReadBits(15); // GGGGGRR RRRBBBBB
 				if (color < 0)
 					return false;
 				color = (color & 0x03e0) << 14 | (color & 0x7c00) << 1 | (color & 0x1f) << 3; // RRRRR000 GGGGG000 BBBBB000
 				if (depth == 16) {
-					switch (bitStream.ReadBit()) {
+					switch (stream.ReadBit()) {
 					case 0:
 						break;
 					case 1:
@@ -4107,7 +4123,7 @@ public class RECOIL
 				colors.Add(color);
 				break;
 			case 1:
-				color = bitStream.ReadBits(7);
+				color = stream.ReadBits(7);
 				if (color < 0)
 					return false;
 				color = colors.Get(color);
@@ -4119,11 +4135,11 @@ public class RECOIL
 			if (pixelsOffset >= pixelsLength - 1)
 				return true;
 
-			switch (bitStream.ReadBit()) {
+			switch (stream.ReadBit()) {
 			case 0:
 				break;
 			case 1:
-				if (!DecodeX68KPicChain(bitStream, pixelsOffset, color))
+				if (!DecodeX68KPicChain(stream, pixelsOffset, color))
 					return false;
 				break;
 			default:
