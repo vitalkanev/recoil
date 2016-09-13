@@ -260,6 +260,24 @@ class X68KPicStream : BitStream
 				return true;
 		}
 	}
+
+	int ReadLength()
+	{
+		for (int bits = 1; bits < 21; bits++) {
+			switch (ReadBit()) {
+			case 0:
+				int length = ReadBits(bits);
+				if (length < 0)
+					return -1;
+				return length + (1 << bits) - 1;
+			case 1:
+				break;
+			default:
+				return -1;
+			}
+		}
+		return -1;
+	}
 }
 
 class MppPaletteStream : BitStream
@@ -4007,6 +4025,15 @@ public class RECOIL
 
 	// Sharp X68000 formats.
 
+	static int GetX68KColor(int color)
+	{
+		// GGGGGRRR RRBBBBBI -> RRRRRI00 GGGGGI00 BBBBBI00
+		int rgb = (color & 0x07c0) << 13 | (color & 0xf800) | (color & 0x3e) << 2;
+		if ((color & 1) != 0)
+			rgb |= 0x040404;
+		return rgb | (rgb >> 6 & 0x030303);
+	}
+
 	bool DecodeX68KPicChain(BitStream stream, int pixelsOffset, int color)
 	{
 		for (;;) {
@@ -4065,6 +4092,8 @@ public class RECOIL
 			return false;
 		int depth = stream.ReadBits(16);
 		switch (depth) {
+		case 4:
+		case 8:
 		case 15:
 		case 16:
 			break;
@@ -4075,6 +4104,14 @@ public class RECOIL
 		int height = stream.ReadBits(16);
 		if (!SetSize(width, height, RECOILResolution.X68K1x1))
 			return false;
+		if (depth <= 8) {
+			for (int c = 0; c < 1 << depth; c++) {
+				int color = stream.ReadBits(16);
+				if (color < 0)
+					return false;
+				ContentPalette[c] = GetX68KColor(color);
+			}
+		}
 
 		int pixelsLength = width * height;
 		for (int pixelsOffset = 0; pixelsOffset < pixelsLength; pixelsOffset++)
@@ -4082,16 +4119,9 @@ public class RECOIL
 		RecentInts() colors;
 		int color = 0;
 		for (int pixelsOffset = -1; ;) {
-			int length = 1;
-			for (;;) {
-				int bit = stream.ReadBit();
-				if (bit == 0)
-					break;
-				if (bit < 0 || ++length >= 21)
-					return false;
-			}
-			length = stream.ReadBits(length) + (1 << length) - 1;
-
+			int length = stream.ReadLength();
+			if (length < 0)
+				return false;
 			while (--length > 0) {
 				int got = Pixels[++pixelsOffset];
 				if (got < 0)
@@ -4102,34 +4132,32 @@ public class RECOIL
 					return true;
 			}
 
-			switch (stream.ReadBit()) {
-			case 0:
-				color = stream.ReadBits(15); // GGGGGRR RRRBBBBB
+			if (depth <= 8) {
+				color = stream.ReadBits(depth);
 				if (color < 0)
 					return false;
-				color = (color & 0x03e0) << 14 | (color & 0x7c00) << 1 | (color & 0x1f) << 3; // RRRRR000 GGGGG000 BBBBB000
-				if (depth == 16) {
-					switch (stream.ReadBit()) {
-					case 0:
-						break;
-					case 1:
-						color |= 0x040404;
-						break;
-					default:
+				color = ContentPalette[color];
+			}
+			else {
+				switch (stream.ReadBit()) {
+				case 0:
+					color = stream.ReadBits(depth);
+					if (color < 0)
 						return false;
-					}
-				}
-				color |= color >> 6 & 0x030303;
-				colors.Add(color);
-				break;
-			case 1:
-				color = stream.ReadBits(7);
-				if (color < 0)
+					if (depth == 15)
+						color <<= 1;
+					color = GetX68KColor(color);
+					colors.Add(color);
+					break;
+				case 1:
+					color = stream.ReadBits(7);
+					if (color < 0)
+						return false;
+					color = colors.Get(color);
+					break;
+				default:
 					return false;
-				color = colors.Get(color);
-				break;
-			default:
-				return false;
+				}
 			}
 			Pixels[++pixelsOffset] = color;
 			if (pixelsOffset >= pixelsLength - 1)
