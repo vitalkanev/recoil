@@ -395,6 +395,9 @@
 	<platform name="SAM Coupe" href="http://en.wikipedia.org/wiki/SAM_Coupé">
 		<format name="Mode 4" width="256" height="192" colors="16"><ext>SCS4</ext></format>
 	</platform>
+	<platform name="Sharp X68000" href="https://en.wikipedia.org/wiki/X68000">
+		<format colors="65536"><ext>PIC</ext></format>
+	</platform>
 	<platform name="TRS-80" href="http://en.wikipedia.org/wiki/TRS-80">
 		<format width="640" height="240" colors="2"><ext>HR</ext></format>
 	</platform>
