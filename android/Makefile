@@ -1,6 +1,6 @@
-ANDROID_SDK = C:/bin/android-sdk-windows
-ANDROID_JAR = $(ANDROID_SDK)/platforms/android-19/android.jar
-ANDROID_BUILD_TOOLS = $(ANDROID_SDK)/build-tools/21.1.2
+ANDROID_SDK = C:/bin/android-sdk
+ANDROID_JAR = $(ANDROID_SDK)/platforms/android-24/android.jar
+ANDROID_BUILD_TOOLS = $(ANDROID_SDK)/build-tools/24.0.2
 
 AAPT = $(ANDROID_BUILD_TOOLS)/aapt
 DX = java -jar "$(ANDROID_BUILD_TOOLS)/lib/dx.jar" --no-strict
@@ -9,6 +9,7 @@ ZIPALIGN = $(ANDROID_BUILD_TOOLS)/zipalign
 ADB = $(ANDROID_SDK)/platform-tools/adb
 ANDROID = $(ANDROID_SDK)/tools/android.bat
 EMULATOR = $(ANDROID_SDK)/tools/emulator
+MAGICK = magick
 
 ANDROID_RELEASE = recoil-3.4.0-android.apk
 
@@ -47,7 +48,7 @@ AndroidRECOIL-resources.apk: AndroidManifest.xml res/drawable/ic_launcher.png re
 	mkdir -p gen && $(AAPT) p -f -m -M $< -I $(ANDROID_JAR) -S res -F $@ -J gen assets
 
 res/drawable/ic_launcher.png: ../recoil-512x512.png
-	mkdir -p $(@D) && convert $< -resize 72x72 -quality 95 -strip $@
+	mkdir -p $(@D) && $(MAGICK) $< -resize 72x72 -quality 95 -strip $@
 
 assets/net/sf/recoil/%: ../%
 	mkdir -p $(@D) && cp $< $@
@@ -56,7 +57,7 @@ AndroidManifest.xml: AndroidManifest.xsl ../formats.xml
 	xsltproc -o $@ AndroidManifest.xsl ../formats.xml
 
 recoil-1024x500.png: ../recoil-512x512.png
-	convert $< -crop 334x163+89+140 -sample 1024x500 -quality 95 -strip $@
+	$(MAGICK) $< -crop 334x163+89+140 -sample 1024x500 -quality 95 -strip $@
 
 clean:
 	$(RM) *.apk classes.dex res/drawable/ic_launcher.png AndroidManifest.xml recoil-1024x500.png
