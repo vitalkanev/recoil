@@ -17,9 +17,9 @@ SEVENZIP = 7z a -mx=9 -bd -bso0
 CANDLE = candle -ext WixUtilExtension -nologo -o $@
 LIGHT = light -ext WixUtilExtension -nologo -o $@ -spdb
 MAGICK = magick
-IMAGEMAGICK_i686_DIR = c:\Program Files (x86)\ImageMagick-6.8.9-Q16
-IMAGEMAGICK_x86_64_DIR = c:\Program Files\ImageMagick-6.8.9-Q16
-PAINT_NET_DIR = c:\Program Files\Paint.NET
+IMAGEMAGICK_i686_DIR = c:\Program Files\ImageMagick-6.9.5-Q16
+IMAGEMAGICK_x86_64_DIR = ..\..\porty\ImageMagick-6.8.9-Q16
+PAINT_NET_DIR = c:\Program Files\paint.net
 ifdef V
 DO = mkdir -p $(@D) && 
 else
@@ -99,13 +99,13 @@ setup/banner.jpg: ../recoil-512x512.png
 ../MANIFEST:
 	$(DO)test -e ../.git && ( \
 		($(GIT) --git-dir=../.git ls-files | grep -vF .gitignore \
-			&& echo MANIFEST && echo recoil.c && echo recoil.h) | sort >$@; \
+			&& echo MANIFEST && echo recoil.c && echo recoil.h) | sort | dos2unix >$@; \
 	)
 
 srcdist: ../../recoil-$(VERSION).tar.gz
 
 ../../recoil-$(VERSION).tar.gz: ../MANIFEST ../recoil.c ../recoil.h
-	$(DO)$(RM) $@ && $(TAR) -c --numeric-owner --owner=0 --group=0 --mode=644 -T ../MANIFEST -C .. --transform=s,,recoil-$(VERSION)/, | $(SEVENZIP) -tgzip -si $@
+	$(DO)$(RM) $@ && $(TAR) -c --numeric-owner --owner=0 --group=0 --mode=644 -C .. -T ../MANIFEST --transform=s,,recoil-$(VERSION)/, | $(SEVENZIP) -tgzip -si $@
 
 dist: srcdist ../../recoil-$(VERSION)-win32.zip setup x64-setup
 
