@@ -4104,9 +4104,10 @@ public class RECOIL
 		int height = stream.ReadBits(16);
 		if (!SetSize(width, height, RECOILResolution.X68K1x1))
 			return false;
+		int color;
 		if (depth <= 8) {
 			for (int c = 0; c < 1 << depth; c++) {
-				int color = stream.ReadBits(16);
+				color = stream.ReadBits(16);
 				if (color < 0)
 					return false;
 				ContentPalette[c] = GetX68KColor(color);
@@ -4117,7 +4118,7 @@ public class RECOIL
 		for (int pixelsOffset = 0; pixelsOffset < pixelsLength; pixelsOffset++)
 			Pixels[pixelsOffset] = -1;
 		RecentInts() colors;
-		int color = 0;
+		color = 0;
 		for (int pixelsOffset = -1; ;) {
 			int length = stream.ReadLength();
 			if (length < 0)
