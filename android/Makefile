@@ -31,7 +31,7 @@ AndroidRECOIL-unaligned.apk: AndroidRECOIL-unsigned.apk
 	$(JARSIGNER) -storepass walsie -signedjar $@ $< pfusik
 
 AndroidRECOIL-unsigned.apk: AndroidRECOIL-resources.apk classes.dex
-	cp $< $@ && 7z a -mx=9 -bd -tzip $@ ./classes.dex
+	cp $< $@ && 7z a -mx=9 -bd -bso0 -tzip $@ ./classes.dex
 
 classes.dex: classes/net/sf/recoil/RECOIL.class
 	$(DX) --dex --output=$@ classes
