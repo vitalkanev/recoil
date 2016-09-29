@@ -392,6 +392,9 @@
 		<format name="Award BIOS logo"><ext>EPA</ext></format>
 		<format name="Microsoft Paint version 1 or 2" colors="2"><ext>MSP</ext></format>
 	</platform>
+	<platform name="PlayStation" href="https://en.wikipedia.org/wiki/PlayStation_(console)">
+		<format name="TIM" colors="32768"><ext>TIM</ext></format>
+	</platform>
 	<platform name="SAM Coupe" href="http://en.wikipedia.org/wiki/SAM_Coupé">
 		<format name="Mode 4" width="256" height="192" colors="16"><ext>SCS4</ext></format>
 	</platform>

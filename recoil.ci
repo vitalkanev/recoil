@@ -61,6 +61,7 @@ enum RECOILResolution
 	Pc1x1,
 	Pc881x2,
 	Pc981x1,
+	PlayStation1x1,
 	SamCoupe1x1,
 	X68K1x1,
 	Spectrum1x1,
@@ -2379,6 +2380,8 @@ public class RECOIL
 			return "NEC PC-88";
 		case RECOILResolution.Pc981x1:
 			return "NEC PC-98";
+		case RECOILResolution.PlayStation1x1:
+			return "PlayStation";
 		case RECOILResolution.SamCoupe1x1:
 			return "SAM Coupe";
 		case RECOILResolution.X68K1x1:
@@ -2828,6 +2831,79 @@ public class RECOIL
 		if (!rle.Unpack(unpacked, 0, 1, 51840))
 			return false;
 		return DecodeBlackAndWhite(unpacked, 0, 0, 576, 720, 0xffffff, RECOILResolution.Macintosh1x1);
+	}
+
+	// PlayStation formats.
+
+	static void DecodePlayStation(byte[] content, int contentOffset, int[] pixels, int pixelsLength)
+	{
+		for (int i = 0; i < pixelsLength; i++) {
+			int c = content[contentOffset + (i << 1)] | content[contentOffset + (i << 1) + 1] << 8;
+			// XBBBBBGG GGGRRRRR
+			c = (c & 0x1f) << 19 | (c & 0x3e0) << 6 | (c >> 7 & 0xf8);
+			// RRRRR000 GGGGG000 BBBBB000
+			pixels[i] = c | (c >> 5 & 0x070707);
+		}
+	}
+
+	int DecodeTimPalette(byte[] content, int contentLength, int colors)
+	{
+		if ((content[16] | content[17] << 8) != colors)
+			return -1;
+		int paletteCount = content[18] | content[19] << 8;
+		if (paletteCount == 0)
+			return -1;
+		int bitmapOffset = 20 + (paletteCount * colors << 1);
+		if (Get32LittleEndian(content, 8) != bitmapOffset - 8
+		 || contentLength < bitmapOffset + 12)
+			return -1;
+		int width = (content[bitmapOffset + 8] | content[bitmapOffset + 9] << 8) << 1;
+		int height = content[bitmapOffset + 10] | content[bitmapOffset + 11] << 8;
+		if (contentLength < bitmapOffset + 12 + width * height)
+			return -1;
+		if (colors == 16)
+			width <<= 1;
+		if (!SetSize(width, height, RECOILResolution.PlayStation1x1))
+			return -1;
+		DecodePlayStation(content, 20, ContentPalette, colors);
+		return bitmapOffset + 12;
+	}
+
+	bool DecodeTim(byte[] content, int contentLength)
+	{
+		if (contentLength < 20 || Get32LittleEndian(content, 0) != 16)
+			return false;
+		int pixelsLength;
+		int bitmapOffset;
+		switch (content[4] & 0xf) {
+		case 2: // 16bpp
+			int width = content[16] | content[17] << 8;
+			int height = content[18] | content[19] << 8;
+			pixelsLength = width * height;
+			if (contentLength < 20 + (pixelsLength << 1)
+			 || !SetSize(width, height, RECOILResolution.PlayStation1x1))
+				return false;
+			DecodePlayStation(content, 20, Pixels, pixelsLength);
+			return true;
+		case 8: // 4bpp
+			bitmapOffset = DecodeTimPalette(content, contentLength, 16);
+			if (bitmapOffset < 0)
+				return false;
+			pixelsLength = Width * Height;
+			for (int i = 0; i < pixelsLength; i++) {
+				int b = content[bitmapOffset + (i >> 1)];
+				Pixels[i] = ContentPalette[(i & 1) == 0 ? b & 0xf : b >> 4];
+			}
+			return true;
+		case 9: // 8bpp
+			bitmapOffset = DecodeTimPalette(content, contentLength, 256);
+			if (bitmapOffset < 0)
+				return false;
+			DecodeBytes(content, bitmapOffset);
+			return true;
+		default:
+			return false;
+		}
 	}
 
 	// BBC micro formats.
@@ -10510,6 +10586,7 @@ public class RECOIL
 		case PackExt("SR5"):
 		case PackExt("SR7"):
 		case PackExt("SXS"):
+		case PackExt("TIM"):
 		case PackExt("TIP"):
 		case PackExt("TN1"):
 		case PackExt("TN2"):
@@ -11034,6 +11111,8 @@ public class RECOIL
 			return DecodeSr7(filename, content, contentLength);
 		case PackExt("SXS"):
 			return DecodeSxs(content, contentLength);
+		case PackExt("TIM"):
+			return DecodeTim(content, contentLength);
 		case PackExt("TIP"):
 			return DecodeTip(content, contentLength);
 		case PackExt("TN1"):
