@@ -5473,6 +5473,11 @@ public class RECOIL
 		return DecodeSt(unpacked, 0, content, 0, content[33]);
 	}
 
+	static bool IsXimg(byte[] content)
+	{
+		return IsStringAt(content, 16, "XIMG") && content[20] == 0 && content[21] == 0;
+	}
+
 	bool DecodeStImg(byte[] content, int contentLength)
 	{
 		// TODO: content[1] == 3
@@ -5493,7 +5498,7 @@ public class RECOIL
 		case 2:
 		case 4:
 		case 8:
-			if (headerLength == 22 + (6 << bitplanes) && IsStringAt(content, 16, "XIMG") && content[20] == 0 && content[21] == 0) {
+			if (headerLength == 22 + (6 << bitplanes) && IsXimg(content)) {
 				for (int i = 0; i < 1 << bitplanes; i++) {
 					int rgb = GetStColor1000(content, 22 + i * 6);
 					if (rgb < 0)
@@ -5504,7 +5509,11 @@ public class RECOIL
 			else
 				return false; // TODO: default palette?
 			break;
-		// TODO: 15, 16, 24 bitplanes
+		// TODO: 15, 16 bitplanes
+		case 24:
+			if (headerLength != 22 || !IsXimg(content))
+				return false;
+			break;
 		default:
 			return false;
 		}
@@ -5525,22 +5534,47 @@ public class RECOIL
 		rle.Content = content;
 		rle.ContentOffset = headerLength;
 		rle.ContentLength = contentLength;
-		int bytesPerBitplane = width + 7 >> 3;
-		byte[MaxWidth + 7] unpacked;
-		for (int y = 0; y < height; ) {
-			int lineRepeatCount = rle.GetLineRepeatCount();
-			for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
-				for (int x = 0; x < bytesPerBitplane; x++) {
+		if (bitplanes == 24) {
+			int pixelsOffset = 0;
+			for (int y = 0; y < height; y++) {
+				for (int x = 0; x < width; x++) {
+					int r = rle.ReadRle();
+					if (r < 0)
+						return false;
+					int g = rle.ReadRle();
+					if (g < 0)
+						return false;
 					int b = rle.ReadRle();
 					if (b < 0)
 						return false;
-					unpacked[(x & ~1) * bitplanes + (bitplane << 1) + (x & 1)] = b;
+					Pixels[pixelsOffset++] = r << 16 | g << 8 | b;
+				}
+				// skip padding
+				for (int i = (-width & 15) * 3; i > 0; i--) {
+					int b = rle.ReadRle();
+					if (b < 0)
+						return false;
 				}
 			}
-			if (lineRepeatCount > height - y)
-				lineRepeatCount = height - y;
-			DecodeBitplanes(unpacked, 0, 0, bitplanes, y * width << doubleHeight, width, lineRepeatCount << doubleHeight);
-			y += lineRepeatCount;
+		}
+		else {
+			int bytesPerBitplane = width + 7 >> 3;
+			byte[MaxWidth + 7] unpacked;
+			for (int y = 0; y < height; ) {
+				int lineRepeatCount = rle.GetLineRepeatCount();
+				for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
+					for (int x = 0; x < bytesPerBitplane; x++) {
+						int b = rle.ReadRle();
+						if (b < 0)
+							return false;
+						unpacked[(x & ~1) * bitplanes + (bitplane << 1) + (x & 1)] = b;
+					}
+				}
+				if (lineRepeatCount > height - y)
+					lineRepeatCount = height - y;
+				DecodeBitplanes(unpacked, 0, 0, bitplanes, y * width << doubleHeight, width, lineRepeatCount << doubleHeight);
+				y += lineRepeatCount;
+			}
 		}
 		return true;
 	}
@@ -6141,8 +6175,8 @@ public class RECOIL
 			return false;
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
-				int rg = content[contentOffset++];
-				int gb = content[contentOffset++];
+				int rg = content[contentOffset++]; // RRRRRGGG
+				int gb = content[contentOffset++]; // GGGBBBBB
 				int r = rg & 0xf8 | rg >> 5;
 				int g = (rg & 7) << 3 | gb >> 5;
 				g = g << 2 | g >> 4;
