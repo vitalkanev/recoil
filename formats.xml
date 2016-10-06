@@ -235,6 +235,7 @@
 			<ext>PNT</ext>
 			<ext>TPI</ext>
 		</format>
+		<format colors="32768"><ext>TIMG</ext></format>
 		<format name="EggPaint" colors="65536"><ext>TRP</ext></format>
 		<format name="IndyPaint" colors="65536"><ext>TRU</ext></format>
 		<format colors="65536"><ext>XGA</ext></format>

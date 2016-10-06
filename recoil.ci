@@ -1179,6 +1179,8 @@ class ImgStream : RleStream
 			RepeatCount = ReadByte();
 			if (RepeatCount < 0)
 				return false;
+			if (RepeatCount == 0)
+				RepeatCount = 256;
 			RepeatValue = -1;
 			return true;
 		default:
@@ -2662,6 +2664,14 @@ public class RECOIL
 		}
 	}
 
+	static int GetB5G5R5Color(int c)
+	{
+		// XBBBBBGG GGGRRRRR
+		c = (c & 0x1f) << 19 | (c & 0x3e0) << 6 | (c >> 7 & 0xf8);
+		// RRRRR000 GGGGG000 BBBBB000
+		return c | (c >> 5 & 0x070707);
+	}
+
 	/// Decodes Atari ST/Falcon interleaved bitplanes.
 	/// Each 16 pixels are encoded in N consecutive 16-bit words.
 	void DecodeBitplanes(byte[] content, int contentOffset, int contentStride, int bitplanes, int pixelsOffset, int width, int height)
@@ -2673,7 +2683,11 @@ public class RECOIL
 				int c = 0;
 				for (int bitplane = bitplanes; --bitplane >= 0; )
 					c = c << 1 | content[offset + (bitplane << 1)] >> bit & 1;
-				Pixels[pixelsOffset + x] = ContentPalette[c];
+				if (bitplanes == 15)
+					c = GetB5G5R5Color(c);
+				else
+					c = ContentPalette[c];
+				Pixels[pixelsOffset + x] = c;
 			}
 			contentOffset += contentStride;
 			pixelsOffset += Width;
@@ -2845,13 +2859,8 @@ public class RECOIL
 
 	static void DecodePlayStation(byte[] content, int contentOffset, int[] pixels, int pixelsLength)
 	{
-		for (int i = 0; i < pixelsLength; i++) {
-			int c = content[contentOffset + (i << 1)] | content[contentOffset + (i << 1) + 1] << 8;
-			// XBBBBBGG GGGRRRRR
-			c = (c & 0x1f) << 19 | (c & 0x3e0) << 6 | (c >> 7 & 0xf8);
-			// RRRRR000 GGGGG000 BBBBB000
-			pixels[i] = c | (c >> 5 & 0x070707);
-		}
+		for (int i = 0; i < pixelsLength; i++)
+			pixels[i] = GetB5G5R5Color(content[contentOffset + (i << 1)] | content[contentOffset + (i << 1) + 1] << 8);
 	}
 
 	int DecodeTimPalette(byte[] content, int contentLength, int colors)
@@ -5481,6 +5490,17 @@ public class RECOIL
 		return DecodeSt(unpacked, 0, content, 0, content[33]);
 	}
 
+	static bool IsTimg(byte[] content)
+	{
+		if (!IsStringAt(content, 16, "TIMG") || content[20] != 0 || content[21] != 3)
+			return false;
+		for (int i = 22; i < 28; i += 2) {
+			if (content[i] != 0 || content[i + 1] != 5)
+				return false;
+		}
+		return true;
+	}
+
 	static bool IsXimg(byte[] content)
 	{
 		return IsStringAt(content, 16, "XIMG") && content[20] == 0 && content[21] == 0;
@@ -5535,7 +5555,10 @@ public class RECOIL
 			else
 				return false;
 			break;
-		// TODO: 15, 16 bitplanes
+		case 15:
+			if (headerLength != 28 || !IsTimg(content))
+				return false;
+			break;
 		case 24:
 			if (headerLength != 22 || !IsXimg(content))
 				return false;
@@ -5585,7 +5608,7 @@ public class RECOIL
 		}
 		else {
 			int bytesPerBitplane = width + 7 >> 3;
-			byte[MaxWidth + 7] unpacked = 0;
+			byte[MaxWidth * 15 / 8 + 7] unpacked = 0;
 			for (int y = 0; y < height; ) {
 				int lineRepeatCount = rle.GetLineRepeatCount();
 				for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
@@ -10527,6 +10550,7 @@ public class RECOIL
 		case PackExt("IHE"):
 		case PackExt("ILD"):
 		case PackExt("IMG"):
+		case PackExt("TIMG"):
 		case PackExt("XIMG"):
 		case PackExt("IMN"):
 		case PackExt("INFO"):
@@ -10947,6 +10971,7 @@ public class RECOIL
 		case PackExt("IMG"):
 			return DecodeStImg(content, contentLength)
 				|| DecodeZxImg(content, contentLength);
+		case PackExt("TIMG"):
 		case PackExt("XIMG"):
 			return DecodeStImg(content, contentLength);
 		case PackExt("IMN"):
