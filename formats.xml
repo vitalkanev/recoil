@@ -384,6 +384,7 @@
 			<ext>MAG</ext>
 			<ext>MKI</ext>
 		</format>
+		<format name="XLD4" width="640" height="400" colors="16"><ext>Q4</ext></format>
 	</platform>
 	<platform name="Oric" href="http://en.wikipedia.org/wiki/Oric">
 		<format name="6x8 font" colors="2"><ext>CHS</ext></format>
