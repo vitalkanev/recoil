@@ -19,12 +19,16 @@
 					<intent-filter>
 						<action android:name="android.intent.action.VIEW" />
 						<category android:name="android.intent.category.DEFAULT" />
-						<category android:name="android.intent.category.BROWSABLE" />
 						<data android:mimeType="*/*" />
 						<data android:scheme="file" android:host="*" />
+						<data android:scheme="content" android:host="*" />
 						<xsl:for-each select="platform/format/ext[not(. = following::ext)]">
 							<xsl:sort />
-							<data android:pathPattern=".*\\.{translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')}" />
+							<data android:pathPattern=".*\\.{.}" />
+							<xsl:variable name="lc" select="translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')" />
+							<xsl:if test="$lc != .">
+								<data android:pathPattern=".*\\.{$lc}" />
+							</xsl:if>
 						</xsl:for-each>
 					</intent-filter>
 				</activity>

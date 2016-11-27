@@ -1,7 +1,7 @@
 /*
  * Viewer.java - RECOIL for Android
  *
- * Copyright (C) 2013-2016  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2013-2016  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -54,6 +54,11 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 	private TreeSet<String> favorites;
 	private MenuItem favoriteMenuItem;
 
+	private static boolean isFile(Uri uri)
+	{
+		return "file".equals(uri.getScheme());
+	}
+
 	private String split(Uri uri)
 	{
 		String filename = uri.getFragment();
@@ -65,10 +70,12 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 		String path = filename.substring(0, i);
 		filename = filename.substring(i);
 
+		Uri.Builder builder = uri.buildUpon();
 		if (uri.getFragment() == null)
-			baseUri = Uri.fromFile(new File(path));
+			builder.path(path);
 		else
-			baseUri = uri.buildUpon().fragment(path).build();
+			builder.fragment(path);
+		baseUri = builder.build();
 		return filename;
 	}
 
@@ -85,13 +92,17 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 			ZipFile zip = null;
 			JavaRECOIL recoil;
 			try {
-				if (FileUtil.isZip(filename)) {
-					zip = new ZipFile(filename);
-					recoil = new ZipRECOIL(zip);
-					filename = uri.getFragment();
+				if (isFile(uri)) {
+					if (FileUtil.isZip(filename)) {
+						zip = new ZipFile(filename);
+						recoil = new ZipRECOIL(zip);
+						filename = uri.getFragment();
+					}
+					else
+						recoil = new FileRECOIL();
 				}
 				else
-					recoil = new FileRECOIL();
+					recoil = new StreamRECOIL(getContentResolver().openInputStream(uri));
 				if (!recoil.load(filename))
 					throw new RECOILException(getString(R.string.error_decoding_file, filename));
 			}
@@ -134,12 +145,18 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 
 		Uri uri = getIntent().getData();
 		String filename = split(uri);
-		try {
-			filenames = FileUtil.list(baseUri, null);
+		if (isFile(uri)) {
+			try {
+				filenames = FileUtil.list(baseUri, null);
+			}
+			catch (IOException ex) {
+				setContentView(R.layout.access_denied);
+				return;
+			}
 		}
-		catch (IOException ex) {
-			setContentView(R.layout.access_denied);
-			return;
+		else {
+			filenames = new ArrayList<String>();
+			filenames.add(filename);
 		}
 
 		favorites = new TreeSet<String>(FileUtil.getUserFavorites(this));

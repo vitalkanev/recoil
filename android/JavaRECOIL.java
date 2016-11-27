@@ -1,7 +1,7 @@
 /*
  * JavaRECOIL.java - RECOIL for Android
  *
- * Copyright (C) 2015  Piotr Fusik
+ * Copyright (C) 2015-2016  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -118,5 +118,33 @@ class ZipRECOIL extends JavaRECOIL
 		if (entry == null)
 			throw new FileNotFoundException(filename);
 		return zip.getInputStream(entry);
+	}
+}
+
+class StreamRECOIL extends JavaRECOIL
+{
+	private final InputStream stream;
+
+	StreamRECOIL(InputStream stream)
+	{
+		this.stream = stream;
+	}
+
+	@Override
+	long getLength(String filename)
+	{
+		return MAX_CONTENT_LENGTH;
+	}
+
+	@Override
+	InputStream openFile(String filename) throws IOException
+	{
+		return stream;
+	}
+
+	@Override
+	int readFile(String filename, byte[] content, int contentLength)
+	{
+		return -1; // no companion files, sorry
 	}
 }

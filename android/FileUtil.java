@@ -132,8 +132,7 @@ abstract class FileUtil
 
 	static Uri buildUri(Uri baseUri, String relativePath)
 	{
-		String path = baseUri.getPath();
-		if (isZip(path)) {
+		if (isZip(baseUri.getPath())) {
 			String zipPath = baseUri.getFragment();
 			if (zipPath == null)
 				zipPath = relativePath;
@@ -141,7 +140,7 @@ abstract class FileUtil
 				zipPath += relativePath;
 			return baseUri.buildUpon().fragment(zipPath).build();
 		}
-		return Uri.fromFile(new File(path, relativePath));
+		return Uri.withAppendedPath(baseUri, Uri.encode(relativePath));
 	}
 
 	static Set<String> getUserFavorites(Context context)
