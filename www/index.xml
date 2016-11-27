@@ -45,7 +45,7 @@
 
 	<h2>ImageMagick (de)coder</h2>
 	<p><a href="http://www.imagemagick.org/">ImageMagick</a> is a multi-platform suite to manipulate bitmaps.</p>
-	<p>RECOIL includes a plugin for it. On Windows use <tt>*.msi</tt>, on Linux install from source code.</p>
+	<p>RECOIL includes a plugin for version 6 of ImageMagick. On Windows use <tt>*.msi</tt>, on Linux install from source code.</p>
 
 	<h2>recoil2png</h2>
 	<p>This is a portable command-line converter to PNG files.
