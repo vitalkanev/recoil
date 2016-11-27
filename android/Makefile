@@ -1,6 +1,6 @@
 ANDROID_SDK = C:/bin/android-sdk
 ANDROID_JAR = $(ANDROID_SDK)/platforms/android-24/android.jar
-ANDROID_BUILD_TOOLS = $(ANDROID_SDK)/build-tools/24.0.2
+ANDROID_BUILD_TOOLS = $(ANDROID_SDK)/build-tools/25.0.1
 
 AAPT = $(ANDROID_BUILD_TOOLS)/aapt
 DX = java -jar "$(ANDROID_BUILD_TOOLS)/lib/dx.jar" --no-strict

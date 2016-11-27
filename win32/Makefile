@@ -8,7 +8,7 @@ LDFLAGS_DLL = -shared -Wl,--kill-at -Wl,-subsystem,windows
 CC = $(@D)-w64-mingw32-gcc -o $@ $(CFLAGS) $(CSOURCES)
 CXX = $(@D)-w64-mingw32-g++ -o $@ $(CFLAGS) $(CSOURCES)
 WINDRES = $(@D)-w64-mingw32-windres -o $@
-CSC = C:/Windows/Microsoft.NET/Framework/v3.5/csc.exe -nologo -o+ -out:$@
+CSC = C:/Windows/Microsoft.NET/Framework/v4.0.30319/csc.exe -nologo -o+ -out:$@
 RM = rm -f
 UNIX2DOS = unix2dos <$< >$@
 GIT = git
@@ -17,9 +17,9 @@ SEVENZIP = 7z a -mx=9 -bd -bso0
 CANDLE = candle -ext WixUtilExtension -nologo -o $@
 LIGHT = light -ext WixUtilExtension -nologo -o $@ -spdb
 MAGICK = magick
-IMAGEMAGICK_i686_DIR = c:\Program Files\ImageMagick-6.9.5-Q16
-IMAGEMAGICK_x86_64_DIR = ..\..\porty\ImageMagick-6.8.9-Q16
-PAINT_NET_DIR = c:\Program Files\paint.net
+IMAGEMAGICK_i686_DIR = C:\Program Files (x86)\ImageMagick-6.9.6-Q16
+IMAGEMAGICK_x86_64_DIR = C:\Program Files\ImageMagick-6.9.6-Q16
+PAINT_NET_DIR = C:\Program Files\paint.net
 ifdef V
 DO = mkdir -p $(@D) && 
 else

@@ -114,7 +114,7 @@ To build RECOIL, from the command prompt navigate to the win32 directory and run
 Building Paint.NET plugin on Windows
 ------------------------------------
 
-Install .NET Framework 3.5, Paint.NET and GNU Make (e.g. Cygwin's, https://www.cygwin.com/).
+Install Paint.NET and GNU Make (e.g. Cygwin's, https://www.cygwin.com/).
 
 Make sure cito is on your PATH.
 
