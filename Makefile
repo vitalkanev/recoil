@@ -12,7 +12,7 @@ endif
 
 CITO = cito
 CC = gcc 
-CFLAGS = -s -O2 -Wall
+CFLAGS = -O2 -Wall
 INSTALL = install
 INSTALL_PROGRAM = $(INSTALL)
 INSTALL_DATA = $(INSTALL) -m 644
