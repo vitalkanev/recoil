@@ -1,0 +1,15 @@
+/.vs
+/AppPackages
+/Assets
+/BundleArtifacts
+/bin
+/obj
+/project.lock.json
+/FilePicker.cs
+/RECOIL.cs
+/RECOIL.csproj.user
+/Package.appxmanifest
+/Package.StoreAssociation.xml
+/RECOIL_StoreKey.pfx
+/RECOIL_TemporaryKey.pfx
+/_pkginfo.txt
