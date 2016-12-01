@@ -7,7 +7,7 @@ Required tools
 
 RECOIL is written in the Ć programming language.
 Official releases include translation of RECOIL to C, so you only need a C compiler and Make utility.
-For other cases (Git, Paint.NET, HTML 5 or Android) you'll need cito (http://cito.sourceforge.net).
+For other cases (Git, Paint.NET, HTML 5, Android, UWP) you'll need cito (http://cito.sourceforge.net).
 
 
 Required libraries
@@ -154,3 +154,13 @@ Install Xcode Command Line Tools.
 From the command prompt navigate to the osx directory and run:
 
     make
+
+
+Building Windows 10 application
+-------------------------------
+
+Install Visual Studio 2015 and ImageMagick 7.
+
+Make sure cito and magick are on your PATH.
+
+Build uwp/RECOIL.sln in Visual Studio.
