@@ -12,13 +12,29 @@
 	<img src="android.png" alt="Android application" />
 
 	<h2>Windows thumbnails</h2>
-	<p>Use a <tt>*.msi</tt> installer that matches your Windows version (32-bit or 64-bit).</p>
+	<p>Use a <tt>*.msi</tt> installer that matches your desktop Windows version (32-bit or 64-bit).</p>
 	<img src="thumbrecoil.png" alt="Windows Explorer" />
+
+	<h2>RECOILWin - viewer for desktop Windows</h2>
+	<p>Get from a <tt>*.msi</tt> installer or the <tt>*.zip</tt> archive.</p>
+	<img src="recoilwin.png" alt="RECOILWin" />
+
+	<h2>IrfanView plugin</h2>
+	<p>RECOIL is included in the "Formats" <a href="http://www.irfanview.com/">IrfanView</a> plugin.</p>
+
+	<h2>Plugins for Windows viewers</h2>
+	<p>The <tt>*.msi</tt> installer detects <a href="http://www.xnview.com">XnView</a>,
+	<a href="http://www.nyam.pe.kr/">Imagine</a> and <a href="http://www.getpaint.net/">Paint.NET</a>
+	and installs the corresponding RECOIL plugins.</p>
+
+	<h2>Windows 10 application</h2>
+	<p>A native Windows 10 application (also for phones and tables) is available in <a href="www.microsoft.com/store/p/recoil/9nblggh4132z">Windows Store</a>.</p>
+	<img src="win10.png" alt="Windows 10 application" />
 
 	<h2>OS X Quick Look</h2>
 	<p>Install as follows:</p>
 	<ol>
-		<li>Open <tt>recoil-3.4.0-osx.dmg</tt>.</li>
+		<li>Open <tt>recoil-3.5.0-osx.dmg</tt>.</li>
 		<li>Drag <tt>RECOIL.qlgenerator</tt> to <tt>QuickLook</tt>.</li>
 		<li>Re-log or run <tt>qlmanage -r</tt>.</li>
 	</ol>
@@ -30,18 +46,6 @@
 
 	<h2>HTML 5 based viewer</h2>
 	<p><a href="html5recoil.html">Run</a> right inside your browser.</p>
-
-	<h2>RECOILWin - viewer for Windows</h2>
-	<p>Get from a <tt>*.msi</tt> installer or the <tt>*.zip</tt> archive.</p>
-	<img src="recoilwin.png" alt="RECOILWin" />
-
-	<h2>IrfanView plugin</h2>
-	<p>RECOIL is included in the "Formats" <a href="http://www.irfanview.com/">IrfanView</a> plugin.</p>
-
-	<h2>Plugins for Windows viewers</h2>
-	<p>The <tt>*.msi</tt> installer detects <a href="http://www.xnview.com">XnView</a>,
-	<a href="http://www.nyam.pe.kr/">Imagine</a> and <a href="http://www.getpaint.net/">Paint.NET</a>
-	and installs the corresponding RECOIL plugins.</p>
 
 	<h2>ImageMagick (de)coder</h2>
 	<p><a href="http://www.imagemagick.org/">ImageMagick</a> is a multi-platform suite to manipulate bitmaps.</p>

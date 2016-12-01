@@ -1,4 +1,19 @@
 ﻿<div>
+	<release project="RECOIL" version="3.5.0" date="2016-12-01">
+		<p>New Windows 10 port.</p>
+		<p>Decoding additional variants of: BEAM, IFF, SC2, SC5, SC7, SCA, SR5, SR7, XIMG.</p>
+		<ul title="New formats">
+			<li>Amiga: TVPaint (DEEP)</li>
+			<li>Atari Falcon: TIMG</li>
+			<li>MSX: Maki-chan Graphics (MAG, MAX)</li>
+			<li>NEC PC-88: Maki-chan Graphics (MAG)</li>
+			<li>NEC PC-98: Maki-chan Graphics (MAG, MKI), XLD4 (Q4)</li>
+			<li>PlayStation: TIM</li>
+			<li>Sharp X68000: PIC</li>
+			<li>ZX Spectrum: ULAplus (SCR)</li>
+		</ul>
+	</release>
+
 	<release project="RECOIL" version="3.4.0" date="2016-02-02">
 		<ul>
 			<li>Decoding the exact width of several formats, no more right-padding.</li>

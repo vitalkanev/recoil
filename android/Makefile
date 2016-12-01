@@ -11,7 +11,7 @@ ANDROID = $(ANDROID_SDK)/tools/android.bat
 EMULATOR = $(ANDROID_SDK)/tools/emulator
 MAGICK = magick
 
-ANDROID_RELEASE = recoil-3.4.0-android.apk
+ANDROID_RELEASE = recoil-3.5.0-android.apk
 
 all: $(ANDROID_RELEASE) recoil-1024x500.png
 
