@@ -109,9 +109,9 @@
     <MakeDir Directories="Assets" />
     <Exec Command="magick -background #006374 logo.png -gravity Center -sample 36x36 -extent 48x48 -quality 95 -strip Assets\FileLogo.png" />
     <Exec Command="magick -background none logo.png -gravity Center -sample 400x400 -extent 1240x600 -quality 95 -strip Assets\SplashScreen.scale-200.png" />
-    <Exec Command="magick -background none logo.png -gravity Center -sample 260x260 -extent 300x300 -quality 95 -strip Assets\Square150x150Logo.scale-200.png" />
-    <Exec Command="magick -background none logo.png -gravity Center -sample 76x76 -extent 88x88 -quality 95 -strip Assets\Square44x44Logo.scale-200.png" />
-    <Exec Command="magick -background none logo.png -gravity Center -sample 44x44 -extent 50x50 -quality 95 -strip Assets\StoreLogo.png" />
+    <Exec Command="magick -background none logo.png -gravity Center -sample 224x224 -extent 300x300 -quality 95 -strip Assets\Square150x150Logo.scale-200.png" />
+    <Exec Command="magick -background none logo.png -gravity Center -sample 66x66 -extent 88x88 -quality 95 -strip Assets\Square44x44Logo.scale-200.png" />
+    <Exec Command="magick -background none logo.png -gravity Center -sample 38x38 -extent 50x50 -quality 95 -strip Assets\StoreLogo.png" />
     <Exec Command="magick -background none logo.png -gravity Center -sample 200x200 -extent 620x300 -quality 95 -strip Assets\Wide310x150Logo.scale-200.png" />
     <Exec Command="cito -o RECOIL.cs -I .. -n Recoil ../recoil.ci" />
   </Target>
