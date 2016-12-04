@@ -6,7 +6,10 @@
 		<format name="Hold-And-Modify 8" colors="16777216"><ext>HAM8</ext></format>
 		<format name="Interchange File Format"><ext>IFF</ext></format>
 		<format name="Icon" colors="8"><ext>INFO</ext></format>
-		<format name="Interleaved Bitmap"><ext>LBM</ext></format>
+		<format name="Interleaved Bitmap">
+			<ext>LBM</ext>
+			<ext>ILBM</ext>
+		</format>
 		<format name="Multi-palette" colors="4096">
 			<ext>DHR</ext>
 			<ext>DR</ext>

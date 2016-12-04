@@ -10681,6 +10681,7 @@ public class RECOIL
 		case PackExt("HAM6"):
 		case PackExt("HAM8"):
 		case PackExt("LBM"):
+		case PackExt("ILBM"):
 		case PackExt("MP"):
 		case PackExt("RGB8"):
 		case PackExt("RGBN"):
@@ -11095,6 +11096,7 @@ public class RECOIL
 		case PackExt("HAM6"):
 		case PackExt("HAM8"):
 		case PackExt("LBM"):
+		case PackExt("ILBM"):
 		case PackExt("MP"):
 		case PackExt("RGB8"):
 		case PackExt("RGBN"):
