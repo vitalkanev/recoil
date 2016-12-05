@@ -2766,6 +2766,15 @@ public class RECOIL
 		return c | (c >> 5 & 0x070707);
 	}
 
+	static int GetFalconTrueColor(int rg, int gb)
+	{
+		// RRRRRGGG, GGGBBBBB
+		int rgb = (rg & 0xf8) << 16 | (rg & 7) << 13 | (gb & 0xe0) << 5 | (gb & 0x1f) << 3;
+		// RRRRR000 GGGGGG00 BBBBB000
+		rgb |= (rgb >> 5 & 0x070007) | (rgb >> 6 & 0x000300);
+		return rgb;
+	}
+
 	/// Decodes Atari ST/Falcon interleaved bitplanes.
 	/// Each 16 pixels are encoded in N consecutive 16-bit words.
 	void DecodeBitplanes(byte[] content, int contentOffset, int contentStride, int bitplanes, int pixelsOffset, int width, int height)
@@ -5699,6 +5708,8 @@ public class RECOIL
 			if (headerLength != 28 || !IsTimg(content))
 				return false;
 			break;
+		case 16:
+			break;
 		case 24:
 			if (headerLength != 22 || !IsXimg(content))
 				return false;
@@ -5723,48 +5734,67 @@ public class RECOIL
 		rle.Content = content;
 		rle.ContentOffset = headerLength;
 		rle.ContentLength = contentLength;
-		if (bitplanes == 24) {
-			int pixelsOffset = 0;
-			for (int y = 0; y < height; y++) {
-				for (int x = 0; x < width; x++) {
-					int r = rle.ReadRle();
-					if (r < 0)
-						return false;
-					int g = rle.ReadRle();
-					if (g < 0)
-						return false;
-					int b = rle.ReadRle();
-					if (b < 0)
-						return false;
-					Pixels[pixelsOffset++] = r << 16 | g << 8 | b;
-				}
-				// skip padding
-				for (int i = (-width & 15) * 3; i > 0; i--) {
-					int b = rle.ReadRle();
-					if (b < 0)
-						return false;
+		switch (bitplanes) {
+		case 16: {
+				int pixelsOffset = 0;
+				for (int y = 0; y < height; y++) {
+					for (int x = 0; x < width; x++) {
+						int rg = rle.ReadRle();
+						if (rg < 0)
+							return false;
+						int gb = rle.ReadRle();
+						if (gb < 0)
+							return false;
+						Pixels[pixelsOffset++] = GetFalconTrueColor(rg, gb);
+					}
 				}
 			}
-		}
-		else {
-			int bytesPerBitplane = width + 7 >> 3;
-			byte[MaxWidth * 15 / 8 + 7] unpacked = 0;
-			for (int y = 0; y < height; ) {
-				int lineRepeatCount = rle.GetLineRepeatCount();
-				for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
-					for (int x = 0; x < bytesPerBitplane; x++) {
+			break;
+		case 24: {
+				int pixelsOffset = 0;
+				for (int y = 0; y < height; y++) {
+					for (int x = 0; x < width; x++) {
+						int r = rle.ReadRle();
+						if (r < 0)
+							return false;
+						int g = rle.ReadRle();
+						if (g < 0)
+							return false;
 						int b = rle.ReadRle();
 						if (b < 0)
 							return false;
-						if (b != ImgStream.Keep)
-							unpacked[(x & ~1) * bitplanes + (bitplane << 1) + (x & 1)] = b;
+						Pixels[pixelsOffset++] = r << 16 | g << 8 | b;
+					}
+					// skip padding
+					for (int i = (-width & 15) * 3; i > 0; i--) {
+						int b = rle.ReadRle();
+						if (b < 0)
+							return false;
 					}
 				}
-				if (lineRepeatCount > height - y)
-					lineRepeatCount = height - y;
-				DecodeBitplanes(unpacked, 0, 0, bitplanes, y * width << doubleHeight, width, lineRepeatCount << doubleHeight);
-				y += lineRepeatCount;
 			}
+			break;
+		default: {
+				int bytesPerBitplane = width + 7 >> 3;
+				byte[MaxWidth * 16 / 8 + 7] unpacked = 0;
+				for (int y = 0; y < height; ) {
+					int lineRepeatCount = rle.GetLineRepeatCount();
+					for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
+						for (int x = 0; x < bytesPerBitplane; x++) {
+							int b = rle.ReadRle();
+							if (b < 0)
+								return false;
+							if (b != ImgStream.Keep)
+								unpacked[(x & ~1) * bitplanes + (bitplane << 1) + (x & 1)] = b;
+						}
+					}
+					if (lineRepeatCount > height - y)
+						lineRepeatCount = height - y;
+					DecodeBitplanes(unpacked, 0, 0, bitplanes, y * width << doubleHeight, width, lineRepeatCount << doubleHeight);
+					y += lineRepeatCount;
+				}
+			}
+			break;
 		}
 		return true;
 	}
@@ -6367,12 +6397,7 @@ public class RECOIL
 			for (int x = 0; x < width; x++) {
 				int rg = content[contentOffset++]; // RRRRRGGG
 				int gb = content[contentOffset++]; // GGGBBBBB
-				int r = rg & 0xf8 | rg >> 5;
-				int g = (rg & 7) << 3 | gb >> 5;
-				g = g << 2 | g >> 4;
-				int b = gb & 0x1f;
-				b = b << 3 | b >> 2;
-				SetScaledPixel(x, y, r << 16 | g << 8 | b);
+				SetScaledPixel(x, y, GetFalconTrueColor(rg, gb));
 			}
 		}
 		return true;
