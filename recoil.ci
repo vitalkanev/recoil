@@ -5754,16 +5754,15 @@ public class RECOIL
 				int pixelsOffset = 0;
 				for (int y = 0; y < height; y++) {
 					for (int x = 0; x < width; x++) {
-						int r = rle.ReadRle();
-						if (r < 0)
-							return false;
-						int g = rle.ReadRle();
-						if (g < 0)
-							return false;
-						int b = rle.ReadRle();
-						if (b < 0)
-							return false;
-						Pixels[pixelsOffset++] = r << 16 | g << 8 | b;
+						int rgb = y == 0 ? 0 : Pixels[pixelsOffset - width];
+						for (int shift = 16; shift >= 0; shift -= 8) {
+							int b = rle.ReadRle();
+							if (b < 0)
+								return false;
+							if (b != ImgStream.Keep)
+								rgb = (rgb & ~(0xff << shift)) | b << shift;
+						}
+						Pixels[pixelsOffset++] = rgb;
 					}
 					// skip padding
 					for (int i = (-width & 15) * 3; i > 0; i--) {
