@@ -8,19 +8,19 @@
 
 	<h2>Android application</h2>
 	<p>The Android application is available in <a href="https://play.google.com/store/apps/details?id=net.sf.recoil">Google Play</a>.
-	It includes a file picker that lets you browse all directories on your device as well as ZIP archives.</p>
+	It includes a file picker that lets you browse directories on your device as well as ZIP archives.</p>
 	<img src="android.png" alt="Android application" />
 
-	<h2>Windows thumbnails</h2>
+	<h2>Windows Explorer thumbnails</h2>
 	<p>Use a <tt>*.msi</tt> installer that matches your desktop Windows version (32-bit or 64-bit).</p>
 	<img src="thumbrecoil.png" alt="Windows Explorer" />
 
-	<h2>RECOILWin - viewer for desktop Windows</h2>
-	<p>Get from a <tt>*.msi</tt> installer or the <tt>*.zip</tt> archive.</p>
+	<h2>Viewer for desktop Windows</h2>
+	<p>Get RECOILWin from a <tt>*.msi</tt> installer or the <tt>*.zip</tt> archive.</p>
 	<img src="recoilwin.png" alt="RECOILWin" />
 
 	<h2>IrfanView plugin</h2>
-	<p>RECOIL is included in the "Formats" <a href="http://www.irfanview.com/">IrfanView</a> plugin.</p>
+	<p>RECOIL is already included in the "Formats" <a href="http://www.irfanview.com/">IrfanView</a> plugin.</p>
 
 	<h2>Plugins for Windows viewers</h2>
 	<p>The <tt>*.msi</tt> installer detects <a href="http://www.xnview.com">XnView</a>,
@@ -28,7 +28,7 @@
 	and installs the corresponding RECOIL plugins.</p>
 
 	<h2>Windows 10 application</h2>
-	<p>A native Windows 10 application (also for phones and tables) is available in <a href="http://www.microsoft.com/store/p/recoil/9nblggh4132z">Windows Store</a>.</p>
+	<p>A native Windows 10 application (also for phones and tablets) is available in <a href="http://www.microsoft.com/store/p/recoil/9nblggh4132z">Windows Store</a>.</p>
 	<img src="win10.png" alt="Windows 10 application" />
 
 	<h2>OS X Quick Look</h2>
@@ -40,7 +40,7 @@
 	</ol>
 	<img src="qlrecoil.png" alt="Quick Look" />
 
-	<h2>GNOME thumbnails</h2>
+	<h2>Linux GNOME thumbnails</h2>
 	<p>Install <tt>recoil-2png</tt> first, then <tt>recoil-thumbnailer</tt>.</p>
 	<img src="nautilus.png" alt="Nautilus" />
 
@@ -53,11 +53,19 @@
 
 	<h2>recoil2png</h2>
 	<p>This is a portable command-line converter to PNG files.
-	Available in <tt>*.msi</tt>, <tt>*.zip</tt>, <tt>*.deb</tt>, <tt>*.rpm</tt>.</p>
-	<p>Run the program from command line to see the syntax.
-	Unless you specify the <tt>-o/--output</tt> option, the output filename will be
-	constructed from the input filename with the extension changed to <tt>png</tt>.</p>
+	Available in <tt>*.msi</tt>, <tt>*.zip</tt>, <tt>*.deb</tt>, <tt>*.rpm</tt>, <tt>*.tar.gz</tt>.</p>
+	<p>When you run it just with input filenames, it writes the corresponding PNGs
+	with the same names and locations and the extensions changed to <tt>png</tt>.
+	To see what options are available, run the program without arguments.</p>
 
-	<h2>Python bindings</h2>
-	<p>Available <a href="https://github.com/gasman/pyrecoil">here</a>.</p>
+	<h2>For software developers</h2>
+	<p>RECOIL is based on a development library, which you can easily embed in your program.
+	It's not only a fully portable C library - it's better than that.
+	Since RECOIL is written in <a href="http://cito.sourceforge.net/">Ć</a>,
+	it is also available as pure Java, C#, JavaScript, ActionScript, Perl and <a href="http://dlang.org/">D</a>.</p>
+	<p>There are also <a href="https://github.com/gasman/pyrecoil">Python bindings</a>.</p>
+
+	<h2>License</h2>
+	<p>RECOIL is free software, you can redistribute it and/or modify it under the terms
+	of the <a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt">GNU General Public License</a>.</p>
 </div>
