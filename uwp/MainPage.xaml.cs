@@ -88,6 +88,7 @@ namespace RECOIL
 
 			// display
 			Image.Source = bitmap;
+			BottomAppBar.Content = file.Name;
 		}
 
 		async void OpenFile(object sender, RoutedEventArgs e)
