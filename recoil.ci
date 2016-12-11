@@ -2102,6 +2102,7 @@ class PInterpreter : Stream
 {
 	byte[32 * 24] Screen;
 	int ScreenOffset;
+	bool NewLineWorks;
 	int BottomOffset;
 
 	const int LetS = 1; // LET S=3+PEEK 16400+256*PEEK 16401
@@ -2163,6 +2164,7 @@ class PInterpreter : Stream
 			else if ((c & 0x7f) >= 0x40)
 				return -1;
 			Screen[ScreenOffset++] = c;
+			NewLineWorks = (ScreenOffset & 0x1f) != 0;
 		}
 		return offset;
 	}
@@ -2184,6 +2186,7 @@ class PInterpreter : Stream
 				if (column < 0 || column > 31)
 					return false;
 				ScreenOffset = row << 5 | column;
+				NewLineWorks = true;
 				break;
 			case 0x00: // space
 			case 0x19: // ;
@@ -2192,7 +2195,9 @@ class PInterpreter : Stream
 				ContentOffset--;
 				if (Content[ContentOffset - 1] != 0x19) {
 					// new line
-					ScreenOffset = (ScreenOffset & ~0x1f) + 32;
+					if (NewLineWorks)
+						ScreenOffset = (ScreenOffset & ~0x1f) + 32;
+					NewLineWorks = true;
 				}
 				return true;
 			default:
@@ -2301,6 +2306,7 @@ class PInterpreter : Stream
 		ContentOffset = 0x74;
 		Screen.Clear();
 		ScreenOffset = 0;
+		NewLineWorks = true;
 		BottomOffset = -1;
 		BottomCode = 0;
 
