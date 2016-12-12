@@ -3449,6 +3449,19 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeZx81Raw(byte[] content, int contentLength)
+	{
+		if (contentLength != 792)
+			return false;
+		byte[32 * 24] screen;
+		for (int y = 0; y < 24; y++) {
+			if (content[y * 33 + 32] != 0x76)
+				return false;
+			content.CopyTo(y * 33, screen, y * 32, 32);
+		}
+		return DecodeZx81(screen);
+	}
+
 	bool DecodeZp1(byte[] content, int contentLength)
 	{
 		byte[32 * 24] screen;
@@ -8164,7 +8177,7 @@ public class RECOIL
 		return DecodeGr15Blend(content, 0, 16000, 200);
 	}
 
-	bool DecodeRaw(byte[] content, int contentLength)
+	bool DecodeAtari8Raw(byte[] content, int contentLength)
 	{
 		if (contentLength != 15372 || !IsStringAt(content, 0, "XLPB"))
 			return false;
@@ -11299,7 +11312,8 @@ public class RECOIL
 		case PackExt("RAP"):
 			return DecodeRap(content, contentLength);
 		case PackExt("RAW"):
-			return DecodeRaw(content, contentLength);
+			return DecodeZx81Raw(content, contentLength)
+				|| DecodeAtari8Raw(content, contentLength);
 		case PackExt("RGB"):
 			return DecodeAtari8Rgb(content, contentLength)
 				|| DecodeZxRgb(content, contentLength);
