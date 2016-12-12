@@ -6915,8 +6915,12 @@ public class RECOIL
 		while (contentOffset < contentLength - 7) {
 			int chunkLength = Get32BigEndian(content, contentOffset + 4);
 			int chunkEndOffset = contentOffset + 8 + chunkLength;
-			if (chunkEndOffset > contentLength || chunkEndOffset < contentOffset + 8)
-				break;
+			if (chunkEndOffset > contentLength || chunkEndOffset < contentOffset + 8) {
+				// handle BODY chunkLength bigger than actual,
+				// e.g. incorrectly written as little-endian
+				chunkEndOffset = contentLength;
+				chunkLength = contentLength - contentOffset - 8;
+			}
 			if (IsStringAt(content, contentOffset, "BMHD") && chunkLength >= 16) {
 				width = content[contentOffset + 8] << 8 | content[contentOffset + 9];
 				height = content[contentOffset + 10] << 8 | content[contentOffset + 11];
