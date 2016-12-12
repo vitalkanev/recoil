@@ -95,7 +95,7 @@ enum IceFrameMode
 	Gr13Gtia11
 }
 
-abstract class Stream
+class Stream
 {
 	byte[] Content;
 	int ContentOffset;
@@ -106,6 +106,21 @@ abstract class Stream
 		if (ContentOffset >= ContentLength)
 			return -1;
 		return Content[ContentOffset++];
+	}
+
+	int ReadHexDigit()
+	{
+		if (ContentOffset >= ContentLength)
+			return -1;
+		int c = Content[ContentOffset++];
+		if (c >= '0' && c <= '9')
+			return c - '0';
+		if (c >= 'A' && c <= 'F')
+			return c - ('A' - 10);
+		if (c >= 'a' && c <= 'f')
+			return c - ('a' - 10);
+		ContentOffset--;
+		return -1;
 	}
 }
 
@@ -126,43 +141,9 @@ class ZxpStream : Stream
 
 	bool IsEof()
 		return ContentOffset >= ContentLength;
-
-	int ReadHexDigit()
-	{
-		if (ContentOffset >= ContentLength)
-			return -1;
-		// ZX-Paintbrush outputs uppercase, SCRplus outputs lowercase
-		switch (Content[ContentOffset++]) {
-		case '0': return 0;
-		case '1': return 1;
-		case '2': return 2;
-		case '3': return 3;
-		case '4': return 4;
-		case '5': return 5;
-		case '6': return 6;
-		case '7': return 7;
-		case '8': return 8;
-		case '9': return 9;
-		case 'A':
-		case 'a': return 10;
-		case 'B':
-		case 'b': return 11;
-		case 'C':
-		case 'c': return 12;
-		case 'D':
-		case 'd': return 13;
-		case 'E':
-		case 'e': return 14;
-		case 'F':
-		case 'f': return 15;
-		default:
-			ContentOffset--;
-			return -1;
-		}
-	}
 }
 
-class SprStream : ZxpStream
+class SprStream : Stream
 {
 	const int Width = 320;
 	const int Height = 200;
@@ -2050,21 +2031,14 @@ class IcnParser : Stream
 		if (!Expect("0x"))
 			return -1;
 		int r = 0;
-		for (; ContentOffset < ContentLength; ContentOffset++) {
-			int c = Content[ContentOffset];
-			if (c >= '0' && c <= '9')
-				c -= '0';
-			else if (c >= 'A' && c <= 'F')
-				c -= 'A' - 10;
-			else if (c >= 'a' && c <= 'f')
-				c -= 'a' - 10;
-			else
+		for (;;) {
+			int d = ReadHexDigit();
+			if (d < 0)
 				return r;
 			if (r >> 12 != 0)
 				return -1; // 16-bit overflow
-			r = r << 4 | c;
+			r = r << 4 | d;
 		}
-		return r;
 	}
 
 	int ParseDefine(string s)
@@ -3461,23 +3435,45 @@ public class RECOIL
 
 	// ZX81 formats.
 
-	bool DecodeP(byte[] content, int contentLength)
+	bool DecodeZx81(byte[] screen)
 	{
-		PInterpreter() interp;
-		interp.Content = content;
-		interp.ContentLength = contentLength;
-		if (!interp.Run())
-			return false;
 		SetSize(256, 192, RECOILResolution.Zx811x1);
 		byte[] font = BinaryResource("zx81.fnt");
 		for (int y = 0; y < 192; y++) {
 			for (int x = 0; x < 256; x++) {
-				int c = interp.Screen[y >> 3 << 5 | x >> 3];
+				int c = screen[y >> 3 << 5 | x >> 3];
 				int b = font[(c & 0x3f) << 3 | (y & 7)] >> (~x & 7) & 1;
 				Pixels[y << 8 | x] = b == c >> 7 ? 0xffffff : 0;
 			}
 		}
 		return true;
+	}
+
+	bool DecodeZp1(byte[] content, int contentLength)
+	{
+		byte[32 * 24] screen;
+		Stream() s;
+		s.Content = content;
+		s.ContentOffset = 0;
+		s.ContentLength = contentLength;
+		for (int i = 0; i < screen.Length; i++) {
+			int hi = s.ReadHexDigit();
+			if (hi < 0)
+				return false;
+			int lo = s.ReadHexDigit();
+			if (lo < 0)
+				return false;
+			screen[i] = hi << 4 | lo;
+		}
+		return DecodeZx81(screen);
+	}
+
+	bool DecodeP(byte[] content, int contentLength)
+	{
+		PInterpreter() interp;
+		interp.Content = content;
+		interp.ContentLength = contentLength;
+		return interp.Run() && DecodeZx81(interp.Screen);
 	}
 
 	// ZX Spectrum formats.
@@ -10862,6 +10858,7 @@ public class RECOIL
 		case PackExt("WND"):
 		case PackExt("XGA"):
 		case PackExt("XLP"):
+		case PackExt("ZP1"):
 		case PackExt("ZXP"):
 			return true;
 		default:
@@ -11405,6 +11402,8 @@ public class RECOIL
 			return DecodeXga(content, contentLength);
 		case PackExt("XLP"):
 			return DecodeXlp(content, contentLength);
+		case PackExt("ZP1"):
+			return DecodeZp1(content, contentLength);
 		case PackExt("ZXP"):
 			return DecodeZxp(content, contentLength);
 		default:

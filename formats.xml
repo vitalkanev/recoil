@@ -416,6 +416,7 @@
 	</platform>
 	<platform name="ZX81" href="http://en.wikipedia.org/wiki/ZX81">
 		<format name="Sinclair BASIC" width="32" height="24" unit="characters" colors="2"><ext>P</ext></format>
+		<format name="ZXpaintyONE" width="32" height="24" unit="characters" colors="2"><ext>ZP1</ext></format>
 	</platform>
 	<platform name="ZX Spectrum" href="http://en.wikipedia.org/wiki/ZX_Spectrum">
 		<format width="256" height="192" colors="8" frames="3"><ext>3</ext></format>
