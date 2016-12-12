@@ -829,7 +829,6 @@ class PackBitsStream : RleStream
 		for (int y = 0; y < height; y++) {
 			// reorder bitplane lines to bitplane words
 			for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
-				RepeatCount = 0;
 				for (int w = bitplane << 1; w < bytesPerLine; w += bitplanes << 1) {
 					for (int x = 0; x < 2; x++) {
 						int b = compressed ? ReadRle() : ReadByte();
@@ -841,7 +840,6 @@ class PackBitsStream : RleStream
 			}
 			if (hasMask) {
 				// ignore transparency mask
-				RepeatCount = 0;
 				for (int x = 0; x < bytesPerBitplane; x++) {
 					int b = compressed ? ReadRle() : ReadByte();
 					if (b < 0)
