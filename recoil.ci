@@ -9352,7 +9352,7 @@ public class RECOIL
 
 	bool DecodeEnvisionPC(byte[] content, int contentLength)
 	{
-		if (contentLength < 10 + 1 + 1024)
+		if (contentLength < 10 + 1 + 1024 || content[2] >= 0x80) // protect against columns*rows overflow
 			return false;
 		int columns = content[1] | content[2] << 8;
 		int rows = content[3] | content[4] << 8;
@@ -9362,7 +9362,8 @@ public class RECOIL
 			case 0:
 				break;
 			case 1:
-				if (contentOffset + 6 >= contentLength)
+				if (contentOffset + 6 >= contentLength
+					|| content[contentOffset + 1] >= 5 || content[contentOffset + 3] >= 5 || content[contentOffset + 5] >= 5) // protect against int overflow
 					return false;
 				contentOffset += (content[contentOffset] + (content[contentOffset + 1] << 8))
 					* (content[contentOffset + 2] + (content[contentOffset + 3] << 8))
