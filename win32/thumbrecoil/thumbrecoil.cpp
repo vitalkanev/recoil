@@ -109,7 +109,7 @@ class CRECOILThumbProvider : IPersistFile, IExtractImage
 		bmi.bmiHeader.biBitCount = 32;
 		bmi.bmiHeader.biCompression = BI_RGB;
 		int *pBits;
-		HBITMAP hbmp = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void **) &pBits, NULL, 0);
+		HBITMAP hbmp = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, reinterpret_cast<void **>(&pBits), NULL, 0);
 		if (hbmp == NULL)
 			return E_OUTOFMEMORY;
 		int pixels_count = width * height;
@@ -139,23 +139,23 @@ public:
 	STDMETHODIMP QueryInterface(REFIID riid, void **ppv)
 	{
 		if (riid == IID_IUnknown || riid == IID_IPersistFile) {
-			*ppv = (IPersistFile *) this;
+			*ppv = static_cast<IPersistFile *>(this);
 			AddRef();
 			return S_OK;
 		}
 		if (riid == IID_IExtractImage) {
-			*ppv = (IExtractImage *) this;
+			*ppv = static_cast<IExtractImage *>(this);
 			AddRef();
 			return S_OK;
 		}
 #if THUMBRECOIL_VISTA
 		if (riid == IID_IInitializeWithStream) {
-			*ppv = (IInitializeWithStream *) this;
+			*ppv = static_cast<IInitializeWithStream *>(this);
 			AddRef();
 			return S_OK;
 		}
 		if (riid == IID_IThumbnailProvider) {
-			*ppv = (IThumbnailProvider *) this;
+			*ppv = static_cast<IThumbnailProvider *>(this);
 			AddRef();
 			return S_OK;
 		}
@@ -200,7 +200,7 @@ public:
 			return HRESULT_FROM_WIN32(GetLastError());
 		free(m_filename);
 		m_filename = NULL;
-		if (!ReadFile(fh, m_content, sizeof(m_content), (LPDWORD) &m_contentLen, NULL)) {
+		if (!ReadFile(fh, m_content, sizeof(m_content), reinterpret_cast<LPDWORD>(&m_contentLen), NULL)) {
 			HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
 			CloseHandle(fh);
 			return hr;
@@ -278,7 +278,7 @@ public:
 			return hr;
 
 		// get contents
-		hr = m_pstream->Read(m_content, sizeof(m_content), (ULONG *) &m_contentLen);
+		hr = m_pstream->Read(m_content, sizeof(m_content), reinterpret_cast<ULONG *>(&m_contentLen));
 		if (FAILED(hr)) {
 			CoTaskMemFree(statstg.pwcsName);
 			return hr;
@@ -301,7 +301,7 @@ public:
 	STDMETHODIMP QueryInterface(REFIID riid, void **ppv)
 	{
 		if (riid == IID_IUnknown || riid == IID_IClassFactory) {
-			*ppv = (IClassFactory *) this;
+			*ppv = static_cast<IClassFactory *>(this);
 			DllAddRef();
 			return S_OK;
 		}
@@ -356,8 +356,8 @@ static BOOL RegisterCLSID(HKEY hk1, LPCSTR subkey)
 	HKEY hk2;
 	if (RegCreateKeyEx(hk1, subkey, 0, NULL, 0, KEY_WRITE, NULL, &hk2, NULL) != ERROR_SUCCESS)
 		return FALSE;
-	static const char CLSID_RECOILThumbProvider_str2[] = CLSID_RECOILThumbProvider_str;
-	BOOL ok = RegSetValueEx(hk2, NULL, 0, REG_SZ, (CONST BYTE *) CLSID_RECOILThumbProvider_str2, sizeof(CLSID_RECOILThumbProvider_str2)) == ERROR_SUCCESS;
+	static const BYTE CLSID_RECOILThumbProvider_str2[] = CLSID_RECOILThumbProvider_str;
+	BOOL ok = RegSetValueEx(hk2, NULL, 0, REG_SZ, CLSID_RECOILThumbProvider_str2, sizeof(CLSID_RECOILThumbProvider_str2)) == ERROR_SUCCESS;
 	RegCloseKey(hk2);
 	return ok;
 }
@@ -374,9 +374,9 @@ STDAPI __declspec(dllexport) DllRegisterServer(void)
 	}
 	char szModulePath[MAX_PATH];
 	DWORD nModulePathLen = GetModuleFileName(g_hDll, szModulePath, MAX_PATH);
-	static const char szThreadingModel[] = "Both";
-	if (RegSetValueEx(hk2, NULL, 0, REG_SZ, (CONST BYTE *) szModulePath, nModulePathLen) != ERROR_SUCCESS
-	 || RegSetValueEx(hk2, "ThreadingModel", 0, REG_SZ, (CONST BYTE *) szThreadingModel, sizeof(szThreadingModel)) != ERROR_SUCCESS) {
+	static const BYTE szThreadingModel[] = "Both";
+	if (RegSetValueEx(hk2, NULL, 0, REG_SZ, reinterpret_cast<CONST BYTE *>(szModulePath), nModulePathLen) != ERROR_SUCCESS
+	 || RegSetValueEx(hk2, "ThreadingModel", 0, REG_SZ, szThreadingModel, sizeof(szThreadingModel)) != ERROR_SUCCESS) {
 		RegCloseKey(hk2);
 		RegCloseKey(hk1);
 		return E_FAIL;
@@ -401,8 +401,8 @@ STDAPI __declspec(dllexport) DllRegisterServer(void)
 
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Approved", 0, KEY_SET_VALUE, &hk1) != ERROR_SUCCESS)
 		return E_FAIL;
-	static const char szDescription[] = "RECOIL Thumbnail Handler";
-	if (RegSetValueEx(hk1, CLSID_RECOILThumbProvider_str, 0, REG_SZ, (CONST BYTE *) szDescription, sizeof(szDescription)) != ERROR_SUCCESS) {
+	static const BYTE szDescription[] = "RECOIL Thumbnail Handler";
+	if (RegSetValueEx(hk1, CLSID_RECOILThumbProvider_str, 0, REG_SZ, szDescription, sizeof(szDescription)) != ERROR_SUCCESS) {
 		RegCloseKey(hk1);
 		return E_FAIL;
 	}
