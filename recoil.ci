@@ -6240,6 +6240,31 @@ public class RECOIL
 		return ApplyBlend();
 	}
 
+	bool DecodeHrm(byte[] content, int contentLength)
+	{
+		if (contentLength != 92000)
+			return false;
+		SetSize(640, 400, RECOILResolution.Ste1x2);
+		for (int y = 0; y < 400; y++) {
+			for (int x = 0; x < 640; x++) {
+				int offset = y * 160 + (x >> 2 & ~3) + (x >> 3 & 1);
+				int bit = ~x & 7;
+				int c = content[offset] >> bit & 1 | (content[offset + 2] >> bit & 1) << 1;
+				const byte[4] colorOffsets = { 80, 72, 40, 32 };
+				c += ((x + colorOffsets[c]) / 80 << 2) - 1;
+				int rgb = GetStColor(content, 64000 + y * 70 + (c << 1));
+				int pixelsOffset = y * 640 + x;
+				if ((y & 1) == 0)
+					Pixels[pixelsOffset] = rgb;
+				else {
+					int rgb1 = Pixels[pixelsOffset - 640];
+					Pixels[pixelsOffset] = Pixels[pixelsOffset - 640] = (rgb1 & rgb) + ((rgb1 ^ rgb) >> 1 & 0x7f7f7f);
+				}
+			}
+		}
+		return true;
+	}
+
 	bool DecodeStIcn(byte[] content, int contentLength)
 	{
 		const int maxWidth = 256;
@@ -10748,6 +10773,7 @@ public class RECOIL
 		case PackExt("HR"):
 		case PackExt("HR2"):
 		case PackExt("HCI"):
+		case PackExt("HRM"):
 		case PackExt("HRS"):
 		case PackExt("ICE"):
 		case PackExt("ICN"):
@@ -11162,6 +11188,8 @@ public class RECOIL
 		case PackExt("HR2"):
 		case PackExt("HCI"):
 			return DecodeHr2(content, contentLength);
+		case PackExt("HRM"):
+			return DecodeHrm(content, contentLength);
 		case PackExt("HRS"):
 			return DecodeHrs(content, contentLength);
 		case PackExt("ICE"):

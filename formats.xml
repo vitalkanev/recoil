@@ -189,6 +189,7 @@
 		</format>
 		<format width="832" height="273" colors="10" frames="2"><ext>DU2</ext></format>
 		<format name="DeskPic"><ext>GFB</ext></format>
+		<format name="HighresMedium" width="640" height="200" frames="2"><ext>HRM</ext></format>
 		<format name="DEGAS Elite icon" colors="2"><ext>ICN</ext></format>
 		<format name="Interchange File Format"><ext>IFF</ext></format>
 		<format name="GEM Bit Image"><ext>IMG</ext></format>
