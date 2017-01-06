@@ -6486,6 +6486,14 @@ public class RECOIL
 		return DecodeFalconTrueColorVariable(content, contentLength, 4, 256);
 	}
 
+	bool DecodeTg1(byte[] content, int contentLength)
+	{
+		if (contentLength < 20 || !IsStringAt(content, 0, "COKE format.")
+			|| content[16] != 0 || content[17] != 0x12)
+			return false;
+		return DecodeFalconTrueColorVariable(content, contentLength, 12, 18);
+	}
+
 	bool DecodePnt(byte[] content, int contentLength)
 	{
 		if (contentLength < 128 || content[0] != 'P' || content[1] != 'N' || content[2] != 'T' || content[3] != 0
@@ -10884,6 +10892,7 @@ public class RECOIL
 		case PackExt("SR5"):
 		case PackExt("SR7"):
 		case PackExt("SXS"):
+		case PackExt("TG1"):
 		case PackExt("TIM"):
 		case PackExt("TIP"):
 		case PackExt("TN1"):
@@ -11417,6 +11426,8 @@ public class RECOIL
 			return DecodeSr7(filename, content, contentLength);
 		case PackExt("SXS"):
 			return DecodeSxs(content, contentLength);
+		case PackExt("TG1"):
+			return DecodeTg1(content, contentLength);
 		case PackExt("TIM"):
 			return DecodeTim(content, contentLength);
 		case PackExt("TIP"):
