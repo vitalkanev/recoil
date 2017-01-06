@@ -230,6 +230,7 @@
 		<format name="DelmPaint" width="640" height="480" colors="256"><ext>DPH</ext></format>
 		<format name="Falcon True Color" width="384" height="240" colors="65536"><ext>FTC</ext></format>
 		<format name="GodPaint" colors="65536"><ext>GOD</ext></format>
+		<format name="InShape"><ext>IIM</ext></format>
 		<format name="Fuckpaint" width="320" maxHeight="240" colors="256">
 			<ext>PI4</ext>
 			<ext>PI9</ext>
