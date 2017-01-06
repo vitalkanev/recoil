@@ -6294,6 +6294,7 @@ public class RECOIL
 		if (contentLength != 92000)
 			return false;
 		SetSize(640, 400, RECOILResolution.Ste1x2);
+		Frames = 2;
 		for (int y = 0; y < 400; y++) {
 			for (int x = 0; x < 640; x++) {
 				int offset = y * 160 + (x >> 2 & ~3) + (x >> 3 & 1);
