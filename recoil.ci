@@ -6396,28 +6396,28 @@ public class RECOIL
 		}
 	}
 
-	void DecodeFalconPalette320(byte[] content, int bitplanesOffset, int paletteOffset, int height)
+	void DecodeFalconPalette(byte[] content, int bitplanesOffset, int paletteOffset, int width, int height)
 	{
 		SetFalconPalette(content, paletteOffset);
-		SetSize(320, height, RECOILResolution.Falcon1x1);
-		DecodeBitplanes(content, bitplanesOffset, 320, 8, 0, 320, height);
+		SetSize(width, height, RECOILResolution.Falcon1x1);
+		DecodeBitplanes(content, bitplanesOffset, width, 8, 0, width, height);
 	}
 
 	bool DecodePi4(byte[] content, int contentLength)
 	{
-		int height;
 		switch (contentLength) {
 		case 65024:
-			height = 200;
-			break;
+			DecodeFalconPalette(content, 1024, 0, 320, 200);
+			return true;
 		case 77824:
-			height = 240;
-			break;
+			DecodeFalconPalette(content, 1024, 0, 320, 240);
+			return true;
+		case 308224:
+			DecodeFalconPalette(content, 1024, 0, 640, 480);
+			return true;
 		default:
 			return false;
 		}
-		DecodeFalconPalette320(content, 1024, 0, height);
-		return true;
 	}
 
 	bool DecodeDgu(byte[] content, int contentLength)
@@ -6426,7 +6426,7 @@ public class RECOIL
 		 || content[0] != 'D' || content[1] != 'G' || content[2] != 'U' || content[3] != 1
 		 || content[4] != 1 || content[5] != 64 || content[6] != 0 || content[7] != 200)
 			return false;
-		DecodeFalconPalette320(content, 1032, 8, 200);
+		DecodeFalconPalette(content, 1032, 8, 320, 200);
 		return true;
 	}
 
@@ -6439,7 +6439,7 @@ public class RECOIL
 		if (content[3] == 0) {
 			if (contentLength != 65034)
 				return false;
-			DecodeFalconPalette320(content, 1034, 10, 200);
+			DecodeFalconPalette(content, 1034, 10, 320, 200);
 			return true;
 		}
 
@@ -10920,6 +10920,7 @@ public class RECOIL
 		case PackExt("PI2"):
 		case PackExt("PI3"):
 		case PackExt("PI4"):
+		case PackExt("PI7"):
 		case PackExt("PI9"):
 		case PackExt("PIC"):
 		case PackExt("PL4"):
@@ -11412,6 +11413,7 @@ public class RECOIL
 		case PackExt("PI3"):
 			return DecodeStPi(content, contentLength);
 		case PackExt("PI4"):
+		case PackExt("PI7"):
 		case PackExt("PI9"):
 			return DecodePi4(content, contentLength);
 		case PackExt("PIC"):
