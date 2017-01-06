@@ -205,6 +205,7 @@
 		<format name="DEGAS Elite" width="320" height="200" colors="16"><ext>PC1</ext></format>
 		<format name="DEGAS Elite" width="640" height="200" colors="4"><ext>PC2</ext></format>
 		<format name="DEGAS Elite" width="640" height="400" colors="2"><ext>PC3</ext></format>
+		<format name="Tobias Richter Fullscreen Slideshow" width="352" height="278" frames="2"><ext>PCI</ext></format>
 		<format name="PhotoChrome" width="320" height="199" maxFrames="2"><ext>PCS</ext></format>
 		<format name="DEGAS" maxWidth="416" maxHeight="560" colors="16"><ext>PI1</ext></format>
 		<format name="DEGAS" width="640" height="200" colors="4"><ext>PI2</ext></format>

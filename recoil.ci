@@ -6111,16 +6111,38 @@ public class RECOIL
 		return DecodeSpu(unpacked, 51104);
 	}
 
+	static int GetStLowSeparateBitplanes(byte[] content, int contentOffset, int bitplaneLength, int x)
+	{
+		contentOffset += x >> 3;
+		int bit = ~x & 7;
+		return (content[contentOffset] >> bit & 1)
+			| (content[contentOffset + bitplaneLength] >> bit & 1) << 1
+			| (content[contentOffset + 2 * bitplaneLength] >> bit & 1) << 2
+			| (content[contentOffset + 3 * bitplaneLength] >> bit & 1) << 3;
+	}
+
+	bool DecodePci(byte[] content, int contentLength)
+	{
+		if (contentLength != 115648)
+			return false;
+		SetSize(352, 278, IsStePalette(content, 0x17e40, 8896) ? RECOILResolution.Ste1x1 : RECOILResolution.St1x1);
+		int bitmapOffset = 0;
+		for (int y = 0; y < 2 * 278; y++) {
+			if (y == 278)
+				bitmapOffset = 0xbf20;
+			SetStPalette(content, 0x17e40 + (y << 5), 16);
+			for (int x = 0; x < 352; x++)
+				Pixels[y * 352 + x] = ContentPalette[GetStLowSeparateBitplanes(content, bitmapOffset, 278 * 44, x)];
+			bitmapOffset += 44;
+		}
+		return ApplyBlend();
+	}
+
 	void DecodePcsScreen(byte[] unpacked, int pixelsOffset)
 	{
 		for (int y = 0; y < 199; y++) {
 			for (int x = 0; x < 320; x++) {
-				int bitmapOffset = 40 + y * 40 + (x >> 3);
-				int bit = ~x & 7;
-				int c = (unpacked[bitmapOffset] >> bit & 1) << 1
-					| (unpacked[8000 + bitmapOffset] >> bit & 1) << 2
-					| (unpacked[16000 + bitmapOffset] >> bit & 1) << 3
-					| (unpacked[24000 + bitmapOffset] >> bit & 1) << 4;
+				int c = GetStLowSeparateBitplanes(unpacked, 40 + y * 40, 8000, x) << 1;
 				// http://www.atari-forum.com/wiki/index.php?title=ST_Picture_Formats
 				if (x >= c * 2) {
 					if (c < 14 * 2) {
@@ -10912,6 +10934,7 @@ public class RECOIL
 		case PackExt("PC1"):
 		case PackExt("PC2"):
 		case PackExt("PC3"):
+		case PackExt("PCI"):
 		case PackExt("PCS"):
 		case PackExt("PGC"):
 		case PackExt("PGF"):
@@ -11400,6 +11423,8 @@ public class RECOIL
 		case PackExt("PC2"):
 		case PackExt("PC3"):
 			return DecodePc(content, contentLength);
+		case PackExt("PCI"):
+			return DecodePci(content, contentLength);
 		case PackExt("PCS"):
 			return DecodePcs(content, contentLength);
 		case PackExt("PGC"):
