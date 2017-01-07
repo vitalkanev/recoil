@@ -184,6 +184,7 @@
 		<format name="CrackArt" width="640" height="200" colors="4"><ext>CA2</ext></format>
 		<format name="CrackArt" width="640" height="400" colors="2"><ext>CA3</ext></format>
 		<format name="Canvas (compressed)"><ext>CPT</ext></format>
+		<format name="Calamus Raster Graphic" colors="2"><ext>CRG</ext></format>
 		<format name="Doodle" width="640" height="400" colors="2"><ext>DOO</ext></format>
 		<format width="416" height="273" colors="136" frames="2">
 			<ext>DU1</ext>

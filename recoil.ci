@@ -2812,6 +2812,22 @@ public class RECOIL
 		return DecodeMono(content, contentOffset, wordAlign, width, height, backgroundColor, backgroundColor ^ 0xffffff, resolution);
 	}
 
+	bool DecodeRleBlackAndWhite(RleStream rle, int backgroundColor)
+	{
+		for (int y = 0; y < Height; y++) {
+			int b = 0;
+			for (int x = 0; x < Width; x++) {
+				if ((x & 7) == 0) {
+					b = rle.ReadRle();
+					if (b < 0)
+						return false;
+				}
+				Pixels[y * Width + x] = (b >> (~x & 7) & 1) == 0 ? backgroundColor : backgroundColor ^ 0xffffff;
+			}
+		}
+		return true;
+	}
+
 	void DecodeBlackAndWhiteFont(byte[] content, int contentOffset, int contentLength)
 	{
 		for (int y = 0; y < Height; y++) {
@@ -2945,15 +2961,13 @@ public class RECOIL
 			return false;
 		int contentOffset = IsStringAt(content, 0x41, "PNTG") ? 128 : 0;
 		if (content[contentOffset] != 0 || content[contentOffset + 1] != 0 || content[contentOffset + 2] != 0 || content[contentOffset + 3] > 3)
-				return false;
+			return false;
+		SetSize(576, 720, RECOILResolution.Macintosh1x1);
 		PackBitsStream() rle;
 		rle.Content = content;
 		rle.ContentOffset = contentOffset + 512;
 		rle.ContentLength = contentLength;
-		byte[51840] unpacked;
-		if (!rle.Unpack(unpacked, 0, 1, 51840))
-			return false;
-		return DecodeBlackAndWhite(unpacked, 0, 0, 576, 720, 0xffffff, RECOILResolution.Macintosh1x1);
+		return DecodeRleBlackAndWhite(rle, 0xffffff);
 	}
 
 	// PlayStation formats.
@@ -5315,27 +5329,32 @@ public class RECOIL
 			return false;
 		int width = content[0] << 8 | content[1];
 		int height = content[2] << 8 | content[3];
-		bool compressed = content[0] >= 0x80;
-		if (compressed)
-			width = 65536 - width;
-		if (!SetSize(width, height, RECOILResolution.St1x1))
+		if (content[0] < 0x80)
+			return contentLength == 4 + (width + 7 >> 3) * height
+				&& DecodeBlackAndWhite(content, 4, 0, width, height, 0xffffff, RECOILResolution.St1x1);
+		if (!SetSize(65536 - width, height, RECOILResolution.St1x1))
 			return false;
 		BldStream() rle;
 		rle.Content = content;
 		rle.ContentOffset = 4;
 		rle.ContentLength = contentLength;
-		for (int y = 0; y < height; y++) {
-			int b = 0;
-			for (int x = 0; x < width; x++) {
-				if ((x & 7) == 0) {
-					b = compressed ? rle.ReadRle() : rle.ReadByte();
-					if (b < 0)
-						return false;
-				}
-				Pixels[y * width + x] = (b >> (~x & 7) & 1) == 0 ? 0xffffff : 0;
-			}
-		}
-		return true;
+		return DecodeRleBlackAndWhite(rle, 0xffffff);
+	}
+
+	bool DecodeCrg(byte[] content, int contentLength)
+	{
+		if (contentLength < 43 || !IsStringAt(content, 0, "CALAMUSCRG")
+		 || content[10] != 3 || content[11] != 0xe8 || content[12] != 0 || content[13] != 2)
+			return false;
+		int width = Get32BigEndian(content, 20);
+		int height = Get32BigEndian(content, 24);
+		if (!SetSize(width, height, RECOILResolution.St1x1))
+			return false;
+		CciStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 42;
+		rle.ContentLength = contentLength;
+		return DecodeRleBlackAndWhite(rle, 0xffffff);
 	}
 
 	bool DecodePac(byte[] content, int contentLength)
@@ -10818,19 +10837,15 @@ public class RECOIL
 			return false;
 		int width = content[4] | content[5] << 8;
 		int height = content[6] | content[7] << 8;
-		int bitmapLength = (width + 7 >> 3) * height;
 		if (IsStringAt(content, 0, "DanM")) // Microsoft Paint 1
-			return contentLength == 32 + bitmapLength && DecodeBlackAndWhite(content, 32, 0, width, height, 0, RECOILResolution.Pc1x1);
-		if (IsStringAt(content, 0, "LinS")) {
+			return contentLength == 32 + (width + 7 >> 3) * height && DecodeBlackAndWhite(content, 32, 0, width, height, 0, RECOILResolution.Pc1x1);
+		if (IsStringAt(content, 0, "LinS") && SetSize(width, height, RECOILResolution.Pc1x1)) {
 			// Microsoft Paint 2
 			MspStream() rle;
 			rle.Content = content;
 			rle.ContentOffset = 32 + (height << 1);
 			rle.ContentLength = contentLength;
-			byte[] unpacked = new byte[bitmapLength];
-			bool ok = rle.Unpack(unpacked, 0, 1, bitmapLength) && DecodeBlackAndWhite(unpacked, 0, 0, width, height, 0, RECOILResolution.Pc1x1);
-			delete unpacked;
-			return ok;
+			return DecodeRleBlackAndWhite(rle, 0);
 		}
 		return false;
 	}
@@ -11010,6 +11025,7 @@ public class RECOIL
 		case PackExt("CPI"):
 		case PackExt("CPR"):
 		case PackExt("CPT"):
+		case PackExt("CRG"):
 		case PackExt("CUT"):
 		case PackExt("CWG"):
 		case PackExt("DC1"):
@@ -11373,6 +11389,8 @@ public class RECOIL
 			return DecodeCpr(content, contentLength);
 		case PackExt("CPT"):
 			return DecodeCpt(content, contentLength);
+		case PackExt("CRG"):
+			return DecodeCrg(content, contentLength);
 		case PackExt("CUT"):
 			return DecodeGr8Raw(content, contentLength, 96, 99);
 		case PackExt("CWG"):
