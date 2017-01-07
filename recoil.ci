@@ -2795,21 +2795,22 @@ public class RECOIL
 		}
 	}
 
-	bool DecodeMono(byte[] content, int contentOffset, int wordAlign, int width, int height, int backgroundColor, int inkColor, RECOILResolution resolution)
+	bool DecodeMono(byte[] content, int contentOffset, int contentLength, bool wordAlign)
 	{
-		if (!SetSize(width, height, resolution))
+		int contentStride = Width + 7 >> 3;
+		if (wordAlign)
+			contentStride += contentStride & 1;
+		if (contentLength != contentOffset + contentStride * Height)
 			return false;
-		ContentPalette[0] = backgroundColor;
-		ContentPalette[1] = inkColor;
-		int contentStride = width + 7 >> 3;
-		contentStride += contentStride & wordAlign;
-		DecodeBitplanes(content, contentOffset, contentStride, 1, 0, width, height);
+		DecodeBitplanes(content, contentOffset, contentStride, 1, 0, Width, Height);
 		return true;
 	}
 
-	bool DecodeBlackAndWhite(byte[] content, int contentOffset, int wordAlign, int width, int height, int backgroundColor, RECOILResolution resolution)
+	bool DecodeBlackAndWhite(byte[] content, int contentOffset, int contentLength, bool wordAlign, int backgroundColor)
 	{
-		return DecodeMono(content, contentOffset, wordAlign, width, height, backgroundColor, backgroundColor ^ 0xffffff, resolution);
+		ContentPalette[0] = backgroundColor;
+		ContentPalette[1] = backgroundColor ^ 0xffffff;
+		return DecodeMono(content, contentOffset, contentLength, wordAlign);
 	}
 
 	bool DecodeRleBlackAndWhite(RleStream rle, int backgroundColor)
@@ -2850,9 +2851,8 @@ public class RECOIL
 
 	bool DecodePgf(byte[] content, int contentLength)
 	{
-		if (contentLength != 1920)
-			return false;
-		return DecodeBlackAndWhite(content, 0, 0, 240, 64, 0xffffff, RECOILResolution.Portfolio1x1);
+		SetSize(240, 64, RECOILResolution.Portfolio1x1);
+		return DecodeBlackAndWhite(content, 0, contentLength, false, 0xffffff);
 	}
 
 	bool DecodePgc(byte[] content, int contentLength)
@@ -2860,22 +2860,12 @@ public class RECOIL
 		if (contentLength < 33
 		 || content[0] != 'P' || content[1] != 'G' || content[2] != 1)
 			return false;
+		SetSize(240, 64, RECOILResolution.Portfolio1x1);
 		PgcStream() rle;
 		rle.Content = content;
 		rle.ContentOffset = 3;
 		rle.ContentLength = contentLength;
-		byte[1920] unpacked;
-		for (int unpackedOffset = 0; unpackedOffset < 1920; unpackedOffset++) {
-			int b = rle.ReadRle();
-			if (b < 0) {
-				if (unpackedOffset == 1919) // IRAQ.PGC
-					b = 0;
-				else
-					return false;
-			}
-			unpacked[unpackedOffset] = b;
-		}
-		return DecodePgf(unpacked, 1920);
+		return DecodeRleBlackAndWhite(rle, 0xffffff);
 	}
 
 	// TRS-80 formats.
@@ -2918,7 +2908,8 @@ public class RECOIL
 			if (content[i] != header[i])
 				return false;
 		}
-		return DecodeBlackAndWhite(content, 25, 0, 40, 56, 0xffffff, RECOILResolution.Coco1x1);
+		SetSize(40, 56, RECOILResolution.Coco1x1);
+		return DecodeBlackAndWhite(content, 25, 305, false, 0xffffff);
 	}
 
 	bool DecodeCocoMax(byte[] content, int contentLength)
@@ -2934,7 +2925,8 @@ public class RECOIL
 		}
 		if (content[0] != 0 || content[1] != 0x18 || content[2] > 1 || content[3] != 0x0e || content[4] != 0)
 			return false;
-		return DecodeBlackAndWhite(content, 5, 0, 256, 192, 0, RECOILResolution.Coco1x1);
+		SetSize(256, 192, RECOILResolution.Coco1x1);
+		return DecodeBlackAndWhite(content, 5, 5 + 6144, false, 0);
 	}
 
 	bool DecodeP11(byte[] content, int contentLength)
@@ -4661,9 +4653,8 @@ public class RECOIL
 			return false;
 		int width = content[4] << 8 | content[5];
 		int height = content[6] << 8 | content[7];
-		if (contentLength != 8 + (width + 7 >> 3) * height)
-			return false;
-		return DecodeBlackAndWhite(content, 8, 0, width, height, 0xffffff, RECOILResolution.C1281x1);
+		return SetSize(width, height, RECOILResolution.C1281x1)
+			&& DecodeBlackAndWhite(content, 8, contentLength, false, 0xffffff);
 	}
 
 	// Commodore 16 formats.
@@ -5320,7 +5311,8 @@ public class RECOIL
 
 	bool DecodeDoo(byte[] content, int contentLength)
 	{
-		return contentLength == 32000 && DecodeBlackAndWhite(content, 0, 0, 640, 400, 0xffffff, RECOILResolution.St1x1);
+		SetSize(640, 400, RECOILResolution.St1x1);
+		return DecodeBlackAndWhite(content, 0, contentLength, false, 0xffffff);
 	}
 
 	bool DecodeBld(byte[] content, int contentLength)
@@ -5330,8 +5322,8 @@ public class RECOIL
 		int width = content[0] << 8 | content[1];
 		int height = content[2] << 8 | content[3];
 		if (content[0] < 0x80)
-			return contentLength == 4 + (width + 7 >> 3) * height
-				&& DecodeBlackAndWhite(content, 4, 0, width, height, 0xffffff, RECOILResolution.St1x1);
+			return SetSize(width, height, RECOILResolution.St1x1)
+				&& DecodeBlackAndWhite(content, 4, contentLength, false, 0xffffff);
 		if (!SetSize(65536 - width, height, RECOILResolution.St1x1))
 			return false;
 		BldStream() rle;
@@ -5497,7 +5489,8 @@ public class RECOIL
 			DecodeStMedium(bitmap, bitmapOffset, palette, paletteOffset, 640, 200, 0);
 			return true;
 		case 2:
-			return DecodeBlackAndWhite(bitmap, bitmapOffset, 0, 640, 400, 0xffffff, RECOILResolution.St1x1);
+			SetSize(640, 400, RECOILResolution.St1x1);
+			return DecodeBlackAndWhite(bitmap, bitmapOffset, bitmapOffset + 32000, false, 0xffffff);
 		default:
 			return false;
 		}
@@ -6392,7 +6385,8 @@ public class RECOIL
 		}
 		if (!parser.Expect("};"))
 			return false;
-		return DecodeBlackAndWhite(bitmap, 0, 1, width, height, 0xffffff, RECOILResolution.St1x1);
+		SetSize(width, height, RECOILResolution.St1x1);
+		return DecodeBlackAndWhite(bitmap, 0, size << 1, true, 0xffffff);
 	}
 
 	// Atari Falcon formats.
@@ -6411,7 +6405,9 @@ public class RECOIL
 		int pixelsLength = width * height;
 		switch (content[9]) {
 		case 0:
-			return content[11] == 1 && DecodeBlackAndWhite(content, 16, 0, width, height, 0xffffff, RECOILResolution.Falcon1x1);
+			return content[11] == 1
+				&& SetSize(width, height, RECOILResolution.Falcon1x1)
+				&& DecodeBlackAndWhite(content, 16, contentLength, false, 0xffffff);
 		case 1:
 			if (content[11] != 8 || !SetSize(width, height, RECOILResolution.Falcon1x1))
 				return false;
@@ -7650,8 +7646,10 @@ public class RECOIL
 
 	bool DecodeGr8Raw(byte[] content, int contentLength, int width, int height)
 	{
-		return contentLength == (width >> 3) * height
-			&& DecodeMono(content, 0, 0, width, height, Atari8Palette[0x00], Atari8Palette[0x0e], RECOILResolution.Xe1x1);
+		SetSize(width, height, RECOILResolution.Xe1x1);
+		ContentPalette[0] = Atari8Palette[0x00];
+		ContentPalette[1] = Atari8Palette[0x0e];
+		return DecodeMono(content, 0, contentLength, false);
 	}
 
 	bool DecodeGhg(byte[] content, int contentLength)
@@ -10838,7 +10836,8 @@ public class RECOIL
 		int width = content[4] | content[5] << 8;
 		int height = content[6] | content[7] << 8;
 		if (IsStringAt(content, 0, "DanM")) // Microsoft Paint 1
-			return contentLength == 32 + (width + 7 >> 3) * height && DecodeBlackAndWhite(content, 32, 0, width, height, 0, RECOILResolution.Pc1x1);
+			return SetSize(width, height, RECOILResolution.Pc1x1)
+				&& DecodeBlackAndWhite(content, 32, contentLength, false, 0);
 		if (IsStringAt(content, 0, "LinS") && SetSize(width, height, RECOILResolution.Pc1x1)) {
 			// Microsoft Paint 2
 			MspStream() rle;
