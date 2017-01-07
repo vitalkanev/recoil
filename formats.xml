@@ -95,6 +95,7 @@
 		<format name="Fun with Art" width="160" height="192" colors="128"><ext>FWA</ext></format>
 		<format name="Graphics 10" width="80" maxHeight="240" colors="9"><ext>G10</ext></format>
 		<format name="Graphics 11" width="80" maxHeight="240" colors="16"><ext>G11</ext></format>
+		<format name="GED" width="160" height="200" colors="128"><ext>GED</ext></format>
 		<format name="Gephard Hires Graphics" maxWidth="320" maxHeight="200" colors="2"><ext>GHG</ext></format>
 		<format name="Graphics 7" width="160" maxHeight="120" colors="4"><ext>GR7</ext></format>
 		<format name="Graphics 8" width="320" maxHeight="240" colors="2"><ext>GR8</ext></format>

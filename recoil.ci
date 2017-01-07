@@ -6586,7 +6586,7 @@ public class RECOIL
 	bool DecodeTg1(byte[] content, int contentLength)
 	{
 		if (contentLength < 20 || !IsStringAt(content, 0, "COKE format.")
-			|| content[16] != 0 || content[17] != 0x12)
+		 || content[16] != 0 || content[17] != 0x12)
 			return false;
 		return DecodeFalconTrueColorVariable(content, contentLength, 12, 18);
 	}
@@ -6594,7 +6594,7 @@ public class RECOIL
 	bool DecodePnt(byte[] content, int contentLength)
 	{
 		if (contentLength < 128 || content[0] != 'P' || content[1] != 'N' || content[2] != 'T' || content[3] != 0
-			|| content[4] != 1 || content[5] != 0)
+		 || content[4] != 1 || content[5] != 0)
 			return false;
 		int paletteLength = content[6] << 8 | content[7];
 		int width = content[8] << 8 | content[9];
@@ -7088,7 +7088,7 @@ public class RECOIL
 					break;
 				default:
 					if (bitplanes == 0 || (bitplanes > 8 && bitplanes != 24 && bitplanes != 32)
-						|| compression > 2)
+					 || compression > 2)
 						return false;
 					break;
 				}
@@ -9499,7 +9499,7 @@ public class RECOIL
 				break;
 			case 1:
 				if (contentOffset + 6 >= contentLength
-					|| content[contentOffset + 1] >= 5 || content[contentOffset + 3] >= 5 || content[contentOffset + 5] >= 5) // protect against int overflow
+				 || content[contentOffset + 1] >= 5 || content[contentOffset + 3] >= 5 || content[contentOffset + 5] >= 5) // protect against int overflow
 					return false;
 				contentOffset += (content[contentOffset] + (content[contentOffset + 1] << 8))
 					* (content[contentOffset + 2] + (content[contentOffset + 3] << 8))
@@ -10582,6 +10582,234 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	static int GetAtari8PlayerSize(int size)
+	{
+		size &= 3;
+		if (size == 2)
+			return 1;
+		return size + 1;
+	}
+
+	const int GTIA_P0   = 0x01;
+	const int GTIA_P1   = 0x02;
+	const int GTIA_P01  = GTIA_P0 | GTIA_P1;
+	const int GTIA_P2   = 0x04;
+	const int GTIA_P3   = 0x08;
+	const int GTIA_P23  = GTIA_P2 | GTIA_P3;
+	const int GTIA_PF0  = 0x10;
+	const int GTIA_PF1  = 0x20;
+	const int GTIA_PF01 = GTIA_PF0 | GTIA_PF1;
+	const int GTIA_PF2  = 0x40;
+	const int GTIA_PF3  = 0x80;
+	const int GTIA_PF23 = GTIA_PF2 | GTIA_PF3;
+
+	int GetGtiaObjectsColor(int objects, int prior)
+	{
+		if (objects == 0)
+			return GtiaColors[8]; // COLBAK
+		int color = 0;
+		if ((objects & GTIA_P01) != 0) {
+			if (((objects & GTIA_PF01) == 0 || (prior & 0xc) == 0)
+			&& ((objects & GTIA_PF23) == 0 || (prior & 4) == 0)) {
+				if ((objects & GTIA_P0) != 0) {
+					color = GtiaColors[0]; // COLPM0
+					if ((objects & GTIA_P1) != 0 && (prior & 0x20) != 0)
+						color |= GtiaColors[1]; // COLPM1
+				}
+				else
+					color = GtiaColors[1]; // COLPM1
+			}
+		}
+		else if ((objects & GTIA_P23) != 0) {
+			if (((objects & GTIA_PF23) == 0 || (prior & 6) == 0)
+			 && ((objects & GTIA_PF01) == 0 || (prior & 1) != 0)) {
+				if ((objects & GTIA_P2) != 0) {
+					color = GtiaColors[2]; // COLPM2
+					if ((objects & GTIA_P3) != 0 && (prior & 0x20) != 0)
+						color |= GtiaColors[3]; // COLPM3
+				}
+				else
+					color = GtiaColors[3]; // COLPM3
+			}
+		}
+		if ((objects & GTIA_PF23) != 0
+		 && ((objects & GTIA_P23) == 0 || (prior & 9) == 0)
+		 && ((objects & GTIA_P01) == 0 || (prior & 4) != 0)) {
+			// fifth player (PF3) has priority over the other playfields
+			return color | GtiaColors[(objects & GTIA_PF3) != 0 ? 7 : 6]; // COLPF3, COLPF2
+		}
+		if ((objects & GTIA_PF01) != 0
+		 && ((objects & GTIA_P23) == 0 || (prior & 1) == 0)
+		 && ((objects & GTIA_P01) == 0 || (prior & 3) == 0)) {
+			// PF0 and PF1 are mutually exclusive
+			return color | GtiaColors[(objects & GTIA_PF0) != 0 ? 4 : 5]; // COLPF0, COLPF1
+		}
+		return color;
+	}
+
+	bool DecodeGed(byte[] content, int contentLength)
+	{
+		if (contentLength != 11302
+		 || content[0] != 0xff || content[1] != 0xff || content[2] != 0x30 || content[3] != 0x53 || content[4] != 0x4f || content[5] != 0x7f)
+			return false;
+		int cycle = content[0xcd6 + 14];
+		if (cycle > 7)
+			return false;
+
+		byte[4] playerSize;
+		byte[4] missileSize;
+		byte[4] playerHpos;
+		byte[4] missileHpos;
+		byte[4] playerGraphics;
+		int missileGraphics; // byte
+		int[4] playerSizeCounter = 0; // int to workaround cito 0 Java compilation error
+		int[4] missileSizeCounter = 0; // likewise
+		int prior = content[0xcd6 + 6];
+		for (int i = 0; i < 4; i++) {
+			GtiaColors[i] = content[0xcd6 + i]; // COLPM0-3
+			playerSize[i] = GetAtari8PlayerSize(content[0xcd6 + 4] >> (3 - i << 1)); // SIZEP0-3
+			missileSize[i] = GetAtari8PlayerSize(content[0xcd6 + 5] >> (i << 1)); // SIZEM
+			playerHpos[i] = (0x30 + content[0xcd6 + 9 + i]).LowByte; // HPOSP0-3
+			missileHpos[i] = ((prior & 0x10) == 0 ? playerHpos[i] + (playerSize[i] << 3)
+				: i == 0 ? 0x30 + content[0xcd6 + 13] : missileHpos[i - 1] + (missileSize[i - 1] << 1)).LowByte; // HPOSM0-3
+		}
+		GtiaColors[7] = content[0xcd6 + 7]; // COLPF3
+		GtiaColors[8] = content[0xcd6 + 8]; // COLBAK
+
+		SetSize(320, 200, RECOILResolution.Xe2x1);
+		byte[320 * 200] frame;
+		for (int y = 0; y < 200; y++) {
+			playerGraphics.Clear();
+			missileGraphics = 0;
+
+			int addr = content[206 + y] & 0x1f;
+			int value = content[6 + y];
+			switch (addr) {
+			case 0x00:
+			case 0x01:
+			case 0x02:
+			case 0x03:
+				playerHpos[addr] = value;
+				break;
+			case 0x04:
+			case 0x05:
+			case 0x06:
+			case 0x07:
+				missileHpos[addr - 4] = value;
+				break;
+			case 0x08:
+			case 0x09:
+			case 0x0a:
+			case 0x0b:
+				playerSize[addr - 8] = GetAtari8PlayerSize(value);
+				break;
+			case 0x0c:
+				for (int i = 0; i < 4; i++) {
+					missileSize[i] = GetAtari8PlayerSize(value);
+					value >>= 2;
+				}
+				break;
+			case 0x12:
+			case 0x13:
+			case 0x14:
+			case 0x15:
+			case 0x16:
+			case 0x17:
+			case 0x18:
+			case 0x19:
+			case 0x1a:
+				GtiaColors[addr - 0x12] = value;
+				break;
+			case 0x1b:
+				prior = value;
+				break;
+			default:
+				break;
+			}
+
+			GtiaColors[4] = content[406 + y]; // COLPF0
+			GtiaColors[5] = content[606 + y]; // COLPF1
+			GtiaColors[6] = content[806 + y]; // COLPF2
+			int changeHpos = 0x30 + 15 + (cycle << 3);
+			int change = 0;
+
+			// We need to process PMG on the left border.
+			// The leftmost PMG we can still see on the playfield is a quad-sized player positioned at 0x11.
+			for (int hpos = 0x11; hpos < 0xd0; hpos++) {
+				for (int i = 0; i < 4; i++) {
+					if (playerHpos[i] == hpos) {
+						playerGraphics[i] = content[0x8d6 + 28 + (i << 8) + y];
+						playerSizeCounter[i] = playerSize[i];
+					}
+					if (missileHpos[i] == hpos) {
+						missileGraphics |= content[0x7d6 + 28 + y] & 3 << (i << 1);
+						missileSizeCounter[i] = missileSize[i];
+					}
+				}
+
+				if (hpos >= 0x30) {
+					if (hpos == changeHpos) {
+						switch (change) {
+						case 0:
+							GtiaColors[4] = content[1006 + y];
+							if (cycle < 4)
+								changeHpos += 32;
+							else
+								changeHpos = 0x30 + 75 - 16 + (cycle << 2);
+							change = 1;
+							break;
+						case 1:
+							GtiaColors[5] = content[1206 + y];
+							changeHpos = 0x30 + 75 + (cycle << 2);
+							change = 2;
+							break;
+						case 2:
+							GtiaColors[6] = content[1406 + y];
+							changeHpos += 24;
+							change = 3;
+							break;
+						case 3:
+							GtiaColors[4] = content[1606 + y];
+							changeHpos += 24;
+							change = 4;
+							break;
+						case 4:
+							GtiaColors[5] = content[1806 + y];
+							break;
+						default:
+							break;
+						}
+					}
+
+					int x = hpos - 0x30 << 1;
+					int c = content[0xce6 + y * 40 + (x >> 3)] >> (~x & 6) & 3;
+					int objects = 8 << c & 0x70; // 0, GTIA_PF0, GTIA_PF1 or GTIA_PF2
+					if ((prior & 0x10) != 0 && (missileGraphics & 0xaa) != 0)
+						objects |= GTIA_PF3;
+					for (int i = 0; i < 4; i++) {
+						if ((playerGraphics[i] & 0x80) != 0
+						 || ((prior & 0x10) == 0) && (missileGraphics & 2 << (i << 1)) != 0)
+							objects |= 1 << i;
+					}
+					frame[y * 320 + x + 1] = frame[y * 320 + x] = GetGtiaObjectsColor(objects, prior) & 0xfe;
+				}
+
+				for (int i = 0; i < 4; i++) {
+					if (--playerSizeCounter[i] == 0) {
+						playerGraphics[i] = (playerGraphics[i] & 0x7f) << 1;
+						playerSizeCounter[i] = playerSize[i];
+					}
+					if (--missileSizeCounter[i] == 0) {
+						int mask = 1 << (i << 1);
+						missileGraphics = (missileGraphics & ~(mask * 3)) | ((missileGraphics & mask) << 1);
+						missileSizeCounter[i] = missileSize[i];
+					}
+				}
+			}
+		}
+		return ApplyAtari8Palette(frame);
+	}
+
 	// PC formats.
 
 	bool DecodeMsp(byte[] content, int contentLength)
@@ -10819,6 +11047,7 @@ public class RECOIL
 		case PackExt("FWA"):
 		case PackExt("G10"):
 		case PackExt("G11"):
+		case PackExt("GED"):
 		case PackExt("GFB"):
 		case PackExt("GG"):
 		case PackExt("GHG"):
@@ -11214,6 +11443,8 @@ public class RECOIL
 			return DecodeG10(content, contentLength);
 		case PackExt("G11"):
 			return DecodeG11(content, contentLength);
+		case PackExt("GED"):
+			return DecodeGed(content, contentLength);
 		case PackExt("GFB"):
 			return DecodeGfb(content, contentLength);
 		case PackExt("GG"):
