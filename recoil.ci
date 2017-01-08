@@ -5509,6 +5509,16 @@ public class RECOIL
 		return true;
 	}
 
+	static int GetStLowColor(byte[] bitmap, int bitmapOffset, int x)
+	{
+		bitmapOffset += (x >> 1 & ~7) + (x >> 3 & 1);
+		int bit = ~x & 7;
+		return (bitmap[bitmapOffset] >> bit & 1)
+			| (bitmap[bitmapOffset + 2] >> bit & 1) << 1
+			| (bitmap[bitmapOffset + 4] >> bit & 1) << 2
+			| (bitmap[bitmapOffset + 6] >> bit & 1) << 3;
+	}
+
 	bool DecodeStLow(byte[] bitmap, int bitmapOffset, byte[] palette, int paletteOffset, int width, int height)
 	{
 		SetSize(width, height, IsStePalette(palette, paletteOffset, 16) ? RECOILResolution.Ste1x1 : RECOILResolution.St1x1);
@@ -5642,6 +5652,21 @@ public class RECOIL
 		int height = content[0x3c] << 8 | content[0x3d];
 		return contentLength == 128 + (width + 15 >> 4 << 3) * height
 			&& DecodeStLow(content, 128, content, 4, width, height);
+	}
+
+	bool DecodeStRgb(byte[] content, int contentLength)
+	{
+		if (contentLength != 96102)
+			return false;
+		SetSize(320, 200, RECOILResolution.Ste1x1);
+		Frames = 3;
+		for (int i = 0; i < 320 * 200; i++) {
+			int rgb = GetStLowColor(content, 34, i) << 16
+				| GetStLowColor(content, 32068, i) << 8
+				| GetStLowColor(content, 64102, i);
+			Pixels[i] = rgb * 0x11;
+		}
+		return true;
 	}
 
 	bool DecodeGfb(byte[] content, int contentLength)
@@ -6069,19 +6094,14 @@ public class RECOIL
 		int pixelsOffset = 0;
 		for (int y = 0; y < 199; y++) {
 			for (int x = 0; x < 320; x++) {
-				int bitmapOffset = 160 + (pixelsOffset >> 1 & ~7) + (x >> 3 & 1);
-				int bit = ~x & 7;
-				int c = (content[bitmapOffset] >> bit & 1) << 1
-					| (content[bitmapOffset + 2] >> bit & 1) << 2
-					| (content[bitmapOffset + 4] >> bit & 1) << 3
-					| (content[bitmapOffset + 6] >> bit & 1) << 4;
+				int c = GetStLowColor(content, 160, pixelsOffset);
 				// http://www.atari-forum.com/wiki/index.php?title=ST_Picture_Formats
-				int x1 = c * 5 + 1 - (c & 2) * 3;
+				int x1 = c * 10 + 1 - (c & 1) * 6;
 				if (x >= x1 + 160)
-					c += 64;
-				else if (x >= x1)
 					c += 32;
-				Pixels[pixelsOffset++] = GetStColor(content, 32000 + y * 96 + c);
+				else if (x >= x1)
+					c += 16;
+				Pixels[pixelsOffset++] = GetStColor(content, 32000 + y * 96 + (c << 1));
 			}
 		}
 		return true;
@@ -6346,13 +6366,7 @@ public class RECOIL
 					changeColor++;
 				}
 
-				int offset = bitmapOffset + (x >> 1 & ~7) + (x >> 3 & 1);
-				int bit = ~x & 7;
-				int c = (content[offset] >> bit & 1)
-					| (content[offset + 2] >> bit & 1) << 1
-					| (content[offset + 4] >> bit & 1) << 2
-					| (content[offset + 6] >> bit & 1) << 3;
-				Pixels[pixelsOffset + x] = palette[c];
+				Pixels[pixelsOffset + x] = palette[GetStLowColor(content, bitmapOffset, x)];
 			}
 			bitmapOffset += Width >> 1;
 			pixelsOffset += Width;
@@ -11862,7 +11876,8 @@ public class RECOIL
 			return DecodeZx81Raw(content, contentLength)
 				|| DecodeAtari8Raw(content, contentLength);
 		case PackExt("RGB"):
-			return DecodeAtari8Rgb(content, contentLength)
+			return DecodeStRgb(content, contentLength)
+				|| DecodeAtari8Rgb(content, contentLength)
 				|| DecodeZxRgb(content, contentLength);
 		case PackExt("RIP"):
 			return DecodeRip(content, contentLength);
