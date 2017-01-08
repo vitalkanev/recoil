@@ -45,6 +45,7 @@ enum RECOILResolution
 	St1x2,
 	Ste1x1,
 	Ste1x2,
+	Tt1x1,
 	Falcon1x1,
 	Falcon2x1,
 	Bbc1x1,
@@ -2456,6 +2457,8 @@ public class RECOIL
 		case RECOILResolution.Ste1x1:
 		case RECOILResolution.Ste1x2:
 			return "Atari STE";
+		case RECOILResolution.Tt1x1:
+			return "Atari TT";
 		case RECOILResolution.Falcon1x1:
 		case RECOILResolution.Falcon2x1:
 			return "Atari Falcon";
@@ -5393,6 +5396,7 @@ public class RECOIL
 		switch (Resolution) {
 		case RECOILResolution.Ste1x1:
 		case RECOILResolution.Ste1x2:
+		case RECOILResolution.Tt1x1:
 			// STE 4096 colors
 			// xxxxrRRR gGGGbBBB -> 0000RRRr0000GGGg0000BBBb
 			rgb = (r & 7) << 17 | (r & 8) << 13
@@ -5506,13 +5510,28 @@ public class RECOIL
 		case 32128: // TROUBLE.PI1
 			return DecodeSt(content, 34, content, 2, content[1]);
 		case 44834: // 280 lines overscan
-			if (content[1] != 0)
-				return false;
-			return DecodeStLow(content, 34, content, 2, 320, 280);
+			return content[1] == 0 && DecodeStLow(content, 34, content, 2, 320, 280);
 		case 116514: // 416x560 FORESTV.PI1
-			if (content[1] != 0)
+			return content[1] == 0 && DecodeStLow(content, 34, content, 2, 416, 560);
+		case 153606: // PI6 TT-High
+			if (content[1] != 6)
 				return false;
-			return DecodeStLow(content, 34, content, 2, 416, 560);
+			SetSize(1280, 960, RECOILResolution.Tt1x1);
+			return DecodeBlackAndWhite(content, 6, contentLength, false, 0xffffff);
+		case 153634: // PI5 TT-Medium
+			if (content[1] != 4)
+				return false;
+			SetSize(640, 480, RECOILResolution.Tt1x1);
+			SetStPalette(content, 2, 16);
+			DecodeBitplanes(content, 34, 320, 4, 0, 640, 480);
+			return true;
+		case 154114: // PI4 TT-Low
+			if (content[1] != 7)
+				return false;
+			SetSize(320, 480, RECOILResolution.Tt1x1); // FIXME: 2x1
+			SetStPalette(content, 2, 256);
+			DecodeBitplanes(content, 514, 320, 8, 0, 320, 480);
+			return true;
 		default:
 			return false;
 		}
@@ -6451,7 +6470,7 @@ public class RECOIL
 		DecodeBitplanes(content, bitplanesOffset, width, 8, 0, width, height);
 	}
 
-	bool DecodePi4(byte[] content, int contentLength)
+	bool DecodeFuckpaint(byte[] content, int contentLength)
 	{
 		switch (contentLength) {
 		case 65024:
@@ -6532,7 +6551,7 @@ public class RECOIL
 		byte[96000] unpacked;
 		if (!CaStream.UnpackDel(content, contentLength, unpacked, 2))
 			return false;
-		return DecodePi4(unpacked, 77824);
+		return DecodeFuckpaint(unpacked, 77824);
 	}
 
 	bool DecodeDph(byte[] content, int contentLength)
@@ -11198,6 +11217,8 @@ public class RECOIL
 		case PackExt("PI1"):
 		case PackExt("PI2"):
 		case PackExt("PI3"):
+		case PackExt("PI5"):
+		case PackExt("PI6"):
 		case PackExt("PI4"):
 		case PackExt("PI7"):
 		case PackExt("PI9"):
@@ -11698,11 +11719,15 @@ public class RECOIL
 		case PackExt("PI1"):
 		case PackExt("PI2"):
 		case PackExt("PI3"):
+		case PackExt("PI5"):
+		case PackExt("PI6"):
 			return DecodeStPi(content, contentLength);
 		case PackExt("PI4"):
+			return DecodeFuckpaint(content, contentLength)
+				|| DecodeStPi(content, contentLength);
 		case PackExt("PI7"):
 		case PackExt("PI9"):
-			return DecodePi4(content, contentLength);
+			return DecodeFuckpaint(content, contentLength);
 		case PackExt("PIC"):
 			return DecodePic(content, contentLength);
 		case PackExt("PL4"):

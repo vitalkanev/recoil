@@ -223,6 +223,11 @@
 		<format name="Tiny Stuff"><ext>TNY</ext></format>
 		<format name="Extended GEM Bit Image"><ext>XIMG</ext></format>
 	</platform>
+	<platform name="Atari TT" href="https://en.wikipedia.org/wiki/Atari_TT030">
+		<format width="320" height="480" colors="256"><ext>PI4</ext></format>
+		<format width="640" height="480" colors="16"><ext>PI5</ext></format>
+		<format width="1280" height="960" colors="2"><ext>PI6</ext></format>
+	</platform>
 	<platform name="Atari Falcon" href="http://en.wikipedia.org/wiki/Atari_Falcon">
 		<format name="DuneGraph (compressed)" width="320" height="200" colors="256">
 			<ext>DC1</ext>
