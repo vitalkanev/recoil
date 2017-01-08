@@ -693,6 +693,26 @@ class GoDotStream : RleStream
 	}
 }
 
+class CmpStream : RleStream
+{
+	override bool ReadCommand()
+	{
+		int b = ReadByte();
+		if (b == Content[0]) {
+			b = ReadByte();
+			if (b < 0)
+				return false;
+			RepeatCount = 1 + b;
+			RepeatValue = ReadByte();
+		}
+		else {
+			RepeatCount = 1;
+			RepeatValue = b;
+		}
+		return true;
+	}
+}
+
 class DrpStream : RleStream
 {
 	int Escape;
@@ -5325,6 +5345,27 @@ public class RECOIL
 		SetSize(256, 64, RECOILResolution.St1x1);
 		DecodeBlackAndWhiteFont(content, 0, 2048, 16);
 		return true;
+	}
+
+	bool DecodeCmp(byte[] content, int contentLength)
+	{
+		if (contentLength < 5)
+			return false;
+		switch (content[1]) {
+		case 0:
+			SetSize(640, 400, RECOILResolution.St1x1);
+			break;
+		case 200:
+			SetSize(640, 800, RECOILResolution.St1x1);
+			break;
+		default:
+			return false;
+		}
+		CmpStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 2;
+		rle.ContentLength = contentLength;
+		return DecodeRleBlackAndWhite(rle, 0xffffff);
 	}
 
 	bool DecodeBld(byte[] content, int contentLength)
@@ -11116,6 +11157,7 @@ public class RECOIL
 		case PackExt("CHS"):
 		case PackExt("CIN"):
 		case PackExt("CLP"):
+		case PackExt("CMP"):
 		case PackExt("CPI"):
 		case PackExt("CPR"):
 		case PackExt("CPT"):
@@ -11481,6 +11523,8 @@ public class RECOIL
 			return DecodeCin(content, contentLength);
 		case PackExt("CLP"):
 			return DecodeClp(content, contentLength);
+		case PackExt("CMP"):
+			return DecodeCmp(content, contentLength);
 		case PackExt("CPI"):
 			return DecodeCpi(content, contentLength);
 		case PackExt("CPR"):
