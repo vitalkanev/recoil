@@ -5459,7 +5459,7 @@ public class RECOIL
 	{
 		SetSize(width, height, IsStePalette(palette, paletteOffset, 16) ? RECOILResolution.Ste1x1 : RECOILResolution.St1x1);
 		SetStPalette(palette, paletteOffset, 16);
-		DecodeBitplanes(bitmap, bitmapOffset, width >> 1, 4, 0, width, height);
+		DecodeBitplanes(bitmap, bitmapOffset, width + 15 >> 4 << 3, 4, 0, width, height);
 		return true;
 	}
 
@@ -5560,6 +5560,17 @@ public class RECOIL
 		if (contentLength != 32512)
 			return false;
 		return DecodeStLow(content, 0, content, 32000, 320, 200);
+	}
+
+	bool DecodeCel(byte[] content, int contentLength)
+	{
+		if (contentLength < 128 || content[0] != 0xff || content[1] != 0xff
+		 || content[2] != 0 || content[3] != 0)
+			return false;
+		int width = content[0x3a] << 8 | content[0x3b];
+		int height = content[0x3c] << 8 | content[0x3d];
+		return contentLength == 128 + (width + 15 >> 4 << 3) * height
+			&& DecodeStLow(content, 128, content, 4, width, height);
 	}
 
 	bool DecodeGfb(byte[] content, int contentLength)
@@ -11013,6 +11024,7 @@ public class RECOIL
 		case PackExt("CA3"):
 		case PackExt("CCI"):
 		case PackExt("CDU"):
+		case PackExt("CEL"):
 		case PackExt("CH4"):
 		case PackExt("CH6"):
 		case PackExt("CH8"):
@@ -11368,6 +11380,8 @@ public class RECOIL
 			return DecodeCci(content, contentLength);
 		case PackExt("CDU"):
 			return contentLength == 10277 && DecodeC64Multicolor(320, content, 0x113, 0x2053, 0x243b, content[0x2823]);
+		case PackExt("CEL"):
+			return DecodeCel(content, contentLength);
 		case PackExt("CH4"):
 		case PackExt("CH6"):
 		case PackExt("CH8"):

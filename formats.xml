@@ -183,6 +183,7 @@
 		<format name="CrackArt" width="320" height="200" colors="16"><ext>CA1</ext></format>
 		<format name="CrackArt" width="640" height="200" colors="4"><ext>CA2</ext></format>
 		<format name="CrackArt" width="640" height="400" colors="2"><ext>CA3</ext></format>
+		<format name="Cyber Paint Cell" maxWidth="320" maxHeight="200" colors="16"><ext>CEL</ext></format>
 		<format name="Canvas (compressed)"><ext>CPT</ext></format>
 		<format name="Calamus Raster Graphic" colors="2"><ext>CRG</ext></format>
 		<format name="Doodle" width="640" height="400" colors="2"><ext>DOO</ext></format>
