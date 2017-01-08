@@ -248,6 +248,7 @@
 			<ext>PI7</ext>
 			<ext>PI9</ext>
 		</format>
+		<format name="PixArt"><ext>PIX</ext></format>
 		<format name="Prism Paint">
 			<ext>PNT</ext>
 			<ext>TPI</ext>

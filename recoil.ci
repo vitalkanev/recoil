@@ -6435,6 +6435,12 @@ public class RECOIL
 	static int GetR8G8B8Color(byte[] content, int contentOffset)
 		return content[contentOffset] << 16 | content[contentOffset + 1] << 8 | content[contentOffset + 2];
 
+	static void DecodeR8G8B8Colors(byte[] content, int contentOffset, int count, int[] destination)
+	{
+		for (int i = 0; i < count; i++)
+			destination[i] = GetR8G8B8Color(content, contentOffset + i * 3);
+	}
+
 	bool DecodeIim(byte[] content, int contentLength)
 	{
 		if (contentLength < 17 || !IsStringAt(content, 0, "IS_IMAGE") || content[8] != 0 || content[10] != 0)
@@ -6458,8 +6464,7 @@ public class RECOIL
 		case 4:
 			if (content[11] != 24 || !SetSize(width, height, RECOILResolution.Falcon1x1))
 				return false;
-			for (int i = 0; i < pixelsLength; i++)
-				Pixels[i] = GetR8G8B8Color(content, 16 + i * 3);
+			DecodeR8G8B8Colors(content, 16, pixelsLength, Pixels);
 			return true;
 		default:
 			return false;
@@ -6645,6 +6650,55 @@ public class RECOIL
 		 || content[16] != 0 || content[17] != 0x12)
 			return false;
 		return DecodeFalconTrueColorVariable(content, contentLength, 12, 18);
+	}
+
+	bool DecodeFalconPix(byte[] content, int contentLength)
+	{
+		if (contentLength < 15 || !IsStringAt(content, 0, "PIXT") || content[4] != 0)
+			return false;
+		int contentOffset;
+		switch (content[5]) {
+		case 1:
+			contentOffset = 14;
+			break;
+		case 2:
+			contentOffset = 16;
+			break;
+		default:
+			return false;
+		}
+		int width = content[8] << 8 | content[9];
+		if ((width & 15) != 0)
+			return false;
+		int height = content[10] << 8 | content[11];
+		switch (content[7]) {
+		case 1:
+			if (content[6] != 1
+			 || !SetSizeStOrFalcon(width, height, 1))
+				return false;
+			return DecodeBlackAndWhite(content, contentOffset, contentLength, true, 0xffffff);
+		// TODO: case 2
+		case 4:
+			int contentStride = width >> 1;
+			if (content[6] != 1
+			 || contentLength != contentOffset + 48 + contentStride * height
+			 || !SetSizeStOrFalcon(width, height, 4))
+				return false;
+			DecodeR8G8B8Colors(content, contentOffset, 16, ContentPalette);
+			DecodeBitplanes(content, contentOffset + 48, contentStride, 4, 0, width, height);
+			return true;
+		case 8:
+			if (content[6] != 0
+			 || contentLength != contentOffset + 768 + width * height
+			 || !SetSize(width, height, RECOILResolution.Falcon1x1))
+				return false;
+			DecodeR8G8B8Colors(content, contentOffset, 256, ContentPalette);
+			DecodeBytes(content, contentOffset + 768);
+			return true;
+		// TODO: case 16
+		default:
+			return false;
+		}
 	}
 
 	bool DecodePnt(byte[] content, int contentLength)
@@ -7318,8 +7372,7 @@ public class RECOIL
 	{
 		if (content == null)
 			content = BinaryResource("altirrapal.pal");
-		for (int i = 0; i < 256; i++)
-			Atari8Palette[i] = GetR8G8B8Color(content, i * 3);
+		DecodeR8G8B8Colors(content, 0, 256, Atari8Palette);
 	}
 
 	static int ParseAtari8ExecutableHeader(byte[] content, int contentOffset)
@@ -11213,7 +11266,6 @@ public class RECOIL
 		case PackExt("P11"):
 		case PackExt("P41"):
 		case PackExt("GRF"):
-		case PackExt("PIX"):
 		case PackExt("P4I"):
 		case PackExt("P64"):
 		case PackExt("PAC"):
@@ -11234,6 +11286,7 @@ public class RECOIL
 		case PackExt("PI7"):
 		case PackExt("PI9"):
 		case PackExt("PIC"):
+		case PackExt("PIX"):
 		case PackExt("PL4"):
 		case PackExt("PLA"):
 		case PackExt("PLM"):
@@ -11706,7 +11759,6 @@ public class RECOIL
 			return DecodeP11(content, contentLength);
 		case PackExt("P41"):
 		case PackExt("GRF"):
-		case PackExt("PIX"):
 			return DecodeCocoMax(content, contentLength);
 		case PackExt("P4I"):
 			return DecodeP4i(content, contentLength);
@@ -11742,6 +11794,9 @@ public class RECOIL
 			return DecodeFuckpaint(content, contentLength);
 		case PackExt("PIC"):
 			return DecodePic(content, contentLength);
+		case PackExt("PIX"):
+			return DecodeFalconPix(content, contentLength)
+				|| DecodeCocoMax(content, contentLength);
 		case PackExt("PL4"):
 			return DecodePl4(content, contentLength);
 		case PackExt("PLA"):
