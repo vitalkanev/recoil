@@ -5518,6 +5518,8 @@ public class RECOIL
 		case 32066: // DEGAS Elite
 		case 32128: // TROUBLE.PI1
 			return DecodeSt(content, 34, content, 2, content[1]);
+		case 38434: // st.pi1
+			return content[1] == 4 && DecodeStLow(content, 34, content, 2, 320, 240);
 		case 44834: // 280 lines overscan
 			return content[1] == 0 && DecodeStLow(content, 34, content, 2, 320, 280);
 		case 116514: // 416x560 FORESTV.PI1
