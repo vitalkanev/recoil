@@ -221,9 +221,18 @@
 		<format name="Spectrum 512 (compressed)" width="320" height="199" colors="4096"><ext>SPC</ext></format>
 		<format name="Spectrum 512 (smooshed)" width="320" height="199" colors="512"><ext>SPS</ext></format>
 		<format name="Spectrum 512" width="320" height="199" colors="4096"><ext>SPU</ext></format>
-		<format name="Tiny Stuff" width="320" height="200" colors="16"><ext>TN1</ext></format>
-		<format name="Tiny Stuff" width="640" height="200" colors="4"><ext>TN2</ext></format>
-		<format name="Tiny Stuff" width="640" height="400" colors="2"><ext>TN3</ext></format>
+		<format name="Tiny Stuff" width="320" height="200" colors="16">
+			<ext>TN1</ext>
+			<ext>TN4</ext><!-- with palette animation we don't support -->
+		</format>
+		<format name="Tiny Stuff" width="640" height="200" colors="4">
+			<ext>TN2</ext>
+			<ext>TN5</ext><!-- with palette animation we don't support -->
+		</format>
+		<format name="Tiny Stuff" width="640" height="400" colors="2">
+			<ext>TN3</ext>
+			<ext>TN6</ext><!-- I don't think there are black and white pictures with palette animation... -->
+		</format>
 		<format name="Tiny Stuff"><ext>TNY</ext></format>
 		<format name="Extended GEM Bit Image"><ext>XIMG</ext></format>
 	</platform>

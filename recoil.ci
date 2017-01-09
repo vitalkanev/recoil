@@ -11443,6 +11443,9 @@ public class RECOIL
 		case PackExt("TN1"):
 		case PackExt("TN2"):
 		case PackExt("TN3"):
+		case PackExt("TN4"):
+		case PackExt("TN5"):
+		case PackExt("TN6"):
 		case PackExt("TNY"):
 		case PackExt("TRP"):
 		case PackExt("TRU"):
@@ -12008,6 +12011,9 @@ public class RECOIL
 		case PackExt("TN1"):
 		case PackExt("TN2"):
 		case PackExt("TN3"):
+		case PackExt("TN4"):
+		case PackExt("TN5"):
+		case PackExt("TN6"):
 		case PackExt("TNY"):
 			return DecodeTny(content, contentLength);
 		case PackExt("TRP"):
