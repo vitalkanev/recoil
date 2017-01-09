@@ -256,6 +256,10 @@
 			<ext>PNT</ext>
 			<ext>TPI</ext>
 		</format>
+		<format name="IMG Scan" maxWidth="640" maxHeight="400" grayscale="256">
+			<ext>RWH</ext>
+			<ext>RWL</ext>
+		</format>
 		<format name="COKE" colors="65536"><ext>TG1</ext></format>
 		<format colors="32768"><ext>TIMG</ext></format>
 		<format name="EggPaint" colors="65536"><ext>TRP</ext></format>

@@ -6508,6 +6508,23 @@ public class RECOIL
 
 	// Atari Falcon formats.
 
+	bool DecodeRw(byte[] content, int contentLength)
+	{
+		switch (contentLength) {
+		case 64000:
+			SetSize(320, 200, RECOILResolution.Falcon1x1);
+			break;
+		case 256000:
+			SetSize(640, 400, RECOILResolution.Falcon1x1);
+			break;
+		default:
+			return false;
+		}
+		for (int i = 0; i < contentLength; i++)
+			Pixels[i] = (255 - content[i]) * 0x010101;
+		return true;
+	}
+
 	static int GetR8G8B8Color(byte[] content, int contentOffset)
 		return content[contentOffset] << 16 | content[contentOffset + 1] << 8 | content[contentOffset + 2];
 
@@ -11389,6 +11406,8 @@ public class RECOIL
 		case PackExt("RM3"):
 		case PackExt("RM4"):
 		case PackExt("RP"):
+		case PackExt("RWH"):
+		case PackExt("RWL"):
 		case PackExt("RYS"):
 		case PackExt("SAR"):
 		case PackExt("SC2"):
@@ -11923,6 +11942,9 @@ public class RECOIL
 			return DecodeRm(content, contentLength, 4, RECOILResolution.Xe2x1);
 		case PackExt("RP"):
 			return contentLength == 10242 && DecodeC64Multicolor(320, content, 0x402, 2, 0x2402, 0);
+		case PackExt("RWH"):
+		case PackExt("RWL"):
+			return DecodeRw(content, contentLength);
 		case PackExt("RYS"):
 			return DecodeRys(content, contentLength);
 		case PackExt("SAR"):
