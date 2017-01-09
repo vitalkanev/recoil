@@ -5621,6 +5621,19 @@ public class RECOIL
 			&& DecodeSt(unpacked, 0, content, 2, content[1]);
 	}
 
+	bool DecodeEza(byte[] content, int contentLength)
+	{
+		if (contentLength < 44 || content[0] != 'E' || content[1] != 'Z' || content[2] != 0 || content[3] != 0xc8)
+			return false;
+		PackBitsStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 44;
+		rle.ContentLength = contentLength;
+		byte[32000] unpacked;
+		return rle.UnpackBitplaneLines(unpacked, 320, 200, 4, true, false)
+			&& DecodeStLow(unpacked, 0, content, 4, 320, 200);
+	}
+
 	bool DecodeNeo(string filename, byte[] content, int contentLength)
 	{
 		if (contentLength != 32128 || content[0] != 0 || content[1] != 0 || content[2] != 0)
@@ -11216,6 +11229,7 @@ public class RECOIL
 		case PackExt("ECI"):
 		case PackExt("ECP"):
 		case PackExt("EPA"):
+		case PackExt("EZA"):
 		case PackExt("FD2"):
 		case PackExt("FFLI"):
 		case PackExt("FLI"):
@@ -11608,6 +11622,8 @@ public class RECOIL
 			return DecodeEcp(content, contentLength);
 		case PackExt("EPA"):
 			return DecodeEpa(content, contentLength);
+		case PackExt("EZA"):
+			return DecodeEza(content, contentLength);
 		case PackExt("FD2"):
 			return DecodeFli(content, contentLength);
 		case PackExt("FFLI"):
