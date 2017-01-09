@@ -6498,28 +6498,34 @@ public class RECOIL
 
 	bool DecodeIim(byte[] content, int contentLength)
 	{
-		if (contentLength < 17 || !IsStringAt(content, 0, "IS_IMAGE") || content[8] != 0 || content[10] != 0)
+		if (contentLength < 17 || !IsStringAt(content, 0, "IS_IMAGE") || content[8] != 0)
 			return false;
 		int width = content[12] << 8 | content[13];
 		int height = content[14] << 8 | content[15];
-		if (contentLength != 16 + (width * content[11] + 7 >> 3) * height)
-			return false;
 		int pixelsLength = width * height;
 		switch (content[9]) {
 		case 0:
-			return content[11] == 1
-				&& SetSize(width, height, RECOILResolution.Falcon1x1)
+			return SetSize(width, height, RECOILResolution.Falcon1x1)
 				&& DecodeBlackAndWhite(content, 16, contentLength, false, 0xffffff);
 		case 1:
-			if (content[11] != 8 || !SetSize(width, height, RECOILResolution.Falcon1x1))
+			if (contentLength != 16 + pixelsLength
+			 || !SetSize(width, height, RECOILResolution.Falcon1x1))
 				return false;
 			for (int i = 0; i < pixelsLength; i++)
 				Pixels[i] = content[16 + i] * 0x010101;
 			return true;
 		case 4:
-			if (content[11] != 24 || !SetSize(width, height, RECOILResolution.Falcon1x1))
+			if (contentLength != 16 + pixelsLength * 3
+			 || !SetSize(width, height, RECOILResolution.Falcon1x1))
 				return false;
 			DecodeR8G8B8Colors(content, 16, pixelsLength, Pixels);
+			return true;
+		case 5:
+			if (contentLength != 16 + (pixelsLength << 2)
+			 || !SetSize(width, height, RECOILResolution.Falcon1x1))
+				return false;
+			for (int i = 0; i < pixelsLength; i++)
+				Pixels[i] = GetR8G8B8Color(content, 17 + (i << 2));
 			return true;
 		default:
 			return false;
