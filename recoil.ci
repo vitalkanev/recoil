@@ -5340,11 +5340,19 @@ public class RECOIL
 
 	bool DecodeStFnt(byte[] content, int contentLength)
 	{
-		if (contentLength != 2050)
+		switch (contentLength) {
+		case 2050:
+			SetSize(256, 64, RECOILResolution.St1x1);
+			DecodeBlackAndWhiteFont(content, 0, 2048, 16);
+			return true;
+		case 4096:
+		case 4098:
+			SetSize(256, 128, RECOILResolution.St1x1);
+			DecodeBlackAndWhiteFont(content, 0, 4096, 16);
+			return true;
+		default:
 			return false;
-		SetSize(256, 64, RECOILResolution.St1x1);
-		DecodeBlackAndWhiteFont(content, 0, 2048, 16);
-		return true;
+		}
 	}
 
 	bool DecodeCmp(byte[] content, int contentLength)
