@@ -201,6 +201,10 @@
 		<format name="Interchange File Format"><ext>IFF</ext></format>
 		<format name="GEM Bit Image"><ext>IMG</ext></format>
 		<format name="Multi Palette Picture" maxWidth="416" maxHeight="273" maxFrames="2"><ext>MPP</ext></format>
+		<format name="C.O.L.R. Object Editor" width="320" height="200" colors="16">
+			<ext>MUR</ext>
+			<companionExt>PAL</companionExt>
+		</format>
 		<format name="NEOchrome"><ext>NEO</ext></format>
 		<format name="NEOchrome Master" colors="512"><ext>NEO</ext></format>
 		<format name="NEOchrome Master" width="320" height="200" colors="512">

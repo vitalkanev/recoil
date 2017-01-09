@@ -5479,11 +5479,12 @@ public class RECOIL
 	static int GetStColor1000(byte[] content, int contentOffset)
 	{
 		int rgb = 0;
-		for (int i = 0; i < 3; i++) {
-			int c = content[contentOffset + i * 2] << 8 | content[contentOffset + i * 2 + 1];
-			if (c > 1000)
-				return -1;
-			rgb = rgb << 8 | c * 255 / 1000;
+		for (int i = 0; i < 6; i += 2) {
+			int c = content[contentOffset + i] << 8 | content[contentOffset + i + 1];
+			// In test.pal accompanying test.mur values are up to 1015.
+			// In other places they are up to 1000.
+			c = c < 1000 ? c * 255 / 1000 : 255;
+			rgb = rgb << 8 | c;
 		}
 		return rgb;
 	}
@@ -5673,6 +5674,19 @@ public class RECOIL
 		int height = content[0x3c] << 8 | content[0x3d];
 		return contentLength == 128 + (width + 15 >> 4 << 3) * height
 			&& DecodeStLow(content, 128, content, 4, width, height);
+	}
+
+	bool DecodeMur(string filename, byte[] content, int contentLength)
+	{
+		if (contentLength != 32000)
+			return false;
+		byte[96 + 1] pal;
+		if (ReadCompanionFile(filename, "PAL", "pal", pal, pal.Length) != 96)
+			return false;
+		SetSize(320, 200, RECOILResolution.Ste1x1);
+		SetStPalette1000(pal, 0, 16, 4);
+		DecodeBitplanes(content, 0, 160, 4, 0, 320, 200);
+		return true;
 	}
 
 	bool DecodeStRgb(byte[] content, int contentLength)
@@ -11360,6 +11374,7 @@ public class RECOIL
 		case PackExt("MLT"):
 		case PackExt("MPP"):
 		case PackExt("MSP"):
+		case PackExt("MUR"):
 		case PackExt("NEO"):
 		case PackExt("NLQ"):
 		case PackExt("OCP"):
@@ -11856,6 +11871,8 @@ public class RECOIL
 			return DecodeMpp(content, contentLength);
 		case PackExt("MSP"):
 			return DecodeMsp(content, contentLength);
+		case PackExt("MUR"):
+			return DecodeMur(filename, content, contentLength);
 		case PackExt("NEO"):
 			return DecodeNeo(filename, content, contentLength)
 				|| DecodeIff(content, contentLength, RECOILResolution.St1x1);
