@@ -212,6 +212,7 @@
 			<companionExt>RST</companionExt>
 		</format>
 		<format name="STAD" width="640" height="400" colors="2"><ext>PAC</ext></format>
+		<format name="QuantumPaint"><ext>PBX</ext></format>
 		<format name="DEGAS Elite" width="320" height="200" colors="16"><ext>PC1</ext></format>
 		<format name="DEGAS Elite" width="640" height="200" colors="4"><ext>PC2</ext></format>
 		<format name="DEGAS Elite" width="640" height="400" colors="2"><ext>PC3</ext></format>

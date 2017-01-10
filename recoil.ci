@@ -6354,6 +6354,54 @@ public class RECOIL
 		return ApplyBlend();
 	}
 
+	bool DecodePbx(byte[] content, int contentLength)
+	{
+		if (contentLength < 128 || content[0] != 0 || content[1] != 0 || content[2] != 0)
+			return false;
+		if (content[4] == 0x80 && content[5] == 1)
+			return false; // TODO: compression
+		
+		switch (content[3]) {
+		case 0:
+			if (contentLength != 32512)
+				return false;
+			SetSize(320, 200, RECOILResolution.St1x1);
+			int paletteOffset = 128;
+			for (int y = 0; ; ) {
+				SetStPalette(content, paletteOffset, 16);
+				do {
+					paletteOffset += 48;
+					if (paletteOffset >= 512) {
+						DecodeBitplanes(content, 512 + y * 160, 160, 4, y * 320, 320, 200 - y);
+						return true;
+					}
+				} while (content[paletteOffset + 34] == 0 && content[paletteOffset + 35] == 0);
+				int y2 = content[paletteOffset + 33];
+				if (y2 <= y || y2 >= 200 || content[paletteOffset + 32] != 0)
+					return false;
+				DecodeBitplanes(content, 512 + y * 160, 160, 4, y * 320, 320, y2 - y);
+				y = y2;
+			}
+
+		case 0x80:
+			if (contentLength != 44928)
+				return false;
+			SetSize(320, 200, RECOILResolution.St1x1);
+			for (int y = 0; y < 200; y++) {
+				for (int x = 0; x < 320; x++) {
+					int c = GetStLowColor(content, 0x3280 + y * 160, x);
+					if (x >= (c > 7 ? 88 : 76) + c * 10 - (c & 1) * 6)
+						c += 16;
+					Pixels[y * 320 + x] = GetStColor(content, 128 + (y << 6) + (c << 1));
+				}
+			}
+			return true;
+		default:
+			// TODO: 0x01, 0x81
+			return false;
+		}
+	}
+
 	void DecodeMppScreen(byte[] content, int paletteOffset, int paletteLength, int pixelsOffset)
 	{
 		int mode = content[3];
@@ -11393,6 +11441,7 @@ public class RECOIL
 		case PackExt("P4I"):
 		case PackExt("P64"):
 		case PackExt("PAC"):
+		case PackExt("PBX"):
 		case PackExt("PC1"):
 		case PackExt("PC2"):
 		case PackExt("PC3"):
@@ -11901,6 +11950,8 @@ public class RECOIL
 			return contentLength == 10050 && DecodeC64Multicolor(320, content, 0x802, 0x402, 2, content[0x801]);
 		case PackExt("PAC"):
 			return DecodePac(content, contentLength);
+		case PackExt("PBX"):
+			return DecodePbx(content, contentLength);
 		case PackExt("PC1"):
 		case PackExt("PC2"):
 		case PackExt("PC3"):
