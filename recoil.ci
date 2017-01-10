@@ -5343,16 +5343,24 @@ public class RECOIL
 		switch (contentLength) {
 		case 2050:
 			SetSize(256, 64, RECOILResolution.St1x1);
-			DecodeBlackAndWhiteFont(content, 0, 2048, 16);
-			return true;
+			break;
 		case 4096:
 		case 4098:
 			SetSize(256, 128, RECOILResolution.St1x1);
-			DecodeBlackAndWhiteFont(content, 0, 4096, 16);
-			return true;
+			break;
 		default:
 			return false;
 		}
+		if ((contentLength & 2) != 0) {
+			// the last word in the file is "half-height" flag:
+			// 0 = font would look ugly at half-height
+			// 1 = font looks ok at half-height
+			if (content[contentLength - 2] != 0 || content[contentLength - 2] > 1)
+				return false;
+			contentLength -= 2;
+		}
+		DecodeBlackAndWhiteFont(content, 0, contentLength, 16);
+		return true;
 	}
 
 	bool DecodeCmp(byte[] content, int contentLength)
