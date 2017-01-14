@@ -275,6 +275,7 @@
 			<ext>RWH</ext>
 			<ext>RWL</ext>
 		</format>
+		<format name="Rembrandt" colors="65536"><ext>TCP</ext></format>
 		<format name="COKE" colors="65536"><ext>TG1</ext></format>
 		<format colors="32768"><ext>TIMG</ext></format>
 		<format name="EggPaint" colors="65536"><ext>TRP</ext></format>

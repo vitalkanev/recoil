@@ -6834,6 +6834,15 @@ public class RECOIL
 		return DecodeFalconTrueColorVariable(content, contentLength, 12, 18);
 	}
 
+	bool DecodeTcp(byte[] content, int contentLength)
+	{
+		if (contentLength < 218 || !IsStringAt(content, 0, "TRUECOLR")
+		 || content[12] != 0 || content[13] != 0x12 || content[14] != 0 || content[15] != 1
+		 || content[16] != 0 || content[17] != 1 || !IsStringAt(content, 0x12, "PICT"))
+			return false;
+		return DecodeFalconTrueColorVariable(content, contentLength, 0x1c, 0xd8);
+	}
+
 	bool DecodeFalconPix(byte[] content, int contentLength)
 	{
 		if (contentLength < 15 || !IsStringAt(content, 0, "PIXT") || content[4] != 0)
@@ -11523,6 +11532,7 @@ public class RECOIL
 		case PackExt("SR5"):
 		case PackExt("SR7"):
 		case PackExt("SXS"):
+		case PackExt("TCP"):
 		case PackExt("TG1"):
 		case PackExt("TIM"):
 		case PackExt("TIP"):
@@ -12092,6 +12102,8 @@ public class RECOIL
 			return DecodeSr7(filename, content, contentLength);
 		case PackExt("SXS"):
 			return DecodeSxs(content, contentLength);
+		case PackExt("TCP"):
+			return DecodeTcp(content, contentLength);
 		case PackExt("TG1"):
 			return DecodeTg1(content, contentLength);
 		case PackExt("TIM"):
