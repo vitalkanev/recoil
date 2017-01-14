@@ -5876,6 +5876,30 @@ public class RECOIL
 		return DecodeSt(unpacked, 0, content, 0, content[33]);
 	}
 
+	void SetDefaultStPalette(int bitplanes)
+	{
+		ContentPalette[0] = 0xffffff;
+		if (bitplanes >= 2) {
+			ContentPalette[1] = 0xff0000;
+			ContentPalette[2] = 0x00ff00;
+			if (bitplanes == 4) {
+				ContentPalette[3] = 0xffff00;
+				ContentPalette[4] = 0x0000ff;
+				ContentPalette[5] = 0xff00ff;
+				ContentPalette[6] = 0x00ffff;
+				ContentPalette[7] = 0xaaaaaa;
+				ContentPalette[8] = 0x555555;
+				ContentPalette[9] = 0xaa0000;
+				ContentPalette[10] = 0x00aa00;
+				ContentPalette[11] = 0xaaaa00;
+				ContentPalette[12] = 0x0000aa;
+				ContentPalette[13] = 0xaa00aa;
+				ContentPalette[14] = 0x00aaaa;
+			}
+		}
+		ContentPalette[(1 << bitplanes) - 1] = 0x000000;
+	}
+
 	static bool IsTimg(byte[] content)
 	{
 		if (!IsStringAt(content, 16, "TIMG") || content[20] != 0 || content[21] != 3)
@@ -5909,35 +5933,11 @@ public class RECOIL
 		case 4:
 		case 8:
 			if (headerLength == 22 + (6 << bitplanes) && IsXimg(content)) {
-				for (int i = 0; i < 1 << bitplanes; i++) {
-					int rgb = GetStColor1000(content, 22 + i * 6);
-					if (rgb < 0)
-						return false;
-					ContentPalette[i] = rgb;
-				}
+				for (int i = 0; i < 1 << bitplanes; i++)
+					ContentPalette[i] = GetStColor1000(content, 22 + i * 6);
 			}
-			else if (bitplanes <= 4) {
-				ContentPalette[0] = 0xffffff;
-				if (bitplanes >= 2) {
-					ContentPalette[1] = 0xff0000;
-					ContentPalette[2] = 0x00ff00;
-					if (bitplanes == 4) {
-						ContentPalette[3] = 0xffff00;
-						ContentPalette[4] = 0x0000ff;
-						ContentPalette[5] = 0xff00ff;
-						ContentPalette[6] = 0x00ffff;
-						ContentPalette[7] = 0xaaaaaa;
-						ContentPalette[8] = 0x555555;
-						ContentPalette[9] = 0xaa0000;
-						ContentPalette[10] = 0x00aa00;
-						ContentPalette[11] = 0xaaaa00;
-						ContentPalette[12] = 0x0000aa;
-						ContentPalette[13] = 0xaa00aa;
-						ContentPalette[14] = 0x00aaaa;
-					}
-				}
-				ContentPalette[(1 << bitplanes) - 1] = 0x000000;
-			}
+			else if (bitplanes <= 4)
+				SetDefaultStPalette(bitplanes);
 			else
 				return false;
 			break;
@@ -6590,6 +6590,19 @@ public class RECOIL
 	}
 
 	// Atari Falcon formats.
+
+	bool DecodeIbi(byte[] content, int contentLength)
+	{
+		if ((contentLength != 704 && contentLength != 1600)
+		 || content[0] != 'I' || content[1] != 'C' || content[2] != 'B'
+		 || (content[3] != 'I' && content[3] != '3')
+		 || content[8] != 0 || content[9] != 0x20 || content[10] != 0 || content[11] != 0x20)
+			return false;
+		SetSize(32, 32, RECOILResolution.Falcon1x1);
+		SetDefaultStPalette(4);
+		DecodeBitplanes(content, 0x40, 16, 4, 0, 32, 32);
+		return true;
+	}
 
 	bool DecodeRw(byte[] content, int contentLength)
 	{
@@ -11381,6 +11394,8 @@ public class RECOIL
 		case PackExt("HCI"):
 		case PackExt("HRM"):
 		case PackExt("HRS"):
+		case PackExt("IB3"):
+		case PackExt("IBI"):
 		case PackExt("ICE"):
 		case PackExt("ICN"):
 		case PackExt("IFF"):
@@ -11823,6 +11838,9 @@ public class RECOIL
 			return DecodeHrm(content, contentLength);
 		case PackExt("HRS"):
 			return DecodeHrs(content, contentLength);
+		case PackExt("IB3"):
+		case PackExt("IBI"):
+			return DecodeIbi(content, contentLength);
 		case PackExt("ICE"):
 			return contentLength > 1024 && DecodeAtari8Ice(content, contentLength, true, content[0]);
 		case PackExt("ICN"):
