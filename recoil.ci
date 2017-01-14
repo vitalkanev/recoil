@@ -5590,6 +5590,19 @@ public class RECOIL
 			return content[1] == 4 && DecodeStLow(content, 34, content, 2, 320, 240);
 		case 44834: // 280 lines overscan
 			return content[1] == 0 && DecodeStLow(content, 34, content, 2, 320, 280);
+		case 64034: // PaintPro ST *.pic
+			switch (content[1]) {
+			case 0:
+				return DecodeStLow(content, 34, content, 2, 320, 400);
+			case 1:
+				DecodeStMedium(content, 34, content, 2, 640, 400, 0);
+				return true;
+			case 2:
+				SetSize(640, 800, RECOILResolution.St1x1);
+				return DecodeBlackAndWhite(content, 34, contentLength, false, 0xffffff);
+			default:
+				return false;
+			}
 		case 116514: // 416x560 FORESTV.PI1
 			return content[1] == 0 && DecodeStLow(content, 34, content, 2, 416, 560);
 		case 153606: // PI6 TT-High
@@ -8249,8 +8262,9 @@ public class RECOIL
 		if (contentLength >= 7681 && contentLength <= 7685)
 			return DecodeMic(content, contentLength);
 
-		// Some images with .PIC extension are DOO or SC8.
+		// Some images with .PIC extension are DOO, PaintPro ST or SC8.
 		return DecodeDoo(content, contentLength)
+			|| DecodeStPi(content, contentLength)
 			|| DecodeSc8(content, contentLength);
 	}
 
