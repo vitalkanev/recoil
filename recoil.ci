@@ -5561,6 +5561,14 @@ public class RECOIL
 		}
 	}
 
+	bool DecodeSrt(byte[] content, int contentLength)
+	{
+		if (contentLength != 32038)
+			return false;
+		DecodeStMedium(content, 0, content, 32006, 640, 200, 0);
+		return true;
+	}
+
 	bool DecodeSt(byte[] bitmap, int bitmapOffset, byte[] palette, int paletteOffset, int mode)
 	{
 		switch (mode) {
@@ -11546,6 +11554,7 @@ public class RECOIL
 		case PackExt("SPU"):
 		case PackExt("SR5"):
 		case PackExt("SR7"):
+		case PackExt("SRT"):
 		case PackExt("SXS"):
 		case PackExt("TCP"):
 		case PackExt("TG1"):
@@ -12118,6 +12127,8 @@ public class RECOIL
 			return DecodeSr5(filename, content, contentLength);
 		case PackExt("SR7"):
 			return DecodeSr7(filename, content, contentLength);
+		case PackExt("SRT"):
+			return DecodeSrt(content, contentLength);
 		case PackExt("SXS"):
 			return DecodeSxs(content, contentLength);
 		case PackExt("TCP"):
