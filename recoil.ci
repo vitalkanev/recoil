@@ -6872,6 +6872,38 @@ public class RECOIL
 		return DecodeFalconTrueColorVariable(content, contentLength, 0x1c, 0xd8);
 	}
 
+	bool DecodeEsm(byte[] content, int contentLength)
+	{
+		if (contentLength < 812
+		 || content[0] != 'T' || content[1] != 'M' || content[2] != 'S' || content[3] != 0
+		 || content[4] != 3 || content[5] != 0x2c || content[10] != 0)
+			return false;
+		int width = content[6] << 8 | content[7];
+		int height = content[8] << 8 | content[9];
+		if (!SetSize(width, height, RECOILResolution.Falcon1x1))
+			return false;
+		int pixelsLength = width * height;
+		switch (content[11]) {
+		case 1:
+			return DecodeBlackAndWhite(content, 0x32c, contentLength, false, 0xffffff);
+		case 8:
+			if (contentLength != 0x32c + pixelsLength)
+				return false;
+			for (int i = 0; i < 256; i++)
+				ContentPalette[i] = content[0x24 + i] << 16 | content[0x124 + i] << 8 | content[0x224 + i];
+			for (int i = 0; i < pixelsLength; i++)
+				Pixels[i] = ContentPalette[content[0x32c + i]];
+			return true;
+		case 24:
+			if (contentLength != 0x32c + pixelsLength * 3)
+				return false;
+			DecodeR8G8B8Colors(content, 0x32c, pixelsLength, Pixels);
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	bool DecodeFalconPix(byte[] content, int contentLength)
 	{
 		if (contentLength < 15 || !IsStringAt(content, 0, "PIXT") || content[4] != 0)
@@ -11368,6 +11400,7 @@ public class RECOIL
 		case PackExt("ECI"):
 		case PackExt("ECP"):
 		case PackExt("EPA"):
+		case PackExt("ESM"):
 		case PackExt("EZA"):
 		case PackExt("FD2"):
 		case PackExt("FFLI"):
@@ -11775,6 +11808,8 @@ public class RECOIL
 			return DecodeEcp(content, contentLength);
 		case PackExt("EPA"):
 			return DecodeEpa(content, contentLength);
+		case PackExt("ESM"):
+			return DecodeEsm(content, contentLength);
 		case PackExt("EZA"):
 			return DecodeEza(content, contentLength);
 		case PackExt("FD2"):
