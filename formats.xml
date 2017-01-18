@@ -275,6 +275,7 @@
 			<ext>TPI</ext>
 		</format>
 		<format name="IMG Scan" maxWidth="640" maxHeight="400" grayscale="256">
+			<ext>RAW</ext>
 			<ext>RWH</ext>
 			<ext>RWL</ext>
 		</format>

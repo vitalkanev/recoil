@@ -6615,10 +6615,13 @@ public class RECOIL
 	bool DecodeRw(byte[] content, int contentLength)
 	{
 		switch (contentLength) {
-		case 64000:
+		case 64000: // RWL
 			SetSize(320, 200, RECOILResolution.Falcon1x1);
 			break;
-		case 256000:
+		case 128000: // RAW
+			SetSize(640, 200, RECOILResolution.Falcon1x1);
+			break;
+		case 256000: // RWH
 			SetSize(640, 400, RECOILResolution.Falcon1x1);
 			break;
 		default:
@@ -12053,7 +12056,8 @@ public class RECOIL
 			return DecodeRap(content, contentLength);
 		case PackExt("RAW"):
 			return DecodeZx81Raw(content, contentLength)
-				|| DecodeAtari8Raw(content, contentLength);
+				|| DecodeAtari8Raw(content, contentLength)
+				|| DecodeRw(content, contentLength);
 		case PackExt("RGB"):
 			return DecodeStRgb(content, contentLength)
 				|| DecodeAtari8Rgb(content, contentLength)
