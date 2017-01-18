@@ -5536,12 +5536,17 @@ public class RECOIL
 			| (bitmap[bitmapOffset + 6] >> bit & 1) << 3;
 	}
 
-	bool DecodeStLow(byte[] bitmap, int bitmapOffset, byte[] palette, int paletteOffset, int width, int height)
+	bool DecodeStLowWithStride(byte[] bitmap, int bitmapOffset, int bitmapStride, byte[] palette, int paletteOffset, int width, int height)
 	{
 		SetSize(width, height, IsStePalette(palette, paletteOffset, 16) ? RECOILResolution.Ste1x1 : RECOILResolution.St1x1);
 		SetStPalette(palette, paletteOffset, 16);
-		DecodeBitplanes(bitmap, bitmapOffset, width + 15 >> 4 << 3, 4, 0, width, height);
+		DecodeBitplanes(bitmap, bitmapOffset, bitmapStride, 4, 0, width, height);
 		return true;
+	}
+
+	bool DecodeStLow(byte[] bitmap, int bitmapOffset, byte[] palette, int paletteOffset, int width, int height)
+	{
+		return DecodeStLowWithStride(bitmap, bitmapOffset, width + 15 >> 4 << 3, palette, paletteOffset, width, height);
 	}
 
 	void DecodeStMedium(byte[] bitmap, int bitmapOffset, byte[] palette, int paletteOffset, int width, int height, int blend)
@@ -5721,6 +5726,13 @@ public class RECOIL
 		SetStPalette1000(pal, 0, 16, 4);
 		DecodeBitplanes(content, 0, 160, 4, 0, 320, 200);
 		return true;
+	}
+
+	bool DecodeKid(byte[] content, int contentLength)
+	{
+		if (contentLength != 63054 || content[0] != 'K' || content[1] != 'D')
+			return false;
+		return DecodeStLowWithStride(content, 34, 230, content, 2, 448, 274);
 	}
 
 	bool DecodeStRgb(byte[] content, int contentLength)
@@ -11483,6 +11495,7 @@ public class RECOIL
 		case PackExt("JGP"):
 		case PackExt("JJ"):
 		case PackExt("KFX"):
+		case PackExt("KID"):
 		case PackExt("KLA"):
 		case PackExt("KOA"):
 		case PackExt("GIG"):
@@ -11962,6 +11975,8 @@ public class RECOIL
 			return DecodeJj(content, contentLength);
 		case PackExt("KFX"):
 			return DecodeGr8Raw(content, contentLength, 56, 60);
+		case PackExt("KID"):
+			return DecodeKid(content, contentLength);
 		case PackExt("KLA"):
 		case PackExt("KOA"):
 		case PackExt("GIG"):

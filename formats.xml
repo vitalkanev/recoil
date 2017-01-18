@@ -200,6 +200,7 @@
 		<format name="DEGAS Elite icon" colors="2"><ext>ICN</ext></format>
 		<format name="Interchange File Format"><ext>IFF</ext></format>
 		<format name="GEM Bit Image"><ext>IMG</ext></format>
+		<format name="Fullscreen Construction Kit" width="448" height="272" colors="16"><ext>KID</ext></format>
 		<format name="Multi Palette Picture" maxWidth="416" maxHeight="273" maxFrames="2"><ext>MPP</ext></format>
 		<format name="C.O.L.R. Object Editor" width="320" height="200" colors="16">
 			<ext>MUR</ext>
