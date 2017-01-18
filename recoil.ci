@@ -5585,6 +5585,11 @@ public class RECOIL
 		}
 	}
 
+	bool DecodeSd(byte[] content, int contentLength, int mode)
+	{
+		return contentLength == 32128 && DecodeSt(content, 128, content, 4, mode);
+	}
+
 	bool DecodeStPi(byte[] content, int contentLength)
 	{
 		if (contentLength < 32034 || content[0] != 0)
@@ -11541,6 +11546,9 @@ public class RECOIL
 		case PackExt("SR8"):
 		case PackExt("SCA"):
 		case PackExt("SCC"):
+		case PackExt("SD0"):
+		case PackExt("SD1"):
+		case PackExt("SD2"):
 		case PackExt("SRS"):
 		case PackExt("YJK"):
 		case PackExt("SCR"):
@@ -12105,6 +12113,12 @@ public class RECOIL
 			return DecodeScr(filename, content, contentLength);
 		case PackExt("SCS4"):
 			return DecodeScs4(content, contentLength);
+		case PackExt("SD0"):
+			return DecodeSd(content, contentLength, 0);
+		case PackExt("SD1"):
+			return DecodeSd(content, contentLength, 1);
+		case PackExt("SD2"):
+			return DecodeSd(content, contentLength, 2);
 		case PackExt("SGE"):
 			return DecodeSge(content, contentLength);
 		case PackExt("SH3"):
