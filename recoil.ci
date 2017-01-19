@@ -125,6 +125,24 @@ class Stream
 	}
 }
 
+class DaliStream : Stream
+{
+	int ParseInt()
+	{
+		for (int r = 0; ;) {
+			int c = ReadByte();
+			if (c < '0' || c > '9') {
+				if (c != '\r' || ReadByte() != '\n')
+					return -1;
+				return r;
+			}
+			if (r > 3200)
+				return -1;
+			r = r * 10 + c - '0';
+		}
+	}
+}
+
 class ZxpStream : Stream
 {
 	int ReadChar()
@@ -5590,11 +5608,6 @@ public class RECOIL
 		}
 	}
 
-	bool DecodeSd(byte[] content, int contentLength, int mode)
-	{
-		return contentLength == 32128 && DecodeSt(content, 128, content, 4, mode);
-	}
-
 	bool DecodeStPi(byte[] content, int contentLength)
 	{
 		if (contentLength < 32034 || content[0] != 0)
@@ -5748,6 +5761,41 @@ public class RECOIL
 			Pixels[i] = rgb * 0x11;
 		}
 		return true;
+	}
+
+	bool DecodeSd(byte[] content, int contentLength, int mode)
+	{
+		return contentLength == 32128 && DecodeSt(content, 128, content, 4, mode);
+	}
+
+	bool DecodeDaliCompressed(byte[] content, int contentLength, int mode)
+	{
+		DaliStream() stream;
+		stream.Content = content;
+		stream.ContentOffset = 32;
+		stream.ContentLength = contentLength;
+		int compressedBlocks = stream.ParseInt();
+		if (compressedBlocks <= 0 || stream.ParseInt() <= 0)
+			return false;
+
+		byte[32000] unpacked;
+		int countOffset = stream.ContentOffset;
+		int valueOffset = countOffset + compressedBlocks - 4;
+		int count = 1;
+		for (int x = 0; x < 160; x += 4) {
+			for (int unpackedOffset = x; unpackedOffset < 32000; unpackedOffset += 160) {
+				if (--count <= 0) {
+					if (valueOffset + 7 >= contentLength)
+						return false;
+					count = content[countOffset++];
+					if (count == 0)
+						return false;
+					valueOffset += 4;
+				}
+				content.CopyTo(valueOffset, unpacked, unpackedOffset, 4);
+			}
+		}
+		return DecodeSt(unpacked, 0, content, 0, mode);
 	}
 
 	bool DecodeGfb(byte[] content, int contentLength)
@@ -11504,6 +11552,9 @@ public class RECOIL
 		case PackExt("LDM"):
 		case PackExt("LEO"):
 		case PackExt("LP3"):
+		case PackExt("LPK"):
+		case PackExt("MPK"):
+		case PackExt("HPK"):
 		case PackExt("LUM"):
 		case PackExt("MAC"):
 		case PackExt("PNTG"):
@@ -11990,6 +12041,12 @@ public class RECOIL
 			return DecodeLeo(content, contentLength);
 		case PackExt("LP3"):
 			return DecodeLp3(content, contentLength);
+		case PackExt("LPK"):
+			return DecodeDaliCompressed(content, contentLength, 0);
+		case PackExt("MPK"):
+			return DecodeDaliCompressed(content, contentLength, 1);
+		case PackExt("HPK"):
+			return DecodeDaliCompressed(content, contentLength, 2);
 		case PackExt("LUM"):
 			return DecodeLum(filename, content, contentLength);
 		case PackExt("MAC"):
