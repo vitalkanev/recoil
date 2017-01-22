@@ -228,6 +228,7 @@
 		<format name="PaintPro ST"><ext>PIC</ext></format>
 		<format width="320" height="200" colors="256" frames="2"><ext>PL4</ext></format>
 		<format name="RGB Intermediate" width="320" height="200" colors="4096" frames="3"><ext>RGB</ext></format>
+		<format name="ZZ_ROUGH" width="320" height="200" colors="16"><ext>RGH</ext></format>
 		<format name="Dali" width="320" height="200" colors="16"><ext>SD0</ext></format>
 		<format name="Dali" width="640" height="200" colors="4"><ext>SD1</ext></format>
 		<format name="Dali" width="640" height="400" colors="2"><ext>SD2</ext></format>

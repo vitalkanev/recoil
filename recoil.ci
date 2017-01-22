@@ -141,6 +141,27 @@ class DaliStream : Stream
 			r = r * 10 + c - '0';
 		}
 	}
+
+	bool Decode(int countLength, RECOIL recoil, int paletteOffset, int mode)
+	{
+		byte[32000] unpacked;
+		int valueOffset = ContentOffset + countLength - 4;
+		int count = 1;
+		for (int x = 0; x < 160; x += 4) {
+			for (int unpackedOffset = x; unpackedOffset < 32000; unpackedOffset += 160) {
+				if (--count <= 0) {
+					if (valueOffset + 7 >= ContentLength)
+						return false;
+					count = Content[ContentOffset++];
+					if (count == 0)
+						return false;
+					valueOffset += 4;
+				}
+				Content.CopyTo(valueOffset, unpacked, unpackedOffset, 4);
+			}
+		}
+		return recoil.DecodeSt(unpacked, 0, Content, paletteOffset, mode);
+	}
 }
 
 class ZxpStream : Stream
@@ -5774,28 +5795,24 @@ public class RECOIL
 		stream.Content = content;
 		stream.ContentOffset = 32;
 		stream.ContentLength = contentLength;
-		int compressedBlocks = stream.ParseInt();
-		if (compressedBlocks <= 0 || stream.ParseInt() <= 0)
+		int countLength = stream.ParseInt();
+		if (countLength <= 0 || stream.ParseInt() <= 0)
 			return false;
+		return stream.Decode(countLength, this, 0, mode);
+	}
 
-		byte[32000] unpacked;
-		int countOffset = stream.ContentOffset;
-		int valueOffset = countOffset + compressedBlocks - 4;
-		int count = 1;
-		for (int x = 0; x < 160; x += 4) {
-			for (int unpackedOffset = x; unpackedOffset < 32000; unpackedOffset += 160) {
-				if (--count <= 0) {
-					if (valueOffset + 7 >= contentLength)
-						return false;
-					count = content[countOffset++];
-					if (count == 0)
-						return false;
-					valueOffset += 4;
-				}
-				content.CopyTo(valueOffset, unpacked, unpackedOffset, 4);
-			}
-		}
-		return DecodeSt(unpacked, 0, content, 0, mode);
+	bool DecodeRgh(byte[] content, int contentLength)
+	{
+		if (contentLength < 14 || !IsStringAt(content, 0, "(c)F.MARCHAL"))
+			return false;
+		DaliStream() stream;
+		stream.Content = content;
+		stream.ContentOffset = 12;
+		stream.ContentLength = contentLength;
+		int countLength = stream.ParseInt();
+		int paletteOffset = stream.ContentOffset;
+		stream.ContentOffset = paletteOffset + 32;
+		return stream.Decode(countLength, this, paletteOffset, 0);
 	}
 
 	bool DecodeGfb(byte[] content, int contentLength)
@@ -11622,6 +11639,7 @@ public class RECOIL
 		case PackExt("RAP"):
 		case PackExt("RAW"):
 		case PackExt("RGB"):
+		case PackExt("RGH"):
 		case PackExt("RIP"):
 		case PackExt("RM0"):
 		case PackExt("RM1"):
@@ -12177,6 +12195,8 @@ public class RECOIL
 			return DecodeStRgb(content, contentLength)
 				|| DecodeAtari8Rgb(content, contentLength)
 				|| DecodeZxRgb(content, contentLength);
+		case PackExt("RGH"):
+			return DecodeRgh(content, contentLength);
 		case PackExt("RIP"):
 			return DecodeRip(content, contentLength);
 		case PackExt("RM0"):
