@@ -2446,7 +2446,7 @@ public class RECOIL
 	public const int MaxContentLength = 6 * 1024 * 1024;
 
 	/// Maximum width of a decoded image.
-	public const int MaxWidth = 2048;
+	public const int MaxWidth = 4096;
 	/// Maximum height of a decoded image.
 	public const int MaxHeight = 1856;
 	/// Maximum number of pixels in a decoded image.
@@ -5400,6 +5400,31 @@ public class RECOIL
 		}
 		DecodeBlackAndWhiteFont(content, 0, contentLength, 16);
 		return true;
+	}
+
+	bool DecodeGdosFnt(byte[] content, int contentLength)
+	{
+		if (contentLength < 88 || content[0x3e] != 0x55 || content[0x3f] != 0x55)
+			return false;
+		int width;
+		int height;
+		int bitmapOffset;
+		if (content[3] == 0) {
+			if (content[2] == 0)
+				return false;
+			// little endian
+			width = (content[0x50] | content[0x51] << 8) << 3;
+			height = content[0x52] | content[0x53] << 8;
+			bitmapOffset = Get32LittleEndian(content, 0x4c);
+		}
+		else {
+			// big endian
+			width = (content[0x50] << 8 | content[0x51]) << 3;
+			height = content[0x52] << 8 | content[0x53];
+			bitmapOffset = Get32BigEndian(content, 0x4c);
+		}
+		return SetSize(width, height, RECOILResolution.St1x1)
+			&& DecodeBlackAndWhite(content, bitmapOffset, contentLength, false, 0xffffff);
 	}
 
 	bool DecodeCmp(byte[] content, int contentLength)
@@ -11902,7 +11927,8 @@ public class RECOIL
 			return DecodeFli(content, contentLength)
 				|| DecodeBml(content, contentLength);
 		case PackExt("FNT"):
-			return DecodeAtari8Fnt(content, contentLength)
+			return DecodeGdosFnt(content, contentLength)
+				|| DecodeAtari8Fnt(content, contentLength)
 				|| DecodeStFnt(content, contentLength)
 				|| DecodeAmstradFnt(content, contentLength);
 		case PackExt("FPT"):
