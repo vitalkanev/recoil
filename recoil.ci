@@ -125,6 +125,30 @@ class Stream
 	}
 }
 
+class EndianStream : Stream
+{
+	bool BigEndian;
+
+	int ReadWord()
+	{
+		if (ContentOffset + 1 >= ContentLength)
+			return -1;
+		int first = Content[ContentOffset];
+		int second = Content[ContentOffset + 1];
+		ContentOffset +=2;
+		return BigEndian ? first << 8 | second : first | second << 8;
+	}
+
+	int ReadInt()
+	{
+		int value = BigEndian
+			? RECOIL.Get32BigEndian(Content, ContentOffset)
+			: RECOIL.Get32LittleEndian(Content, ContentOffset);
+		ContentOffset += 4;
+		return value;
+	}
+}
+
 class DaliStream : Stream
 {
 	int ParseInt()
@@ -2446,7 +2470,7 @@ public class RECOIL
 	public const int MaxContentLength = 6 * 1024 * 1024;
 
 	/// Maximum width of a decoded image.
-	public const int MaxWidth = 4096;
+	public const int MaxWidth = 2048;
 	/// Maximum height of a decoded image.
 	public const int MaxHeight = 1856;
 	/// Maximum number of pixels in a decoded image.
@@ -3357,7 +3381,7 @@ public class RECOIL
 	bool DecodeAmstradFnt(byte[] content, int contentLength)
 	{
 		int contentOffset = GetAmstradHeader(content, contentLength);
-		if (contentLength < contentOffset + 768)
+		if (contentLength != contentOffset + 768)
 			return false;
 		SetSize(256, 24, RECOILResolution.Amstrad1x1);
 		DecodeBlackAndWhiteFont(content, contentOffset, contentLength, 8);
@@ -5406,25 +5430,84 @@ public class RECOIL
 	{
 		if (contentLength < 88 || content[0x3e] != 0x55 || content[0x3f] != 0x55)
 			return false;
-		int width;
-		int height;
-		int bitmapOffset;
+		EndianStream() stream;
+		// detect endianess assuming the point size is less than 256
 		if (content[3] == 0) {
 			if (content[2] == 0)
 				return false;
-			// little endian
-			width = (content[0x50] | content[0x51] << 8) << 3;
-			height = content[0x52] | content[0x53] << 8;
-			bitmapOffset = Get32LittleEndian(content, 0x4c);
+			stream.BigEndian = false;
 		}
-		else {
-			// big endian
-			width = (content[0x50] << 8 | content[0x51]) << 3;
-			height = content[0x52] << 8 | content[0x53];
-			bitmapOffset = Get32BigEndian(content, 0x4c);
+		else if (content[2] == 0)
+			stream.BigEndian = true;
+		else
+			return false;
+		stream.Content = content;
+		stream.ContentLength = contentLength;
+		stream.ContentOffset = 0x24;
+		int firstCharacter = stream.ReadWord();
+		int lastCharacter = stream.ReadWord();
+		if (firstCharacter > lastCharacter)
+			return false;
+		stream.ContentOffset = 0x48;
+		int characterOffset = stream.ReadInt();
+		if (characterOffset <= 0 || characterOffset >= contentLength)
+			return false;
+		int bitmapOffset = stream.ReadInt();
+		if (bitmapOffset < 0 || bitmapOffset >= contentLength)
+			return false;
+		int bytesPerLine = stream.ReadWord();
+		if (bytesPerLine == 0)
+			return false;
+		int height = stream.ReadWord();
+		if (height == 0)
+			return false;
+		// + 2 because lastCharacter is inclusive and the character table contains left and right boundaries
+		int characterEndOffset = characterOffset + (lastCharacter - firstCharacter + 2 << 1);
+		if (characterEndOffset > bitmapOffset)
+			return false;
+
+		// At bitmapOffset there's a mono bitmap, bytesPerLine by height.
+		// Because it can be even 13360 pixels wide, we choose to layout it in several rows,
+		// taking care not to break any character.
+		int width = height << 4; // arbitrary
+		if (width > MaxWidth)
+			width = MaxWidth;
+		stream.ContentOffset = characterOffset;
+		stream.ContentLength = characterEndOffset;
+		int leftX = 0;
+		int nextX = 0;
+		int row;
+		for (row = 0; nextX >= 0 && (row + height) * width <= MaxPixelsLength; row += height) {
+			int rightX; // the right boundary of a right-most character in this row
+			do {
+				rightX = nextX;
+				nextX = stream.ReadWord();
+				if (nextX < rightX) {
+					if (nextX < 0)
+						break;
+					return false;
+				}
+			} while (nextX - leftX <= width);
+
+			// paint row where leftX <= fontX < rightX
+			for (int y = 0; y < height; y++) {
+				for (int x = 0; x < width; x++) {
+					int fontX = leftX + x;
+					int c;
+					if (fontX < rightX) {
+						int offset = bitmapOffset + y * bytesPerLine + (fontX >> 3);
+						if (offset >= contentLength)
+							return false;
+						c = (content[offset] >> (~fontX & 7) & 1) == 0 ? 0xffffff : 0;
+					}
+					else
+						c = 0xffffff;
+					Pixels[(row + y) * width + x] = c;
+				}
+			}
+			leftX = rightX;
 		}
-		return SetSize(width, height, RECOILResolution.St1x1)
-			&& DecodeBlackAndWhite(content, bitmapOffset, contentLength, false, 0xffffff);
+		return SetSize(width, row, RECOILResolution.St1x1);
 	}
 
 	bool DecodeCmp(byte[] content, int contentLength)
