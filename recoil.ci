@@ -5459,7 +5459,7 @@ public class RECOIL
 		if (bytesPerLine == 0)
 			return false;
 		int height = stream.ReadWord();
-		if (height == 0)
+		if (height == 0 || bitmapOffset + height * bytesPerLine > contentLength)
 			return false;
 		// + 2 because lastCharacter is inclusive and the character table contains left and right boundaries
 		int characterEndOffset = characterOffset + (lastCharacter - firstCharacter + 2 << 1);
@@ -5487,6 +5487,13 @@ public class RECOIL
 						break;
 					return false;
 				}
+				if (nextX > bytesPerLine << 3) {
+					// The character table contains a position that exceeds the bitmap.
+					// Display only what we have in the bitmap.
+					// Example file: CZEC18LS.FNT
+					nextX = -1;
+					break;
+				}
 			} while (nextX - leftX <= width);
 
 			// paint row where leftX <= fontX < rightX
@@ -5496,8 +5503,6 @@ public class RECOIL
 					int c;
 					if (fontX < rightX) {
 						int offset = bitmapOffset + y * bytesPerLine + (fontX >> 3);
-						if (offset >= contentLength)
-							return false;
 						c = (content[offset] >> (~fontX & 7) & 1) == 0 ? 0xffffff : 0;
 					}
 					else
