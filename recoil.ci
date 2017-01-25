@@ -5401,6 +5401,93 @@ public class RECOIL
 		return DecodeBlackAndWhite(content, 0, contentLength, false, 0xffffff);
 	}
 
+	bool DecodeDa4(byte[] content, int contentLength)
+	{
+		SetSize(640, 800, RECOILResolution.St1x1);
+		return DecodeBlackAndWhite(content, 0, contentLength, false, 0xffffff);
+	}
+
+	bool DecodeCmp(byte[] content, int contentLength)
+	{
+		if (contentLength < 5)
+			return false;
+		switch (content[1]) {
+		case 0:
+			SetSize(640, 400, RECOILResolution.St1x1);
+			break;
+		case 200:
+			SetSize(640, 800, RECOILResolution.St1x1);
+			break;
+		default:
+			return false;
+		}
+		CmpStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 2;
+		rle.ContentLength = contentLength;
+		return DecodeRleBlackAndWhite(rle, 0xffffff);
+	}
+
+	bool DecodeBld(byte[] content, int contentLength)
+	{
+		if (contentLength < 5)
+			return false;
+		int width = content[0] << 8 | content[1];
+		int height = content[2] << 8 | content[3];
+		if (content[0] < 0x80)
+			return SetSize(width, height, RECOILResolution.St1x1)
+				&& DecodeBlackAndWhite(content, 4, contentLength, false, 0xffffff);
+		if (!SetSize(65536 - width, height, RECOILResolution.St1x1))
+			return false;
+		BldStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 4;
+		rle.ContentLength = contentLength;
+		return DecodeRleBlackAndWhite(rle, 0xffffff);
+	}
+
+	bool DecodeCrg(byte[] content, int contentLength)
+	{
+		if (contentLength < 43 || !IsStringAt(content, 0, "CALAMUSCRG")
+		 || content[10] != 3 || content[11] != 0xe8 || content[12] != 0 || content[13] != 2)
+			return false;
+		int width = Get32BigEndian(content, 20);
+		int height = Get32BigEndian(content, 24);
+		if (!SetSize(width, height, RECOILResolution.St1x1))
+			return false;
+		CciStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 42;
+		rle.ContentLength = contentLength;
+		return DecodeRleBlackAndWhite(rle, 0xffffff);
+	}
+
+	bool DecodePac(byte[] content, int contentLength)
+	{
+		if (contentLength < 8
+		 || content[0] != 'p' || content[1] != 'M' || content[2] != '8')
+			return false;
+		int unpackedStride;
+		switch (content[3]) {
+		case '5':
+			unpackedStride = 1;
+			break;
+		case '6':
+			unpackedStride = 80;
+			break;
+		default:
+			return false;
+		}
+		PacStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 7;
+		rle.ContentLength = contentLength;
+		byte[32000] unpacked;
+		if (!rle.Unpack(unpacked, 0, unpackedStride, 32000))
+			return false;
+		return DecodeDoo(unpacked, 32000);
+	}
+
 	bool DecodeStFnt(byte[] content, int contentLength)
 	{
 		switch (contentLength) {
@@ -5513,87 +5600,6 @@ public class RECOIL
 			leftX = rightX;
 		}
 		return SetSize(width, row, RECOILResolution.St1x1);
-	}
-
-	bool DecodeCmp(byte[] content, int contentLength)
-	{
-		if (contentLength < 5)
-			return false;
-		switch (content[1]) {
-		case 0:
-			SetSize(640, 400, RECOILResolution.St1x1);
-			break;
-		case 200:
-			SetSize(640, 800, RECOILResolution.St1x1);
-			break;
-		default:
-			return false;
-		}
-		CmpStream() rle;
-		rle.Content = content;
-		rle.ContentOffset = 2;
-		rle.ContentLength = contentLength;
-		return DecodeRleBlackAndWhite(rle, 0xffffff);
-	}
-
-	bool DecodeBld(byte[] content, int contentLength)
-	{
-		if (contentLength < 5)
-			return false;
-		int width = content[0] << 8 | content[1];
-		int height = content[2] << 8 | content[3];
-		if (content[0] < 0x80)
-			return SetSize(width, height, RECOILResolution.St1x1)
-				&& DecodeBlackAndWhite(content, 4, contentLength, false, 0xffffff);
-		if (!SetSize(65536 - width, height, RECOILResolution.St1x1))
-			return false;
-		BldStream() rle;
-		rle.Content = content;
-		rle.ContentOffset = 4;
-		rle.ContentLength = contentLength;
-		return DecodeRleBlackAndWhite(rle, 0xffffff);
-	}
-
-	bool DecodeCrg(byte[] content, int contentLength)
-	{
-		if (contentLength < 43 || !IsStringAt(content, 0, "CALAMUSCRG")
-		 || content[10] != 3 || content[11] != 0xe8 || content[12] != 0 || content[13] != 2)
-			return false;
-		int width = Get32BigEndian(content, 20);
-		int height = Get32BigEndian(content, 24);
-		if (!SetSize(width, height, RECOILResolution.St1x1))
-			return false;
-		CciStream() rle;
-		rle.Content = content;
-		rle.ContentOffset = 42;
-		rle.ContentLength = contentLength;
-		return DecodeRleBlackAndWhite(rle, 0xffffff);
-	}
-
-	bool DecodePac(byte[] content, int contentLength)
-	{
-		if (contentLength < 8
-		 || content[0] != 'p' || content[1] != 'M' || content[2] != '8')
-			return false;
-		int unpackedStride;
-		switch (content[3]) {
-		case '5':
-			unpackedStride = 1;
-			break;
-		case '6':
-			unpackedStride = 80;
-			break;
-		default:
-			return false;
-		}
-		PacStream() rle;
-		rle.Content = content;
-		rle.ContentOffset = 7;
-		rle.ContentLength = contentLength;
-		byte[32000] unpacked;
-		if (!rle.Unpack(unpacked, 0, unpackedStride, 32000))
-			return false;
-		return DecodeDoo(unpacked, 32000);
 	}
 
 	static bool IsStePalette(byte[] content, int contentOffset, int colors)
@@ -11566,6 +11572,7 @@ public class RECOIL
 		case PackExt("CRG"):
 		case PackExt("CUT"):
 		case PackExt("CWG"):
+		case PackExt("DA4"):
 		case PackExt("DC1"):
 		case PackExt("DD"):
 		case PackExt("DEL"):
@@ -11960,6 +11967,8 @@ public class RECOIL
 			return DecodeGr8Raw(content, contentLength, 96, 99);
 		case PackExt("CWG"):
 			return contentLength == 10007 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2713]);
+		case PackExt("DA4"):
+			return DecodeDa4(content, contentLength);
 		case PackExt("DC1"):
 		case PackExt("DGC"):
 			return DecodeDgc(content, contentLength);
