@@ -7074,10 +7074,9 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodeFalconTrueColor(byte[] content, int contentLength, int contentOffset, int width, int height, RECOILResolution resolution)
+	bool DecodeFalconTrueColor(byte[] content, int contentOffset, int width, int height, RECOILResolution resolution)
 	{
-		if (contentOffset + width * height * 2 != contentLength
-		 || !SetScaledSize(width, height, resolution))
+		if (!SetScaledSize(width, height, resolution))
 			return false;
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
@@ -7093,19 +7092,20 @@ public class RECOIL
 	{
 		int width = content[widthOffset] << 8 | content[widthOffset + 1];
 		int height = content[widthOffset + 2] << 8 | content[widthOffset + 3];
-		return DecodeFalconTrueColor(content, contentLength, dataOffset, width, height, RECOILResolution.Falcon1x1);
+		return dataOffset + width * height * 2 == contentLength
+			&& DecodeFalconTrueColor(content, dataOffset, width, height, RECOILResolution.Falcon1x1);
 	}
 
 	bool DecodeFtc(byte[] content, int contentLength)
-		return DecodeFalconTrueColor(content, contentLength, 0, 384, 240, RECOILResolution.Falcon1x1);
+		return contentLength == 184320 && DecodeFalconTrueColor(content, 0, 384, 240, RECOILResolution.Falcon1x1);
 
 	bool DecodeXga(byte[] content, int contentLength)
 	{
 		switch (contentLength) {
 		case 153600:
-			return DecodeFalconTrueColor(content, contentLength, 0, 320, 240, RECOILResolution.Falcon1x1);
+			return DecodeFalconTrueColor(content, 0, 320, 240, RECOILResolution.Falcon1x1);
 		case 368640:
-			return DecodeFalconTrueColor(content, contentLength, 0, 384, 480, RECOILResolution.Falcon2x1);
+			return DecodeFalconTrueColor(content, 0, 384, 480, RECOILResolution.Falcon2x1);
 		default:
 			return false;
 		}
@@ -7143,6 +7143,49 @@ public class RECOIL
 		 || content[16] != 0 || content[17] != 1 || !IsStringAt(content, 0x12, "PICT"))
 			return false;
 		return DecodeFalconTrueColorVariable(content, contentLength, 0x1c, 0xd8);
+	}
+
+	bool DecodeRag(byte[] content, int contentLength)
+	{
+		if (contentLength < 55 || !IsStringAt(content, 0, "RAG-D!")
+		 || content[6] != 0 || content[7] != 0 || content[16] != 0)
+			return false;
+		int width = content[12] << 8 | content[13];
+		if ((width & 15) != 0)
+			return false;
+		int height = (content[14] << 8) + content[15] + 1;
+		int bitplanes = content[17];
+		int paletteLength = Get32BigEndian(content, 18);
+		switch (bitplanes) {
+		case 1:
+		case 2:
+		case 4:
+		case 8:
+			switch (paletteLength) {
+			case 32:
+				if (bitplanes > 4)
+					return false;
+				SetStPalette(content, 30, 16);
+				break;
+			case 1024:
+				SetFalconPalette(content, 30);
+				break;
+			default:
+				return false;
+			}
+			int bytesPerLine = (width >> 3) * bitplanes;
+			if (30 + paletteLength + height * bytesPerLine > contentLength
+			 || !SetSize(width, height, RECOILResolution.Falcon1x1))
+				return false;
+			DecodeBitplanes(content, 30 + paletteLength, bytesPerLine, bitplanes, 0, width, height);
+			return true;
+		case 16:
+			return paletteLength == 1024
+				&& 0x41e + width * height * 2 <= contentLength
+				&& DecodeFalconTrueColor(content, 0x41e, width, height, RECOILResolution.Falcon1x1);
+		default:
+			return false;
+		}
 	}
 
 	bool DecodeEsm(byte[] content, int contentLength)
@@ -11834,6 +11877,7 @@ public class RECOIL
 		case PackExt("PSC"):
 		case PackExt("TPI"):
 		case PackExt("Q4"):
+		case PackExt("RAG"):
 		case PackExt("RAP"):
 		case PackExt("RAW"):
 		case PackExt("RGB"):
@@ -12388,6 +12432,8 @@ public class RECOIL
 			return DecodePsc(content, contentLength);
 		case PackExt("Q4"):
 			return DecodeQ4(content, contentLength);
+		case PackExt("RAG"):
+			return DecodeRag(content, contentLength);
 		case PackExt("RAP"):
 			return DecodeRap(content, contentLength);
 		case PackExt("RAW"):
