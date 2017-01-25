@@ -5488,6 +5488,83 @@ public class RECOIL
 		return DecodeDoo(unpacked, 32000);
 	}
 
+	static int FillPscLine(byte[] unpacked, int unpackedOffset, byte value)
+	{
+		for (int i = 0; i < 80; i++)
+			unpacked[unpackedOffset + i] = value;
+		return unpackedOffset + 80;
+	}
+
+	static int CopyPscLines(byte[] unpacked, int unpackedOffset, int count)
+	{
+		if (unpackedOffset < 80 || unpackedOffset + count * 80 > 32000)
+			return -1;
+		do {
+			unpacked.CopyTo(unpackedOffset - 80, unpacked, unpackedOffset, 80);
+			unpackedOffset += 80;
+		} while (--count > 0);
+		return unpackedOffset;
+	}
+
+	bool DecodePsc(byte[] content, int contentLength)
+	{
+		if (contentLength < 18 || !IsStringAt(content, 0, "tm89PS")
+		 || content[6] != 0 || content[7] != 0xcb || content[8] != 2 || content[9] != 1
+		 || content[10] != 2 || content[11] != 0x7f || content[12] != 1 || content[13] != 0x8f)
+			return false;
+		byte[32000] unpacked;
+		if (content[14] == 99 && contentLength == 32016 && content[32015] == 0xff)
+			content.CopyTo(15, unpacked, 0, 32000);
+		else {
+			int contentOffset = 14;
+			for (int unpackedOffset = 0; unpackedOffset < 32000; ) {
+				if (contentOffset + 1 >= contentLength)
+					return false;
+				switch (content[contentOffset++]) {
+				case 0:
+					unpackedOffset = FillPscLine(unpacked, unpackedOffset, 0);
+					break;
+				case  10:
+					unpackedOffset = CopyPscLines(unpacked, unpackedOffset, 1 + content[contentOffset++]);
+					if (unpackedOffset < 0)
+						return false;
+					break;
+				case  12:
+					unpackedOffset = CopyPscLines(unpacked, unpackedOffset, 256 + 1 + content[contentOffset++]);
+					if (unpackedOffset < 0)
+						return false;
+					break;
+				case 100:
+					unpackedOffset = FillPscLine(unpacked, unpackedOffset, content[contentOffset++]);
+					break;
+				case 102:
+					if (contentOffset + 2 >= contentLength)
+						return false;
+					for (int i = 0; i < 80; i += 2)
+						content.CopyTo(contentOffset, unpacked, unpackedOffset + i, 2);
+					contentOffset += 2;
+					unpackedOffset += 80;
+					break;
+				case 110:
+					if (contentOffset + 80 >= contentLength)
+						return false;
+					content.CopyTo(contentOffset, unpacked, unpackedOffset, 80);
+					contentOffset += 80;
+					unpackedOffset += 80;
+					break;
+				case 200:
+					unpackedOffset = FillPscLine(unpacked, unpackedOffset, 0xff);
+					break;
+				default:
+					return false;
+				}
+			}
+			if (contentOffset >= contentLength || content[contentOffset] != 0xff)
+				return false;
+		}
+		return DecodeDoo(unpacked, 32000);
+	}
+
 	bool DecodeStFnt(byte[] content, int contentLength)
 	{
 		switch (contentLength) {
@@ -11754,6 +11831,7 @@ public class RECOIL
 		case PackExt("PMD"):
 		case PackExt("PMG"):
 		case PackExt("PNT"):
+		case PackExt("PSC"):
 		case PackExt("TPI"):
 		case PackExt("Q4"):
 		case PackExt("RAP"):
@@ -12306,6 +12384,8 @@ public class RECOIL
 		case PackExt("PNT"):
 		case PackExt("TPI"):
 			return DecodePnt(content, contentLength);
+		case PackExt("PSC"):
+			return DecodePsc(content, contentLength);
 		case PackExt("Q4"):
 			return DecodeQ4(content, contentLength);
 		case PackExt("RAP"):
