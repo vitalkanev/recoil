@@ -6987,7 +6987,7 @@ public class RECOIL
 		}
 	}
 
-	bool DecodeDgu(byte[] content, int contentLength)
+	bool DecodeDg1(byte[] content, int contentLength)
 	{
 		if (contentLength != 65032
 		 || content[0] != 'D' || content[1] != 'G' || content[2] != 'U' || content[3] != 1
@@ -6997,45 +6997,47 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodeDgc(byte[] content, int contentLength)
+	bool DecodeDc1(byte[] content, int contentLength)
 	{
 		if (contentLength < 1042
-		 || content[0] != 'D' || content[1] != 'G' || content[2] != 'C' || content[3] > 3
+		 || content[0] != 'D' || content[1] != 'G' || content[2] != 'C'
 		 || content[4] != 1 || content[5] != 64 || content[6] != 0 || content[7] != 200)
 			return false;
-		if (content[3] == 0) {
+		int compression = content[3];
+		if (compression == 0) {
 			if (contentLength != 65034)
 				return false;
 			DecodeFalconPalette(content, 1034, 10, 320, 200);
 			return true;
 		}
+		if (compression > 3)
+			return false;
 
 		byte[64000] unpacked;
-		int contentOffset = 1038;
-		int valueBytes = 1 << content[3] - 1; // 1, 2 or 4
+		int contentOffset = 0x40e;
+		int valueBytes = 1 << compression - 1; // 1, 2 or 4
 		int repeatCount = 0;
 		for (int bitplane = 0; bitplane < 16; bitplane += 2) {
 			for (int unpackedOffset = bitplane; unpackedOffset < 64000; unpackedOffset += 16) {
 				for (int x = 0; x < 2; x++) {
 					if (repeatCount == 0) {
-						int nextContentOffset = contentOffset + content[3] * 2;
-						if (nextContentOffset > contentLength)
-							return false;
-						switch (content[3]) {
-						case 1:
-							repeatCount = content[contentOffset] + 1;
-							break;
-						case 2:
-							repeatCount = (content[contentOffset] << 8) + content[contentOffset + 1] + 1 << 1;
-							break;
-						case 3:
-							repeatCount = (content[contentOffset] << 8) + content[contentOffset + 1] + 1 << 2;
-							break;
+						int nextContentOffset = contentOffset + compression * 2;
+						if (nextContentOffset <= contentLength) {
+							switch (compression) {
+							case 1:
+								repeatCount = content[contentOffset] + 1;
+								break;
+							case 2:
+								repeatCount = (content[contentOffset] << 8) + content[contentOffset + 1] + 1 << 1;
+								break;
+							case 3:
+								repeatCount = (content[contentOffset] << 8) + content[contentOffset + 1] + 1 << 2;
+								break;
+							}
+							contentOffset = nextContentOffset;
 						}
-						contentOffset = nextContentOffset;
 					}
-					repeatCount--;
-					unpacked[unpackedOffset + x] = content[contentOffset - valueBytes + (~repeatCount & valueBytes - 1)];
+					unpacked[unpackedOffset + x] = repeatCount > 0 ? content[contentOffset - (--repeatCount & valueBytes - 1) - 1] : 0;
 				}
 			}
 		}
@@ -11697,8 +11699,6 @@ public class RECOIL
 		case PackExt("DD"):
 		case PackExt("DEL"):
 		case PackExt("DG1"):
-		case PackExt("DGC"):
-		case PackExt("DGU"):
 		case PackExt("DHR"):
 		case PackExt("DIN"):
 		case PackExt("DLM"):
@@ -12092,15 +12092,13 @@ public class RECOIL
 		case PackExt("DA4"):
 			return DecodeDa4(content, contentLength);
 		case PackExt("DC1"):
-		case PackExt("DGC"):
-			return DecodeDgc(content, contentLength);
+			return DecodeDc1(content, contentLength);
 		case PackExt("DD"):
 			return DecodeDd(content, contentLength);
 		case PackExt("DEL"):
 			return DecodeDel(content, contentLength);
 		case PackExt("DG1"):
-		case PackExt("DGU"):
-			return DecodeDgu(content, contentLength);
+			return DecodeDg1(content, contentLength);
 		case PackExt("DHR"):
 			return DecodeIff(content, contentLength, RECOILResolution.Amiga1x1)
 				|| DecodeAppleIIDhr(content, contentLength);
