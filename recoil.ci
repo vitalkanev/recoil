@@ -184,7 +184,7 @@ class DaliStream : Stream
 				Content.CopyTo(valueOffset, unpacked, unpackedOffset, 4);
 			}
 		}
-		return recoil.DecodeSt(unpacked, 0, Content, paletteOffset, mode);
+		return recoil.DecodeSt(unpacked, 0, Content, paletteOffset, mode, 0);
 	}
 }
 
@@ -5809,17 +5809,17 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodeSt(byte[] bitmap, int bitmapOffset, byte[] palette, int paletteOffset, int mode)
+	bool DecodeSt(byte[] bitmap, int bitmapOffset, byte[] palette, int paletteOffset, int mode, int doubleHeight)
 	{
 		switch (mode) {
 		case 0:
-			return DecodeStLow(bitmap, bitmapOffset, palette, paletteOffset, 320, 200);
+			return DecodeStLow(bitmap, bitmapOffset, palette, paletteOffset, 320, 200 << doubleHeight);
 		case 1:
-			DecodeStMedium(bitmap, bitmapOffset, palette, paletteOffset, 640, 200, 0);
+			DecodeStMedium(bitmap, bitmapOffset, palette, paletteOffset, 640, 200 << doubleHeight, 0);
 			return true;
 		case 2:
-			SetSize(640, 400, RECOILResolution.St1x1);
-			return DecodeBlackAndWhite(bitmap, bitmapOffset, bitmapOffset + 32000, false, 0xffffff);
+			SetSize(640, 400 << doubleHeight, RECOILResolution.St1x1);
+			return DecodeBlackAndWhite(bitmap, bitmapOffset, bitmapOffset + (32000 << doubleHeight), false, 0xffffff);
 		default:
 			return false;
 		}
@@ -5833,7 +5833,7 @@ public class RECOIL
 		case 32034: // DEGAS
 		case 32066: // DEGAS Elite
 		case 32128: // TROUBLE.PI1
-			return DecodeSt(content, 34, content, 2, content[1]);
+			return DecodeSt(content, 34, content, 2, content[1], 0);
 		case 38434: // st.pi1
 			return content[1] == 4 && DecodeStLow(content, 34, content, 2, 320, 240);
 		case 44834: // 280 lines overscan
@@ -5888,7 +5888,7 @@ public class RECOIL
 		rle.ContentLength = contentLength;
 		byte[32000] unpacked;
 		return rle.UnpackBitplaneLines(unpacked, 320 << content[1], 200, bitplanes, true, false) // handle 640x400 as 1280x200 ;)
-			&& DecodeSt(unpacked, 0, content, 2, content[1]);
+			&& DecodeSt(unpacked, 0, content, 2, content[1], 0);
 	}
 
 	bool DecodeEza(byte[] content, int contentLength)
@@ -5924,7 +5924,7 @@ public class RECOIL
 				return true;
 			}
 		}
-		return DecodeSt(content, 128, content, 4, content[3]);
+		return DecodeSt(content, 128, content, 4, content[3], 0);
 	}
 
 	bool DecodeArtDirector(byte[] content, int contentLength)
@@ -5982,7 +5982,7 @@ public class RECOIL
 
 	bool DecodeSd(byte[] content, int contentLength, int mode)
 	{
-		return contentLength == 32128 && DecodeSt(content, 128, content, 4, mode);
+		return contentLength == 32128 && DecodeSt(content, 128, content, 4, mode, 0);
 	}
 
 	bool DecodeDaliCompressed(byte[] content, int contentLength, int mode)
@@ -6009,6 +6009,27 @@ public class RECOIL
 		int paletteOffset = stream.ContentOffset;
 		stream.ContentOffset = paletteOffset + 32;
 		return stream.Decode(countLength, this, paletteOffset, 0);
+	}
+
+	bool DecodeSc(byte[] content, int contentLength)
+	{
+		if (contentLength < 128 || !IsStringAt(content, 0x36, "ANvisionA"))
+			return false;
+		int doubleHeight;
+		switch (content[0x3f] & 0x8f) {
+		case 0:
+			doubleHeight = 1;
+			break;
+		case 1:
+		case 2:
+			doubleHeight = 0;
+			break;
+		default:
+			// TODO: b7=compression
+			return false;
+		}
+		return contentLength >= 128 + (32000 << doubleHeight)
+			&& DecodeSt(content, 128, content, 4, content[0x3f] >> 4 & 3, doubleHeight);
 	}
 
 	bool DecodeGfb(byte[] content, int contentLength)
@@ -6064,12 +6085,12 @@ public class RECOIL
 		case 0:
 			if (contentOffset + 32000 != contentLength)
 				return false;
-			return DecodeSt(content, contentOffset, content, 4, content[3]);
+			return DecodeSt(content, contentOffset, content, 4, content[3], 0);
 		case 1: {
 				byte[32000] unpacked;
 				if (!CaStream.UnpackCa(content, contentOffset, contentLength, unpacked, 0))
 					return false;
-				return DecodeSt(unpacked, 0, content, 4, content[3]);
+				return DecodeSt(unpacked, 0, content, 4, content[3], 0);
 			}
 		default:
 			return false;
@@ -6114,7 +6135,7 @@ public class RECOIL
 			}
 		}
 
-		return DecodeSt(unpacked, 0, content, contentOffset + 1, mode);
+		return DecodeSt(unpacked, 0, content, contentOffset + 1, mode, 0);
 	}
 
 	bool DecodeCpt(byte[] content, int contentLength)
@@ -6159,7 +6180,7 @@ public class RECOIL
 			}
 		}
 
-		return DecodeSt(unpacked, 0, content, 0, content[33]);
+		return DecodeSt(unpacked, 0, content, 0, content[33], 0);
 	}
 
 	void SetDefaultStPalette(int bitplanes)
@@ -11893,6 +11914,14 @@ public class RECOIL
 		case PackExt("RWL"):
 		case PackExt("RYS"):
 		case PackExt("SAR"):
+		case PackExt("CL0"):
+		case PackExt("CL1"):
+		case PackExt("CL2"):
+		case PackExt("PG0"):
+		case PackExt("PG1"):
+		case PackExt("PG2"):
+		case PackExt("SC0"):
+		case PackExt("SC1"):
 		case PackExt("SC2"):
 		case PackExt("GRP"):
 		case PackExt("SC5"):
@@ -12177,6 +12206,8 @@ public class RECOIL
 			return DecodeGr8(content, contentLength);
 		case PackExt("GR9"):
 			return DecodeGr9(content, contentLength);
+		case PackExt("GRP"):
+			return DecodeSc2(content, contentLength);
 		case PackExt("GUN"):
 			return DecodeGun(content, contentLength);
 		case PackExt("HED"):
@@ -12465,9 +12496,18 @@ public class RECOIL
 			return DecodeRys(content, contentLength);
 		case PackExt("SAR"):
 			return contentLength == 10219 && DecodeC64Multicolor(320, content, 0x402, 2, 0x2402, content[0x3f2]);
+		case PackExt("CL0"):
+		case PackExt("CL1"):
+		case PackExt("CL2"):
+		case PackExt("PG0"):
+		case PackExt("PG1"):
+		case PackExt("PG2"):
+		case PackExt("SC0"):
+		case PackExt("SC1"):
+			return DecodeSc(content, contentLength);
 		case PackExt("SC2"):
-		case PackExt("GRP"):
-			return DecodeSc2(content, contentLength);
+			return DecodeSc(content, contentLength)
+				|| DecodeSc2(content, contentLength);
 		case PackExt("SC5"):
 		case PackExt("GE5"):
 			return DecodeSc5(content, contentLength);
