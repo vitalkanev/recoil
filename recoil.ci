@@ -852,6 +852,25 @@ class PgcStream : RleStream
 	}
 }
 
+class ScStream : RleStream
+{
+	override bool ReadCommand()
+	{
+		int b = ReadByte();
+		if (b < 0)
+			return false;
+		if (b < 128) {
+			RepeatCount = b;
+			RepeatValue = ReadByte();
+		}
+		else {
+			RepeatCount = b - 128;
+			RepeatValue = -1;
+		}
+		return true;
+	}
+}
+
 class CciStream : RleStream
 {
 	override bool ReadCommand()
@@ -6015,8 +6034,9 @@ public class RECOIL
 	{
 		if (contentLength < 128 || !IsStringAt(content, 0x36, "ANvisionA"))
 			return false;
+		int flags = content[0x3f];
 		int doubleHeight;
-		switch (content[0x3f] & 0x8f) {
+		switch (flags & 0xf) {
 		case 0:
 			doubleHeight = 1;
 			break;
@@ -6025,11 +6045,31 @@ public class RECOIL
 			doubleHeight = 0;
 			break;
 		default:
-			// TODO: b7=compression
 			return false;
 		}
-		return contentLength >= 128 + (32000 << doubleHeight)
-			&& DecodeSt(content, 128, content, 4, content[0x3f] >> 4 & 3, doubleHeight);
+		int bitmapLength = 32000 << doubleHeight;
+		int mode = flags >> 4 & 3;
+		if (flags >= 0x80) {
+			byte[64000] unpacked;
+			ScStream() rle;
+			rle.Content = content;
+			rle.ContentOffset = 128;
+			rle.ContentLength = contentLength;
+			int bytesPer16Pixels = 8 >> mode;
+			for (int bitplane = 0; bitplane < bytesPer16Pixels; bitplane += 2) {
+				for (int unpackedOffset = bitplane; unpackedOffset < bitmapLength; unpackedOffset += bytesPer16Pixels) {
+					for (int x = 0; x < 2; x++) {
+						int b = rle.ReadRle();
+						if (b < 0)
+							return false;
+						unpacked[unpackedOffset + x] = b;
+					}
+				}
+			}
+			return DecodeSt(unpacked, 0, content, 4, mode, doubleHeight);
+		}
+		return contentLength >= 128 + bitmapLength
+			&& DecodeSt(content, 128, content, 4, mode, doubleHeight);
 	}
 
 	bool DecodeGfb(byte[] content, int contentLength)
