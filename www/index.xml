@@ -4,7 +4,7 @@
 	BBC Micro, Commodore 16, Commodore 64, Commodore 128, Macintosh 128K, MSX, NEC PC-88, NEC PC-98,
 	Oric, SAM Coupé, Sharp X68000, TRS-80, TRS-80 Color Computer, ZX81 and ZX Spectrum.</p>
 
-	<p>RECOIL is available on Android, Windows, OS X, Linux and HTML 5 browsers.</p>
+	<p>RECOIL is available on Android, Windows, macOS, Linux and HTML 5 browsers.</p>
 
 	<h2>Android application</h2>
 	<p>The Android application is available in <a href="https://play.google.com/store/apps/details?id=net.sf.recoil">Google Play</a>.
@@ -31,7 +31,7 @@
 	<p>A native Windows 10 application (also for phones and tablets) is available in <a href="http://www.microsoft.com/store/p/recoil/9nblggh4132z">Windows Store</a>.</p>
 	<img src="win10.png" alt="Windows 10 application" />
 
-	<h2>OS X Quick Look</h2>
+	<h2>macOS Quick Look</h2>
 	<p>Install as follows:</p>
 	<ol>
 		<li>Open <tt>recoil-3.5.0-osx.dmg</tt>.</li>
