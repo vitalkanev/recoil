@@ -6936,6 +6936,63 @@ public class RECOIL
 		return DecodeBlackAndWhite(bitmap, 0, size << 1, true, 0xffffff);
 	}
 
+	bool DecodeCe(byte[] content, int contentLength)
+	{
+		if (contentLength < 192022 || !IsStringAt(content, 0, "EYES") || content[4] != 0)
+			return false;
+		switch (content[5]) {
+		case 0: // CE1
+			if (contentLength != 192022)
+				return false;
+			SetSize(320, 200, RECOILResolution.St1x1);
+			for (int y = 0; y < 200; y++) {
+				for (int x = 0; x < 320; x++) {
+					int offset = 22 + x * 200 + y;
+					int rgb = content[offset] << 16 | content[64000 + offset] << 8 | content[128000 + offset];
+					if ((rgb & 0xc0c0c0) != 0)
+						return false;
+					Pixels[y * 320 + x] = rgb << 2 | (rgb >> 4 & 0x030303);
+				}
+			}
+			return true;
+		case 1: // CE2
+			if (contentLength != 256022)
+				return false;
+			SetSize(640, 400, RECOILResolution.St1x2);
+			for (int y = 0; y < 200; y++) {
+				for (int x = 0; x < 640; x++) {
+					int offset = 11 + x * 200 + y << 1;
+					int c = content[offset] << 8 | content[offset + 1];
+					if (c >= 0x8000)
+						return false;
+					// 0RRRRRGG GGGBBBBB
+					c = (c & 0x7c00) << 9 | (c & 0x3e0) << 6 | (c & 0x1f) << 3;
+					// RRRRR000 GGGGG000 BBBBB000
+					c |= c >> 5 & 0x070707;
+					offset = y * 1280 + x;
+					Pixels[offset + 640] = Pixels[offset] = c;
+				}
+			}
+			return true;
+		case 2: // CE3
+			if (contentLength != 256022)
+				return false;
+			SetSize(640, 400, RECOILResolution.St1x1);
+			for (int y = 0; y < 400; y++) {
+				for (int x = 0; x < 640; x++) {
+					int b = content[22 + x * 400 + (y & 1) * 200 + (y >> 1)];
+					// 192 levels because it's a sum of 6-bit R, G and B
+					if (b > 191)
+						return false;
+					Pixels[y * 640 + x] = b * 4 / 3 * 0x010101;
+				}
+			}
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	// Atari Falcon formats.
 
 	bool DecodeIbi(byte[] content, int contentLength)
@@ -11739,6 +11796,9 @@ public class RECOIL
 		case PackExt("CA3"):
 		case PackExt("CCI"):
 		case PackExt("CDU"):
+		case PackExt("CE1"):
+		case PackExt("CE2"):
+		case PackExt("CE3"):
 		case PackExt("CEL"):
 		case PackExt("CH4"):
 		case PackExt("CH6"):
@@ -12128,6 +12188,10 @@ public class RECOIL
 			return DecodeCci(content, contentLength);
 		case PackExt("CDU"):
 			return contentLength == 10277 && DecodeC64Multicolor(320, content, 0x113, 0x2053, 0x243b, content[0x2823]);
+		case PackExt("CE1"):
+		case PackExt("CE2"):
+		case PackExt("CE3"):
+			return DecodeCe(content, contentLength);
 		case PackExt("CEL"):
 			return DecodeCel(content, contentLength);
 		case PackExt("CH4"):
