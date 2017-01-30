@@ -6492,25 +6492,24 @@ public class RECOIL
 		return ApplyBlend();
 	}
 
-	bool DecodeSpuScreen(byte[] content, bool enhanced)
+	bool DecodeSpuScreen(byte[] content, int bitmapOffset, int height, bool enhanced)
 	{
-		if (enhanced) {
-			SetSize(320, 199, RECOILResolution.Ste1x1);
+		int paletteOffset = bitmapOffset + height * 160;
+		if (!SetSize(320, height, enhanced || IsStePalette(content, paletteOffset, height * 48) ? RECOILResolution.Ste1x1 : RECOILResolution.St1x1))
+			return false;
+		if (enhanced)
 			Frames = 2;
-		}
-		else
-			SetSize(320, 199, IsStePalette(content, 32000, 199 * 3 * 16) ? RECOILResolution.Ste1x1 : RECOILResolution.St1x1);
 		int pixelsOffset = 0;
-		for (int y = 0; y < 199; y++) {
+		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < 320; x++) {
-				int c = GetStLowColor(content, 160, pixelsOffset);
+				int c = GetStLowColor(content, bitmapOffset, pixelsOffset);
 				// http://www.atari-forum.com/wiki/index.php?title=ST_Picture_Formats
 				int x1 = c * 10 + 1 - (c & 1) * 6;
 				if (x >= x1 + 160)
 					c += 32;
 				else if (x >= x1)
 					c += 16;
-				int colorOffset = 32000 + y * 96 + (c << 1);
+				int colorOffset = paletteOffset + y * 96 + (c << 1);
 				Pixels[pixelsOffset++] = enhanced
 					? GetSteInterlacedColor(content[colorOffset] << 8 | content[colorOffset + 1])
 					: GetStColor(content, colorOffset);
@@ -6521,7 +6520,7 @@ public class RECOIL
 
 	bool DecodeSpu(byte[] content, int contentLength)
 	{
-		return contentLength == 51104 && DecodeSpuScreen(content, IsStringAt(content, 0, "5BIT"));
+		return contentLength == 51104 && DecodeSpuScreen(content, 160, 199, IsStringAt(content, 0, "5BIT"));
 	}
 
 	static bool UnpackSpc(RleStream rle, byte[] unpacked)
@@ -6579,7 +6578,7 @@ public class RECOIL
 			}
 		}
 
-		return DecodeSpuScreen(unpacked, false);
+		return DecodeSpuScreen(unpacked, 160, 199, false);
 	}
 
 	bool DecodeSps(byte[] content, int contentLength)
@@ -6639,7 +6638,32 @@ public class RECOIL
 			}
 		}
 
-		return DecodeSpuScreen(unpacked, false);
+		return DecodeSpuScreen(unpacked, 160, 199, false);
+	}
+
+	bool DecodeSpx(byte[] content, int contentLength)
+	{
+		if (contentLength < 12 || content[0] != 'S' || content[1] != 'P' || content[2] != 'X'
+			|| content[3] != 2 // TODO: version 1
+			|| content[4] != 0 || content[5] != 0) // TODO: compression
+			return false;
+		int contentOffset = 10;
+		int zerosToSkip = 2;
+		do {
+			if (contentOffset >= contentLength)
+				return false;
+		} while (content[contentOffset++] != 0 || --zerosToSkip > 0);
+		if (contentOffset + 8 >= contentLength)
+			return false;
+		int bitmapLength = Get32BigEndian(content, contentOffset);
+		if (bitmapLength % 160 != 0)
+			return false;
+		int height = bitmapLength / 160 - 1;
+		int paletteLength = Get32BigEndian(content, contentOffset + 4);
+		int bitmapOffset = contentOffset + 8;
+		return paletteLength == height * 96
+			&& contentLength >= bitmapOffset + bitmapLength + paletteLength
+			&& DecodeSpuScreen(content, bitmapOffset + 160, height, false);
 	}
 
 	static int GetStLowSeparateBitplanes(byte[] content, int contentOffset, int bitplaneLength, int x)
@@ -12063,6 +12087,7 @@ public class RECOIL
 		case PackExt("SPR"):
 		case PackExt("SPS"):
 		case PackExt("SPU"):
+		case PackExt("SPX"):
 		case PackExt("SR5"):
 		case PackExt("SR7"):
 		case PackExt("SRT"):
@@ -12673,6 +12698,8 @@ public class RECOIL
 			return DecodeSps(content, contentLength);
 		case PackExt("SPU"):
 			return DecodeSpu(content, contentLength);
+		case PackExt("SPX"):
+			return DecodeSpx(content, contentLength);
 		case PackExt("SR5"):
 			return DecodeSr5(filename, content, contentLength);
 		case PackExt("SR7"):
