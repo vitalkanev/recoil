@@ -349,12 +349,7 @@ class MppPaletteStream : BitStream
 			return rgb << 4 | rgb;
 		case 3:
 			// STE 29791 colors
-			rgb = ReadBits(15);
-			// xyzrRRRgGGGbBBB -> 000RRRrx000GGGgy000BBBbz
-			rgb = (rgb & 0x700) << 10 | (rgb & 0x800) << 6 | (rgb & 0x4087) << 2
-				| (rgb & 0x70) << 6 | (rgb & 0x2000) >> 5
-				| (rgb & 8) >> 2 | (rgb & 0x1000) >> 12;
-			return rgb << 3 | (rgb >> 2 & 0x070707);
+			return RECOIL.GetSteInterlacedColor(ReadBits(15));
 		default:
 			// unreachable
 			return 0;
@@ -5738,6 +5733,14 @@ public class RECOIL
 			ContentPalette[c] = GetStColor(content, contentOffset + c * 2);
 	}
 
+	static int GetSteInterlacedColor(int rgb)
+	{
+		// xyzrRRR gGGGbBBB -> 000RRRrx 000GGGgy 000BBBbz
+		rgb = (rgb & 0x700) << 10 | (rgb & 0x870) << 6 | (rgb & 0x4087) << 2
+			| (rgb & 0x2000) >> 5 | (rgb & 8) >> 2 | (rgb & 0x1000) >> 12;
+		return rgb << 3 | (rgb >> 2 & 0x070707);
+	}
+
 	static int GetStColor1000(byte[] content, int contentOffset)
 	{
 		int rgb = 0;
@@ -6489,11 +6492,14 @@ public class RECOIL
 		return ApplyBlend();
 	}
 
-	bool DecodeSpu(byte[] content, int contentLength)
+	bool DecodeSpuScreen(byte[] content, bool enhanced)
 	{
-		if (contentLength != 51104)
-			return false;
-		SetSize(320, 199, IsStePalette(content, 32000, 199 * 3 * 16) ? RECOILResolution.Ste1x1 : RECOILResolution.St1x1);
+		if (enhanced) {
+			SetSize(320, 199, RECOILResolution.Ste1x1);
+			Frames = 2;
+		}
+		else
+			SetSize(320, 199, IsStePalette(content, 32000, 199 * 3 * 16) ? RECOILResolution.Ste1x1 : RECOILResolution.St1x1);
 		int pixelsOffset = 0;
 		for (int y = 0; y < 199; y++) {
 			for (int x = 0; x < 320; x++) {
@@ -6504,10 +6510,18 @@ public class RECOIL
 					c += 32;
 				else if (x >= x1)
 					c += 16;
-				Pixels[pixelsOffset++] = GetStColor(content, 32000 + y * 96 + (c << 1));
+				int colorOffset = 32000 + y * 96 + (c << 1);
+				Pixels[pixelsOffset++] = enhanced
+					? GetSteInterlacedColor(content[colorOffset] << 8 | content[colorOffset + 1])
+					: GetStColor(content, colorOffset);
 			}
 		}
 		return true;
+	}
+
+	bool DecodeSpu(byte[] content, int contentLength)
+	{
+		return contentLength == 51104 && DecodeSpuScreen(content, IsStringAt(content, 0, "5BIT"));
 	}
 
 	static bool UnpackSpc(RleStream rle, byte[] unpacked)
@@ -6565,7 +6579,7 @@ public class RECOIL
 			}
 		}
 
-		return DecodeSpu(unpacked, 51104);
+		return DecodeSpuScreen(unpacked, false);
 	}
 
 	bool DecodeSps(byte[] content, int contentLength)
@@ -6625,7 +6639,7 @@ public class RECOIL
 			}
 		}
 
-		return DecodeSpu(unpacked, 51104);
+		return DecodeSpuScreen(unpacked, false);
 	}
 
 	static int GetStLowSeparateBitplanes(byte[] content, int contentOffset, int bitplaneLength, int x)
