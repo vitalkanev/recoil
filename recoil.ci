@@ -5312,7 +5312,7 @@ public class RECOIL
 		return ApplyBlend();
 	}
 
-	bool DecodeFun(byte[] content, int contentLength)
+	bool DecodeC64Fun(byte[] content, int contentLength)
 	{
 		if (contentLength < 18 || !IsStringAt(content, 2, "FUNPAINT (MT) "))
 			return false;
@@ -5401,7 +5401,7 @@ public class RECOIL
 		case 33603:
 			return DecodeGun(content, contentLength);
 		case 33694:
-			return DecodeFun(content, contentLength);
+			return DecodeC64Fun(content, contentLength);
 		default:
 			return false;
 		}
@@ -5741,7 +5741,7 @@ public class RECOIL
 		return rgb << 3 | (rgb >> 2 & 0x070707);
 	}
 
-	static int GetStColor1000(byte[] content, int contentOffset)
+	static int GetStVdiColor(byte[] content, int contentOffset)
 	{
 		int rgb = 0;
 		for (int i = 0; i < 6; i += 2) {
@@ -5754,13 +5754,10 @@ public class RECOIL
 		return rgb;
 	}
 
-	bool SetStPalette1000(byte[] content, int contentOffset, int colors, int bitplanes)
+	void SetStVdiPalette(byte[] content, int contentOffset, int colors, int bitplanes)
 	{
 		for (int i = 0; i < colors; i++) {
 			int j;
-			int rgb = GetStColor1000(content, contentOffset + i * 6);
-			if (rgb < 0)
-				return false;
 			switch (i) {
 			case   1: j = (1 << bitplanes) - 1; break;
 			case   2: j = 1; break;
@@ -5778,9 +5775,8 @@ public class RECOIL
 			case 255: j = 15; break;
 			default:  j = i; break;
 			}
-			ContentPalette[j] = rgb;
+			ContentPalette[j] = GetStVdiColor(content, contentOffset + i * 6);
 		}
-		return true;
 	}
 
 	static int GetStLowColor(byte[] bitmap, int bitmapOffset, int x)
@@ -5975,7 +5971,7 @@ public class RECOIL
 		if (ReadCompanionFile(filename, "PAL", "pal", pal, pal.Length) != 96)
 			return false;
 		SetSize(320, 200, RECOILResolution.Ste1x1);
-		SetStPalette1000(pal, 0, 16, 4);
+		SetStVdiPalette(pal, 0, 16, 4);
 		DecodeBitplanes(content, 0, 160, 4, 0, 320, 200);
 		return true;
 	}
@@ -6098,9 +6094,9 @@ public class RECOIL
 			return false;
 		int contentStride = (width + 15 >> 4 << 1) * bitplanes;
 		if (1556 + bitmapLength != contentLength || bitmapLength != contentStride * height
-		 || !SetStPalette1000(content, 20 + bitmapLength, 1 << bitplanes, bitplanes)
 		 || !SetSizeStOrFalcon(width, height, bitplanes))
 			return false;
+		SetStVdiPalette(content, 20 + bitmapLength, 1 << bitplanes, bitplanes);
 		DecodeBitplanes(content, 20, contentStride, bitplanes, 0, width, height);
 		return true;
 	}
@@ -6284,7 +6280,7 @@ public class RECOIL
 		case 8:
 			if (headerLength == 22 + (6 << bitplanes) && IsXimg(content)) {
 				for (int i = 0; i < 1 << bitplanes; i++)
-					ContentPalette[i] = GetStColor1000(content, 22 + i * 6);
+					ContentPalette[i] = GetStVdiColor(content, 22 + i * 6);
 			}
 			else if (bitplanes <= 4)
 				SetDefaultStPalette(bitplanes);
@@ -7339,8 +7335,41 @@ public class RECOIL
 			return true;
 		case 16:
 			return paletteLength == 1024
-				&& 0x41e + width * height * 2 <= contentLength
+				&& contentLength >= 0x41e + width * height * 2
 				&& DecodeFalconTrueColor(content, 0x41e, width, height, RECOILResolution.Falcon1x1);
+		default:
+			return false;
+		}
+	}
+
+	bool DecodeFalconFun(byte[] content, int contentLength)
+	{
+		if (contentLength < 14
+		 || content[0] != 0 || content[1] != 0xa || content[2] != 0xcf || content[3] != 0xe2
+		 || content[8] != 0)
+			return false;
+		int width = content[4] << 8 | content[5];
+		if ((width & 15) != 0)
+			return false;
+		int height = content[6] << 8 | content[7];
+		int bitplanes = content[9];
+		switch (bitplanes) {
+		case 1:
+		case 2:
+		case 4:
+		case 8:
+			int bytesPerLine = (width >> 3) * bitplanes;
+			int paletteOffset = 13 + 12 + height * bytesPerLine;
+			int colors = 1 << bitplanes;
+			if (contentLength != paletteOffset + colors * 6
+			 || !SetSize(width, height, RECOILResolution.Falcon1x1))
+				return false;
+			SetStVdiPalette(content, paletteOffset, colors, bitplanes);
+			DecodeBitplanes(content, 13, bytesPerLine, bitplanes, 0, width, height);
+			return true;
+		case 16:
+			return contentLength >= 13 + width * height * 2
+				&& DecodeFalconTrueColor(content, 13, width, height, RECOILResolution.Falcon1x1);
 		default:
 			return false;
 		}
@@ -7442,9 +7471,9 @@ public class RECOIL
 		int bitmapLength = Get32BigEndian(content, 16);
 		if (bitmapLength <= 0 || contentLength < bitmapOffset + bitmapLength)
 			return false;
-		if (!SetStPalette1000(content, 128, paletteLength, bitplanes)
-		 || !SetSizeStOrFalcon(width, height, bitplanes))
+		if (!SetSizeStOrFalcon(width, height, bitplanes))
 			return false;
+		SetStVdiPalette(content, 128, paletteLength, bitplanes);
 		int bytesPerLine = (width + 15 >> 4 << 1) * bitplanes;
 		switch (content[14] << 8 | content[15]) {
 		case 0:
@@ -11882,10 +11911,10 @@ public class RECOIL
 		case PackExt("FFLI"):
 		case PackExt("FLI"):
 		case PackExt("FNT"):
+		case PackExt("FP2"):
 		case PackExt("FPT"):
 		case PackExt("FTC"):
 		case PackExt("FUN"):
-		case PackExt("FP2"):
 		case PackExt("FWA"):
 		case PackExt("G10"):
 		case PackExt("G11"):
@@ -12320,13 +12349,15 @@ public class RECOIL
 				|| DecodeAtari8Fnt(content, contentLength)
 				|| DecodeStFnt(content, contentLength)
 				|| DecodeAmstradFnt(content, contentLength);
+		case PackExt("FP2"):
+			return DecodeC64Fun(content, contentLength);
 		case PackExt("FPT"):
 			return contentLength == 10004 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2712]);
 		case PackExt("FTC"):
 			return DecodeFtc(content, contentLength);
 		case PackExt("FUN"):
-		case PackExt("FP2"):
-			return DecodeFun(content, contentLength);
+			return DecodeC64Fun(content, contentLength)
+				|| DecodeFalconFun(content, contentLength);
 		case PackExt("FWA"):
 			return DecodeFwa(content, contentLength);
 		case PackExt("G10"):

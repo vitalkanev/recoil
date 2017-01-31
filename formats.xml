@@ -286,6 +286,7 @@
 		<format name="DelmPaint" width="640" height="480" colors="256"><ext>DPH</ext></format>
 		<format name="TmS Cranach Paint/Studio"><ext>ESM</ext></format>
 		<format name="Falcon True Color" width="384" height="240" colors="65536"><ext>FTC</ext></format>
+		<format name="Funny Paint"><ext>FUN</ext></format>
 		<format name="GodPaint" colors="65536"><ext>GOD</ext></format>
 		<format name="ICDRAW icon" width="32" height="32" colors="16"><ext>IB3</ext></format>
 		<format name="ICDRAW icon" width="32" height="32" colors="16"><ext>IBI</ext></format>
