@@ -7378,7 +7378,10 @@ public class RECOIL
 			if (contentLength != paletteOffset + colors * 6
 			 || !SetSize(width, height, RECOILResolution.Falcon1x1))
 				return false;
-			SetStVdiPalette(content, paletteOffset, colors, bitplanes);
+			if (bitplanes == 1)
+				SetDefaultStPalette(1);
+			else
+				SetStVdiPalette(content, paletteOffset, colors, bitplanes);
 			DecodeBitplanes(content, 13, bytesPerLine, bitplanes, 0, width, height);
 			return true;
 		case 16:
