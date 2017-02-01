@@ -7080,6 +7080,12 @@ public class RECOIL
 			destination[i] = GetR8G8B8Color(content, contentOffset + i * 3);
 	}
 
+	void DecodeR8G8G8X8Colors(byte[] content, int contentOffset, int count)
+	{
+		for (int i = 0; i < count; i++)
+			Pixels[i] = GetR8G8B8Color(content, contentOffset + (i << 2));
+	}
+
 	bool DecodeIim(byte[] content, int contentLength)
 	{
 		if (contentLength < 17 || !IsStringAt(content, 0, "IS_IMAGE") || content[8] != 0)
@@ -7108,8 +7114,7 @@ public class RECOIL
 			if (contentLength != 16 + (pixelsLength << 2)
 			 || !SetSize(width, height, RECOILResolution.Falcon1x1))
 				return false;
-			for (int i = 0; i < pixelsLength; i++)
-				Pixels[i] = GetR8G8B8Color(content, 17 + (i << 2));
+			DecodeR8G8G8X8Colors(content, 17, pixelsLength);
 			return true;
 		default:
 			return false;
@@ -7434,22 +7439,25 @@ public class RECOIL
 		int width = content[8] << 8 | content[9];
 		if ((width & 15) != 0)
 			return false;
+		int bitplanes = content[7];
 		int height = content[10] << 8 | content[11];
-		switch (content[7]) {
+		int pixelsLength;
+		switch (bitplanes) {
 		case 1:
 			if (content[6] != 1
 			 || !SetSizeStOrFalcon(width, height, 1))
 				return false;
 			return DecodeBlackAndWhite(content, contentOffset, contentLength, true, 0xffffff);
-		// TODO: case 2
+		case 2:
 		case 4:
-			int contentStride = width >> 1;
+			int bitmapOffset = contentOffset + (3 << bitplanes);
+			int contentStride = (width >> 3) * bitplanes;
 			if (content[6] != 1
-			 || contentLength != contentOffset + 48 + contentStride * height
-			 || !SetSizeStOrFalcon(width, height, 4))
+			 || contentLength != bitmapOffset + contentStride * height
+			 || !SetSizeStOrFalcon(width, height, bitplanes))
 				return false;
-			DecodeR8G8B8Colors(content, contentOffset, 16, ContentPalette);
-			DecodeBitplanes(content, contentOffset + 48, contentStride, 4, 0, width, height);
+			DecodeR8G8B8Colors(content, contentOffset, 1 << bitplanes, ContentPalette);
+			DecodeBitplanes(content, bitmapOffset, contentStride, bitplanes, 0, width, height);
 			return true;
 		case 8:
 			if (content[6] != 0
@@ -7459,7 +7467,25 @@ public class RECOIL
 			DecodeR8G8B8Colors(content, contentOffset, 256, ContentPalette);
 			DecodeBytes(content, contentOffset + 768);
 			return true;
-		// TODO: case 16
+		case 16:
+			return content[6] == 1
+			 && contentLength == contentOffset + width * height * 2
+			 && DecodeFalconTrueColor(content, contentOffset, width, height, RECOILResolution.Falcon1x1);
+		case 24:
+			pixelsLength = width * height;
+			if (content[6] != 1
+			 || contentLength != contentOffset + pixelsLength * 3
+			 || !SetSize(width, height, RECOILResolution.Falcon1x1))
+				return false;
+			DecodeR8G8B8Colors(content, contentOffset, pixelsLength, Pixels);
+			return true;
+		case 32:
+			pixelsLength = width * height;
+			if (contentLength != contentOffset + (pixelsLength << 2)
+			 || !SetSize(width, height, RECOILResolution.Falcon1x1))
+				return false;
+			DecodeR8G8G8X8Colors(content, contentOffset + 1, pixelsLength);
+			return true;
 		default:
 			return false;
 		}
