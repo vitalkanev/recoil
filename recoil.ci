@@ -7051,6 +7051,26 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeFalconGrayscale(byte[] content, int contentOffset, int contentLength, int width, int height)
+	{
+		int pixelsLength = width * height;
+		if (contentLength != contentOffset + pixelsLength
+		 || !SetSize(width, height, RECOILResolution.Falcon1x1))
+			return false;
+		for (int i = 0; i < pixelsLength; i++)
+			Pixels[i] = content[contentOffset + i] * 0x010101;
+		return true;
+	}
+
+	bool DecodeBw(byte[] content, int contentLength)
+	{
+		if (contentLength < 11 || !IsStringAt(content, 0, "B&W256"))
+			return false;
+		int width = content[6] << 8 | content[7];
+		int height = content[8] << 8 | content[9];
+		return DecodeFalconGrayscale(content, 10, contentLength, width, height);
+	}
+
 	bool DecodeRw(byte[] content, int contentLength)
 	{
 		switch (contentLength) {
@@ -7098,12 +7118,7 @@ public class RECOIL
 			return SetSize(width, height, RECOILResolution.Falcon1x1)
 				&& DecodeBlackAndWhite(content, 16, contentLength, false, 0xffffff);
 		case 1:
-			if (contentLength != 16 + pixelsLength
-			 || !SetSize(width, height, RECOILResolution.Falcon1x1))
-				return false;
-			for (int i = 0; i < pixelsLength; i++)
-				Pixels[i] = content[16 + i] * 0x010101;
-			return true;
+			return DecodeFalconGrayscale(content, 16, contentLength, width, height);
 		case 4:
 			if (contentLength != 16 + pixelsLength * 3
 			 || !SetSize(width, height, RECOILResolution.Falcon1x1))
@@ -11879,6 +11894,8 @@ public class RECOIL
 		case PackExt("APP"):
 		case PackExt("ART"):
 		case PackExt("ATR"):
+		case PackExt("B&W"):
+		case PackExt("B_W"):
 		case PackExt("BB0"):
 		case PackExt("BB1"):
 		case PackExt("BB2"):
@@ -12255,6 +12272,9 @@ public class RECOIL
 				|| DecodeAsciiArtEditor(content, contentLength);
 		case PackExt("ATR"):
 			return DecodeAtr(content, contentLength);
+		case PackExt("B&W"):
+		case PackExt("B_W"):
+			return DecodeBw(content, contentLength);
 		case PackExt("BB0"):
 			return DecodeBb0(content, contentLength, BbcPalette1Bit);
 		case PackExt("BB1"):
