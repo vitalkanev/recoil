@@ -127,6 +127,7 @@ static void UpdateText(void)
 		sprintf(buf, "%s, %dx%d, %d color%s, %s%d%% zoom", RECOIL_GetPlatform(recoil), RECOIL_GetOriginalWidth(recoil), RECOIL_GetOriginalHeight(recoil),
 			colors, colors == 1 ? "" : "s", frames == 2 ? "2 frames, " : frames == 3 ? "3 frames, " : "", zoom);
 		SetWindowText(hStatus, buf);
+		SendMessage(hStatus, SB_SETTIPTEXT, 0, (LPARAM) buf);
 	}
 }
 
@@ -679,7 +680,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 {
 	char *pb;
 	char *pe;
-	static INITCOMMONCONTROLSEX iccx = { sizeof(INITCOMMONCONTROLSEX), ICC_BAR_CLASSES };
+	static const INITCOMMONCONTROLSEX iccx = { sizeof(INITCOMMONCONTROLSEX), ICC_BAR_CLASSES };
 	WNDCLASS wc;
 	HACCEL hAccel;
 	MSG msg;
@@ -731,31 +732,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wc.lpszClassName = WND_CLASS_NAME;
 	RegisterClass(&wc);
 
-	hWnd = CreateWindow(WND_CLASS_NAME,
-		APP_TITLE,
+	hWnd = CreateWindow(WND_CLASS_NAME, APP_TITLE,
 		WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
-		CW_USEDEFAULT,
-		CW_USEDEFAULT,
-		CW_USEDEFAULT,
-		CW_USEDEFAULT,
-		NULL,
-		NULL,
-		hInstance,
-		NULL
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		NULL, NULL, hInstance, NULL
 	);
 	hMenu = GetMenu(hWnd);
 
-	hStatus = CreateWindow(STATUSCLASSNAME,
-		NULL,
-		WS_VISIBLE | WS_CHILD,
-		CW_USEDEFAULT,
-		CW_USEDEFAULT,
-		CW_USEDEFAULT,
-		CW_USEDEFAULT,
-		hWnd,
-		NULL,
-		hInstance,
-		NULL
+	hStatus = CreateWindow(STATUSCLASSNAME, NULL,
+		WS_VISIBLE | WS_CHILD | SBT_TOOLTIPS,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		hWnd, NULL, hInstance, NULL
 	);
 
 	hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATORS));
