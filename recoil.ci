@@ -4972,7 +4972,7 @@ public class RECOIL
 	bool DecodeOcp(byte[] content, int contentLength)
 		return contentLength == 10018 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x233a, content[0x232b]);
 
-	bool DecodeHir(byte[] content, int contentLength)
+	bool DecodeC64Hir(byte[] content, int contentLength)
 	{
 		switch (contentLength) {
 		case 8002: // FGS, GIH, HBM, HIR
@@ -7069,6 +7069,26 @@ public class RECOIL
 		int width = content[6] << 8 | content[7];
 		int height = content[8] << 8 | content[9];
 		return DecodeFalconGrayscale(content, 10, contentLength, width, height);
+	}
+
+	bool DecodeFalconHir(byte[] content, int contentLength)
+	{
+		if (contentLength < 11 || content[0] != 0xf || content[1] != 0xf
+		 || content[2] != 0 || content[3] != 1 || content[8] != 0 || content[9] != 1)
+			return false;
+		int width = content[4] << 8 | content[5];
+		int height = content[6] << 8 | content[7];
+		int pixelsLength = width * height;
+		if (contentLength != 10 + pixelsLength
+		 || !SetSize(width, height, RECOILResolution.Falcon1x1))
+			return false;
+		for (int i = 0; i < pixelsLength; i++) {
+			int b = content[10 + i];
+			if (b >= 128)
+				return false;
+			Pixels[i] = b * 0x020202;
+		}
+		return true;
 	}
 
 	bool DecodeRw(byte[] content, int contentLength)
@@ -12455,14 +12475,15 @@ public class RECOIL
 		case PackExt("HIP"):
 			return DecodeHip(content, contentLength);
 		case PackExt("HIR"):
-			return DecodeHir(content, contentLength)
+			return DecodeFalconHir(content, contentLength)
+				|| DecodeC64Hir(content, contentLength)
 				|| DecodeHrs(content, contentLength);
 		case PackExt("HBM"):
 		case PackExt("GIH"):
 		case PackExt("FGS"):
 		case PackExt("MON"):
 		case PackExt("GCD"):
-			return DecodeHir(content, contentLength);
+			return DecodeC64Hir(content, contentLength);
 		case PackExt("HLF"):
 			return DecodeHlf(content, contentLength);
 		case PackExt("HLR"):

@@ -292,6 +292,7 @@
 		<format name="Falcon True Color" width="384" height="240" colors="65536"><ext>FTC</ext></format>
 		<format name="Funny Paint"><ext>FUN</ext></format>
 		<format name="GodPaint" colors="65536"><ext>GOD</ext></format>
+		<format name="Print-Technik" grayscale="128"><ext>HIR</ext></format>
 		<format name="ICDRAW icon" width="32" height="32" colors="16"><ext>IB3</ext></format>
 		<format name="ICDRAW icon" width="32" height="32" colors="16"><ext>IBI</ext></format>
 		<format name="InShape"><ext>IIM</ext></format>
