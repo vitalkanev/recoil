@@ -1,7 +1,7 @@
 /*
  * recoilwin.rc - RECOILWin GUI definition
  *
- * Copyright (C) 2009-2014  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2017  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -106,12 +106,19 @@ IDR_ACCELERATORS ACCELERATORS
 {
 	"<?xml version=""1.0""?>"
 	"<assembly xmlns=""urn:schemas-microsoft-com:asm.v1"" manifestVersion=""1.0"">"
-	"<assemblyIdentity version=""" RECOIL_VERSION ".0"" "
-		"processorArchitecture=""X86"" name=""RECOILWin"" type=""win32"" />"
-	"<dependency><dependentAssembly>"
-	"<assemblyIdentity type=""win32"" name=""Microsoft.Windows.Common-Controls"" "
-		"version=""6.0.0.0"" processorArchitecture=""X86"" publicKeyToken=""6595b64144ccf1df"" language=""*"" />"
-	"</dependentAssembly></dependency>"
+		"<assemblyIdentity version=""" RECOIL_VERSION ".0"" "
+			"processorArchitecture=""X86"" name=""RECOILWin"" type=""win32"" />"
+		"<dependency>"
+			"<dependentAssembly>"
+				"<assemblyIdentity type=""win32"" name=""Microsoft.Windows.Common-Controls"" "
+					"version=""6.0.0.0"" processorArchitecture=""X86"" publicKeyToken=""6595b64144ccf1df"" language=""*"" />"
+			"</dependentAssembly>"
+		"</dependency>"
+		"<application xmlns=""urn:schemas-microsoft-com:asm.v3"">"
+			"<windowsSettings>"
+				"<dpiAware xmlns=""http://schemas.microsoft.com/SMI/2005/WindowsSettings"">true</dpiAware>"
+			"</windowsSettings>"
+		"</application>"
 	"</assembly>"
 }
 
@@ -128,7 +135,7 @@ IDR_ACCELERATORS ACCELERATORS
 	{
 		BLOCK "040904b0"
 		{
-			VALUE "CompanyName", "Piotr Fusik and Adrian Matoga\0"
+			VALUE "CompanyName", "Piotr Fusik\0"
 			VALUE "FileDescription", "RECOILWin\0"
 			VALUE "FileVersion", RECOIL_VERSION "\0"
 			VALUE "InternalName", "recoilwin\0"
