@@ -1,7 +1,7 @@
 /*
  * recoilwin.c - Windows API port of RECOIL
  *
- * Copyright (C) 2009-2016  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2017  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -112,7 +112,7 @@ static int GetPathLength(const char *filename)
 
 static void UpdateText(void)
 {
-	char buf[MAX_PATH + 32];
+	char buf[MAX_PATH + 64];
 	const char *filename = image_filename;
 	int frames;
 	if (filename[0] == '\0')
@@ -124,7 +124,7 @@ static void UpdateText(void)
 	frames = RECOIL_GetFrames(recoil);
 	if (image_loaded) {
 		int colors = RECOIL_GetColors(recoil);
-		sprintf(buf, "%s, %dx%d, %d color%s, %s%d%%", RECOIL_GetPlatform(recoil), RECOIL_GetOriginalWidth(recoil), RECOIL_GetOriginalHeight(recoil),
+		sprintf(buf, "%s, %dx%d, %d color%s, %s%d%% zoom", RECOIL_GetPlatform(recoil), RECOIL_GetOriginalWidth(recoil), RECOIL_GetOriginalHeight(recoil),
 			colors, colors == 1 ? "" : "s", frames == 2 ? "2 frames, " : frames == 3 ? "3 frames, " : "", zoom);
 		SetWindowText(hStatus, buf);
 	}
