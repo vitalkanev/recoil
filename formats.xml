@@ -188,6 +188,7 @@
 		<format name="ComputerEyes" width="640" height="400" grayscale="192"><ext>CE3</ext></format>
 		<format name="Cyber Paint Cell" maxWidth="320" maxHeight="200" colors="16"><ext>CEL</ext></format>
 		<format name="Public Painter" width="640" maxHeight="800" colors="2"><ext>CMP</ext></format>
+		<format name="Picworks" width="640" height="400" colors="2"><ext>CP3</ext></format>
 		<format name="Canvas (compressed)"><ext>CPT</ext></format>
 		<format name="Calamus Raster Graphic" colors="2"><ext>CRG</ext></format>
 		<format name="PaintShop" width="640" height="800" colors="2"><ext>DA4</ext></format>

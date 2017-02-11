@@ -5579,6 +5579,45 @@ public class RECOIL
 		return DecodeDoo(unpacked, 32000);
 	}
 
+	bool DecodeCp3(byte[] content, int contentLength)
+	{
+		if (contentLength < 4)
+			return false;
+		int countLength = 1 + (content[0] << 8) + content[1] << 2;
+		if (contentLength <= countLength)
+			return false;
+		int valueOffset = countLength;
+		byte[32000] unpacked;
+		int unpackedOffset = 0;
+		int count;
+		for (int countOffset = 4; countOffset < countLength; countOffset += 4) {
+			// literals
+			count = (content[countOffset] << 8 | content[countOffset + 1]) << 3;
+			if (valueOffset + count + 8 > contentLength
+			 || unpackedOffset + count > unpacked.Length)
+				return false;
+			content.CopyTo(valueOffset, unpacked, unpackedOffset, count);
+			valueOffset += count;
+			unpackedOffset += count;
+
+			// repeat 8 bytes
+			count = (content[countOffset + 2] << 8 | content[countOffset + 3]) << 3;
+			if (unpackedOffset + count > unpacked.Length)
+				return false;
+			for (int offset = 0; offset < count; offset += 8)
+				content.CopyTo(valueOffset, unpacked, unpackedOffset + offset, 8);
+			valueOffset += 8;
+			unpackedOffset += count;
+		}
+		// literals
+		count = unpacked.Length - unpackedOffset;
+		if (valueOffset + count != contentLength)
+			return false;
+		content.CopyTo(valueOffset, unpacked, unpackedOffset, count);
+
+		return DecodeDoo(unpacked, unpacked.Length);
+	}
+
 	bool DecodeStFnt(byte[] content, int contentLength)
 	{
 		switch (contentLength) {
@@ -11951,6 +11990,7 @@ public class RECOIL
 		case PackExt("CIN"):
 		case PackExt("CLP"):
 		case PackExt("CMP"):
+		case PackExt("CP3"):
 		case PackExt("CPI"):
 		case PackExt("CPR"):
 		case PackExt("CPT"):
@@ -12356,6 +12396,8 @@ public class RECOIL
 			return DecodeClp(content, contentLength);
 		case PackExt("CMP"):
 			return DecodeCmp(content, contentLength);
+		case PackExt("CP3"):
+			return DecodeCp3(content, contentLength);
 		case PackExt("CPI"):
 			return DecodeCpi(content, contentLength);
 		case PackExt("CPR"):
