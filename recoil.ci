@@ -1730,6 +1730,42 @@ class Lz4Stream : Stream
 	}
 }
 
+class Tre1Stream : RleStream
+{
+	int LastRgb;
+
+	Tre1Stream()
+	{
+		LastRgb = -1;
+	}
+
+	override bool ReadCommand()
+	{
+		RepeatCount = ReadByte();
+		if (RepeatCount <= 0)
+			return false;
+		if (RepeatCount == 255) {
+			if (ContentOffset + 1 >= ContentLength)
+				return false;
+			RepeatCount = 255 + (Content[ContentOffset] << 8) + Content[ContentOffset + 1];
+			ContentOffset += 2;
+		}
+		// literal, repeat, literal, repeat...
+		RepeatValue = LastRgb;
+		LastRgb = -1;
+		return true;
+	}
+
+	override int ReadValue()
+	{
+		if (ContentOffset + 1 >= ContentLength)
+			return -1;
+		LastRgb = RECOIL.GetFalconTrueColor(Content[ContentOffset], Content[ContentOffset + 1]);
+		ContentOffset += 2;
+		return LastRgb;
+	}
+}
+
 class Q4Stream : RleStream
 {
 	int StartChunk()
@@ -7358,7 +7394,8 @@ public class RECOIL
 
 	bool DecodeTrp(byte[] content, int contentLength)
 	{
-		if (contentLength < 9 || !IsStringAt(content, 0, "TRUP"))
+		if (contentLength < 9
+		 || !(IsStringAt(content, 0, "TRUP") || IsStringAt(content, 0, "tru?")))
 			return false;
 		return DecodeFalconTrueColorVariable(content, contentLength, 4, 8);
 	}
@@ -7385,6 +7422,28 @@ public class RECOIL
 		 || content[16] != 0 || content[17] != 1 || !IsStringAt(content, 0x12, "PICT"))
 			return false;
 		return DecodeFalconTrueColorVariable(content, contentLength, 0x1c, 0xd8);
+	}
+
+	bool DecodeTre(byte[] content, int contentLength)
+	{
+		if (contentLength < 13 || !IsStringAt(content, 0, "tre1"))
+			return false;
+		int width = content[4] << 8 | content[5];
+		int height = content[6] << 8 | content[7];
+		if (!SetSize(width, height, RECOILResolution.Falcon1x1))
+			return false;
+		Tre1Stream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 12;
+		rle.ContentLength = contentLength;
+		int pixelsLength = width * height;
+		for (int i = 0; i < pixelsLength; i++) {
+			int rgb = rle.ReadRle();
+			if (rgb < 0)
+				return false;
+			Pixels[i] = rgb;
+		}
+		return true;
 	}
 
 	bool DecodeRag(byte[] content, int contentLength)
@@ -12198,8 +12257,8 @@ public class RECOIL
 		case PackExt("PMD"):
 		case PackExt("PMG"):
 		case PackExt("PNT"):
-		case PackExt("PSC"):
 		case PackExt("TPI"):
+		case PackExt("PSC"):
 		case PackExt("Q4"):
 		case PackExt("RAG"):
 		case PackExt("RAP"):
@@ -12268,6 +12327,7 @@ public class RECOIL
 		case PackExt("TN5"):
 		case PackExt("TN6"):
 		case PackExt("TNY"):
+		case PackExt("TRE"):
 		case PackExt("TRP"):
 		case PackExt("TRU"):
 		case PackExt("TXE"):
@@ -12897,6 +12957,8 @@ public class RECOIL
 		case PackExt("TN6"):
 		case PackExt("TNY"):
 			return DecodeTny(content, contentLength);
+		case PackExt("TRE"):
+			return DecodeTre(content, contentLength);
 		case PackExt("TRP"):
 			return DecodeTrp(content, contentLength);
 		case PackExt("TRU"):
