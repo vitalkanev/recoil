@@ -1,7 +1,7 @@
-/*.apk
-/assets
-/classes.dex
-/classes
-/gen
-/AndroidManifest.xml
+/.gradle
+/.idea
+/android.iml
+/build
+/local.properties
+/recoil-*.apk
 /recoil-1024x500.png

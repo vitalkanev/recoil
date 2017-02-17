@@ -1,0 +1,83 @@
+apply plugin: 'com.android.application'
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.2.3'
+    }
+}
+
+final MANIFEST_FILE = 'build/generated/AndroidManifest.xml'
+ant.xslt(
+    in: '../formats.xml',
+    style: 'AndroidManifest.xsl',
+    out: MANIFEST_FILE)
+
+final SOURCE_ICON = '../recoil-512x512.png'
+final ICON_DIR = file 'build/generated/res/icons'
+task generateIcon(type:Exec) {
+    inputs.files SOURCE_ICON
+    outputs.file new File(ICON_DIR, 'drawable/ic_launcher.png')
+    commandLine 'magick', inputs.files.asPath, '-resize', '72x72', '-quality', '95', '-strip', outputs.files.asPath
+    doFirst { new File(ICON_DIR, 'drawable').mkdirs() }
+}
+
+task generateStoreGfx(type:Exec) {
+    inputs.files SOURCE_ICON
+    outputs.file 'recoil-1024x500.png'
+    commandLine 'magick', inputs.files.asPath, '-crop', '334x163+89+140', '-sample', '1024x500', '-quality', '95', '-strip', outputs.files.asPath
+}
+
+final CITO_RESOURCES = [ 'atari8.fnt', 'altirrapal.pal', 'c16.pal', 'zx81.fnt' ]
+final CITO_JAVA_DIR = file 'build/generated/source/cito/net/sf/recoil'
+task cito(type:Exec) {
+	inputs.files '../recoil.ci', CITO_RESOURCES.collect { '../' + it }
+	outputs.file new File(CITO_JAVA_DIR, 'RECOIL.java')
+	commandLine 'cito', '-n', 'net.sf.recoil', '-o', outputs.files.asPath, '-I', '..', '../recoil.ci'
+    doFirst { CITO_JAVA_DIR.mkdirs() }
+}
+
+final JAVA_RESOURCES_DIR = file 'build/generated/resources'
+task copyJavaResources(type:Copy) {
+    from '..'
+    into new File(JAVA_RESOURCES_DIR, 'net/sf/recoil')
+    include CITO_RESOURCES
+}
+preBuild.dependsOn copyJavaResources
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion '25.0.2'
+    sourceSets {
+        main {
+            manifest {
+                srcFile MANIFEST_FILE
+            }
+            resources {
+                srcDir JAVA_RESOURCES_DIR
+            }
+        }
+    }
+    applicationVariants.all { variant ->
+        variant.registerResGeneratingTask generateIcon, ICON_DIR
+        variant.registerJavaGeneratingTask cito, CITO_JAVA_DIR
+        if (variant.name == 'release') {
+            variant.outputs[0].outputFile file('recoil-' + versionName + '.apk')
+        }
+    }
+    signingConfigs {
+        release {
+            storeFile new File(System.getProperty('user.home'), '.keystore')
+            storePassword 'walsie'
+            keyAlias 'pfusik'
+            keyPassword 'walsie'
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+        }
+    }
+}

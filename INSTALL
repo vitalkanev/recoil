@@ -136,14 +136,11 @@ From the command prompt navigate to the www directory and run:
 Building Android application
 ----------------------------
 
-Install Android SDK (http://developer.android.com/sdk/) with an Android platform.
-Edit the paths at the top of android/Makefile so that they point to your installed SDK.
+Install Android Studio (https://developer.android.com/studio/index.html) or the command-line SDK.
 
-Make sure cito is on your PATH.
+Make sure cito and ImageMagick 7 (http://imagemagick.org/) are on your PATH.
 
-From the command prompt navigate to the android directory and run:
-
-    make
+Build the project as any other Android project.
 
 
 Building the Quick Look plugin on OS X
