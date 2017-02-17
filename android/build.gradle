@@ -33,9 +33,9 @@ task generateStoreGfx(type:Exec) {
 final CITO_RESOURCES = [ 'atari8.fnt', 'altirrapal.pal', 'c16.pal', 'zx81.fnt' ]
 final CITO_JAVA_DIR = file 'build/generated/source/cito/net/sf/recoil'
 task cito(type:Exec) {
-	inputs.files '../recoil.ci', CITO_RESOURCES.collect { '../' + it }
-	outputs.file new File(CITO_JAVA_DIR, 'RECOIL.java')
-	commandLine 'cito', '-n', 'net.sf.recoil', '-o', outputs.files.asPath, '-I', '..', '../recoil.ci'
+    inputs.files '../recoil.ci', CITO_RESOURCES.collect { '../' + it }
+    outputs.file new File(CITO_JAVA_DIR, 'RECOIL.java')
+    commandLine 'cito', '-n', 'net.sf.recoil', '-o', outputs.files.asPath, '-I', '..', '../recoil.ci'
     doFirst { CITO_JAVA_DIR.mkdirs() }
 }
 
