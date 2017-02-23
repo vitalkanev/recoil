@@ -6087,6 +6087,43 @@ public class RECOIL
 		return contentLength == 32128 && DecodeSt(content, 128, content, 4, mode, 0);
 	}
 
+	bool DecodeGraphicsProcessor(byte[] content, int contentLength)
+	{
+		if (contentLength < 493 || content[0] != 0)
+			return false;
+		int mode = content[1];
+		switch (mode) {
+		case 0:
+		case 1:
+		case 2:
+			return contentLength == 32331 && DecodeSt(content, 331, content, 2, mode, 0);
+		case 10:
+		case 11:
+		case 12:
+			break;
+		default:
+			return false;
+		}
+		mode -= 10;
+		int bitplanes = 4 >> mode;
+		byte[32000] unpacked;
+		int contentOffset = 333;
+		int count = 0;
+		for (int unpackedOffset = 0; unpackedOffset < 32000; unpackedOffset += bitplanes) {
+			if (count == 0) {
+				if (contentOffset + bitplanes >= contentLength)
+					return false;
+				count = content[contentOffset];
+				if (count == 0)
+					return false;
+				contentOffset += 1 + bitplanes;
+			}
+			content.CopyTo(contentOffset - bitplanes, unpacked, unpackedOffset, bitplanes);
+			count--;
+		}
+		return DecodeSt(unpacked, 0, content, 2, mode, 0);
+	}
+
 	bool DecodeDaliCompressed(byte[] content, int contentLength, int mode)
 	{
 		DaliStream() stream;
@@ -12238,6 +12275,9 @@ public class RECOIL
 		case PackExt("PC3"):
 		case PackExt("PCI"):
 		case PackExt("PCS"):
+		case PackExt("PG1"):
+		case PackExt("PG2"):
+		case PackExt("PG3"):
 		case PackExt("PGC"):
 		case PackExt("PGF"):
 		case PackExt("PI"):
@@ -12280,8 +12320,6 @@ public class RECOIL
 		case PackExt("CL1"):
 		case PackExt("CL2"):
 		case PackExt("PG0"):
-		case PackExt("PG1"):
-		case PackExt("PG2"):
 		case PackExt("SC0"):
 		case PackExt("SC1"):
 		case PackExt("SC2"):
@@ -12797,6 +12835,12 @@ public class RECOIL
 			return DecodePci(content, contentLength);
 		case PackExt("PCS"):
 			return DecodePcs(content, contentLength);
+		case PackExt("PG1"):
+		case PackExt("PG2"):
+			return DecodeSc(content, contentLength)
+				|| DecodeGraphicsProcessor(content, contentLength);
+		case PackExt("PG3"):
+			return DecodeGraphicsProcessor(content, contentLength);
 		case PackExt("PGC"):
 			return DecodePgc(content, contentLength);
 		case PackExt("PGF"):
@@ -12876,8 +12920,6 @@ public class RECOIL
 		case PackExt("CL1"):
 		case PackExt("CL2"):
 		case PackExt("PG0"):
-		case PackExt("PG1"):
-		case PackExt("PG2"):
 		case PackExt("SC0"):
 		case PackExt("SC1"):
 			return DecodeSc(content, contentLength);
