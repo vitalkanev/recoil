@@ -10,10 +10,17 @@ buildscript {
 }
 
 final MANIFEST_FILE = 'build/generated/AndroidManifest.xml'
-ant.xslt(
-    in: '../formats.xml',
-    style: 'AndroidManifest.xsl',
-    out: MANIFEST_FILE)
+task generateManifest() {
+    inputs.files '../formats.xml', 'AndroidManifest.xsl'
+    outputs.file MANIFEST_FILE
+    doFirst {
+        ant.xslt(
+            in: '../formats.xml',
+            style: 'AndroidManifest.xsl',
+            out: MANIFEST_FILE)
+    }
+}
+preBuild.dependsOn generateManifest
 
 final SOURCE_ICON = '../recoil-512x512.png'
 final ICON_DIR = file 'build/generated/res/icons'
@@ -50,6 +57,9 @@ preBuild.dependsOn copyJavaResources
 android {
     compileSdkVersion 24
     buildToolsVersion '25.0.2'
+    defaultConfig {
+        applicationId 'net.sf.recoil'
+    }
     sourceSets {
         main {
             manifest {
