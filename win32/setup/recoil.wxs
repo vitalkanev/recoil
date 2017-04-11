@@ -233,6 +233,17 @@
 								<Extension Id="$(var.EXT)" />
 							<?endforeach?>
 						</ProgId>
+
+						<!-- Set Default Programs -->
+						<RegistryKey Root="HKLM" Key="SOFTWARE\RECOIL\Capabilities">
+							<RegistryValue Name="ApplicationDescription" Type="string" Value="View pictures in native formats of classic computers." />
+							<RegistryKey Key="FileAssociations">
+								<?foreach EXT in $(var.RECOIL_EXTS)?>
+									<RegistryValue Name=".$(var.EXT)" Value="recoilwin.file" Type="string" />
+								<?endforeach?>
+							</RegistryKey>
+						</RegistryKey>
+						<RegistryValue Root="HKLM" Key="SOFTWARE\RegisteredApplications" Name="recoilwin" Value="SOFTWARE\RECOIL\Capabilities" Type="string" />
 					</Component>
 
 					<Component Id="recoil2png.exe" Win64="no">
