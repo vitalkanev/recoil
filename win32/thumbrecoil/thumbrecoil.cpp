@@ -1,7 +1,7 @@
 /*
  * thumbrecoil.cpp - Windows thumbnail provider for RECOIL
  *
- * Copyright (C) 2011-2016  Piotr Fusik
+ * Copyright (C) 2011-2017  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -351,62 +351,65 @@ STDAPI_(BOOL) DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 	return TRUE;
 }
 
+static BOOL MyRegCreateKey(HKEY hk1, LPCSTR subkey, PHKEY hk2)
+{
+	return RegCreateKeyEx(hk1, subkey, 0, NULL, 0, KEY_WRITE, NULL, hk2, NULL) == ERROR_SUCCESS;
+}
+
+static BOOL MyRegSetValueString(HKEY hk1, LPCSTR name, LPCSTR data)
+{
+	return RegSetValueEx(hk1, name, 0, REG_SZ, reinterpret_cast<const BYTE *>(data), strlen(data) + 1) == ERROR_SUCCESS;
+}
+
 static BOOL RegisterCLSID(HKEY hk1, LPCSTR subkey)
 {
 	HKEY hk2;
-	if (RegCreateKeyEx(hk1, subkey, 0, NULL, 0, KEY_WRITE, NULL, &hk2, NULL) != ERROR_SUCCESS)
+	if (!MyRegCreateKey(hk1, subkey, &hk2))
 		return FALSE;
-	static const BYTE CLSID_RECOILThumbProvider_str2[] = CLSID_RECOILThumbProvider_str;
-	BOOL ok = RegSetValueEx(hk2, NULL, 0, REG_SZ, CLSID_RECOILThumbProvider_str2, sizeof(CLSID_RECOILThumbProvider_str2)) == ERROR_SUCCESS;
+	BOOL ok = MyRegSetValueString(hk2, NULL, CLSID_RECOILThumbProvider_str);
 	RegCloseKey(hk2);
 	return ok;
 }
 
 STDAPI __declspec(dllexport) DllRegisterServer(void)
 {
+	char szModulePath[MAX_PATH];
+	if (GetModuleFileName(g_hDll, szModulePath, MAX_PATH) == 0)
+		return E_FAIL;
 	HKEY hk1;
-	if (RegCreateKeyEx(HKEY_CLASSES_ROOT, "CLSID\\" CLSID_RECOILThumbProvider_str, 0, NULL, 0, KEY_WRITE, NULL, &hk1, NULL) != ERROR_SUCCESS)
+	if (!MyRegCreateKey(HKEY_CLASSES_ROOT, "CLSID\\" CLSID_RECOILThumbProvider_str, &hk1))
 		return E_FAIL;
 	HKEY hk2;
-	if (RegCreateKeyEx(hk1, "InProcServer32", 0, NULL, 0, KEY_WRITE, NULL, &hk2, NULL) != ERROR_SUCCESS) {
+	if (!MyRegCreateKey(hk1, "InProcServer32", &hk2)) {
 		RegCloseKey(hk1);
 		return E_FAIL;
 	}
-	char szModulePath[MAX_PATH];
-	DWORD nModulePathLen = GetModuleFileName(g_hDll, szModulePath, MAX_PATH);
-	static const BYTE szThreadingModel[] = "Both";
-	if (RegSetValueEx(hk2, NULL, 0, REG_SZ, reinterpret_cast<CONST BYTE *>(szModulePath), nModulePathLen) != ERROR_SUCCESS
-	 || RegSetValueEx(hk2, "ThreadingModel", 0, REG_SZ, szThreadingModel, sizeof(szThreadingModel)) != ERROR_SUCCESS) {
-		RegCloseKey(hk2);
-		RegCloseKey(hk1);
-		return E_FAIL;
-	}
+	BOOL ok = MyRegSetValueString(hk2, NULL, szModulePath)
+		&& MyRegSetValueString(hk2, "ThreadingModel", "Both");
 	RegCloseKey(hk2);
 	RegCloseKey(hk1);
+	if (!ok)
+		return E_FAIL;
 
 	for (int i = 0; i < N_EXTS; i++) {
-		if (RegCreateKeyEx(HKEY_CLASSES_ROOT, extensions[i], 0, NULL, 0, KEY_WRITE, NULL, &hk1, NULL) != ERROR_SUCCESS)
+		if (!MyRegCreateKey(HKEY_CLASSES_ROOT, extensions[i], &hk1))
 			return E_FAIL;
-		if (!RegisterCLSID(hk1, "ShellEx\\{bb2e617c-0920-11d1-9a0b-00c04fc2d6c1}") // IPersistFile+IExtractImage
+		ok = RegisterCLSID(hk1, "ShellEx\\{bb2e617c-0920-11d1-9a0b-00c04fc2d6c1}") // IPersistFile+IExtractImage
 #if THUMBRECOIL_VISTA
-		 || !RegisterCLSID(hk1, "ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}") // IInitializeWithStream+IThumbnailProvider
+			&& RegisterCLSID(hk1, "ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}") // IInitializeWithStream+IThumbnailProvider
 #endif
-		)
-		{
-			RegCloseKey(hk1);
-			return E_FAIL;
-		}
+			&& MyRegSetValueString(hk1, "PerceivedType", "image");
 		RegCloseKey(hk1);
+		if (!ok)
+			return E_FAIL;
 	}
 
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Approved", 0, KEY_SET_VALUE, &hk1) != ERROR_SUCCESS)
 		return E_FAIL;
-	static const BYTE szDescription[] = "RECOIL Thumbnail Handler";
-	if (RegSetValueEx(hk1, CLSID_RECOILThumbProvider_str, 0, REG_SZ, szDescription, sizeof(szDescription)) != ERROR_SUCCESS) {
-		RegCloseKey(hk1);
-		return E_FAIL;
-	}
+	ok = MyRegSetValueString(hk1, CLSID_RECOILThumbProvider_str, "RECOIL Thumbnail Handler");
 	RegCloseKey(hk1);
+	if (!ok)
+		return E_FAIL;
 	return S_OK;
 }
 
