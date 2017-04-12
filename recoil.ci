@@ -8835,6 +8835,18 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeFge(byte[] content, int contentLength)
+	{
+		if (contentLength != 1286)
+			return false;
+		SetSize(256, 160, RECOILResolution.Xe4x4);
+		byte[256 * 160] frame;
+		GtiaColors[8] = 0x00;
+		for (int offset = 0; offset < 1024; offset += 256)
+			DecodeAtari8Gr9(content, 6, 32, frame, offset, 1024, 256, 40);
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodeTxs(byte[] content, int contentLength)
 	{
 		if (contentLength != 262
@@ -12141,6 +12153,7 @@ public class RECOIL
 		case PackExt("EZA"):
 		case PackExt("FD2"):
 		case PackExt("FFLI"):
+		case PackExt("FGE"):
 		case PackExt("FLI"):
 		case PackExt("FNT"):
 		case PackExt("FP2"):
@@ -12580,6 +12593,8 @@ public class RECOIL
 			return DecodeFli(content, contentLength);
 		case PackExt("FFLI"):
 			return DecodeFfli(content, contentLength);
+		case PackExt("FGE"):
+			return DecodeFge(content, contentLength);
 		case PackExt("FLI"):
 			return DecodeFli(content, contentLength)
 				|| DecodeBml(content, contentLength);
