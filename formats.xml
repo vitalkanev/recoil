@@ -166,6 +166,7 @@
 		<format name="The Graphics Magician Picture Painter" width="160" height="192" colors="128"><ext>SPC</ext></format>
 		<format name="16x16 font" colors="2"><ext>SXS</ext></format>
 		<format name="Taquart Interlace Picture" maxWidth="160" maxHeight="119" frames="2"><ext>TIP</ext></format>
+		<format name="Texture Maker0 16x16x16" width="16" height="16" colors="16"><ext>TX0</ext></format>
 		<format name="Texture Editor by Mikey" width="80" height="96" grayscale="16"><ext>TXE</ext></format>
 		<format width="16" height="16" grayscale="16"><ext>TXS</ext></format>
 		<format name="VertiZontal Interlacing" width="160" height="200" grayscale="31" frames="2"><ext>VZI</ext></format>

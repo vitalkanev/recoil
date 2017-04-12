@@ -8878,23 +8878,33 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
-	bool DecodeTxs(byte[] content, int contentLength)
+	bool Decode16x16x16(byte[] content, int contentOffset, int colbak)
 	{
-		if (contentLength != 262
-		 || content[0] != 0xff || content[1] != 0xff
-		 || content[2] != 0 || content[3] != 6
-		 || content[4] != 0xff || content[5] != 6)
-			return false;
 		SetSize(64, 64, RECOILResolution.Xe4x4);
 		for (int y = 0; y < 64; y++) {
 			for (int x = 0; x < 64; x++) {
-				int c = content[6 + ((y & ~3) << 2) + (x >> 2)];
+				int c = content[contentOffset + ((y & ~3) << 2) + (x >> 2)];
 				if (c > 0xf)
 					return false;
-				Pixels[(y << 6) + x] = Atari8Palette[c];
+				Pixels[(y << 6) + x] = Atari8Palette[colbak | c];
 			}
 		}
 		return true;
+	}
+
+	bool DecodeTx0(byte[] content, int contentLength)
+	{
+		return contentLength == 257
+			&& Decode16x16x16(content, 0, content[256] & 0xfe);
+	}
+
+	bool DecodeTxs(byte[] content, int contentLength)
+	{
+		return contentLength == 262
+			&& content[0] == 0xff && content[1] == 0xff
+			&& content[2] == 0 && content[3] == 6
+			&& content[4] == 0xff && content[5] == 6
+			&& Decode16x16x16(content, 6, 0);
 	}
 
 	bool DecodeA4r(byte[] content, int contentLength)
@@ -12432,6 +12442,7 @@ public class RECOIL
 		case PackExt("TRE"):
 		case PackExt("TRP"):
 		case PackExt("TRU"):
+		case PackExt("TX0"):
 		case PackExt("TXE"):
 		case PackExt("TXS"):
 		case PackExt("VBM"):
@@ -13073,6 +13084,8 @@ public class RECOIL
 			return DecodeTrp(content, contentLength);
 		case PackExt("TRU"):
 			return DecodeTru(content, contentLength);
+		case PackExt("TX0"):
+			return DecodeTx0(content, contentLength);
 		case PackExt("TXE"):
 			return DecodeTxe(content, contentLength);
 		case PackExt("TXS"):
