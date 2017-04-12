@@ -40,6 +40,7 @@ enum RECOILResolution
 	Xe2x2,
 	Xe4x2,
 	Xe4x4,
+	Xe8x8,
 	Portfolio1x1,
 	St1x1,
 	St1x2,
@@ -2581,6 +2582,7 @@ public class RECOIL
 		case RECOILResolution.Xe2x2:
 		case RECOILResolution.Xe4x2:
 		case RECOILResolution.Xe4x4:
+		case RECOILResolution.Xe8x8:
 			return "Atari 8-bit";
 		case RECOILResolution.Portfolio1x1:
 			return "Atari Portfolio";
@@ -2658,6 +2660,7 @@ public class RECOIL
 		case RECOILResolution.Xe4x4:
 			return Width >> 2;
 		case RECOILResolution.Amiga8x1:
+		case RECOILResolution.Xe8x8:
 			return Width >> 3;
 		default:
 			return Width;
@@ -2684,6 +2687,8 @@ public class RECOIL
 		case RECOILResolution.Amiga1x4:
 		case RECOILResolution.Xe4x4:
 			return Height >> 2;
+		case RECOILResolution.Xe8x8:
+			return Height >> 3;
 		default:
 			return Height;
 		}
@@ -8430,6 +8435,14 @@ public class RECOIL
 		GtiaColors[5] = content[contentOffset + 1] & 0xfe;
 	}
 
+	void SetXeOsDefaultColors()
+	{
+		GtiaColors[8] = 0x00;
+		GtiaColors[4] = 0x28;
+		GtiaColors[5] = 0xca;
+		GtiaColors[6] = 0x94;
+	}
+
 	void SetGr15DefaultColors()
 	{
 		GtiaColors[8] = 0x00;
@@ -8508,6 +8521,16 @@ public class RECOIL
 			}
 			contentOffset += Width >> 3;
 			frameOffset += Width << 1;
+		}
+	}
+
+	void DecodeAtari8Gr3(byte[] content, byte[] frame)
+	{
+		for (int y = 0; y < Height; y++) {
+			for (int x = 0; x < Width; x++) {
+				int c = content[(y >> 3) * (Width >> 5) + (x >> 5)] >> (~(x >> 2) & 6) & 3;
+				frame[y * Width + x] = GtiaColors[c == 0 ? 8 : c + 3];
+			}
 		}
 	}
 
@@ -8761,6 +8784,17 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeSg3(byte[] content, int contentLength)
+	{
+		if (contentLength != 240)
+			return false;
+		SetSize(320, 192, RECOILResolution.Xe8x8);
+		byte[320 * 192] frame;
+		SetXeOsDefaultColors();
+		DecodeAtari8Gr3(content, frame);
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodeGr7(byte[] content, int contentOffset, int contentSize)
 	{
 		if (contentSize > 4804 || contentSize % 40 != 4)
@@ -8779,10 +8813,7 @@ public class RECOIL
 			return false;
 		SetSize(320, 192, RECOILResolution.Xe2x2);
 		byte[320 * 192] frame;
-		GtiaColors[8] = 0x00;
-		GtiaColors[4] = 0x28;
-		GtiaColors[5] = 0xca;
-		GtiaColors[6] = 0x94;
+		SetXeOsDefaultColors();
 		DecodeAtari8Gr7(content, 0, frame, 0, 96);
 		return ApplyAtari8Palette(frame);
 	}
@@ -12352,6 +12383,7 @@ public class RECOIL
 		case PackExt("YJK"):
 		case PackExt("SCR"):
 		case PackExt("SCS4"):
+		case PackExt("SG3"):
 		case PackExt("SGE"):
 		case PackExt("SH3"):
 		case PackExt("SHC"):
@@ -12966,6 +12998,8 @@ public class RECOIL
 			return DecodeSd(content, contentLength, 1);
 		case PackExt("SD2"):
 			return DecodeSd(content, contentLength, 2);
+		case PackExt("SG3"):
+			return DecodeSg3(content, contentLength);
 		case PackExt("SGE"):
 			return DecodeSge(content, contentLength);
 		case PackExt("SH3"):
