@@ -108,6 +108,8 @@
 		and only differ by their extensions.
 		Such formats are listed here with the plus sign combining the extensions.
 		Some ports of RECOIL don't support multi-file pictures.</p>
+		<p>Some graphics programs didn't enforce any filename extension.
+		I have chosen an arbitrary one for these formats.</p>
 		<p>"2 frames" means the picture is composed of two quickly alternating frames so that
 		a human perceives more colors (for example black alternated with gray looks like dark gray).
 		On Atari 8-bit and Commodore 64 this technique is commonly (but incorrectly)
@@ -139,6 +141,7 @@
 						<xsl:for-each select="ext">
 							<xsl:if test="position() != 1">, </xsl:if>
 							<xsl:value-of select="." />
+							<xsl:if test="@fake"> (arbitrary)</xsl:if>
 						</xsl:for-each>
 						<xsl:for-each select="companionExt">
 							<xsl:text>+</xsl:text>

@@ -75,7 +75,7 @@
 		<format name="Ascii-Art Editor" maxWidth="64" maxHeight="24" unit="characters" colors="2">
 			<!-- I only see up to 40x21 in the editor, but the sample file SIANO.ART is bigger --><ext>ART</ext>
 		</format>
-		<format name="Artist by David Eaton" width="160" height="80" colors="4"><ext>ART</ext></format>
+		<format name="Artist by David Eaton" width="160" height="80" colors="4"><ext fake="true">ART</ext></format>
 		<format width="160" height="192" grayscale="16">
 			<ext>BG9</ext>
 			<ext>G09</ext>
@@ -89,6 +89,7 @@
 		<format name="Trzmiel (compressed)" width="320" height="192" colors="2"><ext>CPR</ext></format>
 		<format name="Cut Creator" width="96" height="99" colors="2"><ext>CUT</ext></format>
 		<format width="320" height="192" colors="10" frames="2"><ext>DIN</ext></format>
+		<format name="DrawIt" width="160" height="96" colors="4"><ext fake="true">DIT</ext></format>
 		<format name="Dir Logo Maker" width="11" height="16" unit="characters" colors="2"><ext>DLM</ext></format>
 		<format name="Atari CAD" width="320" height="160" colors="2"><ext>DRG</ext></format>
 		<format name="Floor Designer" width="64" height="40" grayscale="16"><ext>FGE</ext></format>
@@ -138,9 +139,9 @@
 		<format name="McPainter" width="160" height="200" colors="16" frames="2"><ext>MCP</ext></format>
 		<format name="Paradox" width="160" height="100" colors="16"><ext>MCPP</ext></format>
 		<format width="160" height="192" colors="9"><ext>MCS</ext></format>
-		<format name="Magic Painter" width="160" height="96"><ext>MGP</ext></format>
+		<format name="Magic Painter" width="160" height="96"><ext fake="true">MGP</ext></format>
 		<format name="Micro Illustrator / Graphics 15" width="160" maxHeight="240" colors="4"><ext>MIC</ext></format>
-		<format name="AtariGraphics" width="160" height="192" colors="4"><ext>MIC</ext></format>
+		<format name="AtariGraphics" width="160" height="192" colors="4"><ext fake="true">MIC</ext></format>
 		<format name="AtariTools-800 missile" width="2" height="240" colors="2"><ext>MIS</ext></format>
 		<format name="Daisy-Dot font" colors="2"><ext>NLQ</ext></format>
 		<format name="Graphic Arts Department" width="160" height="96" colors="128"><ext>PIC</ext></format>
@@ -503,7 +504,7 @@
 	<platform name="ZX81" href="http://en.wikipedia.org/wiki/ZX81">
 		<format name="Sinclair BASIC" width="32" height="24" unit="characters" colors="2"><ext>P</ext></format>
 		<format name="ZXPaintyONE v2.0" width="32" height="24" unit="characters" colors="2"><ext>RAW</ext></format>
-		<format name="ZXpaintyONE" width="32" height="24" unit="characters" colors="2"><ext>ZP1</ext></format>
+		<format name="ZXpaintyONE" width="32" height="24" unit="characters" colors="2"><ext fake="true">ZP1</ext></format>
 	</platform>
 	<platform name="ZX Spectrum" href="http://en.wikipedia.org/wiki/ZX_Spectrum">
 		<format width="256" height="192" colors="8" frames="3"><ext>3</ext></format>

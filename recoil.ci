@@ -8795,6 +8795,17 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeDit(byte[] content, int contentLength)
+	{
+		if (contentLength != 3845)
+			return false;
+		SetSize(320, 192, RECOILResolution.Xe2x2);
+		byte[320 * 192] frame;
+		SetPF0123Bak(content, 3840);
+		DecodeAtari8Gr7(content, 0, frame, 0, 96);
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodeGr7(byte[] content, int contentOffset, int contentSize)
 	{
 		if (contentSize > 4804 || contentSize % 40 != 4)
@@ -12193,6 +12204,7 @@ public class RECOIL
 		case PackExt("DG1"):
 		case PackExt("DHR"):
 		case PackExt("DIN"):
+		case PackExt("DIT"):
 		case PackExt("DLM"):
 		case PackExt("DOL"):
 		case PackExt("VID"):
@@ -12619,6 +12631,8 @@ public class RECOIL
 				|| DecodeAppleIIDhr(content, contentLength);
 		case PackExt("DIN"):
 			return DecodeAtari8Ice(content, contentLength, false, 3);
+		case PackExt("DIT"):
+			return DecodeDit(content, contentLength);
 		case PackExt("DLM"):
 			return DecodeDlm(content, contentLength);
 		case PackExt("DOL"):
