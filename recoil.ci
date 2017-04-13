@@ -3436,7 +3436,8 @@ public class RECOIL
 	bool DecodeAmstradFnt(byte[] content, int contentLength)
 	{
 		int contentOffset = GetAmstradHeader(content, contentLength);
-		if (contentLength != contentOffset + 768)
+		if (contentLength != contentOffset + 768
+		 && (contentLength != 896 || contentOffset != 0))
 			return false;
 		SetSize(256, 24, RECOILResolution.Amstrad1x1);
 		DecodeBlackAndWhiteFont(content, contentOffset, contentLength, 8);
