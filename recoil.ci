@@ -47,6 +47,7 @@ enum RECOILResolution
 	Ste1x1,
 	Ste1x2,
 	Tt1x1,
+	Tt2x1,
 	Falcon1x1,
 	Falcon2x1,
 	Bbc1x1,
@@ -2593,6 +2594,7 @@ public class RECOIL
 		case RECOILResolution.Ste1x2:
 			return "Atari STE";
 		case RECOILResolution.Tt1x1:
+		case RECOILResolution.Tt2x1:
 			return "Atari TT";
 		case RECOILResolution.Falcon1x1:
 		case RECOILResolution.Falcon2x1:
@@ -2648,6 +2650,7 @@ public class RECOIL
 		case RECOILResolution.Amstrad2x1:
 		case RECOILResolution.Xe2x1:
 		case RECOILResolution.Xe2x2:
+		case RECOILResolution.Tt2x1:
 		case RECOILResolution.Falcon2x1:
 		case RECOILResolution.Bbc2x1:
 		case RECOILResolution.C162x1:
@@ -2758,6 +2761,7 @@ public class RECOIL
 		int offset = y * Width;
 		switch (Resolution) {
 		case RECOILResolution.Amiga2x1:
+		case RECOILResolution.Tt2x1:
 		case RECOILResolution.Falcon2x1:
 			offset += x << 1;
 			Pixels[offset + 1] = Pixels[offset] = rgb;
@@ -5967,9 +5971,9 @@ public class RECOIL
 		case 154114: // PI4 TT-Low
 			if (content[1] != 7)
 				return false;
-			SetSize(320, 480, RECOILResolution.Tt1x1); // FIXME: 2x1
+			SetSize(640, 480, RECOILResolution.Tt2x1);
 			SetStPalette(content, 2, 256);
-			DecodeBitplanes(content, 514, 320, 8, 0, 320, 480);
+			DecodeScaledBitplanes(content, 514, 320, 480, 8, false, null);
 			return true;
 		default:
 			return false;
@@ -7898,9 +7902,9 @@ public class RECOIL
 		}
 	}
 
-	void DecodeScaledBitplanes(byte[] unpacked, int width, int height, int bitplanes, bool ehb, MultiPalette multiPalette)
+	void DecodeScaledBitplanes(byte[] content, int contentOffset, int width, int height, int bitplanes, bool ehb, MultiPalette multiPalette)
 	{
-		int bytesPerBitplane = width + 15 >> 4 << 1;
+		int contentStride = (width + 15 >> 4 << 1) * bitplanes;
 		for (int y = 0; y < height; y++) {
 			if (multiPalette != null)
 				multiPalette.SetLinePalette(this, y);
@@ -7909,13 +7913,14 @@ public class RECOIL
 					ContentPalette[32 + c] = ContentPalette[c] >> 1 & 0x7f7f7f;
 			}
 			for (int x = 0; x < width; x++) {
-				int offset = (y * bytesPerBitplane + (x >> 3 & ~1)) * bitplanes + (x >> 3 & 1);
+				int offset = contentOffset + (x >> 3 & ~1) * bitplanes + (x >> 3 & 1);
 				int bit = ~x & 7;
 				int c = 0;
 				for (int bitplane = bitplanes; --bitplane >= 0; )
-					c = c << 1 | unpacked[offset + (bitplane << 1)] >> bit & 1;
+					c = c << 1 | content[offset + (bitplane << 1)] >> bit & 1;
 				SetScaledPixel(x, y, ContentPalette[c]);
 			}
+			contentOffset += contentStride;
 		}
 	}
 
@@ -8098,7 +8103,7 @@ public class RECOIL
 			}
 			else {
 				// palette
-				DecodeScaledBitplanes(unpacked, width, height, bitplanes, bitplanes == 6 && ((camg & 0x80) != 0 || colors == 32), multiPalette);
+				DecodeScaledBitplanes(unpacked, 0, width, height, bitplanes, bitplanes == 6 && ((camg & 0x80) != 0 || colors == 32), multiPalette);
 			}
 		}
 		else {
