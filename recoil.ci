@@ -1587,6 +1587,82 @@ class HimStream : RleStream
 	}
 }
 
+class IcStream : RleStream
+{
+	bool ReadCount()
+	{
+		RepeatCount = 257;
+		while (ReadByte() == 1)
+			RepeatCount += 256;
+		int b = ReadByte();
+		if (b < 0)
+			return false;
+		RepeatCount += b;
+		return true;
+	}
+
+	override bool ReadCommand()
+	{
+		int b = ReadByte();
+		int escape = Content[0x42];
+		if (b != escape) {
+			RepeatCount = 1;
+			RepeatValue = b;
+			return true;
+		}
+		b = ReadByte();
+		if (b == escape) {
+			RepeatCount = 1;
+			RepeatValue = b;
+			return true;
+		}
+		switch (b) {
+		case -1:
+			return false;
+		case 0:
+			b = ReadByte();
+			if (b < 0)
+				return false;
+			RepeatCount = b + 1;
+			break;
+		case 1:
+			if (!ReadCount())
+				return false;
+			break;
+		case 2:
+			b = ReadByte();
+			switch (b) {
+			case -1:
+				return false;
+			case 0:
+				// end of data
+				RepeatCount = 32000;
+				break;
+			case 1:
+				if (!ReadCount())
+					return false;
+				break;
+			case 2:
+				while (ReadByte() > 0) {
+					// ignore
+				}
+				RepeatCount = 0;
+				break;
+			default:
+				RepeatCount = b + 1;
+				break;
+			}
+			RepeatValue = 0;
+			return true;
+		default:
+			RepeatCount = b + 1;
+			break;
+		}
+		RepeatValue = ReadByte();
+		return true;
+	}
+}
+
 class DeepStream : PackBitsStream
 {
 	int Components;
@@ -6085,6 +6161,21 @@ public class RECOIL
 	bool DecodeSd(byte[] content, int contentLength, int mode)
 	{
 		return contentLength == 32128 && DecodeSt(content, 128, content, 4, mode, 0);
+	}
+
+	bool DecodeIc(byte[] content, int contentLength)
+	{
+		if (contentLength < 68
+		 || !IsStringAt(content, 0, "IMDC") || content[4] != 0
+		 || content[0x40] != 0xc8 || content[0x41] != 2)
+			return false;
+		byte[32000] unpacked;
+		IcStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 0x43;
+		rle.ContentLength = contentLength;
+		return rle.Unpack(unpacked, 0, 160, 32000)
+			&& DecodeSt(unpacked, 0, content, 6, content[5], 0);
 	}
 
 	bool DecodeGraphicsProcessor(byte[] content, int contentLength)
@@ -12263,6 +12354,9 @@ public class RECOIL
 		case PackExt("HRS"):
 		case PackExt("IB3"):
 		case PackExt("IBI"):
+		case PackExt("IC1"):
+		case PackExt("IC2"):
+		case PackExt("IC3"):
 		case PackExt("ICE"):
 		case PackExt("ICN"):
 		case PackExt("IFF"):
@@ -12753,6 +12847,10 @@ public class RECOIL
 		case PackExt("IB3"):
 		case PackExt("IBI"):
 			return DecodeIbi(content, contentLength);
+		case PackExt("IC1"):
+		case PackExt("IC2"):
+		case PackExt("IC3"):
+			return DecodeIc(content, contentLength);
 		case PackExt("ICE"):
 			return contentLength > 1024 && DecodeAtari8Ice(content, contentLength, true, content[0]);
 		case PackExt("ICN"):
