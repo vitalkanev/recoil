@@ -5891,17 +5891,7 @@ public class RECOIL
 	{
 		SetSize(width, height << 1, IsStePalette(palette, paletteOffset, 4) ? RECOILResolution.Ste1x2 : RECOILResolution.St1x2);
 		SetStPalette(palette, paletteOffset, 4);
-		height <<= blend;
-		for (int y = 0; y < height; y++) {
-			int lineOffset = y * width;
-			for (int x = 0; x < width; x++) {
-				int offset = bitmapOffset + (lineOffset >> 2) + (x >> 2 & ~3) + (x >> 3 & 1);
-				int bit = ~x & 7;
-				int c = bitmap[offset] >> bit & 1 | (bitmap[offset + 2] >> bit & 1) << 1;
-				int pixelsOffset = (lineOffset << 1) + x;
-				Pixels[pixelsOffset + width] = Pixels[pixelsOffset] = ContentPalette[c];
-			}
-		}
+		DecodeScaledBitplanes(bitmap, bitmapOffset, width, height << blend, 2, false, null);
 	}
 
 	bool DecodeSrt(byte[] content, int contentLength)
