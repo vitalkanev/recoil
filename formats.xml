@@ -244,7 +244,10 @@
 		<format name="Graphics Processor" width="640" height="400" colors="2"><ext>PG3</ext></format>
 		<format name="DEGAS" maxWidth="416" maxHeight="560" colors="16"><ext>PI1</ext></format>
 		<format name="DEGAS" width="640" height="200" colors="4"><ext>PI2</ext></format>
-		<format name="DEGAS" width="640" height="400" colors="2"><ext>PI3</ext></format>
+		<format name="DEGAS" width="640" height="400" colors="2">
+			<ext>PI3</ext>
+			<ext name="GFA Raytrace">SUH</ext>
+		</format>
 		<format name="PaintPro ST"><ext>PIC</ext></format>
 		<format width="320" height="200" colors="256" frames="2"><ext>PL4</ext></format>
 		<format name="PaintShop (compressed)" width="640" height="400" colors="2"><ext>PSC</ext></format>

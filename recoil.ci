@@ -12461,6 +12461,7 @@ public class RECOIL
 		case PackExt("PI3"):
 		case PackExt("PI5"):
 		case PackExt("PI6"):
+		case PackExt("SUH"):
 		case PackExt("PI4"):
 		case PackExt("PI7"):
 		case PackExt("PI9"):
@@ -13037,6 +13038,7 @@ public class RECOIL
 		case PackExt("PI3"):
 		case PackExt("PI5"):
 		case PackExt("PI6"):
+		case PackExt("SUH"):
 			return DecodeStPi(content, contentLength);
 		case PackExt("PI4"):
 			return DecodeFuckpaint(content, contentLength)
