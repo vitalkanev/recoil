@@ -8940,7 +8940,7 @@ public class RECOIL
 	{
 		if (contentLength != 7681)
 			return false;
-		GtiaColors[8] = content[7680];
+		GtiaColors[8] = content[7680] & 0xfe;
 		SetSize(320, 192, RECOILResolution.Xe4x1);
 		byte[320 * 192] frame;
 		DecodeAtari8Gr9(content, 0, 40, frame, 0, 320, 320, 192);
@@ -9181,9 +9181,9 @@ public class RECOIL
 		SetSize(320, 192, RECOILResolution.Xe2x1);
 		byte[320 * 192] frame;
 		GtiaColors[8] = 0x00;
-		GtiaColors[4] = 0x0d;
-		GtiaColors[5] = 0x09;
-		GtiaColors[6] = 0x05;
+		GtiaColors[4] = 0x0c;
+		GtiaColors[5] = 0x08;
+		GtiaColors[6] = 0x04;
 		DecodeAtari8Gr15(unpacked, 0, 40, frame, 0, 320, 192);
 		return ApplyAtari8Palette(frame);
 	}
