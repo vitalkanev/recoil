@@ -278,6 +278,7 @@
 		<format name="Spectrum 512 (enhanced)" width="320" height="199" colors="29791" frames="2"><ext>SPU</ext></format>
 		<format name="Spectrum 512 (extended)" width="320" height="199" colors="4096"><ext>SPX</ext></format>
 		<format name="Synthetic Arts" width="640" height="200" colors="4"><ext>SRT</ext></format>
+		<format name="Sinbad Slideshow" width="320" height="200" colors="16"><ext>SSB</ext></format>
 		<format name="Tiny Stuff" width="320" height="200" colors="16">
 			<ext>TN1</ext>
 			<ext>TN4</ext><!-- with palette animation we don't support -->

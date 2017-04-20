@@ -6098,6 +6098,10 @@ public class RECOIL
 		return contentLength == 32512
 			&& DecodeStLow(content, 0, content, 32000, 320, 200);
 
+	bool DecodeSsb(byte[] content, int contentLength)
+		return contentLength == 32768
+			&& DecodeStLow(content, 0, content, 32000, 320, 200);
+
 	bool DecodeGfaArtist(byte[] content, int contentLength)
 	{
 		switch (contentLength) {
@@ -12555,6 +12559,7 @@ public class RECOIL
 		case PackExt("SR5"):
 		case PackExt("SR7"):
 		case PackExt("SRT"):
+		case PackExt("SSB"):
 		case PackExt("SXS"):
 		case PackExt("TCP"):
 		case PackExt("TG1"):
@@ -13201,6 +13206,8 @@ public class RECOIL
 			return DecodeSr7(filename, content, contentLength);
 		case PackExt("SRT"):
 			return DecodeSrt(content, contentLength);
+		case PackExt("SSB"):
+			return DecodeSsb(content, contentLength);
 		case PackExt("SXS"):
 			return DecodeSxs(content, contentLength);
 		case PackExt("TCP"):
