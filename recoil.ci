@@ -6139,6 +6139,15 @@ public class RECOIL
 		return contentLength == 63054 && content[0] == 'K' && content[1] == 'D'
 			&& DecodeStLowWithStride(content, 34, 230, content, 2, 448, 274);
 
+	bool DecodePpp(byte[] content, int contentLength)
+	{
+		// TODO: compression
+		return contentLength == 32079
+			&& IsStringAt(content, 0, "PABLO PACKED PICTURE: Groupe CDND \r\n32036\r\n")
+			&& content[0x2c] == 0 && content[0x2d] == 0x7d && content[0x2e] == 0x24
+			&& DecodeSt(content, 0x4f, content, 0x2f, content[0x2b], 0);
+	}
+
 	bool DecodeStRgb(byte[] content, int contentLength)
 	{
 		if (contentLength != 96102)
@@ -6155,9 +6164,7 @@ public class RECOIL
 	}
 
 	bool DecodeSd(byte[] content, int contentLength, int mode)
-	{
 		return contentLength == 32128 && DecodeSt(content, 128, content, 4, mode, 0);
-	}
 
 	bool DecodeIc(byte[] content, int contentLength)
 	{
@@ -12489,6 +12496,8 @@ public class RECOIL
 		case PackExt("PMD"):
 		case PackExt("PMG"):
 		case PackExt("PNT"):
+		case PackExt("PPP"):
+		case PackExt("PA3"):
 		case PackExt("TPI"):
 		case PackExt("PSC"):
 		case PackExt("Q4"):
@@ -13083,6 +13092,9 @@ public class RECOIL
 		case PackExt("PNT"):
 		case PackExt("TPI"):
 			return DecodePnt(content, contentLength);
+		case PackExt("PPP"):
+		case PackExt("PA3"):
+			return DecodePpp(content, contentLength);
 		case PackExt("PSC"):
 			return DecodePsc(content, contentLength);
 		case PackExt("Q4"):
