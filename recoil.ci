@@ -5182,11 +5182,8 @@ public class RECOIL
 	}
 
 	bool DecodePmg(byte[] content, int contentLength)
-	{
-		if (contentLength != 9332)
-			return false;
-		return DecodeC64Multicolor(320, content, 0x74, 0x2074, -0x1fb7, content[0x1fb4]);
-	}
+		return contentLength == 9332
+			&& DecodeC64Multicolor(320, content, 0x74, 0x2074, -0x1fb7, content[0x1fb4]);
 
 	bool DecodeKoa(byte[] content, int contentLength)
 	{
@@ -5612,9 +5609,8 @@ public class RECOIL
 		rle.ContentOffset = 7;
 		rle.ContentLength = contentLength;
 		byte[32000] unpacked;
-		if (!rle.Unpack(unpacked, 0, unpackedStride, 32000))
-			return false;
-		return DecodeDoo(unpacked, 32000);
+		return rle.Unpack(unpacked, 0, unpackedStride, 32000)
+			&& DecodeDoo(unpacked, 32000);
 	}
 
 	static int FillPscLine(byte[] unpacked, int unpackedOffset, int value)
@@ -6099,11 +6095,8 @@ public class RECOIL
 	}
 
 	bool DecodeArtDirector(byte[] content, int contentLength)
-	{
-		if (contentLength != 32512)
-			return false;
-		return DecodeStLow(content, 0, content, 32000, 320, 200);
-	}
+		return contentLength == 32512
+			&& DecodeStLow(content, 0, content, 32000, 320, 200);
 
 	bool DecodeCel(byte[] content, int contentLength)
 	{
@@ -6130,11 +6123,8 @@ public class RECOIL
 	}
 
 	bool DecodeKid(byte[] content, int contentLength)
-	{
-		if (contentLength != 63054 || content[0] != 'K' || content[1] != 'D')
-			return false;
-		return DecodeStLowWithStride(content, 34, 230, content, 2, 448, 274);
-	}
+		return contentLength == 63054 && content[0] == 'K' && content[1] == 'D'
+			&& DecodeStLowWithStride(content, 34, 230, content, 2, 448, 274);
 
 	bool DecodeStRgb(byte[] content, int contentLength)
 	{
@@ -6215,9 +6205,8 @@ public class RECOIL
 		stream.ContentOffset = 32;
 		stream.ContentLength = contentLength;
 		int countLength = stream.ParseInt();
-		if (countLength <= 0 || stream.ParseInt() <= 0)
-			return false;
-		return stream.Decode(countLength, this, 0, mode);
+		return countLength > 0 && stream.ParseInt() > 0
+			&& stream.Decode(countLength, this, 0, mode);
 	}
 
 	bool DecodeRgh(byte[] content, int contentLength)
@@ -6327,9 +6316,8 @@ public class RECOIL
 		}
 		switch (content[2]) {
 		case 0:
-			if (contentOffset + 32000 != contentLength)
-				return false;
-			return DecodeSt(content, contentOffset, content, 4, content[3], 0);
+			return contentOffset + 32000 == contentLength
+				&& DecodeSt(content, contentOffset, content, 4, content[3], 0);
 		case 1: {
 				byte[32000] unpacked;
 				CaStream() rle;
@@ -7482,9 +7470,8 @@ public class RECOIL
 	bool DecodeDel(byte[] content, int contentLength)
 	{
 		byte[96000] unpacked;
-		if (!CaStream.UnpackDel(content, contentLength, unpacked, 2))
-			return false;
-		return DecodeFuckpaint(unpacked, 77824);
+		return CaStream.UnpackDel(content, contentLength, unpacked, 2)
+			&& DecodeFuckpaint(unpacked, 77824);
 	}
 
 	bool DecodeDph(byte[] content, int contentLength)
@@ -7549,34 +7536,31 @@ public class RECOIL
 
 	bool DecodeTrp(byte[] content, int contentLength)
 	{
-		if (contentLength < 9
-		 || !(IsStringAt(content, 0, "TRUP") || IsStringAt(content, 0, "tru?")))
-			return false;
-		return DecodeFalconTrueColorVariable(content, contentLength, 4, 8);
+		return contentLength >= 9
+			&& (IsStringAt(content, 0, "TRUP") || IsStringAt(content, 0, "tru?"))
+			&& DecodeFalconTrueColorVariable(content, contentLength, 4, 8);
 	}
 
 	bool DecodeTru(byte[] content, int contentLength)
 	{
-		if (contentLength < 256 || !IsStringAt(content, 0, "Indy"))
-			return false;
-		return DecodeFalconTrueColorVariable(content, contentLength, 4, 256);
+		return contentLength >= 256
+			&& IsStringAt(content, 0, "Indy")
+			&& DecodeFalconTrueColorVariable(content, contentLength, 4, 256);
 	}
 
 	bool DecodeTg1(byte[] content, int contentLength)
 	{
-		if (contentLength < 20 || !IsStringAt(content, 0, "COKE format.")
-		 || content[16] != 0 || content[17] != 0x12)
-			return false;
-		return DecodeFalconTrueColorVariable(content, contentLength, 12, 18);
+		return contentLength >= 20 && IsStringAt(content, 0, "COKE format.")
+			&& content[16] == 0 && content[17] == 0x12
+			&& DecodeFalconTrueColorVariable(content, contentLength, 12, 18);
 	}
 
 	bool DecodeTcp(byte[] content, int contentLength)
 	{
-		if (contentLength < 218 || !IsStringAt(content, 0, "TRUECOLR")
-		 || content[12] != 0 || content[13] != 0x12 || content[14] != 0 || content[15] != 1
-		 || content[16] != 0 || content[17] != 1 || !IsStringAt(content, 0x12, "PICT"))
-			return false;
-		return DecodeFalconTrueColorVariable(content, contentLength, 0x1c, 0xd8);
+		return contentLength >= 218 && IsStringAt(content, 0, "TRUECOLR")
+			&& content[12] == 0 && content[13] == 0x12 && content[14] == 0 && content[15] == 1
+			&& content[16] == 0 && content[17] == 1 && IsStringAt(content, 0x12, "PICT")
+			&& DecodeFalconTrueColorVariable(content, contentLength, 0x1c, 0xd8);
 	}
 
 	bool DecodeTre(byte[] content, int contentLength)
@@ -7735,10 +7719,9 @@ public class RECOIL
 		int pixelsLength;
 		switch (bitplanes) {
 		case 1:
-			if (content[6] != 1
-			 || !SetSizeStOrFalcon(width, height, 1))
-				return false;
-			return DecodeBlackAndWhite(content, contentOffset, contentLength, true, 0xffffff);
+			return content[6] == 1
+				&& SetSizeStOrFalcon(width, height, 1)
+				&& DecodeBlackAndWhite(content, contentOffset, contentLength, true, 0xffffff);
 		case 2:
 		case 4:
 			int bitmapOffset = contentOffset + (3 << bitplanes);
@@ -9583,18 +9566,12 @@ public class RECOIL
 	}
 
 	bool DecodeMcp(byte[] content, int contentLength)
-	{
-		if (contentLength != 16008)
-			return false;
-		return DecodeGr15Blend(content, 0, 16000, 200);
-	}
+		return contentLength == 16008
+			&& DecodeGr15Blend(content, 0, 16000, 200);
 
 	bool DecodeAtari8Raw(byte[] content, int contentLength)
-	{
-		if (contentLength != 15372 || !IsStringAt(content, 0, "XLPB"))
-			return false;
-		return DecodeGr15Blend(content, 4, 0x3c04, 192);
-	}
+		return contentLength == 15372 && IsStringAt(content, 0, "XLPB")
+			&& DecodeGr15Blend(content, 4, 0x3c04, 192);
 
 	bool DecodeXlp(byte[] content, int contentLength)
 	{
@@ -9920,9 +9897,8 @@ public class RECOIL
 		rle.ContentOffset = 8;
 		rle.ContentLength = contentLength;
 		byte[16384] unpacked;
-		if (!rle.UnpackGr15(unpacked, 0))
-			return false;
-		if (!rle.UnpackGr15(unpacked, 40))
+		if (!rle.UnpackGr15(unpacked, 0)
+		 || !rle.UnpackGr15(unpacked, 40))
 			return false;
 		rle.ContentOffset += 4;
 		rle.RepeatCount = 0; // DRACONUS.CCI
@@ -9930,9 +9906,8 @@ public class RECOIL
 			return false;
 		rle.ContentOffset += 4;
 		rle.RepeatCount = 0;
-		if (!rle.Unpack(unpacked, 15360, 1, 1024))
-			return false;
-		return DecodeCin(unpacked, 16384);
+		return rle.Unpack(unpacked, 15360, 1, 1024)
+			&& DecodeCin(unpacked, 16384);
 	}
 
 	bool UnpackRip(byte[] content, int contentOffset, int contentLength, byte[] unpacked, int unpackedLength)
