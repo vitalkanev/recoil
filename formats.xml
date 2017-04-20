@@ -229,6 +229,7 @@
 			<ext>NEO</ext>
 			<companionExt>RST</companionExt>
 		</format>
+		<format name="D-GRAPH (compressed)" width="320" height="200" colors="136" frames="2"><ext>P3C</ext></format>
 		<format name="STAD" width="640" height="400" colors="2"><ext>PAC</ext></format>
 		<format name="QuantumPaint"><ext>PBX</ext></format>
 		<format name="DEGAS Elite" width="320" height="200" colors="16"><ext>PC1</ext></format>

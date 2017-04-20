@@ -125,6 +125,21 @@ class Stream
 		ContentOffset--;
 		return -1;
 	}
+
+	int ParseInt()
+	{
+		for (int r = 0; ;) {
+			int c = ReadByte();
+			if (c < '0' || c > '9') {
+				if (c != '\r' || ReadByte() != '\n')
+					return -1;
+				return r;
+			}
+			if (r > 3200)
+				return -1;
+			r = r * 10 + c - '0';
+		}
+	}
 }
 
 class EndianStream : Stream
@@ -153,21 +168,6 @@ class EndianStream : Stream
 
 class DaliStream : Stream
 {
-	int ParseInt()
-	{
-		for (int r = 0; ;) {
-			int c = ReadByte();
-			if (c < '0' || c > '9') {
-				if (c != '\r' || ReadByte() != '\n')
-					return -1;
-				return r;
-			}
-			if (r > 3200)
-				return -1;
-			r = r * 10 + c - '0';
-		}
-	}
-
 	bool Decode(int countLength, RECOIL recoil, int paletteOffset, int mode)
 	{
 		byte[32000] unpacked;
@@ -1347,27 +1347,25 @@ class CaStream : RleStream
 		return true;
 	}
 
-	static bool UnpackCa(byte[] content, int contentOffset, int contentLength, byte[] unpacked, int unpackedOffset)
+	bool UnpackCa(byte[] unpacked, int unpackedOffset)
 	{
-		if (contentOffset > contentLength - 4)
+		if (ContentOffset > ContentLength - 4)
 			return false;
-		CaStream() rle;
-		rle.Content = content;
-		rle.ContentOffset = contentOffset + 4;
-		rle.ContentLength = contentLength;
-		rle.EscapeByte = content[contentOffset];
-		rle.DefaultValue = content[contentOffset + 1];
-		int unpackedStep = content[contentOffset + 2] << 8 | content[contentOffset + 3];
+		EscapeByte = Content[ContentOffset];
+		DefaultValue = Content[ContentOffset + 1];
+		int unpackedStep = Content[ContentOffset + 2] << 8 | Content[ContentOffset + 3];
 		if (unpackedStep >= 32000)
 			return false;
+		RepeatCount = 0;
 		if (unpackedStep == 0) {
-			rle.RepeatCount = 32000;
-			rle.RepeatValue = rle.DefaultValue;
+			RepeatCount = 32000;
+			RepeatValue = DefaultValue;
 			unpackedStep = 1;
 		}
+		ContentOffset += 4;
 		for (int x = 0; x < unpackedStep; x++) {
 			for (int offset = x; offset < 32000; offset += unpackedStep) {
-				int b = rle.ReadRle();
+				int b = ReadRle();
 				if (b < 0)
 					return false;
 				unpacked[unpackedOffset + offset] = b;
@@ -1378,22 +1376,22 @@ class CaStream : RleStream
 
 	static bool UnpackDel(byte[] content, int contentLength, byte[] unpacked, int blocks)
 	{
-		int contentOffset = blocks << 2;
-		if (contentOffset >= contentLength)
+		CaStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = blocks << 2;
+		if (rle.ContentOffset >= contentLength)
 			return false;
-		int unpackedOffset = 0;
 		for (int block = 0; block < blocks; block++) {
-			int nextContentOffset = contentOffset + RECOIL.Get32BigEndian(content, block << 2);
-			if (nextContentOffset > contentLength || nextContentOffset < contentOffset
-			 || !UnpackCa(content, contentOffset, nextContentOffset, unpacked, unpackedOffset))
+			rle.ContentLength = rle.ContentOffset + RECOIL.Get32BigEndian(content, block << 2);
+			if (rle.ContentLength > contentLength || rle.ContentLength < rle.ContentOffset
+			 || !rle.UnpackCa(unpacked, block * 32000))
 				return false;
-			contentOffset = nextContentOffset;
-			unpackedOffset += 32000;
+			rle.ContentOffset = rle.ContentLength;
 		}
 		if (blocks == 2) {
 			// Actually three blocks, but the length of the third block is implicit.
-			if (!UnpackCa(content, contentOffset, contentLength, unpacked, unpackedOffset))
-				return false;
+			rle.ContentLength = contentLength;
+			return rle.UnpackCa(unpacked, 64000);
 		}
 		return true;
 	}
@@ -6334,9 +6332,12 @@ public class RECOIL
 			return DecodeSt(content, contentOffset, content, 4, content[3], 0);
 		case 1: {
 				byte[32000] unpacked;
-				if (!CaStream.UnpackCa(content, contentOffset, contentLength, unpacked, 0))
-					return false;
-				return DecodeSt(unpacked, 0, content, 4, content[3], 0);
+				CaStream() rle;
+				rle.Content = content;
+				rle.ContentOffset = contentOffset;
+				rle.ContentLength = contentLength;
+				return rle.UnpackCa(unpacked, 0)
+					&& DecodeSt(unpacked, 0, content, 4, content[3], 0);
 			}
 		default:
 			return false;
@@ -6588,13 +6589,17 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeStLowBlend(byte[] bitmap, int bitmapOffset, byte[] palette, int paletteOffset, int width, int height)
+	{
+		DecodeStLow(bitmap, bitmapOffset, palette, paletteOffset, width, height);
+		DecodeBitplanes(bitmap, bitmapOffset + (width >> 1) * height, width >> 1, 4, width * height, width, height);
+		return ApplyBlend();
+	}
+
 	bool DecodeDuo(byte[] content, int contentLength)
 	{
-		if (contentLength != 113600)
-			return false;
-		DecodeStLow(content, 32, content, 0, 416, 273);
-		DecodeBitplanes(content, 32 + 208 * 273, 208, 4, 416 * 273, 416, 273);
-		return ApplyBlend();
+		return contentLength == 113600
+			&& DecodeStLowBlend(content, 32, content, 0, 416, 273);
 	}
 
 	bool DecodeDu2(byte[] content, int contentLength)
@@ -6603,6 +6608,33 @@ public class RECOIL
 			return false;
 		DecodeStMedium(content, 8, content, 0, 832, 273, 1);
 		return ApplyBlend();
+	}
+
+	bool DecodeP3c(byte[] content, int contentLength)
+	{
+		CaStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 0;
+		rle.ContentLength = contentLength;
+		int compressedLength = rle.ParseInt();
+		if (compressedLength < 0)
+			return false;
+		int paletteOffset = rle.ContentOffset;
+		rle.ContentLength = paletteOffset + 32 + compressedLength;
+		if (rle.ContentLength >= contentLength)
+			return false;
+		rle.ContentOffset = paletteOffset + 32;
+		byte[64000] unpacked;
+		if (!rle.UnpackCa(unpacked, 0))
+			return false;
+
+		rle.ContentLength = contentLength;
+		compressedLength = rle.ParseInt();
+		if (compressedLength < 0 || rle.ContentOffset + compressedLength != contentLength)
+			return false;
+		rle.ContentLength = contentLength;
+		return rle.UnpackCa(unpacked, 32000)
+			&& DecodeStLowBlend(unpacked, 0, content, paletteOffset, 320, 200);
 	}
 
 	bool UnpackLz4(byte[] content, int contentLength, byte[] unpacked, int unpackedLength)
@@ -12434,6 +12466,7 @@ public class RECOIL
 		case PackExt("OCP"):
 		case PackExt("P"):
 		case PackExt("P11"):
+		case PackExt("P3C"):
 		case PackExt("P41"):
 		case PackExt("GRF"):
 		case PackExt("P4I"):
@@ -12997,6 +13030,8 @@ public class RECOIL
 			return DecodeP(content, contentLength);
 		case PackExt("P11"):
 			return DecodeP11(content, contentLength);
+		case PackExt("P3C"):
+			return DecodeP3c(content, contentLength);
 		case PackExt("P41"):
 		case PackExt("GRF"):
 			return DecodeCocoMax(content, contentLength);
