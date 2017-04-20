@@ -114,6 +114,12 @@ missing-examples:
 # second column: unknown extension in examples, perhaps companion files
 	bash -c 'comm -3 <( xsltproc formats.ext.xsl formats.xml ) <( ls ../examples | perl -ne "s/.+\.// and print uc" | /usr/bin/sort -u )'
 
-.PHONY: all clean install uninstall install-recoil2png uninstall-recoil2png $(if $(CAN_INSTALL_MAGICK),install-magick uninstall-magick) install-mime uninstall-mime install-thumbnailer uninstall-thumbnailer install-gnome2-thumbnailer uninstall-gnome2-thumbnailer deb missing-examples
+cmp-examples: recoil2png
+	rm -f ../png/*.png
+	for p in ../examples/*; do \
+		./recoil2png -o "../png/$${p#../examples/}.png" "$$p" && cmp "../ref/$${p#../examples/}.png" "../png/$${p#../examples/}.png"; \
+	done
+
+.PHONY: all clean install uninstall install-recoil2png uninstall-recoil2png $(if $(CAN_INSTALL_MAGICK),install-magick uninstall-magick) install-mime uninstall-mime install-thumbnailer uninstall-thumbnailer install-gnome2-thumbnailer uninstall-gnome2-thumbnailer deb missing-examples cmp-examples
 
 .DELETE_ON_ERROR:
