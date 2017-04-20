@@ -1365,20 +1365,15 @@ class CaStream : RleStream
 			rle.RepeatValue = rle.DefaultValue;
 			unpackedStep = 1;
 		}
-		byte[32000] isFilled = 0;
-		for (int offset = 0; ; ) {
-			int b = rle.ReadRle();
-			if (b < 0)
-				return false;
-			unpacked[unpackedOffset + offset] = b;
-			isFilled[offset] = 1;
-			offset += unpackedStep;
-			if (offset >= 32000) {
-				for (offset = 1; isFilled[offset] != 0; offset++)
-					if (offset >= unpackedStep)
-						return true;
+		for (int x = 0; x < unpackedStep; x++) {
+			for (int offset = x; offset < 32000; offset += unpackedStep) {
+				int b = rle.ReadRle();
+				if (b < 0)
+					return false;
+				unpacked[unpackedOffset + offset] = b;
 			}
 		}
+		return true;
 	}
 
 	static bool UnpackDel(byte[] content, int contentLength, byte[] unpacked, int blocks)
