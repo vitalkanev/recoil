@@ -6098,6 +6098,19 @@ public class RECOIL
 		return contentLength == 32512
 			&& DecodeStLow(content, 0, content, 32000, 320, 200);
 
+	bool DecodeGfaArtist(byte[] content, int contentLength)
+	{
+		switch (contentLength) {
+		case 32032:
+			return DecodeStLow(content, 32, content, 0, 320, 200);
+		case 34360:
+			// TODO: rasters?
+			return DecodeStLow(content, 4, content, 32004, 320, 200);
+		default:
+			return false;
+		}
+	}
+
 	bool DecodeCel(byte[] content, int contentLength)
 	{
 		if (contentLength < 128 || content[0] != 0xff || content[1] != 0xff
@@ -12628,6 +12641,7 @@ public class RECOIL
 		case PackExt("ART"):
 			return DecodeIph(content, contentLength)
 				|| DecodeArtDirector(content, contentLength)
+				|| DecodeGfaArtist(content, contentLength)
 				|| DecodeAtari8Artist(content, contentLength)
 				|| DecodeAsciiArtEditor(content, contentLength);
 		case PackExt("ATR"):
