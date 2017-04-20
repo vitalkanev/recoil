@@ -209,9 +209,9 @@
 		<format name="DeskPic"><ext>GFB</ext></format>
 		<format name="Dali (compressed)" width="640" height="400" colors="2"><ext>HPK</ext></format>
 		<format name="HighresMedium" width="640" height="200" frames="2"><ext>HRM</ext></format>
-		<format name="Imagic Film/Picture" width="320" height="200" colors="16"><ext>IC1</ext></format>
-		<format name="Imagic Film/Picture" width="640" height="200" colors="4"><ext>IC2</ext></format>
-		<format name="Imagic Film/Picture" width="640" height="400" colors="2"><ext>IC3</ext></format>
+		<format name="Imagic" width="320" height="200" colors="16"><ext>IC1</ext></format>
+		<format name="Imagic" width="640" height="200" colors="4"><ext>IC2</ext></format>
+		<format name="Imagic" width="640" height="400" colors="2"><ext>IC3</ext></format>
 		<format name="DEGAS Elite icon" colors="2"><ext>ICN</ext></format>
 		<format name="Interchange File Format"><ext>IFF</ext></format>
 		<format name="GEM Bit Image"><ext>IMG</ext></format>
