@@ -6544,10 +6544,12 @@ public class RECOIL
 			}
 			else if (headerLength == 22 + (2 << bitplanes) && IsSttt(content, bitplanes))
 				SetStPalette(content, 22, 1 << bitplanes);
-			else if (bitplanes <= 4)
-				SetDefaultStPalette(bitplanes);
-			else
+			else if (bitplanes > 4)
 				return false;
+			else if (headerLength == 50 && content[16] == 0 && content[17] == 0x80)
+				SetStPalette(content, 18, 16); // HyperPaint
+			else
+				SetDefaultStPalette(bitplanes);
 			break;
 		case 15:
 			if (headerLength != 28 || !IsTimg(content))
