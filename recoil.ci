@@ -2791,9 +2791,32 @@ public class RECOIL
 
 	bool SetSizeStOrFalcon(int width, int height, int bitplanes)
 	{
-		return SetSize(width, height, (bitplanes == 1 && width <= 640 && height <= 400)
-			|| (bitplanes <= 4 && width <= 320 && height <= 200)
-			? RECOILResolution.St1x1 : RECOILResolution.Falcon1x1);
+		RECOILResolution resolution = RECOILResolution.Falcon1x1;
+		switch (bitplanes) {
+		case 1:
+			if (width <= 640 && height <= 400)
+				resolution = RECOILResolution.St1x1;
+			break;
+		case 2:
+			if (width == 640 && height == 200) {
+				height <<= 1;
+				resolution = RECOILResolution.St1x2;
+			}
+			break;
+		case 4:
+			if (width <= 320 && height <= 200)
+				resolution = RECOILResolution.St1x1;
+			break;
+		case 8:
+			if (width == 320 && height == 480) {
+				width <<= 1;
+				resolution = RECOILResolution.Tt2x1;
+			}
+			break;
+		default:
+			break;
+		}
+		return SetSize(width, height, resolution);
 	}
 
 	bool SetScaledSize(int width, int height, RECOILResolution resolution)
@@ -3006,6 +3029,28 @@ public class RECOIL
 			}
 			contentOffset += contentStride;
 			pixelsOffset += Width;
+		}
+	}
+
+	void DecodeScaledBitplanes(byte[] content, int contentOffset, int width, int height, int bitplanes, bool ehb, MultiPalette multiPalette)
+	{
+		int contentStride = (width + 15 >> 4 << 1) * bitplanes;
+		for (int y = 0; y < height; y++) {
+			if (multiPalette != null)
+				multiPalette.SetLinePalette(this, y);
+			if (ehb) {
+				for (int c = 0; c < 32; c++)
+					ContentPalette[32 + c] = ContentPalette[c] >> 1 & 0x7f7f7f;
+			}
+			for (int x = 0; x < width; x++) {
+				int offset = contentOffset + (x >> 3 & ~1) * bitplanes + (x >> 3 & 1);
+				int bit = ~x & 7;
+				int c = 0;
+				for (int bitplane = bitplanes; --bitplane >= 0; )
+					c = c << 1 | content[offset + (bitplane << 1)] >> bit & 1;
+				SetScaledPixel(x, y, ContentPalette[c]);
+			}
+			contentOffset += contentStride;
 		}
 	}
 
@@ -6299,12 +6344,12 @@ public class RECOIL
 		int bitmapLength = Get32BigEndian(content, 16);
 		if (bitmapLength <= 0)
 			return false;
-		int contentStride = (width + 15 >> 4 << 1) * bitplanes;
-		if (1556 + bitmapLength != contentLength || bitmapLength != contentStride * height
+		if (1556 + bitmapLength != contentLength
+		 || bitmapLength != (width + 15 >> 4 << 1) * bitplanes * height
 		 || !SetSizeStOrFalcon(width, height, bitplanes))
 			return false;
 		SetStVdiPalette(content, 20 + bitmapLength, 1 << bitplanes, bitplanes);
-		DecodeBitplanes(content, 20, contentStride, bitplanes, 0, width, height);
+		DecodeScaledBitplanes(content, 20, width, height, bitplanes, false, null);
 		return true;
 	}
 
@@ -6511,16 +6556,11 @@ public class RECOIL
 		}
 		int xRatio = content[8] << 8 | content[9];
 		int yRatio = content[10] << 8 | content[11];
-		int doubleHeight;
-		if (bitplanes <= 2 && width <= 640 && height <= 200 && yRatio * 2 > xRatio * 3) {
+		if (bitplanes <= 2 && width <= 640 && height <= 200 && yRatio * 2 > xRatio * 3)
 			SetSize(width, height << 1, RECOILResolution.St1x2);
-			doubleHeight = 1;
-		}
-		else {
-			if (!SetSizeStOrFalcon(width, height, bitplanes))
-				return false;
-			doubleHeight = 0;
-		}
+		else if (!SetSizeStOrFalcon(width, height, bitplanes)) // FIXME: Tt2x1
+			return false;
+		int doubleHeight = Resolution == RECOILResolution.St1x2 ? 1 : 0;
 
 		ImgStream() rle;
 		rle.Content = content;
@@ -7661,13 +7701,13 @@ public class RECOIL
 			int paletteOffset = 13 + 12 + height * bytesPerLine;
 			int colors = 1 << bitplanes;
 			if (contentLength != paletteOffset + colors * 6
-			 || !SetSize(width, height, RECOILResolution.Falcon1x1))
+			 || !SetSizeStOrFalcon(width, height, bitplanes))
 				return false;
 			if (bitplanes == 1)
 				SetDefaultStPalette(1);
 			else
 				SetStVdiPalette(content, paletteOffset, colors, bitplanes);
-			DecodeBitplanes(content, 13, bytesPerLine, bitplanes, 0, width, height);
+			DecodeScaledBitplanes(content, 13, width, height, bitplanes, false, null);
 			return true;
 		case 16:
 			return contentLength >= 13 + width * height * 2
@@ -7738,13 +7778,12 @@ public class RECOIL
 		case 2:
 		case 4:
 			int bitmapOffset = contentOffset + (3 << bitplanes);
-			int contentStride = (width >> 3) * bitplanes;
 			if (content[6] != 1
-			 || contentLength != bitmapOffset + contentStride * height
+			 || contentLength != bitmapOffset + (width >> 3) * bitplanes * height
 			 || !SetSizeStOrFalcon(width, height, bitplanes))
 				return false;
 			DecodeR8G8B8Colors(content, contentOffset, 1 << bitplanes, ContentPalette);
-			DecodeBitplanes(content, bitmapOffset, contentStride, bitplanes, 0, width, height);
+			DecodeScaledBitplanes(content, bitmapOffset, width, height, bitplanes, false, null);
 			return true;
 		case 8:
 			if (content[6] != 0
@@ -7790,8 +7829,7 @@ public class RECOIL
 				return false;
 			int paletteLength = content[6] << 8 | content[7];
 			SetStVdiPalette(content, 128, paletteLength, bitplanes);
-			int bytesPerLine = (width + 15 >> 4 << 1) * bitplanes;
-			DecodeBitplanes(bitmap, bitmapOffset, bytesPerLine, bitplanes, 0, width, height);
+			DecodeScaledBitplanes(bitmap, bitmapOffset, width, height, bitplanes, false, null);
 			return true;
 		case 16:
 			return DecodeFalconTrueColor(bitmap, bitmapOffset, width, height, RECOILResolution.Falcon1x1);
@@ -8003,28 +8041,6 @@ public class RECOIL
 			return RECOILResolution.Amiga1x4;
 		default:
 			return resolution;
-		}
-	}
-
-	void DecodeScaledBitplanes(byte[] content, int contentOffset, int width, int height, int bitplanes, bool ehb, MultiPalette multiPalette)
-	{
-		int contentStride = (width + 15 >> 4 << 1) * bitplanes;
-		for (int y = 0; y < height; y++) {
-			if (multiPalette != null)
-				multiPalette.SetLinePalette(this, y);
-			if (ehb) {
-				for (int c = 0; c < 32; c++)
-					ContentPalette[32 + c] = ContentPalette[c] >> 1 & 0x7f7f7f;
-			}
-			for (int x = 0; x < width; x++) {
-				int offset = contentOffset + (x >> 3 & ~1) * bitplanes + (x >> 3 & 1);
-				int bit = ~x & 7;
-				int c = 0;
-				for (int bitplane = bitplanes; --bitplane >= 0; )
-					c = c << 1 | content[offset + (bitplane << 1)] >> bit & 1;
-				SetScaledPixel(x, y, ContentPalette[c]);
-			}
-			contentOffset += contentStride;
 		}
 	}
 
@@ -12489,9 +12505,9 @@ public class RECOIL
 		case PackExt("PMD"):
 		case PackExt("PMG"):
 		case PackExt("PNT"):
+		case PackExt("TPI"):
 		case PackExt("PPP"):
 		case PackExt("PA3"):
-		case PackExt("TPI"):
 		case PackExt("PSC"):
 		case PackExt("Q4"):
 		case PackExt("RAG"):
