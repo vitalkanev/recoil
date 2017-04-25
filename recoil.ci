@@ -266,18 +266,14 @@ class BitStream : Stream
 		Bits = 0;
 	}
 
-	virtual int ReadByteForBits()
-		return ReadByte();
-
 	/// Reads one bit (0 or 1).
 	/// Returns -1 on end of stream.
 	int ReadBit()
 	{
 		if ((Bits & 0x7f) == 0) {
-			int b = ReadByteForBits();
-			if (b < 0)
+			if (ContentOffset >= ContentLength)
 				return -1;
-			Bits = b << 1 | 1;
+			Bits = Content[ContentOffset++] << 1 | 1;
 		}
 		else
 			Bits <<= 1;
@@ -329,29 +325,6 @@ class X68KPicStream : BitStream
 			}
 		}
 		return -1;
-	}
-}
-
-class SpxStream : BitStream
-{
-	int PackedOffset;
-
-	override int ReadByteForBits()
-	{
-		if ((PackedOffset & 3) == 0) {
-			PackedOffset -= 8;
-			if (PackedOffset < 0)
-				return -1;
-		}
-		return Content[ContentOffset + PackedOffset++];
-	}
-
-	int ReadCount()
-	{
-		int b = ReadBits(2);
-		if (b < 0)
-			return -1;
-		return ReadBits((b + 1) << 2);
 	}
 }
 
@@ -1861,6 +1834,97 @@ class Tre1Stream : RleStream
 		LastRgb = RECOIL.GetFalconTrueColor(Content[ContentOffset], Content[ContentOffset + 1]);
 		ContentOffset += 2;
 		return LastRgb;
+	}
+}
+
+class SpxStream
+{
+	byte[] Content;
+	int ContentOffset;
+	int ContentStart;
+	int Bits;
+
+	int ReadBit()
+	{
+		int b = Bits;
+		int next = b & 0x7fffffff;
+		if (next == 0) {
+			ContentOffset -= 4;
+			if (ContentOffset < ContentStart)
+				return -1;
+			b = RECOIL.Get32BigEndian(Content, ContentOffset);
+			Bits = (b & 0x7fffffff) << 1 | 1;
+		}
+		else
+			Bits = next << 1;
+		return b >> 31 & 1;
+	}
+
+	int ReadBits(int count)
+	{
+		int result = 0;
+		while (--count >= 0) {
+			int bit = ReadBit();
+			if (bit < 0)
+				return -1;
+			result = result << 1 | bit;
+		}
+		return result;
+	}
+
+	int ReadCount()
+	{
+		int b = ReadBits(2);
+		if (b < 0)
+			return -1;
+		return ReadBits((b + 1) << 2);
+	}
+
+	bool UnpackV2(byte[] unpacked, int unpackedLength)
+	{
+		for (int unpackedOffset = unpackedLength; unpackedOffset > 0; ) {
+			int length;
+			switch (ReadBit()) {
+			case -1:
+				return false;
+			case 0:
+				// literals
+				length = ReadCount();
+				if (length <= 0)
+					return false;
+				if (length > unpackedOffset)
+					length = unpackedOffset;
+				for (int i = 0; i < length; i++) {
+					int b = ReadBits(8);
+					if (b < 0)
+						return false;
+					unpacked[--unpackedOffset] = b;
+				}
+				if (unpackedOffset == 0)
+					return true;
+				if (length == 0xffff)
+					continue;
+				break;
+			default:
+				break;
+			}
+
+			// LZ77
+			int offset = ReadCount();
+			if (offset <= 0 || unpackedOffset + offset > unpackedLength)
+				return false;
+			length = ReadCount();
+			if (length < 0)
+				return false;
+			length += 3;
+			if (length > unpackedOffset)
+				length = unpackedOffset;
+			do {
+				unpackedOffset--;
+				unpacked[unpackedOffset] = unpacked[unpackedOffset + offset];
+			} while (--length > 0);
+		}
+		return true;
 	}
 }
 
@@ -6988,55 +7052,21 @@ public class RECOIL
 			if (height <= 0)
 				return false;
 			int packedLength = Get32BigEndian(content, contentOffset + 12);
+			int packedEnd = contentOffset + 16 + packedLength;
 			if ((packedLength & 3) != 0
 			 || Get32BigEndian(content, contentOffset) != 8 + packedLength
-			 || contentOffset + 16 + packedLength > contentLength
-			 || contentOffset + 16 + packedLength < 0)
+			 || packedEnd > contentLength
+			 || packedEnd < 0)
 				return false;
 			SpxStream() stream;
 			stream.Content = content;
-			stream.ContentOffset = contentOffset + 16;
-			stream.PackedOffset = packedLength + 4; // will use below packedLength, see SpxStream
+			stream.ContentStart = contentOffset + 16;
+			stream.ContentOffset = packedEnd;
+			stream.Bits = 0;
 			int unpackedLength = height << 8;
 			byte[] unpacked = new byte[unpackedLength];
-			for (int unpackedOffset = unpackedLength; unpackedOffset > 0; ) {
-				int length;
-				switch (stream.ReadBit()) {
-				case -1:
-					return false;
-				case 0:
-					length = stream.ReadCount();
-					if (length <= 0)
-						return false;
-					if (length > unpackedOffset)
-						length = unpackedOffset;
-					for (int i = 0; i < length; i++) {
-						int b = stream.ReadBits(8);
-						if (b < 0)
-							return false;
-						unpacked[--unpackedOffset] = b;
-					}
-					if (length == 0xffff)
-						continue;
-					break;
-				default:
-					break;
-				}
-				int offset = stream.ReadCount();
-				if (offset <= 0 || unpackedOffset + offset > unpackedLength)
-					return false;
-				length = stream.ReadCount();
-				if (length < 0)
-					return false;
-				length += 3;
-				if (length > unpackedOffset)
-					length = unpackedOffset;
-				do {
-					unpackedOffset--;
-					unpacked[unpackedOffset] = unpacked[unpackedOffset + offset];
-				} while (--length > 0);
-			}
-			bool ok = DecodeSpuScreen(unpacked, 0, height, false);
+			bool ok = stream.UnpackV2(unpacked, unpackedLength)
+				&& DecodeSpuScreen(unpacked, 0, height, false);
 			delete unpacked;
 			return ok;
 		default:
