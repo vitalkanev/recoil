@@ -266,14 +266,18 @@ class BitStream : Stream
 		Bits = 0;
 	}
 
+	virtual int ReadByteForBits()
+		return ReadByte();
+
 	/// Reads one bit (0 or 1).
 	/// Returns -1 on end of stream.
 	int ReadBit()
 	{
 		if ((Bits & 0x7f) == 0) {
-			if (ContentOffset >= ContentLength)
+			int b = ReadByteForBits();
+			if (b < 0)
 				return -1;
-			Bits = Content[ContentOffset++] << 1 | 1;
+			Bits = b << 1 | 1;
 		}
 		else
 			Bits <<= 1;
@@ -325,6 +329,29 @@ class X68KPicStream : BitStream
 			}
 		}
 		return -1;
+	}
+}
+
+class SpxStream : BitStream
+{
+	int PackedOffset;
+
+	override int ReadByteForBits()
+	{
+		if ((PackedOffset & 3) == 0) {
+			PackedOffset -= 8;
+			if (PackedOffset < 0)
+				return -1;
+		}
+		return Content[ContentOffset + PackedOffset++];
+	}
+
+	int ReadCount()
+	{
+		int b = ReadBits(2);
+		if (b < 0)
+			return -1;
+		return ReadBits((b + 1) << 2);
 	}
 }
 
@@ -6931,25 +6958,90 @@ public class RECOIL
 	{
 		if (contentLength < 12 || content[0] != 'S' || content[1] != 'P' || content[2] != 'X'
 			|| content[3] != 2 // TODO: version 1
-			|| content[4] != 0 || content[5] != 0) // TODO: compression
+			|| content[4] != content[5])
 			return false;
 		int contentOffset = 10;
 		int zerosToSkip = 2;
 		do {
-			if (contentOffset >= contentLength)
+			if (contentOffset + 16 >= contentLength)
 				return false;
 		} while (content[contentOffset++] != 0 || --zerosToSkip > 0);
-		if (contentOffset + 8 >= contentLength)
+		int bitmapLength;
+		int height;
+		switch (content[4]) {
+		case 0:
+			bitmapLength = Get32BigEndian(content, contentOffset);
+			if (bitmapLength % 160 != 0)
+				return false;
+			height = bitmapLength / 160 - 1;
+			int paletteLength = Get32BigEndian(content, contentOffset + 4);
+			int bitmapOffset = contentOffset + 8;
+			return paletteLength == height * 96
+				&& contentLength >= bitmapOffset + bitmapLength + paletteLength
+				&& DecodeSpuScreen(content, bitmapOffset + 160, height, false);
+
+		case 1:
+			bitmapLength = Get32BigEndian(content, contentOffset + 4);
+			if (bitmapLength % 160 != 0)
+				return false;
+			height = bitmapLength / 160 - 2;
+			if (height <= 0)
+				return false;
+			int packedLength = Get32BigEndian(content, contentOffset + 12);
+			if ((packedLength & 3) != 0
+			 || Get32BigEndian(content, contentOffset) != 8 + packedLength
+			 || contentOffset + 16 + packedLength > contentLength
+			 || contentOffset + 16 + packedLength < 0)
+				return false;
+			SpxStream() stream;
+			stream.Content = content;
+			stream.ContentOffset = contentOffset + 16;
+			stream.PackedOffset = packedLength + 4; // will use below packedLength, see SpxStream
+			int unpackedLength = height << 8;
+			byte[] unpacked = new byte[unpackedLength];
+			for (int unpackedOffset = unpackedLength; unpackedOffset > 0; ) {
+				int length;
+				switch (stream.ReadBit()) {
+				case -1:
+					return false;
+				case 0:
+					length = stream.ReadCount();
+					if (length <= 0)
+						return false;
+					if (length > unpackedOffset)
+						length = unpackedOffset;
+					for (int i = 0; i < length; i++) {
+						int b = stream.ReadBits(8);
+						if (b < 0)
+							return false;
+						unpacked[--unpackedOffset] = b;
+					}
+					if (length == 0xffff)
+						continue;
+					break;
+				default:
+					break;
+				}
+				int offset = stream.ReadCount();
+				if (offset <= 0 || unpackedOffset + offset > unpackedLength)
+					return false;
+				length = stream.ReadCount();
+				if (length < 0)
+					return false;
+				length += 3;
+				if (length > unpackedOffset)
+					length = unpackedOffset;
+				do {
+					unpackedOffset--;
+					unpacked[unpackedOffset] = unpacked[unpackedOffset + offset];
+				} while (--length > 0);
+			}
+			bool ok = DecodeSpuScreen(unpacked, 0, height, false);
+			delete unpacked;
+			return ok;
+		default:
 			return false;
-		int bitmapLength = Get32BigEndian(content, contentOffset);
-		if (bitmapLength % 160 != 0)
-			return false;
-		int height = bitmapLength / 160 - 1;
-		int paletteLength = Get32BigEndian(content, contentOffset + 4);
-		int bitmapOffset = contentOffset + 8;
-		return paletteLength == height * 96
-			&& contentLength >= bitmapOffset + bitmapLength + paletteLength
-			&& DecodeSpuScreen(content, bitmapOffset + 160, height, false);
+		}
 	}
 
 	static int GetStLowSeparateBitplanes(byte[] content, int contentOffset, int bitplaneLength, int x)
