@@ -1837,12 +1837,21 @@ class Tre1Stream : RleStream
 	}
 }
 
-class SpxStream
+class Ice21Stream
 {
 	byte[] Content;
 	int ContentOffset;
 	int ContentStart;
 	int Bits;
+
+	int GetUnpackedLength()
+	{
+		if (ContentStart + 16 > ContentOffset
+		 || !RECOIL.IsStringAt(Content, ContentStart, "Ice!")
+		 || RECOIL.Get32BigEndian(Content, ContentStart + 4) != ContentOffset - ContentStart)
+			return -1;
+		return RECOIL.Get32BigEndian(Content, ContentStart + 8);
+	}
 
 	int ReadBit()
 	{
@@ -1872,6 +1881,123 @@ class SpxStream
 		return result;
 	}
 
+	int CountOnes(int max)
+	{
+		for (int result = 0; result < max; result++) {
+			switch (ReadBit()) {
+			case -1:
+				return -1;
+			case 0:
+				return result;
+			default:
+				break;
+			}
+		}
+		return max;
+	}
+
+	int ReadLiteralLength()
+	{
+		int o = 1;
+		for (int n = 0; ; n++) {
+			const byte[] bits = { 1, 2, 2, 3, 8, 15 };
+			int c = bits[n];
+			int b = ReadBits(c);
+			if (b < 0)
+				return -1;
+			c = (1 << c) - 1;
+			if (b < c || n == bits.Length - 1)
+				return o + b;
+			o += c;
+		}
+	}
+
+	int ReadEncoded(int maxCount, byte[] extraBits, int[] offsets)
+	{
+		int n = CountOnes(maxCount);
+		if (n < 0)
+			return -1;
+		int b = ReadBits(extraBits[n]);
+		if (b < 0)
+			return -1;
+		return offsets[n] + b;
+	}
+
+	bool Unpack(byte[] unpacked, int unpackedStart, int unpackedEnd)
+	{
+		ContentStart += 12;
+		ContentOffset -= 4;
+		Bits = RECOIL.Get32BigEndian(Content, ContentOffset);
+		for (int unpackedOffset = unpackedEnd; unpackedOffset > unpackedStart; ) {
+			int length;
+			switch (ReadBit()) {
+			case -1:
+				return false;
+			case 1:
+				// literals
+				length = ReadLiteralLength();
+				if (length > unpackedOffset - unpackedStart)
+					length = unpackedOffset - unpackedStart;
+				ContentOffset -= length;
+				if (ContentOffset < ContentStart)
+					return false;
+				unpackedOffset -= length;
+				Content.CopyTo(ContentOffset, unpacked, unpackedOffset, length);
+				if (unpackedOffset == unpackedStart)
+					return true;
+				break;
+			default:
+				break;
+			}
+
+			// LZ77
+			const byte[] lengthExtraBits = { 0, 0, 1, 2, 10 };
+			const int[] lengthOffsets = { 0, 1, 2, 4, 8 };
+			length = ReadEncoded(4, lengthExtraBits, lengthOffsets);
+			int offset;
+			switch (length) {
+			case -1:
+				return false;
+			case 0:
+				switch (ReadBit()) {
+				case -1:
+					return false;
+				case 0:
+					offset = ReadBits(6);
+					if (offset < 0)
+						return false;
+					break;
+				default:
+					offset = ReadBits(9);
+					if (offset < 0)
+						return false;
+					offset += 64;
+					break;
+				}
+				break;
+			default:
+				const byte[] offsetExtraBits = { 8, 5, 12 };
+				const int[] offsetOffsets = { 32, 0, 288 };
+				offset = ReadEncoded(2, offsetExtraBits, offsetOffsets);
+				if (offset < 0)
+					return false;
+				break;
+			}
+			length += 2;
+			offset += length;
+			if (unpackedOffset + offset > unpackedEnd)
+				return false;
+			if (length > unpackedOffset - unpackedStart)
+				length = unpackedOffset - unpackedStart;
+			unpackedOffset -= length;
+			unpacked.CopyTo(unpackedOffset + offset, unpacked, unpackedOffset, length);
+		}
+		return true;
+	}
+}
+
+class SpxStream : Ice21Stream
+{
 	int ReadCount()
 	{
 		int b = ReadBits(2);
@@ -1882,6 +2008,7 @@ class SpxStream
 
 	bool UnpackV2(byte[] unpacked, int unpackedLength)
 	{
+		Bits = 0;
 		for (int unpackedOffset = unpackedLength; unpackedOffset > 0; ) {
 			int length;
 			switch (ReadBit()) {
@@ -7018,60 +7145,101 @@ public class RECOIL
 		return DecodeSpuScreen(unpacked, 160, 199, false);
 	}
 
+	bool UnpackAndDecodeSpx(SpxStream stream, int contentLength, int height, byte[] unpacked)
+	{
+		byte[] content = stream.Content;
+		int bitmapLength = height * 160;
+		int paletteOffset = stream.ContentOffset;
+		int paletteLength = Get32BigEndian(content, stream.ContentStart - 4);
+
+		// unpack bitmap
+		if (content[4] == 0)
+			content.CopyTo(stream.ContentStart + 160, unpacked, 0, bitmapLength);
+		else if (content[3] == 1) {
+			if (!stream.Unpack(unpacked, 0, bitmapLength))
+				return false;
+		}
+		else if (content[5] != 1)
+			return false;
+		else {
+			// v2: bitmap&palette
+			int packedLength = Get32BigEndian(content, stream.ContentStart + 4);
+			int packedEnd = stream.ContentStart +8 + packedLength;
+			if (Get32BigEndian(content, stream.ContentStart - 8) != 8 + packedLength
+			 || packedEnd > contentLength
+			 || packedEnd < 0)
+				return false;
+			stream.ContentStart += 8;
+			stream.ContentOffset = packedEnd;
+			if (!stream.UnpackV2(unpacked, height << 8))
+				return false;
+		}
+
+		// unpack palette
+		if (content[5] == 0) {
+			if (paletteLength != height * 96)
+				return false;
+			content.CopyTo(paletteOffset, unpacked, bitmapLength, paletteLength);
+		}
+		else if (content[3] == 1) {
+			stream.ContentStart = paletteOffset;
+			stream.ContentOffset = paletteOffset + paletteLength;
+			if (stream.ContentOffset > contentLength
+			 || stream.GetUnpackedLength() != height * 96
+			 || !stream.Unpack(unpacked, bitmapLength, height << 8))
+				return false;
+		}
+
+		return DecodeSpuScreen(unpacked, 0, height, false);
+	}
+
 	bool DecodeSpx(byte[] content, int contentLength)
 	{
-		if (contentLength < 12 || content[0] != 'S' || content[1] != 'P' || content[2] != 'X'
-			|| content[3] != 2 // TODO: version 1
-			|| content[4] != content[5])
+		if (contentLength < 12 || content[0] != 'S' || content[1] != 'P' || content[2] != 'X')
 			return false;
+
+		// skip descriptions
 		int contentOffset = 10;
 		int zerosToSkip = 2;
 		do {
 			if (contentOffset + 16 >= contentLength)
 				return false;
 		} while (content[contentOffset++] != 0 || --zerosToSkip > 0);
-		int bitmapLength;
-		int height;
+
+		// determine height
+		int bitmapLength = Get32BigEndian(content, contentOffset);
+		SpxStream() stream;
+		stream.Content = content;
+		stream.ContentStart = contentOffset + 8;
+		stream.ContentOffset = contentOffset + 8 + bitmapLength;
+		if (stream.ContentOffset > contentLength)
+			return false;
 		switch (content[4]) {
 		case 0:
-			bitmapLength = Get32BigEndian(content, contentOffset);
-			if (bitmapLength % 160 != 0)
-				return false;
-			height = bitmapLength / 160 - 1;
-			int paletteLength = Get32BigEndian(content, contentOffset + 4);
-			int bitmapOffset = contentOffset + 8;
-			return paletteLength == height * 96
-				&& contentLength >= bitmapOffset + bitmapLength + paletteLength
-				&& DecodeSpuScreen(content, bitmapOffset + 160, height, false);
-
+			bitmapLength -= 160;
+			break;
 		case 1:
-			bitmapLength = Get32BigEndian(content, contentOffset + 4);
-			if (bitmapLength % 160 != 0)
+			switch (content[3]) {
+			case 1:
+				bitmapLength = stream.GetUnpackedLength() - 160;
+				break;
+			case 2:
+				bitmapLength = Get32BigEndian(content, contentOffset + 4) - 320;
+				break;
+			default:
 				return false;
-			height = bitmapLength / 160 - 2;
-			if (height <= 0)
-				return false;
-			int packedLength = Get32BigEndian(content, contentOffset + 12);
-			int packedEnd = contentOffset + 16 + packedLength;
-			if ((packedLength & 3) != 0
-			 || Get32BigEndian(content, contentOffset) != 8 + packedLength
-			 || packedEnd > contentLength
-			 || packedEnd < 0)
-				return false;
-			SpxStream() stream;
-			stream.Content = content;
-			stream.ContentStart = contentOffset + 16;
-			stream.ContentOffset = packedEnd;
-			stream.Bits = 0;
-			int unpackedLength = height << 8;
-			byte[] unpacked = new byte[unpackedLength];
-			bool ok = stream.UnpackV2(unpacked, unpackedLength)
-				&& DecodeSpuScreen(unpacked, 0, height, false);
-			delete unpacked;
-			return ok;
+			}
+			break;
 		default:
 			return false;
 		}
+		if (bitmapLength <= 0 || bitmapLength % 160 != 0)
+			return false;
+		int height = bitmapLength / 160;
+		byte[] unpacked = new byte[height << 8];
+		bool ok = UnpackAndDecodeSpx(stream, contentLength, height, unpacked);
+		delete unpacked;
+		return ok;
 	}
 
 	static int GetStLowSeparateBitplanes(byte[] content, int contentOffset, int bitplaneLength, int x)
