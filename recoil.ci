@@ -1831,7 +1831,7 @@ class Tre1Stream : RleStream
 	{
 		if (ContentOffset + 1 >= ContentLength)
 			return -1;
-		LastRgb = RECOIL.GetFalconTrueColor(Content[ContentOffset], Content[ContentOffset + 1]);
+		LastRgb = RECOIL.GetFalconTrueColor(Content, ContentOffset);
 		ContentOffset += 2;
 		return LastRgb;
 	}
@@ -3219,9 +3219,10 @@ public class RECOIL
 		return c | (c >> 5 & 0x070707);
 	}
 
-	static int GetFalconTrueColor(int rg, int gb)
+	static int GetFalconTrueColor(byte[] content, int contentOffset)
 	{
-		// RRRRRGGG, GGGBBBBB
+		int rg = content[contentOffset]; // RRRRRGGG
+		int gb = content[contentOffset + 1]; // GGGBBBBB
 		int rgb = (rg & 0xf8) << 16 | (rg & 7) << 13 | (gb & 0xe0) << 5 | (gb & 0x1f) << 3;
 		// RRRRR000 GGGGGG00 BBBBB000
 		rgb |= (rgb >> 5 & 0x070007) | (rgb >> 6 & 0x000300);
@@ -3239,11 +3240,7 @@ public class RECOIL
 				int c = 0;
 				for (int bitplane = bitplanes; --bitplane >= 0; )
 					c = c << 1 | content[offset + (bitplane << 1)] >> bit & 1;
-				if (bitplanes == 15)
-					c = GetB5G5R5Color(c);
-				else
-					c = ContentPalette[c];
-				Pixels[pixelsOffset + x] = c;
+				Pixels[pixelsOffset + x] = ContentPalette[c];
 			}
 			contentOffset += contentStride;
 			pixelsOffset += Width;
@@ -6774,10 +6771,8 @@ public class RECOIL
 				return false;
 			break;
 		case 16:
-			break;
 		case 24:
-			if (headerLength != 22 || !IsXimg(content))
-				return false;
+		case 32:
 			break;
 		default:
 			return false;
@@ -6786,74 +6781,56 @@ public class RECOIL
 		int yRatio = content[10] << 8 | content[11];
 		if (bitplanes <= 2 && width <= 640 && height <= 200 && yRatio * 2 > xRatio * 3)
 			SetSize(width, height << 1, RECOILResolution.St1x2);
-		else if (!SetSizeStOrFalcon(width, height, bitplanes)) // FIXME: Tt2x1
+		else if (!SetSizeStOrFalcon(width, height, bitplanes))
 			return false;
-		int doubleHeight = Resolution == RECOILResolution.St1x2 ? 1 : 0;
 
 		ImgStream() rle;
 		rle.Content = content;
 		rle.ContentOffset = headerLength;
 		rle.ContentLength = contentLength;
-		switch (bitplanes) {
-		case 16: {
-				int pixelsOffset = 0;
-				for (int y = 0; y < height; y++) {
-					for (int x = 0; x < width; x++) {
-						int rg = rle.ReadRle();
-						if (rg < 0)
-							return false;
-						int gb = rle.ReadRle();
-						if (gb < 0)
-							return false;
-						Pixels[pixelsOffset++] = GetFalconTrueColor(rg, gb);
-					}
-				}
+		int bytesPerBitplane = width + 7 >> 3;
+		if (bitplanes == 24) // XXX: only 24?
+			bytesPerBitplane = (bytesPerBitplane + 1) & ~1;
+		int bytesPerLine = bitplanes * bytesPerBitplane;
+		byte[MaxWidth * 32 / 8] unpacked = 0;
+		for (int y = 0; y < height; ) {
+			int lineRepeatCount = rle.GetLineRepeatCount();
+			if (lineRepeatCount > height - y)
+				lineRepeatCount = height - y;
+
+			for (int x = 0; x < bytesPerLine; x++) {
+				int b = rle.ReadRle();
+				if (b < 0)
+					return false;
+				if (b != ImgStream.Keep)
+					unpacked[x] = b;
 			}
-			break;
-		case 24: {
-				int pixelsOffset = 0;
-				for (int y = 0; y < height; y++) {
-					for (int x = 0; x < width; x++) {
-						int rgb = y == 0 ? 0 : Pixels[pixelsOffset - width];
-						for (int shift = 16; shift >= 0; shift -= 8) {
-							int b = rle.ReadRle();
-							if (b < 0)
-								return false;
-							if (b != ImgStream.Keep)
-								rgb = (rgb & ~(0xff << shift)) | b << shift;
-						}
-						Pixels[pixelsOffset++] = rgb;
-					}
-					// skip padding
-					for (int i = (-width & 15) * 3; i > 0; i--) {
-						int b = rle.ReadRle();
-						if (b < 0)
-							return false;
-					}
+
+			for (int x = 0; x < width; x++) {
+				int c;
+				switch (bitplanes) {
+				case 16:
+					c = GetFalconTrueColor(unpacked, x << 1);
+					break;
+				case 24:
+					c = GetR8G8B8Color(unpacked, x * 3);
+					break;
+				case 32:
+					c = GetR8G8B8Color(unpacked, (x << 2) + 1);
+					break;
+				default:
+					int bit = ~x & 7;
+					c = 0;
+					for (int bitplane = 0; bitplane < bitplanes; bitplane++)
+						c |= (unpacked[bitplane * bytesPerBitplane + (x >> 3)] >> bit & 1) << bitplane;
+					c = bitplanes == 15 ? GetB5G5R5Color(c) : ContentPalette[c];
+					break;
 				}
+				for (int i = 0; i < lineRepeatCount; i++)
+					SetScaledPixel(x, y + i, c);
 			}
-			break;
-		default: {
-				int bytesPerBitplane = width + 7 >> 3;
-				byte[MaxWidth * 16 / 8 + 7] unpacked = 0;
-				for (int y = 0; y < height; ) {
-					int lineRepeatCount = rle.GetLineRepeatCount();
-					for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
-						for (int x = 0; x < bytesPerBitplane; x++) {
-							int b = rle.ReadRle();
-							if (b < 0)
-								return false;
-							if (b != ImgStream.Keep)
-								unpacked[(x & ~1) * bitplanes + (bitplane << 1) + (x & 1)] = b;
-						}
-					}
-					if (lineRepeatCount > height - y)
-						lineRepeatCount = height - y;
-					DecodeBitplanes(unpacked, 0, 0, bitplanes, y * width << doubleHeight, width, lineRepeatCount << doubleHeight);
-					y += lineRepeatCount;
-				}
-			}
-			break;
+
+			y += lineRepeatCount;
 		}
 		return true;
 	}
@@ -7853,9 +7830,8 @@ public class RECOIL
 			return false;
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
-				int rg = content[contentOffset++]; // RRRRRGGG
-				int gb = content[contentOffset++]; // GGGBBBBB
-				SetScaledPixel(x, y, GetFalconTrueColor(rg, gb));
+				SetScaledPixel(x, y, GetFalconTrueColor(content, contentOffset));
+				contentOffset += 2;
 			}
 		}
 		return true;
