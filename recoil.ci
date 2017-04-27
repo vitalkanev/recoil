@@ -627,6 +627,21 @@ abstract class RleStream : BitStream
 		return true;
 	}
 
+	bool UnpackWords(byte[] unpacked, int unpackedOffset, int unpackedStride, int unpackedEnd)
+	{
+		for (; unpackedOffset < unpackedEnd; unpackedOffset += unpackedStride) {
+			int b = ReadRle();
+			if (b < 0)
+				return false;
+			unpacked[unpackedOffset] = b;
+			b = ReadRle();
+			if (b < 0)
+				return false;
+			unpacked[unpackedOffset + 1] = b;
+		}
+		return true;
+	}
+
 	bool UnpackC64(byte[] unpacked, int unpackedLength)
 	{
 		unpacked[0] = Content[0];
@@ -6496,14 +6511,8 @@ public class RECOIL
 			rle.ContentLength = contentLength;
 			int bytesPer16Pixels = 8 >> mode;
 			for (int bitplane = 0; bitplane < bytesPer16Pixels; bitplane += 2) {
-				for (int unpackedOffset = bitplane; unpackedOffset < bitmapLength; unpackedOffset += bytesPer16Pixels) {
-					for (int x = 0; x < 2; x++) {
-						int b = rle.ReadRle();
-						if (b < 0)
-							return false;
-						unpacked[unpackedOffset + x] = b;
-					}
-				}
+				if (!rle.UnpackWords(unpacked, bitplane, bytesPer16Pixels, bitmapLength))
+					return false;
 			}
 			return DecodeSt(unpacked, 0, content, 4, mode, doubleHeight);
 		}
@@ -6980,14 +6989,8 @@ public class RECOIL
 	static bool UnpackSpc(RleStream rle, byte[] unpacked)
 	{
 		for (int bitplane = 0; bitplane < 8; bitplane += 2) {
-			for (int unpackedOffset = 160 + bitplane; unpackedOffset < 32000; unpackedOffset += 8) {
-				for (int x = 0; x < 2; x++) {
-					int b = rle.ReadRle();
-					if (b < 0)
-						return false;
-					unpacked[unpackedOffset + x] = b;
-				}
-			}
+			if (!rle.UnpackWords(unpacked, 160 + bitplane, 8, 32000))
+				return false;
 		}
 		return true;
 	}
@@ -7272,64 +7275,90 @@ public class RECOIL
 		return ApplyBlend();
 	}
 
-	int SetPbxPalette(byte[] content, int y, int paletteOffset)
+	byte[] UnpackPbx(byte[] content, int contentLength, byte[] unpacked, int bitmapOffset, int bytesPer16Pixels, int unpackedLength)
 	{
-		if (paletteOffset < 512 && y == content[paletteOffset + 33]) {
-			SetStPalette(content, paletteOffset, 16);
-			do
-				paletteOffset += 48;
-			while (paletteOffset < 512 && content[paletteOffset + 34] == 0 && content[paletteOffset + 35] == 0);
+		if (content[4] != 0x80 || content[5] != 1)
+			return contentLength == unpackedLength ? content : null;
+		PackBitsStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 128;
+		rle.ContentLength = contentLength;
+		if (!rle.Unpack(unpacked, 128, 1, bitmapOffset))
+			return null;
+		for (int bitplane = 0; bitplane < bytesPer16Pixels; bitplane += 2) {
+			for (int x = bitplane; x < 160; x += bytesPer16Pixels) {
+				if (!rle.UnpackWords(unpacked, bitmapOffset + x, 160, unpackedLength))
+					return null;
+			}
 		}
-		return paletteOffset;
+		return unpacked;
+	}
+
+	bool DecodePbx01(byte[] content, int contentLength, int bitplanes, int lineHeight)
+	{
+		if (content[128 + 33] != 0)
+			return false;
+		byte[32512] unpacked;
+		content = UnpackPbx(content, contentLength, unpacked, 512, bitplanes << 1, 32512);
+		if (content == null)
+			return false;
+		int paletteOffset = 128;
+		for (int y = 0; y < 200; y++) {
+			if (paletteOffset < 512 && y == content[paletteOffset + 33]) {
+				SetStPalette(content, paletteOffset, 16);
+				do
+					paletteOffset += 48;
+				while (paletteOffset < 512 && content[paletteOffset + 34] == 0 && content[paletteOffset + 35] == 0);
+			}
+			DecodeBitplanes(content, 512 + y * 160, 0, bitplanes, y * lineHeight * Width, Width, lineHeight);
+		}
+		return true;
+	}
+
+	void DecodePbx8(byte[] content, int paletteOffset, int bitmapOffset, int pixelsOffset)
+	{
+		for (int y = 0; y < 200; y++) {
+			for (int x = 0; x < 320; x++) {
+				int c = GetStLowColor(content, bitmapOffset + y * 160, x);
+				if (x >= (c > 7 ? 88 : 76) + c * 10 - (c & 1) * 6)
+					c += 16;
+				Pixels[pixelsOffset + x] = GetStColor(content, paletteOffset + (y << 6) + (c << 1));
+			}
+			pixelsOffset += 320;
+		}
 	}
 
 	bool DecodePbx(byte[] content, int contentLength)
 	{
 		if (contentLength < 128 || content[0] != 0 || content[1] != 0 || content[2] != 0)
 			return false;
-		if (content[4] == 0x80 && content[5] == 1)
-			return false; // TODO: compression
-
-		int paletteOffset;
 		switch (content[3]) {
 		case 0:
-			if (contentLength != 32512 || content[128 + 33] != 0)
-				return false;
 			SetSize(320, 200, RECOILResolution.St1x1);
-			paletteOffset = 128;
-			for (int y = 0; y < 200; y++) {
-				paletteOffset = SetPbxPalette(content, y, paletteOffset);
-				DecodeBitplanes(content, 512 + y * 160, 0, 4, y * 320, 320, 1);
-			}
-			return true;
-
+			return DecodePbx01(content, contentLength, 4, 1);
 		case 1:
-			if (contentLength != 32512 || content[128 + 33] != 0)
-				return false;
 			SetSize(640, 400, RECOILResolution.St1x2);
-			paletteOffset = 128;
-			for (int y = 0; y < 200; y++) {
-				paletteOffset = SetPbxPalette(content, y, paletteOffset);
-				DecodeBitplanes(content, 512 + y * 160, 0, 2, y * 1280, 640, 2);
+			return DecodePbx01(content, contentLength, 2, 2);
+		case 0x80: {
+				byte[44928] unpacked;
+				content = UnpackPbx(content, contentLength, unpacked, 0x3280, 8, 44928);
+				if (content == null)
+					return false;
+				SetSize(320, 200, RECOILResolution.St1x1);
+				DecodePbx8(content, 128, 0x3280, 0);
+				return true;
 			}
-			return true;
-
-		case 0x80:
-			if (contentLength != 44928)
-				return false;
-			SetSize(320, 200, RECOILResolution.St1x1);
-			for (int y = 0; y < 200; y++) {
-				for (int x = 0; x < 320; x++) {
-					int c = GetStLowColor(content, 0x3280 + y * 160, x);
-					if (x >= (c > 7 ? 88 : 76) + c * 10 - (c & 1) * 6)
-						c += 16;
-					Pixels[y * 320 + x] = GetStColor(content, 128 + (y << 6) + (c << 1));
-				}
+		case 0x81: {
+				byte[57728] unpacked;
+				content = UnpackPbx(content, contentLength, unpacked, 0x6480, 8, 57728);
+				if (content == null)
+					return false;
+				SetSize(320, 200, RECOILResolution.St1x1);
+				DecodePbx8(content, 128, 0x6480, 0);
+				DecodePbx8(content, 0x3280, 0x6480, 320 * 200);
+				return ApplyBlend();
 			}
-			return true;
-
 		default:
-			// TODO: 0x81
 			return false;
 		}
 	}
