@@ -7305,34 +7305,47 @@ public class RECOIL
 		return ApplyBlend();
 	}
 
+	int SetPbxPalette(byte[] content, int y, int paletteOffset)
+	{
+		if (paletteOffset < 512 && y == content[paletteOffset + 33]) {
+			SetStPalette(content, paletteOffset, 16);
+			do
+				paletteOffset += 48;
+			while (paletteOffset < 512 && content[paletteOffset + 34] == 0 && content[paletteOffset + 35] == 0);
+		}
+		return paletteOffset;
+	}
+
 	bool DecodePbx(byte[] content, int contentLength)
 	{
 		if (contentLength < 128 || content[0] != 0 || content[1] != 0 || content[2] != 0)
 			return false;
 		if (content[4] == 0x80 && content[5] == 1)
 			return false; // TODO: compression
-		
+
+		int paletteOffset;
 		switch (content[3]) {
 		case 0:
-			if (contentLength != 32512)
+			if (contentLength != 32512 || content[128 + 33] != 0)
 				return false;
 			SetSize(320, 200, RECOILResolution.St1x1);
-			int paletteOffset = 128;
-			for (int y = 0; ; ) {
-				SetStPalette(content, paletteOffset, 16);
-				do {
-					paletteOffset += 48;
-					if (paletteOffset >= 512) {
-						DecodeBitplanes(content, 512 + y * 160, 160, 4, y * 320, 320, 200 - y);
-						return true;
-					}
-				} while (content[paletteOffset + 34] == 0 && content[paletteOffset + 35] == 0);
-				int y2 = content[paletteOffset + 33];
-				if (y2 <= y || y2 >= 200 || content[paletteOffset + 32] != 0)
-					return false;
-				DecodeBitplanes(content, 512 + y * 160, 160, 4, y * 320, 320, y2 - y);
-				y = y2;
+			paletteOffset = 128;
+			for (int y = 0; y < 200; y++) {
+				paletteOffset = SetPbxPalette(content, y, paletteOffset);
+				DecodeBitplanes(content, 512 + y * 160, 0, 4, y * 320, 320, 1);
 			}
+			return true;
+
+		case 1:
+			if (contentLength != 32512 || content[128 + 33] != 0)
+				return false;
+			SetSize(640, 400, RECOILResolution.St1x2);
+			paletteOffset = 128;
+			for (int y = 0; y < 200; y++) {
+				paletteOffset = SetPbxPalette(content, y, paletteOffset);
+				DecodeBitplanes(content, 512 + y * 160, 0, 2, y * 1280, 640, 2);
+			}
+			return true;
 
 		case 0x80:
 			if (contentLength != 44928)
@@ -7347,8 +7360,9 @@ public class RECOIL
 				}
 			}
 			return true;
+
 		default:
-			// TODO: 0x01, 0x81
+			// TODO: 0x81
 			return false;
 		}
 	}
