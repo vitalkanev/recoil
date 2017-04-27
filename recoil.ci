@@ -601,32 +601,37 @@ abstract class RleStream : BitStream
 		return ReadValue();
 	}
 
-	/// Uncompresses `unpackedCount` bytes to `unpacked` at `unpackedOffset`.
-	/// If `unpackedStride` equals one, bytes are laid out sequentially.
-	/// Otherwise bytes are laid out vertically column by column,
-	/// `unpackedStride` being line width.
-	bool Unpack(byte[] unpacked, int unpackedOffset, int unpackedStride, int unpackedCount)
+	/// Uncompress bytes to `unpacked[unpackedOffset]`,
+	/// unpacked[unpackedOffset + unpackedStride]`,
+	/// unpacked[unpackedOffset + 2 * unpackedStride]`,
+	/// ... until indexes are smaller than `unpackedEnd`.
+	bool Unpack(byte[] unpacked, int unpackedOffset, int unpackedStride, int unpackedEnd)
 	{
-		for (int offset = 0; ; ) {
+		for (; unpackedOffset < unpackedEnd; unpackedOffset += unpackedStride) {
 			int b = ReadRle();
 			if (b < 0)
 				return false;
-			unpacked[unpackedOffset + offset] = b;
-			offset += unpackedStride;
-			if (offset >= unpackedCount) {
-				if (unpackedStride > 1)
-					offset -= unpackedCount - 1;
-				if (offset >= unpackedStride)
-					return true;
-			}
+			unpacked[unpackedOffset] = b;
 		}
+		return true;
+	}
+
+	/// Uncompress laiding out bytes vertically column by column,
+	/// `unpackedStride` being line width.
+	bool UnpackColumns(byte[] unpacked, int unpackedOffset, int unpackedStride, int unpackedEnd)
+	{
+		for (int x = 0; x < unpackedStride; x++) {
+			if (!Unpack(unpacked, unpackedOffset + x, unpackedStride, unpackedEnd))
+				return false;
+		}
+		return true;
 	}
 
 	bool UnpackC64(byte[] unpacked, int unpackedLength)
 	{
 		unpacked[0] = Content[0];
 		unpacked[1] = Content[1];
-		return Unpack(unpacked, 2, 1, unpackedLength - 2);
+		return Unpack(unpacked, 2, 1, unpackedLength);
 	}
 }
 
@@ -890,18 +895,11 @@ class CciStream : RleStream
 	{
 		ContentOffset += 4;
 		RepeatCount = 0;
-		for (int offset = 0; ; ) {
-			int b = ReadRle();
-			if (b < 0)
+		for (int x = 0; x < 40; x++) {
+			if (!Unpack(unpacked, unpackedOffset + x, 80, 7680))
 				return false;
-			unpacked[unpackedOffset + offset] = b;
-			offset += 80;
-			if (offset >= 7680) {
-				offset -= 7679;
-				if (offset >= 40)
-					return true;
-			}
 		}
+		return true;
 	}
 }
 
@@ -1192,13 +1190,9 @@ class XeKoalaStream : RleStream
 			return true;
 		case 1:
 			for (int x = 0; x < 40; x++) {
-				for (int offset = x; offset < 80; offset += 40) {
-					for (int unpackedOffset = offset; unpackedOffset < unpackedLength; unpackedOffset += 80) {
-						int b = rle.ReadRle();
-						if (b < 0)
-							return false;
-						unpacked[unpackedOffset] = b;
-					}
+				for (int unpackedOffset = x; unpackedOffset < 80; unpackedOffset += 40) {
+					if (!rle.Unpack(unpacked, unpackedOffset, 80, unpackedLength))
+						return false;
 				}
 			}
 			return true;
@@ -1363,15 +1357,7 @@ class CaStream : RleStream
 			unpackedStep = 1;
 		}
 		ContentOffset += 4;
-		for (int x = 0; x < unpackedStep; x++) {
-			for (int offset = x; offset < 32000; offset += unpackedStep) {
-				int b = ReadRle();
-				if (b < 0)
-					return false;
-				unpacked[unpackedOffset + offset] = b;
-			}
-		}
-		return true;
+		return UnpackColumns(unpacked, unpackedOffset, unpackedStep, unpackedOffset + 32000);
 	}
 
 	static bool UnpackDel(byte[] content, int contentLength, byte[] unpacked, int blocks)
@@ -1499,13 +1485,8 @@ class PcsStream : TnyPcsStream
 		// bitmap
 		ContentOffset += 2;
 		Palette = false;
-		for (int unpackedOffset = 0; unpackedOffset < 32000; unpackedOffset++) {
-			int b = ReadRle();
-			if (b < 0)
-				return false;
-			unpacked[unpackedOffset] = b;
-		}
-		if (RepeatCount != 0)
+		if (!Unpack(unpacked, 0, 1, 32000)
+		 || RepeatCount != 0)
 			return false;
 
 		// palettes
@@ -3651,17 +3632,9 @@ public class RECOIL
 			return false;
 
 		byte[20480] unpacked;
-		for (int unpackedOffset = unpackedStep - 1;;) {
-			int b = rle.ReadRle();
-			if (b < 0)
+		for (int x = unpackedStep - 1; x >= 0; x--) {
+			if (!rle.Unpack(unpacked, x, unpackedStep, unpackedLength))
 				return false;
-			unpacked[unpackedOffset] = b;
-			unpackedOffset += unpackedStep;
-			if (unpackedOffset >= unpackedLength) {
-				unpackedOffset = unpackedOffset % unpackedStep - 1;
-				if (unpackedOffset < 0)
-					break;
-			}
 		}
 
 		switch (mode) {
@@ -4447,7 +4420,7 @@ public class RECOIL
 			rle.Content = content;
 			rle.ContentOffset = 7;
 			rle.ContentLength = contentLength;
-			rle.Unpack(unpacked, 7, 1, 54272); // ignore decompression errors because some SR7 are truncated
+			rle.Unpack(unpacked, 7, 1, 54279); // ignore decompression errors because some SR7 are truncated
 			return unpacked;
 		default:
 			return null;
@@ -5621,7 +5594,7 @@ public class RECOIL
 		rle.ContentOffset = 3;
 		rle.ContentLength = contentLength;
 		rle.Escape = content[2];
-		return rle.Unpack(unpacked, 2, 1, 32768)
+		return rle.Unpack(unpacked, 2, 1, 32770)
 			&& DecodeEci(unpacked, 32770);
 	}
 
@@ -5695,7 +5668,7 @@ public class RECOIL
 			rle.ContentOffset = 18;
 			rle.ContentLength = contentLength;
 			rle.Escape = content[17];
-			return rle.Unpack(unpacked, 18, 1, 33694 - 18)
+			return rle.Unpack(unpacked, 18, 1, 33694)
 				&& rle.ReadRle() < 0
 				&& DecodeFunUnpacked(unpacked);
 		}
@@ -5869,7 +5842,7 @@ public class RECOIL
 		rle.ContentOffset = 7;
 		rle.ContentLength = contentLength;
 		byte[32000] unpacked;
-		return rle.Unpack(unpacked, 0, unpackedStride, 32000)
+		return rle.UnpackColumns(unpacked, 0, unpackedStride, 32000)
 			&& DecodeDoo(unpacked, 32000);
 	}
 
@@ -6430,7 +6403,7 @@ public class RECOIL
 		rle.Content = content;
 		rle.ContentOffset = 0x43;
 		rle.ContentLength = contentLength;
-		return rle.Unpack(unpacked, 0, 160, 32000)
+		return rle.UnpackColumns(unpacked, 0, 160, 32000)
 			&& DecodeSt(unpacked, 0, content, 6, content[5], 0);
 	}
 
@@ -7077,19 +7050,13 @@ public class RECOIL
 		if ((content[contentLength - 1] & 1) == 0) {
 			for (int bitplane = 0; bitplane < 8; bitplane += 2) {
 				for (int x = 0; x < 40; x++) {
-					for (int unpackedOffset = 160 + ((x & ~1) << 2) + bitplane + (x & 1); unpackedOffset < 32000; unpackedOffset += 160) {
-						int b = rle.ReadRle();
-						if (b < 0)
-							return false;
-						unpacked[unpackedOffset] = b;
-					}
+					if (!rle.Unpack(unpacked, 160 + ((x & ~1) << 2) + bitplane + (x & 1), 160, 32000))
+						return false;
 				}
 			}
 		}
-		else {
-			if (!UnpackSpc(rle, unpacked))
-				return false;
-		}
+		else if (!UnpackSpc(rle, unpacked))
+			return false;
 
 		// palettes
 		BitStream() bitStream;
@@ -9904,18 +9871,18 @@ public class RECOIL
 			// Ignore errors: STAIRS.XLP included with XL-Paint is missing last two image bytes.
 			unpacked.Clear();
 			rle.ContentOffset = 8;
-			rle.Unpack(unpacked, 0, 40, 2 * 40 * 192);
+			rle.UnpackColumns(unpacked, 0, 40, 2 * 40 * 192);
 			height = 192;
 			colorsOffset = 4;
 		}
 		else {
-			// No header so better check for errors.
+			// No header, so better check for errors.
 			rle.ContentOffset = 4;
-			if (rle.Unpack(unpacked, 0, 40, 2 * 40 * 200))
+			if (rle.UnpackColumns(unpacked, 0, 40, 2 * 40 * 200))
 				height = 200;
 			else {
 				rle.ContentOffset = 4;
-				if (rle.Unpack(unpacked, 0, 40, 2 * 40 * 192))
+				if (rle.UnpackColumns(unpacked, 0, 40, 2 * 40 * 192))
 					height = 192;
 				else
 					return false;
@@ -9941,7 +9908,7 @@ public class RECOIL
 		rle.ContentOffset = 4 + 9 * 192;
 		rle.ContentLength = contentLength;
 		byte[15360] unpacked;
-		if (!rle.Unpack(unpacked, 0, 40, 15360))
+		if (!rle.UnpackColumns(unpacked, 0, 40, 15360))
 			return false;
 
 		SetSize(320, 192, RECOILResolution.Xe2x1);
@@ -10221,11 +10188,11 @@ public class RECOIL
 			return false;
 		rle.ContentOffset += 4;
 		rle.RepeatCount = 0; // DRACONUS.CCI
-		if (!rle.Unpack(unpacked, 7680, 40, 7680))
+		if (!rle.UnpackColumns(unpacked, 7680, 40, 15360))
 			return false;
 		rle.ContentOffset += 4;
 		rle.RepeatCount = 0;
-		return rle.Unpack(unpacked, 15360, 1, 1024)
+		return rle.Unpack(unpacked, 15360, 1, 16384)
 			&& DecodeCin(unpacked, 16384);
 	}
 
