@@ -164,6 +164,7 @@
 		<format name="Blazing Paddles shape table" colors="2"><ext>SHP</ext></format>
 		<format name="Movie Maker shapes" width="160" height="96" colors="4"><ext>SHP</ext></format>
 		<format name="Super-IRG Font" colors="4" frames="2"><ext>SIF</ext></format>
+		<format name="Sketch-PadDles" width="160" height="192" colors="2"><ext>SKP</ext></format>
 		<format name="The Graphics Magician Picture Painter" width="160" height="192" colors="128"><ext>SPC</ext></format>
 		<format name="16x16 font" colors="2"><ext>SXS</ext></format>
 		<format name="Taquart Interlace Picture" maxWidth="160" maxHeight="119" frames="2"><ext>TIP</ext></format>
