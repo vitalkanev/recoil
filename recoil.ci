@@ -3003,7 +3003,7 @@ public class RECOIL
 		return true;
 	}
 
-	bool SetSizeStOrFalcon(int width, int height, int bitplanes)
+	bool SetSizeStOrFalcon(int width, int height, int bitplanes, bool squarePixels)
 	{
 		RECOILResolution resolution = RECOILResolution.Falcon1x1;
 		switch (bitplanes) {
@@ -3012,7 +3012,7 @@ public class RECOIL
 				resolution = RECOILResolution.St1x1;
 			break;
 		case 2:
-			if (width == 640 && height == 200) {
+			if (!squarePixels && width == 640 && height == 200) {
 				height <<= 1;
 				resolution = RECOILResolution.St1x2;
 			}
@@ -3022,7 +3022,7 @@ public class RECOIL
 				resolution = RECOILResolution.St1x1;
 			break;
 		case 8:
-			if (width == 320 && height == 480) {
+			if (!squarePixels && width == 320 && height == 480) {
 				width <<= 1;
 				resolution = RECOILResolution.Tt2x1;
 			}
@@ -6543,7 +6543,7 @@ public class RECOIL
 			return false;
 		if (1556 + bitmapLength != contentLength
 		 || bitmapLength != (width + 15 >> 4 << 1) * bitplanes * height
-		 || !SetSizeStOrFalcon(width, height, bitplanes))
+		 || !SetSizeStOrFalcon(width, height, bitplanes, false))
 			return false;
 		SetStVdiPalette(content, 20 + bitmapLength, 1 << bitplanes, bitplanes);
 		DecodeScaledBitplanes(content, 20, width, height, bitplanes, false, null);
@@ -6763,7 +6763,9 @@ public class RECOIL
 		int yRatio = content[10] << 8 | content[11];
 		if (bitplanes <= 2 && width <= 640 && height <= 200 && yRatio * 2 > xRatio * 3)
 			SetSize(width, height << 1, RECOILResolution.St1x2);
-		else if (!SetSizeStOrFalcon(width, height, bitplanes))
+		else if (bitplanes <= 8 && width <= 320 && height <= 480 && xRatio * 2 > yRatio * 3)
+			SetSize(width << 1, height, RECOILResolution.Tt2x1);
+		else if (!SetSizeStOrFalcon(width, height, bitplanes, true))
 			return false;
 
 		ImgStream() rle;
@@ -7987,7 +7989,7 @@ public class RECOIL
 			int paletteOffset = 13 + 12 + height * bytesPerLine;
 			int colors = 1 << bitplanes;
 			if (contentLength != paletteOffset + colors * 6
-			 || !SetSizeStOrFalcon(width, height, bitplanes))
+			 || !SetSizeStOrFalcon(width, height, bitplanes, false))
 				return false;
 			if (bitplanes == 1)
 				SetDefaultStPalette(1);
@@ -8059,14 +8061,14 @@ public class RECOIL
 		switch (bitplanes) {
 		case 1:
 			return content[6] == 1
-				&& SetSizeStOrFalcon(width, height, 1)
+				&& SetSizeStOrFalcon(width, height, 1, false)
 				&& DecodeBlackAndWhite(content, contentOffset, contentLength, true, 0xffffff);
 		case 2:
 		case 4:
 			int bitmapOffset = contentOffset + (3 << bitplanes);
 			if (content[6] != 1
 			 || contentLength != bitmapOffset + (width >> 3) * bitplanes * height
-			 || !SetSizeStOrFalcon(width, height, bitplanes))
+			 || !SetSizeStOrFalcon(width, height, bitplanes, false))
 				return false;
 			DecodeR8G8B8Colors(content, contentOffset, 1 << bitplanes, ContentPalette);
 			DecodeScaledBitplanes(content, bitmapOffset, width, height, bitplanes, false, null);
@@ -8111,7 +8113,7 @@ public class RECOIL
 		case 2:
 		case 4:
 		case 8:
-			if (!SetSizeStOrFalcon(width, height, bitplanes))
+			if (!SetSizeStOrFalcon(width, height, bitplanes, false))
 				return false;
 			int paletteLength = content[6] << 8 | content[7];
 			SetStVdiPalette(content, 128, paletteLength, bitplanes);
