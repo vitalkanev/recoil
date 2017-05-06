@@ -11091,38 +11091,37 @@ public class RECOIL
 
 	bool DecodeMch(byte[] content, int contentLength)
 	{
-		int width;
-		int charactersStride;
-		int charactersOffset;
+		int columns;
 		switch (contentLength) {
 		case 30 * 32 * 9 + 5 * 240:
-			width = 128;
-			charactersStride = 32;
-			charactersOffset = 0;
+			columns = 32;
 			break;
 		case 30 * 40 * 9 + 5 * 240:
-			width = 160;
-			charactersStride = 40;
-			charactersOffset = 0;
+			columns = 40;
 			break;
 		case 30 * 48 * 9 + 5 * 240:
-			width = 176;
-			charactersStride = 48;
-			charactersOffset = 3;
+			columns = 48;
 			break;
 		default:
 			return false;
 		}
-		SetSize(width * 2, 240, RECOILResolution.Xe2x1);
-		byte[176 * 2 * 240] frame;
+		SetSize(336, 240, RECOILResolution.Xe2x1);
+		byte[336 * 240] frame;
 		for (int y = 0; y < 240; y++) {
 			int colorsOffset = contentLength - 5 * 240 + y;
-			for (int x = 0; x < width; x++) {
-				int offset = (charactersOffset + (y >> 3) * charactersStride + (x >> 2)) * 9;
-				int c = content[offset + 1 + (y & 7)] >> ((~x & 3) * 2) & 3;
-				if (c == 3 && content[offset] >= 0x80)
-					c = 4;
-				offset = (y * width + x) * 2;
+			for (int x = 0; x < 336; x++) {
+				int column = (x >> 3) + (columns >> 1) - 21;
+				int c;
+				int offset;
+				if (column < 0 || column >= columns)
+					c = 0;
+				else {
+					offset = ((y >> 3) * columns + column) * 9;
+					c = content[offset + 1 + (y & 7)] >> (~x & 6) & 3;
+					if (c == 3 && content[offset] >= 0x80)
+						c = 4;
+				}
+				offset = y * 336 + x;
 				frame[offset + 1] = frame[offset] = content[colorsOffset + c * 240] & 0xfe;
 			}
 		}
