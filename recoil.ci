@@ -2799,6 +2799,29 @@ class GtiaRenderer
 		}
 	}
 
+	static bool SetG2fSprite(byte[] hpos, byte[] sizes, int i, byte[] content, int spriteOffset)
+	{
+		spriteOffset += i << 10;
+		int value = content[spriteOffset + 1];
+		if (value >= 0x80) {
+			hpos[i] = 0;
+			return true;
+		}
+		switch (value & 15) {
+		case 0:
+			value = 1;
+			break;
+		case 2:
+		case 4:
+			break;
+		default:
+			return false;
+		}
+		sizes[i] = value;
+		hpos[i] = (0x20 + content[spriteOffset]).LowByte;
+		return true;
+	}
+
 	void Poke(int addr, int value)
 	{
 		switch (addr) {
@@ -11097,84 +11120,6 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
-	bool DecodeMch(byte[] content, int contentLength)
-	{
-		int columns;
-		bool sprites;
-		switch (contentLength) {
-		case 30 * 32 * 9 + 5 * 240:
-			columns = 32;
-			sprites = false;
-			break;
-		case 30 * 32 * 9 + 20 * 240 + 5 * 256 + 240 * 29 * 2 + 1 + 32:
-			columns = 32;
-			sprites = true;
-			break;
-		case 30 * 40 * 9 + 5 * 240: // 12000
-			columns = 40;
-			sprites = false;
-			break;
-		case 30 * 40 * 9 + 20 * 240 + 5 * 256 + 240 * 29 * 2 + 1 + 32: // 30833
-			columns = 40;
-			sprites = true;
-			break;
-		case 30 * 48 * 9 + 5 * 240:
-			columns = 48;
-			sprites = false;
-			break;
-		case 30 * 48 * 9 + 20 * 240 + 5 * 256 + 240 * 29 * 2 + 1 + 32:
-			columns = 48;
-			sprites = true;
-			break;
-		default:
-			return false;
-		}
-		if ((content[0] & 0x7e) != 4) // TODO: for now only ANTIC 4, no GTIA mode
-			return false;
-		SetSize(336, 240, RECOILResolution.Xe2x1);
-		GtiaRenderer() gtia;
-		gtia.PlayerHpos.Clear();
-		gtia.MissileHpos.Clear();
-		byte[336 * 240] frame;
-		for (int y = 0; y < 240; y++) {
-			int colorsOffset = columns * (30 * 9) + y;
-			gtia.Colors[8] = content[colorsOffset] & 0xfe;
-			for (int i = 0; i < 4; i++) {
-				gtia.Colors[4 + i] = content[colorsOffset + (1 + i) * 240] & 0xfe;
-				if (sprites) {
-					gtia.Colors[i] = content[colorsOffset + (5 + i) * 240] & 0xfe;
-					gtia.PlayerHpos[i] = content[colorsOffset + (9 + i) * 240];
-					gtia.MissileHpos[i] = content[colorsOffset + (13 + i) * 240];
-				}
-			}
-			if (sprites) {
-				GtiaRenderer.SetSpriteSizes(gtia.PlayerSize, content[colorsOffset + 17 * 240]);
-				GtiaRenderer.SetSpriteSizes(gtia.MissileSize, content[colorsOffset + 18 * 240]);
-				gtia.Prior = content[colorsOffset + 19 * 240];
-				gtia.ProcessSpriteDma(content, colorsOffset + 20 * 240);
-			}
-			gtia.StartLine(0x2c);
-			for (int x = 0; x < 336; x += 2) {
-				int column = (x >> 3) + (columns >> 1) - 21;
-				int c;
-				int offset;
-				if (column < 0 || column >= columns)
-					c = 0;
-				else {
-					offset = ((y >> 3) * columns + column) * 9;
-					c = content[offset + 1 + (y & 7)] >> (~x & 6) & 3;
-					if (c == 3 && content[offset] >= 0x80)
-						c = gtia.PF3;
-					else
-						c = 8 << c & 0x70;
-				}
-				offset = y * 336 + x;
-				frame[offset + 1] = frame[offset] = gtia.GetColor(0x2c + (x >> 1), c);
-			}
-		}
-		return ApplyAtari8Palette(frame);
-	}
-
 	bool DecodeAll(byte[] content, int contentLength)
 	{
 		// "ALL" format of GRAPH.COM by Adam Bienias:
@@ -12467,6 +12412,156 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeMch(byte[] content, int contentLength)
+	{
+		int columns;
+		bool sprites;
+		switch (contentLength) {
+		case 30 * 32 * 9 + 5 * 240:
+			columns = 32;
+			sprites = false;
+			break;
+		case 30 * 32 * 9 + 20 * 240 + 5 * 256 + 240 * 29 * 2 + 1 + 32:
+			columns = 32;
+			sprites = true;
+			break;
+		case 30 * 40 * 9 + 5 * 240: // 12000
+			columns = 40;
+			sprites = false;
+			break;
+		case 30 * 40 * 9 + 20 * 240 + 5 * 256 + 240 * 29 * 2 + 1 + 32: // 30833
+			columns = 40;
+			sprites = true;
+			break;
+		case 30 * 48 * 9 + 5 * 240:
+			columns = 48;
+			sprites = false;
+			break;
+		case 30 * 48 * 9 + 20 * 240 + 5 * 256 + 240 * 29 * 2 + 1 + 32:
+			columns = 48;
+			sprites = true;
+			break;
+		default:
+			return false;
+		}
+		if ((content[0] & 0x7e) != 4) // TODO: for now only ANTIC 4, no GTIA mode
+			return false;
+		SetSize(336, 240, RECOILResolution.Xe2x1);
+		byte[336 * 240] frame;
+		GtiaRenderer() gtia;
+		gtia.PlayerHpos.Clear();
+		gtia.MissileHpos.Clear();
+		gtia.Prior = 1;
+		for (int y = 0; y < 240; y++) {
+			int colorsOffset = columns * (30 * 9) + y;
+			gtia.Colors[8] = content[colorsOffset] & 0xfe;
+			for (int i = 0; i < 4; i++) {
+				gtia.Colors[4 + i] = content[colorsOffset + (1 + i) * 240] & 0xfe;
+				if (sprites) {
+					gtia.Colors[i] = content[colorsOffset + (5 + i) * 240] & 0xfe;
+					gtia.PlayerHpos[i] = content[colorsOffset + (9 + i) * 240];
+					gtia.MissileHpos[i] = content[colorsOffset + (13 + i) * 240];
+				}
+			}
+			if (sprites) {
+				GtiaRenderer.SetSpriteSizes(gtia.PlayerSize, content[colorsOffset + 17 * 240]);
+				GtiaRenderer.SetSpriteSizes(gtia.MissileSize, content[colorsOffset + 18 * 240]);
+				gtia.Prior = content[colorsOffset + 19 * 240];
+				gtia.ProcessSpriteDma(content, colorsOffset + 20 * 240);
+			}
+
+			gtia.StartLine(0x2c);
+			for (int x = 0; x < 336; x += 2) {
+				int column = (x >> 3) + (columns >> 1) - 21;
+				int c;
+				int offset;
+				if (column < 0 || column >= columns)
+					c = 0;
+				else {
+					offset = ((y >> 3) * columns + column) * 9;
+					c = content[offset + 1 + (y & 7)] >> (~x & 6) & 3;
+					if (c == 3 && content[offset] >= 0x80)
+						c = GtiaRenderer.PF3;
+					else
+						c = 8 << c & 0x70;
+				}
+				offset = y * 336 + x;
+				frame[offset + 1] = frame[offset] = gtia.GetColor(0x2c + (x >> 1), c);
+			}
+		}
+		return ApplyAtari8Palette(frame);
+	}
+
+	bool DecodeG2f(byte[] content, int contentLength)
+	{
+		// TODO: "G2FZLIB" byte[3 + 30 * 48 + 10 * 1024 + 30 + 33 * 256] uncompressed;
+		if (contentLength < 3 + 30 * 32 + 1024 + 30 + 33 * 256
+		 || (content[1] & 7) != 2)
+			return false;
+		int columns = content[0] & 0x7f;
+		switch (columns) {
+		case 32:
+		case 40:
+		case 48:
+			break;
+		default:
+			return false;
+		}
+		int fontsOffset = 3 + 30 * columns;
+		int fontNumberOffset = fontsOffset + ((content[2] & 0x7f) + 1 << 10);
+		if (contentLength < fontNumberOffset + 30 + 33 * 256)
+			return false;
+		SetSize(336, 240, RECOILResolution.Xe2x1);
+		byte[336 * 240] frame;
+		GtiaRenderer() gtia;
+		for (int y = 0; y < 240; y++) {
+			int row = y >> 3;
+			int fontOffset = fontsOffset + ((content[fontNumberOffset + row] & 0x7f) << 10);
+			if (fontOffset >= fontNumberOffset)
+				return false;
+
+			int colorsOffset = fontNumberOffset + 30 + y;
+			gtia.Colors[8] = content[colorsOffset] & 0xfe;
+			int spriteOffset = fontNumberOffset + (30 + 9 * 256) + (y << 1);
+			int missileGraphics = 0;
+			for (int i = 0; i < 4; i++) {
+				gtia.Colors[4 + i] = content[colorsOffset + (1 + i << 8)] & 0xfe;
+				gtia.Colors[i] = content[colorsOffset + (5 + i << 8)] & 0xfe;
+				if (!GtiaRenderer.SetG2fSprite(gtia.PlayerHpos, gtia.PlayerSize, i, content, spriteOffset)
+				 || !GtiaRenderer.SetG2fSprite(gtia.MissileHpos, gtia.MissileSize, i, content, spriteOffset + 512))
+					return false;
+				gtia.PlayerGraphics[i] = content[colorsOffset + 0x1900 + (i << 9)];
+				missileGraphics |= content[colorsOffset + 0x1a00 + (i << 9)] >> 6 << (i << 1);
+			}
+			gtia.MissileGraphics = missileGraphics;
+
+			int prior = content[spriteOffset + 1] >> 4 & 7;
+			const byte[] priors = { 4, 2, 1, 8, 0 };
+			if (prior >= priors.Length)
+				return false;
+			gtia.Prior = priors[prior] | (content[spriteOffset + 1025] & 0x30);
+
+			gtia.StartLine(0x2c);
+			for (int x = 0; x < 336; x += 2) {
+				int column = (x >> 3) + (columns >> 1) - 21;
+				int c;
+				if (column < 0 || column >= columns)
+					c = 0;
+				else {
+					int ch = content[3 + row * columns + column];
+					c = content[fontOffset + ((ch & 0x7f) << 3) + (y & 7)] >> (~x & 6) & 3;
+					if (c == 3 && ch >= 0x80)
+						c = GtiaRenderer.PF3;
+					else
+						c = 8 << c & 0x70;
+				}
+				int offset = y * 336 + x;
+				frame[offset + 1] = frame[offset] = gtia.GetColor(0x2c + (x >> 1), c);
+			}
+		}
+		return ApplyAtari8Palette(frame);
+	}
+
 	// PC formats.
 
 	bool DecodeMsp(byte[] content, int contentLength)
@@ -12713,6 +12808,7 @@ public class RECOIL
 		case PackExt("FWA"):
 		case PackExt("G10"):
 		case PackExt("G11"):
+		case PackExt("G2F"):
 		case PackExt("GED"):
 		case PackExt("GFB"):
 		case PackExt("GG"):
@@ -13182,6 +13278,8 @@ public class RECOIL
 			return DecodeG10(content, contentLength);
 		case PackExt("G11"):
 			return DecodeG11(content, contentLength);
+		case PackExt("G2F"):
+			return DecodeG2f(content, contentLength);
 		case PackExt("GED"):
 			return DecodeGed(content, contentLength);
 		case PackExt("GFB"):
