@@ -2947,6 +2947,17 @@ class GtiaRenderer
 		}
 		return color;
 	}
+
+	int DecodeGedSpan(byte[] bitmap, int bitmapOffset, int hpos, int untilHpos, byte[] frame, int frameOffset)
+	{
+		for (; hpos < untilHpos; hpos++) {
+			int x = hpos - 0x30 << 1;
+			int c = bitmap[bitmapOffset + (x >> 3)] >> (~x & 6) & 3;
+			int objects = 8 << c & 0x70; // 0, GTIA_PF0, GTIA_PF1 or GTIA_PF2
+			frame[frameOffset + x + 1] = frame[frameOffset + x] = GetColor(hpos, objects);
+		}
+		return hpos;
+	}
 }
 
 public class RECOIL
@@ -12395,50 +12406,23 @@ public class RECOIL
 
 			// We need to process PMG on the left border.
 			// The leftmost PMG we can still see on the playfield is a quad-sized player positioned at 0x11.
-			for (int hpos = 0x11; hpos < 0x30; hpos++)
+			int hpos;
+			for (hpos = 0x11; hpos < 0x30; hpos++)
 				gtia.GetColor(hpos, 0);
 
-			int changeHpos = 0x30 + 15 + (cycle << 3);
-			int change = 0;
-			for (int hpos = 0x30; hpos < 0xd0; hpos++) {
-				if (hpos == changeHpos) {
-					switch (change) {
-					case 0:
-						gtia.Colors[4] = content[1006 + y] & 0xfe;
-						if (cycle < 4)
-							changeHpos += 32;
-						else
-							changeHpos = 0x30 + 75 - 16 + (cycle << 2);
-						change = 1;
-						break;
-					case 1:
-						gtia.Colors[5] = content[1206 + y] & 0xfe;
-						changeHpos = 0x30 + 75 + (cycle << 2);
-						change = 2;
-						break;
-					case 2:
-						gtia.Colors[6] = content[1406 + y] & 0xfe;
-						changeHpos += 24;
-						change = 3;
-						break;
-					case 3:
-						gtia.Colors[4] = content[1606 + y] & 0xfe;
-						changeHpos += 24;
-						change = 4;
-						break;
-					case 4:
-						gtia.Colors[5] = content[1806 + y] & 0xfe;
-						break;
-					default:
-						break;
-					}
-				}
-
-				int x = hpos - 0x30 << 1;
-				int c = content[0xce6 + y * 40 + (x >> 3)] >> (~x & 6) & 3;
-				int objects = 8 << c & 0x70; // 0, GTIA_PF0, GTIA_PF1 or GTIA_PF2
-				frame[y * 320 + x + 1] = frame[y * 320 + x] = gtia.GetColor(hpos, objects);
-			}
+			int bitmapOffset = 0xce6 + y * 40;
+			int frameOffset = y * 320;
+			hpos = gtia.DecodeGedSpan(content, bitmapOffset, 0x30, 0x30 + 15 + (cycle << 3), frame, frameOffset);
+			gtia.Colors[4] = content[1006 + y] & 0xfe;
+			hpos = gtia.DecodeGedSpan(content, bitmapOffset, hpos, cycle < 4 ? hpos + 32 : 0x30 + 75 - 16 + (cycle << 2), frame, frameOffset);
+			gtia.Colors[5] = content[1206 + y] & 0xfe;
+			hpos = gtia.DecodeGedSpan(content, bitmapOffset, hpos, 0x30 + 75 + (cycle << 2), frame, frameOffset);
+			gtia.Colors[6] = content[1406 + y] & 0xfe;
+			hpos = gtia.DecodeGedSpan(content, bitmapOffset, hpos, hpos + 24, frame, frameOffset);
+			gtia.Colors[4] = content[1606 + y] & 0xfe;
+			hpos = gtia.DecodeGedSpan(content, bitmapOffset, hpos, hpos + 24, frame, frameOffset);
+			gtia.Colors[5] = content[1806 + y] & 0xfe;
+			hpos = gtia.DecodeGedSpan(content, bitmapOffset, hpos, 0xd0, frame, frameOffset);
 		}
 		return ApplyAtari8Palette(frame);
 	}
