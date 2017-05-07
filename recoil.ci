@@ -12755,8 +12755,8 @@ public class RECOIL
 
 	bool DecodeG2fUnpacked(byte[] content, int contentLength)
 	{
-		if (contentLength < 3 + 30 * 32 + 1024 + 30 + 33 * 256
-		 || (content[1] & 7) != 2)
+		const int modeOffset = 30 + 33 * 256 + 2 * 240 * 290 + 256 + 240 * 24;
+		if (contentLength < 3 + 30 * 32 + 1024 + modeOffset)
 			return false;
 		int columns = content[0] & 0x7f;
 		switch (columns) {
@@ -12769,16 +12769,17 @@ public class RECOIL
 		}
 		int fontsOffset = 3 + 30 * columns;
 		int fontNumberOffset = fontsOffset + ((content[2] & 0x7f) + 1 << 10);
-		if (contentLength < fontNumberOffset + 30 + 33 * 256)
+		if (contentLength < fontNumberOffset + (modeOffset + 30))
 			return false;
-		SetSize(336, 240, RECOILResolution.Xe2x1);
 		byte[336 * 240] frame;
+		RECOILResolution resolution = RECOILResolution.Xe2x1;
 		GtiaRenderer() gtia;
 		for (int y = 0; y < 240; y++) {
 			int row = y >> 3;
 			int fontOffset = fontsOffset + ((content[fontNumberOffset + row] & 0x7f) << 10);
 			if (fontOffset >= fontNumberOffset)
 				return false;
+			int mode = content[fontNumberOffset + modeOffset + row];
 
 			int colorsOffset = fontNumberOffset + 30 + y;
 			gtia.Colors[8] = content[colorsOffset] & 0xfe;
@@ -12803,22 +12804,35 @@ public class RECOIL
 
 			gtia.StartLine(0x2c);
 			for (int x = 0; x < 336; x += 2) {
-				int column = (x >> 3) + (columns >> 1) - 21;
+				int objects = 0;
+				int hiresPixels = 0;
 				int c;
-				if (column < 0 || column >= columns)
-					c = 0;
-				else {
-					int ch = content[3 + row * columns + column];
-					c = content[fontOffset + ((ch & 0x7f) << 3) + (y & 7)] >> (~x & 6) & 3;
-					if (c == 3 && ch >= 0x80)
-						c = GtiaRenderer.PF3;
-					else
-						c = 8 << c & 0x70;
+				if (mode != 0xff) {
+					int column = (x >> 3) + (columns >> 1) - 21;
+					if (column >= 0 && column < columns) {
+						int ch = content[3 + row * columns + column];
+						c = content[fontOffset + ((ch & 0x7f) << 3) + (y & 7)] >> (~x & 6) & 3;
+						switch (mode) {
+						case 1:
+							objects = GtiaRenderer.PF2;
+							hiresPixels = ch >= 0x80 ? c ^ 3 : c;
+							resolution = RECOILResolution.Xe1x1;
+							break;
+						case 2:
+							objects = c == 3 && ch >= 0x80 ? GtiaRenderer.PF3 : 8 << c & 0x70;
+							break;
+						// TODO: case 4
+						default:
+							return false;
+						}
+					}
 				}
-				int offset = y * 336 + x;
-				frame[offset + 1] = frame[offset] = gtia.GetColor(0x2c + (x >> 1), c);
+				c = gtia.GetColor(0x2c + (x >> 1), objects);
+				frame[y * 336 + x] = (hiresPixels & 2) != 0 ? (c & 0xf0) + (gtia.Colors[5] & 0xe) : c;
+				frame[y * 336 + x + 1] = (hiresPixels & 1) != 0 ? (c & 0xf0) + (gtia.Colors[5] & 0xe) : c;
 			}
 		}
+		SetSize(336, 240, resolution);
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -12827,13 +12841,16 @@ public class RECOIL
 		if (contentLength < 11)
 			return false;
 		if (IsStringAt(content, 0, "G2FZLIB")) {
-			byte[3 + 30 * 48 + 10 * 1024 + 30 + 33 * 256] unpacked;
+			const int maxUnpackedLength = 3 + 30 * 48 + 30 * 1024 + 30 + 33 * 256 + 2 * 240 * 290 + 256 + 240 * 24 + 30;
+			byte[] unpacked = new byte[maxUnpackedLength];
 			InflateStream() stream;
 			stream.Content = content;
 			stream.ContentOffset = 7;
 			stream.ContentLength = contentLength;
-			contentLength = stream.Uncompress(unpacked, unpacked.Length);
-			return DecodeG2fUnpacked(unpacked, contentLength);
+			contentLength = stream.Uncompress(unpacked, maxUnpackedLength);
+			bool ok = DecodeG2fUnpacked(unpacked, contentLength);
+			delete unpacked;
+			return ok;
 		}
 		return DecodeG2fUnpacked(content, contentLength);
 	}
