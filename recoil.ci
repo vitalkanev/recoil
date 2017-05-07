@@ -2807,10 +2807,12 @@ class GtiaRenderer
 			hpos[i] = 0;
 			return true;
 		}
-		switch (value & 15) {
+		value &= 15;
+		switch (value) {
 		case 0:
 			value = 1;
 			break;
+		case 1:
 		case 2:
 		case 4:
 			break;
