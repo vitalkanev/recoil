@@ -2991,6 +2991,265 @@ class GtiaRenderer
 	}
 }
 
+class InflateStream : Stream
+{
+	int Bits;
+
+	int ReadBit()
+	{
+		if (Bits <= 1) {
+			if (ContentOffset >= ContentLength)
+				return -1;
+			Bits = Content[ContentOffset++] | 0x100;
+		}
+		int result = Bits & 1;
+		Bits >>= 1;
+		return result;
+	}
+
+	int ReadBits(int count)
+	{
+		int result = 0;
+		for (int rank = 0; rank < count; rank++) {
+			switch (ReadBit()) {
+			case -1:
+				return -1;
+			case 1:
+				result |= 1 << rank;
+				break;
+			default:
+				break;
+			}
+		}
+		return result;
+	}
+
+	const int PrimarySymbols = 256 + 1 + 29 + 2;
+	const int DistanceSymbols = 30;
+	const int AllSymbols = PrimarySymbols + DistanceSymbols;
+	byte[AllSymbols] SymbolCodeLength;
+
+	const int TreeSize = 16;
+	const int PrimaryTree = 0;
+	const int DistanceTree = TreeSize;
+	int[2 * TreeSize] NBitCodeCount;
+	int[2 * TreeSize] NBitCodeOffset;
+	int[AllSymbols] CodeToSymbol; // TODO: short
+
+	void BuildHuffmanTrees()
+	{
+		NBitCodeCount.Clear();
+		for (int i = 0; i < AllSymbols; i++)
+			NBitCodeCount[SymbolCodeLength[i]]++;
+		int offset = 0;
+		for (int i = 0; i < 2 * TreeSize; i++) {
+			NBitCodeOffset[i] = offset;
+			offset += NBitCodeCount[i];
+		}
+		for (int i = 0; i < AllSymbols; i++)
+			CodeToSymbol[NBitCodeOffset[SymbolCodeLength[i]]++] = i;
+	}
+
+	int FetchCode(int tree)
+	{
+		int code = 0;
+		do {
+			int bit = ReadBit();
+			if (bit < 0)
+				return -1;
+			code = (code << 1) + bit - NBitCodeCount[++tree];
+		} while (code >= 0);
+		return CodeToSymbol[NBitCodeOffset[tree] + code];
+	}
+
+	int Inflate(byte[] unpacked, int unpackedLength)
+	{
+		int unpackedOffset = 0;
+		Bits = 0;
+
+		int lastBlock;
+		do {
+			lastBlock = ReadBit();
+			int length;
+			switch (ReadBits(2)) {
+			case 0:
+				Bits = 0;
+				length = ReadBits(16);
+				if (ReadBits(16) != (length ^ 0xffff))
+					return -1;
+				if (length > unpackedLength - unpackedOffset)
+					length = unpackedLength - unpackedOffset;
+				Content.CopyTo(ContentOffset, unpacked, unpackedOffset, length);
+				ContentOffset += length;
+				unpackedOffset += length;
+				if (unpackedOffset == unpackedLength)
+					return unpackedOffset;
+				continue;
+
+			case 1:
+				for (int i = 0; i < 144; i++)	
+					SymbolCodeLength[i] = 8;
+				for (int i = 144; i < 256; i++)
+					SymbolCodeLength[i] = 9;
+				for (int i = 256; i < 280; i++)
+					SymbolCodeLength[i] = 7;
+				for (int i = 280; i < 288; i++)
+					SymbolCodeLength[i] = 8;
+				for (int i = 288; i < 288 + DistanceSymbols; i++)
+					SymbolCodeLength[i] = DistanceTree + 5;
+				break;
+
+			case 2:
+				int primaryCodes = 257 + ReadBits(5);
+				int distanceCodes = 1 + ReadBits(5);
+				int temporaryCodes = ReadBits(4);
+				if (temporaryCodes < 0)
+					return -1;
+				temporaryCodes += 4;
+				SymbolCodeLength.Clear();
+				for (int i = 0; i < temporaryCodes; i++) {
+					int bits = ReadBits(3);
+					if (bits < 0)
+						return -1;
+					const byte[] tempSymbols = { 16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15 };
+					SymbolCodeLength[tempSymbols[i]] = bits;
+				}
+				BuildHuffmanTrees();
+				length = 0;
+				int count = 1;
+				for (int i = 0; i < PrimarySymbols + distanceCodes; i++) {
+					if (--count == 0) {
+						int symbol = FetchCode(PrimaryTree);
+						switch (symbol) {
+						case -1:
+							return -1;
+						case 16:
+							count = ReadBits(2);
+							if (count < 0)
+								return -1;
+							count += 3;
+							break;
+						case 17:
+							length = 0;
+							count = ReadBits(3);
+							if (count < 0)
+								return -1;
+							count += 3;
+							break;
+						case 18:
+							length = 0;
+							count = ReadBits(7);
+							if (count < 0)
+								return -1;
+							count += 11;
+							break;
+						default:
+							length = symbol;
+							count = 1;
+							break;
+						}
+					}
+					if (i == primaryCodes)
+						i = PrimarySymbols;
+					SymbolCodeLength[i] = i < PrimarySymbols ? length : DistanceTree + length;
+				}
+				break;
+
+			default:
+				return -1;
+			}
+
+			BuildHuffmanTrees();
+			for (;;) {
+				int symbol = FetchCode(PrimaryTree);
+				if (symbol < 0)
+					return -1;
+				else if (symbol < 256) {
+					unpacked[unpackedOffset++] = symbol;
+					if (unpackedOffset == unpackedLength)
+						return unpackedOffset;
+				}
+				else if (symbol == 256)
+					break;
+				else {
+					switch (symbol) {
+					case 257:
+					case 258:
+					case 259:
+					case 260:
+					case 261:
+					case 262:
+					case 263:
+					case 264:
+						length = symbol - 254;
+						break;
+					case 285:
+						length = 258;
+						break;
+					case 286:
+					case 287:
+						return -1;
+					default:
+						symbol -= 261;
+						length = ReadBits(symbol >> 2);
+						if (length < 0)
+							return -1;
+						length += (4 + (symbol & 3) << (symbol >> 2)) + 3;
+						break;
+					}
+
+					symbol = FetchCode(DistanceTree);
+					int offset;
+					switch (symbol) {
+					case -1:
+						return -1;
+					case PrimarySymbols:
+					case PrimarySymbols + 1:
+					case PrimarySymbols + 2:
+					case PrimarySymbols + 3:
+						offset = symbol - (PrimarySymbols - 1);
+						break;
+					default:
+						symbol -= PrimarySymbols + 2;
+						offset = ReadBits(symbol >> 1);
+						if (offset < 0)
+							return -1;
+						offset += (2 + (symbol & 1) << (symbol >> 1)) + 1;
+						break;
+					}
+					if (offset > unpackedOffset)
+						return -1;
+
+					do {
+						unpacked[unpackedOffset] = unpacked[unpackedOffset - offset];
+						if (++unpackedOffset >= unpackedLength)
+							return unpackedOffset;
+					} while (--length != 0);
+				}
+			}
+		} while (lastBlock == 0);
+		return unpackedOffset;
+	}
+
+	int Uncompress(byte[] unpacked, int unpackedLength)
+	{
+		// bits 0 to 3: Compression method (must be Z_DEFLATED)
+		// bits 4 to 7: Compression info (must be <= 7)
+		int b0 = ReadByte();
+		if ((b0 & 0x8f) != 8)
+			return -1;
+
+		// bits 0 to 4: Check bits
+		// bit 5:       Preset dictionary (not supported, sorry)
+		// bits 6 to 7: Compression level
+		int b1 = ReadByte();
+		if ((b1 & 0x20) != 0 || (b0 << 8 | b1) % 31 != 0)
+			return -1;
+
+		return Inflate(unpacked, unpackedLength);
+	}
+}
+
 public class RECOIL
 {
 	/// RECOIL version - major part.
@@ -12492,9 +12751,8 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
-	bool DecodeG2f(byte[] content, int contentLength)
+	bool DecodeG2fUnpacked(byte[] content, int contentLength)
 	{
-		// TODO: "G2FZLIB" byte[3 + 30 * 48 + 10 * 1024 + 30 + 33 * 256] uncompressed;
 		if (contentLength < 3 + 30 * 32 + 1024 + 30 + 33 * 256
 		 || (content[1] & 7) != 2)
 			return false;
@@ -12560,6 +12818,22 @@ public class RECOIL
 			}
 		}
 		return ApplyAtari8Palette(frame);
+	}
+
+	bool DecodeG2f(byte[] content, int contentLength)
+	{
+		if (contentLength < 11)
+			return false;
+		if (IsStringAt(content, 0, "G2FZLIB")) {
+			byte[3 + 30 * 48 + 10 * 1024 + 30 + 33 * 256] unpacked;
+			InflateStream() stream;
+			stream.Content = content;
+			stream.ContentOffset = 7;
+			stream.ContentLength = contentLength;
+			contentLength = stream.Uncompress(unpacked, unpacked.Length);
+			return DecodeG2fUnpacked(unpacked, contentLength);
+		}
+		return DecodeG2fUnpacked(content, contentLength);
 	}
 
 	// PC formats.
