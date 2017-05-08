@@ -3109,7 +3109,9 @@ class InflateStream : Stream
 
 			case 2:
 				int primaryCodes = 257 + ReadBits(5);
-				int distanceCodes = 1 + ReadBits(5);
+				int codes = PrimarySymbols + 1 + ReadBits(5);
+				if (codes > AllSymbols)
+					return -1;
 				int temporaryCodes = ReadBits(4);
 				if (temporaryCodes < 0)
 					return -1;
@@ -3125,7 +3127,7 @@ class InflateStream : Stream
 				BuildHuffmanTrees();
 				int length = 0;
 				count = 1;
-				for (int i = 0; i < PrimarySymbols + distanceCodes; i++) {
+				for (int i = 0; i < codes; i++) {
 					if (--count == 0) {
 						int symbol = FetchCode(PrimaryTree);
 						switch (symbol) {
