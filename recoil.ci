@@ -3064,8 +3064,10 @@ class InflateStream : Stream
 			if (bit < 0)
 				return -1;
 			code = (code << 1) + bit - NBitCodeCount[++tree];
-		} while (code >= 0);
-		return CodeToSymbol[NBitCodeOffset[tree] + code];
+			if (code < 0)
+				return CodeToSymbol[NBitCodeOffset[tree] + code];
+		} while ((tree & 0xf) != 0xf);
+		return -1;
 	}
 
 	int Inflate(byte[] unpacked, int unpackedLength)
