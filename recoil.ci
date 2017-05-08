@@ -2012,18 +2012,18 @@ class SpxStream : Ice21Stream
 	{
 		Bits = 0;
 		for (int unpackedOffset = unpackedLength; unpackedOffset > 0; ) {
-			int length;
+			int count;
 			switch (ReadBit()) {
 			case -1:
 				return false;
 			case 0:
 				// literals
-				length = ReadCount();
-				if (length <= 0)
+				count = ReadCount();
+				if (count <= 0)
 					return false;
-				if (length > unpackedOffset)
-					length = unpackedOffset;
-				for (int i = 0; i < length; i++) {
+				if (count > unpackedOffset)
+					count = unpackedOffset;
+				for (int i = 0; i < count; i++) {
 					int b = ReadBits(8);
 					if (b < 0)
 						return false;
@@ -2031,7 +2031,7 @@ class SpxStream : Ice21Stream
 				}
 				if (unpackedOffset == 0)
 					return true;
-				if (length == 0xffff)
+				if (count == 0xffff)
 					continue;
 				break;
 			default:
@@ -2039,19 +2039,19 @@ class SpxStream : Ice21Stream
 			}
 
 			// LZ77
-			int offset = ReadCount();
-			if (offset <= 0 || unpackedOffset + offset > unpackedLength)
+			int distance = ReadCount();
+			if (distance <= 0 || unpackedOffset + distance > unpackedLength)
 				return false;
-			length = ReadCount();
-			if (length < 0)
+			count = ReadCount();
+			if (count < 0)
 				return false;
-			length += 3;
-			if (length > unpackedOffset)
-				length = unpackedOffset;
+			count += 3;
+			if (count > unpackedOffset)
+				count = unpackedOffset;
 			do {
 				unpackedOffset--;
-				unpacked[unpackedOffset] = unpacked[unpackedOffset + offset];
-			} while (--length > 0);
+				unpacked[unpackedOffset] = unpacked[unpackedOffset + distance];
+			} while (--count > 0);
 		}
 		return true;
 	}
@@ -2192,22 +2192,24 @@ class A4rStream : Stream
 	byte[UnpackedLength] Unpacked;
 	int UnpackedOffset;
 
-	bool StoreByte(int value)
+	bool CopyByte()
 	{
-		if (UnpackedOffset < 0 || UnpackedOffset >= UnpackedLength)
+		int b = ReadByte();
+		if (b < 0 || UnpackedOffset < 0 || UnpackedOffset >= UnpackedLength)
 			return false;
-		Unpacked[UnpackedOffset++] = value;
+		Unpacked[UnpackedOffset++] = b;
 		return true;
 	}
 
-	bool CopyBlock(int distance, int length)
+	bool CopyBlock(int distance, int count)
 	{
-		if (distance > UnpackedOffset)
+		if (UnpackedOffset < 0)
 			return false;
-		do {
-			if (!StoreByte(Unpacked[UnpackedOffset - distance]))
-				return false;
-		} while (--length > 0);
+		int nextOffset = UnpackedOffset + count;
+		if (nextOffset > UnpackedLength
+		 || !RECOIL.CopyPrevious(Unpacked, UnpackedOffset, distance, count))
+			return false;
+		UnpackedOffset = nextOffset;
 		return true;
 	}
 
@@ -2216,20 +2218,16 @@ class A4rStream : Stream
 		Unpacked.Clear();
 		UnpackedOffset = -1;
 		for (;;) {
-			int b;
 			switch (ReadFlag()) {
 			case -1:
 				return false;
 			case 0:
 				// literal byte
-				b = ReadByte();
-				if (b < 0)
-					return false;
-				if (!StoreByte(b))
+				if (!CopyByte())
 					return false;
 				break;
 			case 1:
-				b = ReadByte();
+				int b = ReadByte();
 				switch (b) {
 				case -1:
 					return false;
@@ -2239,7 +2237,7 @@ class A4rStream : Stream
 						return false;
 					b = ReadByte();
 					UnpackedOffset = b + (ReadByte() << 8) + 0x80 - MinAddress;
-					if (!StoreByte(ReadByte()))
+					if (!CopyByte())
 						return false;
 					break;
 				case 1:
@@ -3225,14 +3223,14 @@ class InflateStream : Stream
 						distance += (2 + (symbol & 1) << (symbol >> 1)) + 1;
 						break;
 					}
-					if (distance > unpackedOffset)
-						return -1;
 
-					do {
-						unpacked[unpackedOffset] = unpacked[unpackedOffset - distance];
-						if (++unpackedOffset >= unpackedLength)
-							return unpackedOffset;
-					} while (--count != 0);
+					if (count > unpackedLength - unpackedOffset)
+						count = unpackedLength - unpackedOffset;
+					if (!RECOIL.CopyPrevious(unpacked, unpackedOffset, distance, count))
+						return -1;
+					unpackedOffset += count;
+					if (unpackedOffset == unpackedLength)
+						return unpackedOffset;
 				}
 			}
 		} while (lastBlock == 0);
@@ -3609,6 +3607,17 @@ public class RECOIL
 		for (int i = 0; i < length; i++)
 			if (content[contentOffset + i] != s[i])
 				return false;
+		return true;
+	}
+
+	static bool CopyPrevious(byte[] unpacked, int unpackedOffset, int distance, int count)
+	{
+		if (distance > unpackedOffset)
+			return false;
+		do {
+			unpacked[unpackedOffset] = unpacked[unpackedOffset - distance];
+			unpackedOffset++;
+		} while (--count > 0);
 		return true;
 	}
 
@@ -7405,19 +7414,19 @@ public class RECOIL
 				// LZ77
 				if (stream.ContentOffset > stream.ContentLength - 2)
 					return false;
-				int offset = stream.ReadByte();
-				offset += stream.ReadByte() << 8;
-				if (offset == 0 || offset > stream.UnpackedOffset)
+				int distance = stream.ReadByte();
+				distance += stream.ReadByte() << 8;
+				if (distance == 0)
 					return false;
 				count = stream.ReadCount(token & 0xf);
-				if (count < 0
-				 || stream.UnpackedOffset + count > unpackedLength)
+				if (count < 0)
 					return false;
 				count += 4;
-				do {
-					unpacked[stream.UnpackedOffset] = unpacked[stream.UnpackedOffset - offset];
-					stream.UnpackedOffset++;
-				} while (--count > 0);
+				int nextOffset = stream.UnpackedOffset + count;
+				if (nextOffset > unpackedLength
+				 || !CopyPrevious(unpacked, stream.UnpackedOffset, distance, count))
+					return false;
+				stream.UnpackedOffset = nextOffset;
 			}
 
 			if ((content[4] & 0x10) != 0)
@@ -10763,17 +10772,17 @@ public class RECOIL
 				if (distance < 0)
 					return false;
 				distance += 2;
-				if (distance > unpackedOffset)
+				int count = lengthTree.ReadCode(bitStream);
+				if (count < 0)
 					return false;
-				int length = lengthTree.ReadCode(bitStream);
-				if (length < 0)
+				count += 2;
+				if (count > unpackedLength - unpackedOffset)
+					count = unpackedLength - unpackedOffset;
+				if (!CopyPrevious(unpacked, unpackedOffset, distance, count))
 					return false;
-				length += 2;
-				do {
-					unpacked[unpackedOffset] = unpacked[unpackedOffset - distance];
-					if (++unpackedOffset >= unpackedLength)
-						return true;
-				} while (--length > 0);
+				unpackedOffset += count;
+				if (unpackedOffset >= unpackedLength)
+					return true;
 				break;
 			}
 		}
