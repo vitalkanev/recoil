@@ -111,6 +111,16 @@ class Stream
 		return Content[ContentOffset++];
 	}
 
+	bool ReadBytes(byte[] dest, int destOffset, int count)
+	{
+		int nextOffset = ContentOffset + count;
+		if (nextOffset > ContentLength)
+			return false;
+		Content.CopyTo(ContentOffset, dest, destOffset, count);
+		ContentOffset = nextOffset;
+		return true;
+	}
+
 	int ReadHexDigit()
 	{
 		if (ContentOffset >= ContentLength)
@@ -473,11 +483,9 @@ class PchgPalette : MultiPalette
 
 		switch (Content[ContentOffset + 1]) {
 		case 0:
-			int changeOffset = ContentOffset + 20 + havePaletteChangeLength;
-			if (changeOffset > ContentLength)
+			ContentOffset += 20;
+			if (!ReadBytes(HavePaletteChange, 0, havePaletteChangeLength))
 				return false;
-			Content.CopyTo(ContentOffset + 20, HavePaletteChange, 0, havePaletteChangeLength);
-			ContentOffset = changeOffset;
 			Compressed = false;
 			break;
 		case 1:
@@ -1773,11 +1781,9 @@ class Lz4Stream : Stream
 
 	bool Copy(int count)
 	{
-		if (ContentOffset + count > ContentLength
-		 || UnpackedOffset + count > UnpackedLength)
+		if (UnpackedOffset + count > UnpackedLength
+		 || !ReadBytes(Unpacked, UnpackedOffset, count))
 			return false;
-		Content.CopyTo(ContentOffset, Unpacked, UnpackedOffset, count);
-		ContentOffset += count;
 		UnpackedOffset += count;
 		return true;
 	}
@@ -3072,18 +3078,18 @@ class InflateStream : Stream
 		int lastBlock;
 		do {
 			lastBlock = ReadBit();
-			int length;
+			int count;
 			switch (ReadBits(2)) {
 			case 0:
 				Bits = 0;
-				length = ReadBits(16);
-				if (ReadBits(16) != (length ^ 0xffff))
+				count = ReadBits(16);
+				if (ReadBits(16) != (count ^ 0xffff))
 					return -1;
-				if (length > unpackedLength - unpackedOffset)
-					length = unpackedLength - unpackedOffset;
-				Content.CopyTo(ContentOffset, unpacked, unpackedOffset, length);
-				ContentOffset += length;
-				unpackedOffset += length;
+				if (count > unpackedLength - unpackedOffset)
+					count = unpackedLength - unpackedOffset;
+				if (!ReadBytes(unpacked, unpackedOffset, count))
+					return -1;
+				unpackedOffset += count;
 				if (unpackedOffset == unpackedLength)
 					return unpackedOffset;
 				continue;
@@ -3117,8 +3123,8 @@ class InflateStream : Stream
 					SymbolCodeLength[tempSymbols[i]] = bits;
 				}
 				BuildHuffmanTrees();
-				length = 0;
-				int count = 1;
+				int length = 0;
+				count = 1;
 				for (int i = 0; i < PrimarySymbols + distanceCodes; i++) {
 					if (--count == 0) {
 						int symbol = FetchCode(PrimaryTree);
@@ -3183,25 +3189,25 @@ class InflateStream : Stream
 					case 262:
 					case 263:
 					case 264:
-						length = symbol - 254;
+						count = symbol - 254;
 						break;
 					case 285:
-						length = 258;
+						count = 258;
 						break;
 					case 286:
 					case 287:
 						return -1;
 					default:
 						symbol -= 261;
-						length = ReadBits(symbol >> 2);
-						if (length < 0)
+						count = ReadBits(symbol >> 2);
+						if (count < 0)
 							return -1;
-						length += (4 + (symbol & 3) << (symbol >> 2)) + 3;
+						count += (4 + (symbol & 3) << (symbol >> 2)) + 3;
 						break;
 					}
 
 					symbol = FetchCode(DistanceTree);
-					int offset;
+					int distance;
 					switch (symbol) {
 					case -1:
 						return -1;
@@ -3209,24 +3215,24 @@ class InflateStream : Stream
 					case PrimarySymbols + 1:
 					case PrimarySymbols + 2:
 					case PrimarySymbols + 3:
-						offset = symbol - (PrimarySymbols - 1);
+						distance = symbol - (PrimarySymbols - 1);
 						break;
 					default:
 						symbol -= PrimarySymbols + 2;
-						offset = ReadBits(symbol >> 1);
-						if (offset < 0)
+						distance = ReadBits(symbol >> 1);
+						if (distance < 0)
 							return -1;
-						offset += (2 + (symbol & 1) << (symbol >> 1)) + 1;
+						distance += (2 + (symbol & 1) << (symbol >> 1)) + 1;
 						break;
 					}
-					if (offset > unpackedOffset)
+					if (distance > unpackedOffset)
 						return -1;
 
 					do {
-						unpacked[unpackedOffset] = unpacked[unpackedOffset - offset];
+						unpacked[unpackedOffset] = unpacked[unpackedOffset - distance];
 						if (++unpackedOffset >= unpackedLength)
 							return unpackedOffset;
-					} while (--length != 0);
+					} while (--count != 0);
 				}
 			}
 		} while (lastBlock == 0);
