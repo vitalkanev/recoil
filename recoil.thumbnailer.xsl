@@ -6,7 +6,7 @@ Exec=recoil2png -o %o %i
 MimeType=</xsl:text>
 		<xsl:for-each select="platform/format/ext[not(. = following::ext)]">
 			<xsl:sort />
-			<xsl:if test="position() != 1">:</xsl:if>
+			<xsl:if test="position() != 1">;</xsl:if>
 			<xsl:text>image/x-</xsl:text>
 			<xsl:value-of select="translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')" />
 		</xsl:for-each>
