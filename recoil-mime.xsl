@@ -9,26 +9,29 @@
 				<mime-type type="image/x-{$lc}">
 					<comment><xsl:value-of select="." /> image</comment>
 					<!-- based on image/png from freedesktop.org.xml -->
-					<comment xml:lang="ara">صورة <xsl:value-of select="." /></comment>
+					<comment xml:lang="ar">صورة <xsl:value-of select="." /></comment>
 					<comment xml:lang="az"><xsl:value-of select="." /> rəsmi</comment>
-					<comment xml:lang="be">Vyjava <xsl:value-of select="." /></comment>
 					<comment xml:lang="be@latin">Vyjava <xsl:value-of select="." /></comment>
 					<comment xml:lang="bg">Изображение — <xsl:value-of select="." /></comment>
-					<comment xml:lang="bs"><xsl:value-of select="." /> slika</comment>
 					<comment xml:lang="ca">imatge <xsl:value-of select="." /></comment>
-					<comment xml:lang="cs">Obrázek <xsl:value-of select="." /></comment>
+					<comment xml:lang="cs">obrázek <xsl:value-of select="." /></comment>
 					<comment xml:lang="cy">Delwedd <xsl:value-of select="." /></comment>
 					<comment xml:lang="da"><xsl:value-of select="." />-billede</comment>
 					<comment xml:lang="de"><xsl:value-of select="." />-Bild</comment>
-					<comment xml:lang="el">εικόνα <xsl:value-of select="." /></comment>
+					<comment xml:lang="el">Εικόνα <xsl:value-of select="." /></comment>
 					<comment xml:lang="en_GB"><xsl:value-of select="." /> image</comment>
 					<comment xml:lang="eo"><xsl:value-of select="." />-bildo</comment>
-					<comment xml:lang="es">Imagen <xsl:value-of select="." /></comment>
+					<comment xml:lang="es">imagen <xsl:value-of select="." /></comment>
 					<comment xml:lang="eu"><xsl:value-of select="." /> irudia</comment>
 					<comment xml:lang="fi"><xsl:value-of select="." />-kuva</comment>
+					<comment xml:lang="fo"><xsl:value-of select="." /> mynd</comment>
 					<comment xml:lang="fr">image <xsl:value-of select="." /></comment>
 					<comment xml:lang="ga">íomhá <xsl:value-of select="." /></comment>
+					<comment xml:lang="gl">imaxe <xsl:value-of select="." /></comment>
+					<comment xml:lang="he">תמונת <xsl:value-of select="." /></comment>
+					<comment xml:lang="hr"><xsl:value-of select="." /> slika</comment>
 					<comment xml:lang="hu"><xsl:value-of select="." />-kép</comment>
+					<comment xml:lang="ia">Imagine <xsl:value-of select="." /></comment>
 					<comment xml:lang="id">Citra <xsl:value-of select="." /></comment>
 					<comment xml:lang="it">Immagine <xsl:value-of select="." /></comment>
 					<comment xml:lang="ja"><xsl:value-of select="." /> 画像</comment>
@@ -40,8 +43,7 @@
 					<comment xml:lang="nb"><xsl:value-of select="." />-bilde</comment>
 					<comment xml:lang="nl"><xsl:value-of select="." />-afbeelding</comment>
 					<comment xml:lang="nn"><xsl:value-of select="." />-bilete</comment>
-					<comment xml:lang="no"><xsl:value-of select="." />-bilde</comment>
-					<comment xml:lang="oc">Imatge <xsl:value-of select="." /></comment>
+					<comment xml:lang="oc">imatge <xsl:value-of select="." /></comment>
 					<comment xml:lang="pl">Obraz <xsl:value-of select="." /></comment>
 					<comment xml:lang="pt">imagem <xsl:value-of select="." /></comment>
 					<comment xml:lang="pt_BR">Imagem <xsl:value-of select="." /></comment>
@@ -55,7 +57,7 @@
 					<comment xml:lang="uk">зображення <xsl:value-of select="." /></comment>
 					<comment xml:lang="vi">Ảnh <xsl:value-of select="." /></comment>
 					<comment xml:lang="zh_CN"><xsl:value-of select="." /> 图像</comment>
-					<comment xml:lang="zh_TW"><xsl:value-of select="." /> 圖片</comment>
+					<comment xml:lang="zh_TW"><xsl:value-of select="." /> 影像</comment>
 					<glob pattern="*.{$lc}" />
 				</mime-type>
 			</xsl:for-each>
