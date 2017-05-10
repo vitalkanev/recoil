@@ -19,6 +19,39 @@
 // along with RECOIL; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+// The following conventions are used in this file:
+// Exceptions are not used.
+// Errors are signalled by returning false, -1 or null.
+// Called methods precede the calling methods.
+// Simple code (e.g. uncompressed black&white images)
+// precedes the more complicated.
+// Each format is decoded by a method with a signature like:
+// bool DecodeXxx(byte[] content, int contentLength)
+// where `Xxx` is the filename extension and `true` is returned
+// on successful decoding.  `content` is read-only.
+// In rare occassions there are extra parameters such as the filename.
+// Decoding methods are grouped by the platform.
+// The order of platforms is such that simple code comes first.
+// New formats must be added in `IsOurFile`, `Decode` and `formats.xml`.
+// Invalid files shouldn't result in a buffer overflow
+// (always check `contentLength` first!), divide by zero or endless loop.
+// Code must be tested, because format documentation is often incorrect.
+// Test C, Java (Android), C# (Windows 10 or Paint.NET) and JavaScript.
+// Prefer concise, readable code over microoptimizations.
+// Prefer stack allocations over heap, but make sure no more than ~200 kB
+// is used at a time, otherwise 32-bit Windows Explorer will crash.
+// Don't introduce variables for return values and loop control
+// if `return` and `break` statements are more concise.
+// Minimize the scope of variables. Use `byte` only for arrays.
+// Braces on new line for enums, classes and methods, inline for code blocks.
+// Avoid unneeded parentheses.
+// Use tabs, but only for indentation (i.e. at line beginnings).
+// Align long `if` conditions like this:
+// if (foo
+//  || bar
+//  || quux)
+// (this is the only exception to tab indentation).
+
 /// Platform and pixel ratio.
 enum RECOILResolution
 {
@@ -98,12 +131,14 @@ enum IceFrameMode
 	Gr13Gtia11
 }
 
+/// Read-only stream backed by a byte array.
 class Stream
 {
 	byte[] Content;
 	int ContentOffset;
 	int ContentLength;
 
+	/// Returns the next byte or -1 on EOF.
 	int ReadByte()
 	{
 		if (ContentOffset >= ContentLength)
@@ -111,6 +146,8 @@ class Stream
 		return Content[ContentOffset++];
 	}
 
+	/// Reads `count` bytes to `dest` starting at `destOffset`.
+	/// Returns `true` on success, `false` if not enough data.
 	bool ReadBytes(byte[] dest, int destOffset, int count)
 	{
 		int nextOffset = ContentOffset + count;
@@ -121,6 +158,9 @@ class Stream
 		return true;
 	}
 
+	/// Reads a hexadecimal ASCII digit and returns its value.
+	/// If there's no digit at the current stream position,
+	/// leaves the position intact and returns -1.
 	int ReadHexDigit()
 	{
 		if (ContentOffset >= ContentLength)
@@ -136,6 +176,9 @@ class Stream
 		return -1;
 	}
 
+	/// Reads a decimal integer in range 0-32000
+	/// stored as ASCII digits followed by CRLF.
+	/// Returns -1 on error.
 	int ParseInt()
 	{
 		for (int r = 0; ;) {
@@ -152,20 +195,25 @@ class Stream
 	}
 }
 
+/// Read-only stream with selectable endianess (little/big)
+/// for reading 16- and 32-bit integers.
 class EndianStream : Stream
 {
 	bool BigEndian;
 
+	/// Reads a 16-bit unsigned integer.
+	/// Returns -1 on EOF.
 	int ReadWord()
 	{
 		if (ContentOffset + 1 >= ContentLength)
 			return -1;
 		int first = Content[ContentOffset];
 		int second = Content[ContentOffset + 1];
-		ContentOffset +=2;
+		ContentOffset += 2;
 		return BigEndian ? first << 8 | second : first | second << 8;
 	}
 
+	/// Reads a 32-bit integer assuming there's enough data.
 	int ReadInt()
 	{
 		int value = BigEndian
@@ -224,7 +272,11 @@ class SprStream : Stream
 	const int Width = 320;
 	const int Height = 200;
 
-	int ReadBase(int b) {
+	/// Reads an integer in range 0 - Width-1
+	/// in base `b`.
+	/// returns -1 on error.
+	int ReadBase(int b)
+	{
 		int r = ReadHexDigit();
 		if (r < 0 || r >= b)
 			return -1;
@@ -239,6 +291,10 @@ class SprStream : Stream
 		return -1;
 	}
 
+	/// Reads a decimal, hexadecimal (with `$` prefix)
+	/// or binary (with `%` prefix) integer.
+	/// Skips leading whitespace.
+	/// Returns -1 on error.
 	int ReadInt()
 	{
 		while (ContentOffset < ContentLength) {
@@ -597,6 +653,7 @@ abstract class RleStream : BitStream
 	virtual int ReadValue()
 		return ReadByte();
 
+	/// Returns the next uncompressed byte or -1 on error.
 	int ReadRle()
 	{
 		while (RepeatCount == 0) {
@@ -609,10 +666,11 @@ abstract class RleStream : BitStream
 		return ReadValue();
 	}
 
-	/// Uncompress bytes to `unpacked[unpackedOffset]`,
-	/// unpacked[unpackedOffset + unpackedStride]`,
-	/// unpacked[unpackedOffset + 2 * unpackedStride]`,
+	/// Uncompresses bytes to `unpacked[unpackedOffset]`,
+	/// `unpacked[unpackedOffset + unpackedStride]`,
+	/// `unpacked[unpackedOffset + 2 * unpackedStride]`,
 	/// ... until indexes are smaller than `unpackedEnd`.
+	/// Returns `true` on success, `false` on error.
 	bool Unpack(byte[] unpacked, int unpackedOffset, int unpackedStride, int unpackedEnd)
 	{
 		for (; unpackedOffset < unpackedEnd; unpackedOffset += unpackedStride) {
@@ -624,8 +682,9 @@ abstract class RleStream : BitStream
 		return true;
 	}
 
-	/// Uncompress laiding out bytes vertically column by column,
+	/// Uncompresses laiding out bytes vertically column by column,
 	/// `unpackedStride` being line width.
+	/// Returns `true` on success, `false` on error.
 	bool UnpackColumns(byte[] unpacked, int unpackedOffset, int unpackedStride, int unpackedEnd)
 	{
 		for (int x = 0; x < unpackedStride; x++) {
@@ -635,6 +694,11 @@ abstract class RleStream : BitStream
 		return true;
 	}
 
+	/// Uncompresses bytes to `unpacked[unpackedOffset]`, `unpacked[unpackedOffset + 1]`,
+	/// `unpacked[unpackedOffset + unpackedStride]`, `unpacked[unpackedOffset + unpackedStride + 1]`,
+	/// `unpacked[unpackedOffset + 2 * unpackedStride]`, `unpacked[unpackedOffset + 2 * unpackedStride + 1]`,
+	/// ... until indexes are smaller than `unpackedEnd`.
+	/// Returns `true` on success, `false` on error.
 	bool UnpackWords(byte[] unpacked, int unpackedOffset, int unpackedStride, int unpackedEnd)
 	{
 		for (; unpackedOffset < unpackedEnd; unpackedOffset += unpackedStride) {
@@ -650,6 +714,8 @@ abstract class RleStream : BitStream
 		return true;
 	}
 
+	/// Uncompresses after copying two literal bytes.
+	/// Returns `true` on success, `false` on error.
 	bool UnpackC64(byte[] unpacked, int unpackedLength)
 	{
 		unpacked[0] = Content[0];
@@ -1522,7 +1588,7 @@ class PcsStream : TnyPcsStream
 			unpacked[unpackedOffset] = b >> 8;
 			unpacked[unpackedOffset + 1] = b.LowByte;
 		}
-		// Don't check RepeatCount: "PhotoChrome files with a few extra entries have been found".
+		// don't check RepeatCount: "PhotoChrome files with a few extra entries have been found"
 		return true;
 	}
 }
@@ -2277,22 +2343,16 @@ class FanoTree
 	void Create(byte[] content, int contentOffset, int codeCount)
 	{
 		Count.Clear();
-		for (int code = 0; code < codeCount; code++) {
-			int bits = content[contentOffset + (code >> 1)];
-			bits = (code & 1) == 0 ? bits >> 4 : bits & 0xf;
-			Count[bits]++;
-		}
+		for (int code = 0; code < codeCount; code++)
+			Count[RECOIL.GetNibble(content, contentOffset, code)]++;
 		int[16] positions;
 		int position = 0;
 		for (int bits = 0; bits < 16; bits++) {
 			positions[bits] = position;
 			position += Count[bits];
 		}
-		for (int code = 0; code < codeCount; code++) {
-			int bits = content[contentOffset + (code >> 1)];
-			bits = (code & 1) == 0 ? bits >> 4 : bits & 0xf;
-			Values[positions[bits]++] = code;
-		}
+		for (int code = 0; code < codeCount; code++)
+			Values[positions[RECOIL.GetNibble(content, contentOffset, code)]++] = code;
 	}
 
 	int ReadCode(BitStream bitStream)
@@ -2385,9 +2445,10 @@ class BlazingPaddlesBoundingBox
 
 	bool Calculate(byte[] content, int contentLength, int index, int startAddress)
 	{
-		if (index * 2 + 1 >= contentLength)
+		index <<= 1;
+		if (index + 1 >= contentLength)
 			return false;
-		int contentOffset = content[index * 2] + (content[index * 2 + 1] << 8) - startAddress;
+		int contentOffset = content[index] + (content[index + 1] << 8) - startAddress;
 		if (contentOffset < 0)
 			return false;
 		Left = Top = Right = Bottom = 0;
@@ -3095,7 +3156,7 @@ class InflateStream : Stream
 				continue;
 
 			case 1:
-				for (int i = 0; i < 144; i++)	
+				for (int i = 0; i < 144; i++)
 					SymbolCodeLength[i] = 8;
 				for (int i = 144; i < 256; i++)
 					SymbolCodeLength[i] = 9;
@@ -3250,7 +3311,7 @@ class InflateStream : Stream
 			return -1;
 
 		// bits 0 to 4: Check bits
-		// bit 5:       Preset dictionary (not supported, sorry)
+		// bit 5:       Preset dictionary (not supported)
 		// bits 6 to 7: Compression level
 		int b1 = ReadByte();
 		if ((b1 & 0x20) != 0 || (b0 << 8 | b1) % 31 != 0)
@@ -3605,6 +3666,12 @@ public class RECOIL
 			| content[contentOffset + 3] << 24;
 	}
 
+	static int GetNibble(byte[] content, int contentOffset, int index)
+	{
+		int b = content[contentOffset + (index >> 1)];
+		return (index & 1) == 0 ? b >> 4 : b & 0xf;
+	}
+
 	static bool IsStringAt(byte[] content, int contentOffset, string s)
 	{
 		int length = s.Length;
@@ -3699,10 +3766,8 @@ public class RECOIL
 	{
 		int doubleHeight = Resolution == RECOILResolution.Msx1x2 || Resolution == RECOILResolution.Pc881x2 ? 1 : 0;
 		for (int y = 0; y < Height; ) {
-			for (int x = 0; x < Width; x++) {
-				int b = content[contentOffset + (x >> 1)];
-				Pixels[y * Width + x] = ContentPalette[(x & 1) == 0 ? b >> 4 : b & 0xf];
-			}
+			for (int x = 0; x < Width; x++)
+				Pixels[y * Width + x] = ContentPalette[GetNibble(content, contentOffset, x)];
 			if ((++y & doubleHeight) == 0)
 				contentOffset += contentStride;
 		}
@@ -5094,11 +5159,8 @@ public class RECOIL
 			rgb |= rgb << 4;
 			ContentPalette[c] = rgb;
 		}
-		for (int x = 0; x < 320; x++) {
-			int b = content[y * 160 + (x >> 1)];
-			int c = (x & 1) == 0 ? b >> 4 : b & 0xf;
-			Pixels[y * 320 + x] = ContentPalette[c];
-		}
+		for (int x = 0; x < 320; x++)
+			Pixels[y * 320 + x] = ContentPalette[GetNibble(content, y * 160, x)];
 	}
 
 	bool DecodeShr(byte[] content, int contentLength)
@@ -5514,7 +5576,7 @@ public class RECOIL
 						return false;
 					unpacked[y * bytesPerLine + x] = content[colorOffset];
 					unpacked[y * bytesPerLine + x + 1] = content[colorOffset + 1];
-					colorOffset +=2;
+					colorOffset += 2;
 				}
 				else {
 					const byte[16] deltaX = { 0, 2, 4, 8, 0, 2, 0, 2, 4, 0, 2, 4, 0, 2, 4, 0 };
@@ -6398,12 +6460,12 @@ public class RECOIL
 				case 0:
 					unpackedOffset = FillPscLine(unpacked, unpackedOffset, 0);
 					break;
-				case  10:
+				case 10:
 					unpackedOffset = CopyPscLines(unpacked, unpackedOffset, 1 + content[contentOffset++]);
 					if (unpackedOffset < 0)
 						return false;
 					break;
-				case  12:
+				case 12:
 					unpackedOffset = CopyPscLines(unpacked, unpackedOffset, 256 + 1 + content[contentOffset++]);
 					if (unpackedOffset < 0)
 						return false;
@@ -6815,10 +6877,7 @@ public class RECOIL
 					palette.Content = rst;
 					palette.ContentOffset = 0;
 					palette.ContentLength = 6800;
-					for (int y = 0; y < 200; y++) {
-						palette.SetLinePalette(this, y);
-						DecodeBitplanes(content, 128 + y * 160, 0, 4, y * 320, 320, 1);
-					}
+					DecodeScaledBitplanes(content, 128, 320, 200, 4, false, palette);
 					return true;
 				}
 			}
@@ -7152,22 +7211,21 @@ public class RECOIL
 			do {
 				if (offset >= 16000)
 					return false;
-				for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
-					unpacked[offset * 2] = content[contentOffset + 4 + bitplane * 2];
-					unpacked[offset * 2 + 1] = content[contentOffset + 4 + bitplane * 2 + 1];
-					isFilled[offset++] = 1;
-				}
+				content.CopyTo(contentOffset + 4, unpacked, offset << 1, bitplanes << 1);
+				isFilled[offset] = 1;
+				offset += bitplanes;
 			} while (--repeatCount >= 0);
 			contentOffset = nextContentOffset;
 		}
 
 		// fill in holes
-		for (int offset = 0; offset < 16000; offset++) {
+		for (int offset = 0; offset < 16000; offset += bitplanes) {
 			if (isFilled[offset] == 0) {
-				if (contentOffset >= contentLength - 1)
+				int nextContentOffset = contentOffset + bitplanes * 2;
+				if (nextContentOffset > contentLength)
 					return false;
-				unpacked[offset * 2] = content[contentOffset++];
-				unpacked[offset * 2 + 1] = content[contentOffset++];
+				content.CopyTo(contentOffset, unpacked, offset << 1, bitplanes << 1);
+				contentOffset = nextContentOffset;
 			}
 		}
 
@@ -7485,9 +7543,7 @@ public class RECOIL
 	}
 
 	bool DecodeSpu(byte[] content, int contentLength)
-	{
 		return contentLength == 51104 && DecodeSpuScreen(content, 160, 199, IsStringAt(content, 0, "5BIT"));
-	}
 
 	static bool UnpackSpc(RleStream rle, byte[] unpacked)
 	{
@@ -8706,9 +8762,8 @@ public class RECOIL
 		}
 		int bytesPerLine = width + 15 >> 4 << 1;
 		contentOffset += 0x14;
-		if (contentLength < contentOffset + bitplanes * height * bytesPerLine)
-			return false;
-		if (!SetSize(width, height, RECOILResolution.Amiga1x1))
+		if (contentLength < contentOffset + bitplanes * height * bytesPerLine
+		 || !SetSize(width, height, RECOILResolution.Amiga1x1))
 			return false;
 
 		for (int y = 0; y < height; y++) {
@@ -9586,7 +9641,9 @@ public class RECOIL
 	{
 		for (int y = 0; y < 8 << doubleLine; y++) {
 			for (int x = 0; x < Width; x++) {
-				int ch = characters[charactersOffset + (x >> 3)];
+				int ch = x >> 3;
+				if (characters != null)
+					ch = characters[charactersOffset + ch];
 				int c = font[fontOffset + ((ch & 0x7f) << 3) + (y >> doubleLine)] >> (~x & 6) & 3;
 				int gr12Registers = ch >= 0x80 ? 0x7548 : 0x6548;
 				frame[frameOffset + x] = GtiaColors[gr12Registers >> (c << 2) & 0xf];
@@ -9852,7 +9909,7 @@ public class RECOIL
 	{
 		if (!SetAtari8RawSize(content, contentLength, RECOILResolution.Xe4x1))
 			return false;
-		GtiaColors[8] = 0x06; // Atari operating system standard
+		GtiaColors[8] = 0x06; // Atari operating system default
 		int contentOffset = GetAtari8ExecutableOffset(content, contentLength);
 		byte[320 * 240] frame;
 		DecodeAtari8Gr11(content, contentOffset, frame, 0, 320, Height);
@@ -10414,7 +10471,7 @@ public class RECOIL
 		int height;
 		int colorsOffset;
 		if (contentLength >= 10 && IsStringAt(content, 0, "XLPC")) {
-			// Ignore errors: STAIRS.XLP included with XL-Paint is missing last two image bytes.
+			// ignore errors: STAIRS.XLP included with XL-Paint is missing last two image bytes
 			unpacked.Clear();
 			rle.ContentOffset = 8;
 			rle.UnpackColumns(unpacked, 0, 40, 2 * 40 * 192);
@@ -10422,7 +10479,7 @@ public class RECOIL
 			colorsOffset = 4;
 		}
 		else {
-			// No header, so better check for errors.
+			// no header, so better check for errors
 			rle.ContentOffset = 4;
 			if (rle.UnpackColumns(unpacked, 0, 40, 2 * 40 * 200))
 				height = 200;
@@ -10493,11 +10550,11 @@ public class RECOIL
 		DecodeAtari8Gr9(content, 6, 40, frame, 320, 640, 320, 119);
 		byte[4766 + 1] col;
 		if (ReadCompanionFile(filename, "COL", "col", col, col.Length) == 4766) {
-			// LUM file combined with COL file gives 256-color Technicolor Dream.
+			// LUM file combined with COL file gives 256-color Technicolor Dream
 			DecodeAtari8Gr11PalBlend(col, 6, 40, frame, 0);
 		}
 		else {
-			// Problem with COL, at least show the grayscale.
+			// problem with COL, at least show the grayscale
 			DecodeAtari8Gr9(content, 6, 40, frame, 0, 640, 320, 119);
 		}
 		return ApplyAtari8Palette(frame);
@@ -11269,14 +11326,11 @@ public class RECOIL
 	{
 		if (contentLength != 1028)
 			return false;
-		byte[16] characters;
-		for (int i = 0; i < 16; i++)
-			characters[i] = i;
 		SetBakPF012(content, 0, 1);
 		SetSize(128, 64, RECOILResolution.Xe2x1);
 		byte[128 * 64] frame;
 		for (int y = 0; y < 8; y++)
-			DecodeAtari8Gr12Line(characters, 0, content, 4 + (y << 7), frame, y << 10, 0);
+			DecodeAtari8Gr12Line(null, 0, content, 4 + (y << 7), frame, y << 10, 0);
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -11284,14 +11338,11 @@ public class RECOIL
 	{
 		if (contentLength != 2054 || ParseAtari8ExecutableHeader(content, 0) != 2048)
 			return false;
-		byte[32] characters;
-		for (int i = 0; i < 32; i++)
-			characters[i] = i;
 		SetGr15DefaultColors();
 		SetSize(256, 64, RECOILResolution.Xe2x1);
 		byte[256 * 64] frame;
 		for (int y = 0; y < 8; y++)
-			DecodeAtari8Gr12Line(characters, 0, content, 6 + ((y & 6) << 7) + ((y & 1) << 10), frame, y << 11, 0);
+			DecodeAtari8Gr12Line(null, 0, content, 6 + ((y & 6) << 7) + ((y & 1) << 10), frame, y << 11, 0);
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -11324,12 +11375,9 @@ public class RECOIL
 		GtiaColors[8] = 0x00;
 		byte[256 * 32] frame1;
 		byte[256 * 32] frame2;
-		byte[32] characters;
-		for (int i = 0; i < 32; i++)
-			characters[i] = i;
 		for (int y = 0; y < 4; y++) {
-			DecodeAtari8Gr12Line(characters, 0, content, y << 8, frame1, y << 11, 0);
-			DecodeAtari8Gr12Line(characters, 0, content, 1024 + (y << 8), frame2, y << 11, 0);
+			DecodeAtari8Gr12Line(null, 0, content, y << 8, frame1, y << 11, 0);
+			DecodeAtari8Gr12Line(null, 0, content, 1024 + (y << 8), frame2, y << 11, 0);
 		}
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
@@ -12286,12 +12334,12 @@ public class RECOIL
 				return true;
 			// bits 7-4: length-1
 			for ( ; control >= 0; control -= 16) {
-				// bit 2: pen up */
+				// bit 2: pen up
 				if ((control & 4) == 0)
 					frame[frameOffset + 1] = frame[frameOffset] = 0x0e;
 				// bits 1-0: direction
 				switch (control & 3) {
-				case 0: //right
+				case 0: // right
 					frameOffset += 2;
 					break;
 				case 1: // left
