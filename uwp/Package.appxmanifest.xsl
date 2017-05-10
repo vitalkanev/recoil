@@ -8,7 +8,7 @@
 			xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
 			IgnorableNamespaces="uap mp">
 
-			<Identity Name="9998PiotrFusik.RECOIL" Publisher="CN=B70960AE-A992-475F-9A7E-4B341F4530CB" Version="3.5.0.0" />
+			<Identity Name="9998PiotrFusik.RECOIL" Publisher="CN=B70960AE-A992-475F-9A7E-4B341F4530CB" Version="4.0.0.0" />
 			<mp:PhoneIdentity PhoneProductId="af64497d-34c9-459a-9f9f-7765f61deaee" PhonePublisherId="c4cb80df-4c1e-4cdc-9dc5-65ed07b84b94"/>
 
 			<Properties>

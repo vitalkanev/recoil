@@ -143,8 +143,8 @@ Make sure cito and ImageMagick 7 (http://imagemagick.org/) are on your PATH.
 Build the project as any other Android project.
 
 
-Building the Quick Look plugin on OS X
---------------------------------------
+Building the Quick Look plugin on macOS
+---------------------------------------
 
 Install Xcode Command Line Tools.
 

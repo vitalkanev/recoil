@@ -34,7 +34,7 @@
 	<h2>macOS Quick Look</h2>
 	<p>Install as follows:</p>
 	<ol>
-		<li>Open <tt>recoil-3.5.0-osx.dmg</tt>.</li>
+		<li>Open <tt>recoil-4.0.0-osx.dmg</tt>.</li>
 		<li>Drag <tt>RECOIL.qlgenerator</tt> to <tt>QuickLook</tt>.</li>
 		<li>Re-log or run <tt>qlmanage -r</tt>.</li>
 	</ol>

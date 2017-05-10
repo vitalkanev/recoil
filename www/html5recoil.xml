@@ -34,7 +34,7 @@
 	</script>
 	<body>
 		<p>This page decodes pictures in formats native to retro computers.
-		Decoding takes place in your browser, nothing is sent to a server.</p>
+		Decoding takes place in your browser, nothing is sent over the network.</p>
 
 		<p>Select file: <input type="file" onchange="openFile(this.files[0])" /></p>
 		<div style="border: solid #800080 1px; padding-top: 2em; padding-bottom: 2em;" ondragenter="dragHelper(event)" ondragover="dragHelper(event)" ondrop="onDrop(event)">

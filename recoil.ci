@@ -3263,9 +3263,9 @@ class InflateStream : Stream
 public class RECOIL
 {
 	/// RECOIL version - major part.
-	public const int VersionMajor = 3;
+	public const int VersionMajor = 4;
 	/// RECOIL version - minor part.
-	public const int VersionMinor = 5;
+	public const int VersionMinor = 0;
 	/// RECOIL version - micro part.
 	public const int VersionMicro = 0;
 	/// RECOIL version as a string.

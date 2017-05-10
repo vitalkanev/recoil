@@ -1,4 +1,20 @@
 ﻿<div>
+	<release project="RECOIL" version="4.0.0" date="2017-05-??">
+		<ul title="Formats">
+			<li>Atari 8-bit: added Graph2Font (G2F), GED, Floor Designer (FGE), Standard Graphics 3 (SG3), Graphic Arts Department (PIC), Texture Maker0 16x16x16 (TX0), DrawIt, Sketch-PadDles (SKP), improved MCH</li>
+			<li>Atari ST/TT/Falcon: added dozens of formats and improved the existing ones, thanks to Lonny Pursell</li>
+			<li>Amiga: slightly improved IFF</li>
+			<li>ZX81: added ZXpaintyONE (ZP1, RAW), fixed P</li>
+		</ul>
+		<ul title="Ports">
+			<li>Windows thumbnails: enable thumbnails automatically in folders with images</li>
+			<li>RECOILWin: support high-resolution displays</li>
+			<li>Windows 10: improved icons, display filename</li>
+			<li>recoil2png: process next files after an error</li>
+			<li>Android: switched to the standard build system</li>
+		</ul>
+	</release>
+
 	<release project="RECOIL" version="3.5.0" date="2016-12-01">
 		<p>New Windows 10 port.</p>
 		<p>Decoding additional variants of: BEAM, IFF, SC2, SC5, SC7, SCA, SR5, SR7, XIMG.</p>
