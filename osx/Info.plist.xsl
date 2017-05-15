@@ -90,9 +90,7 @@
 									</xsl:for-each>
 								</array>
 								<key>public.mime-type</key>
-								<array>
-									<string>image/x-<xsl:value-of select="$platform" /></string>
-								</array>
+								<string>image/x-<xsl:value-of select="$platform" /></string>
 							</dict>
 						</dict>
 					</xsl:for-each>
@@ -117,9 +115,7 @@
 								</xsl:for-each>
 							</array>
 							<key>public.mime-type</key>
-							<array>
-								<string>image/x-recoil</string>
-							</array>
+							<string>image/x-recoil</string>
 						</dict>
 					</dict>
 				</array>
