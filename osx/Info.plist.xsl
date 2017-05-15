@@ -13,11 +13,10 @@
 						<string>QLGenerator</string>
 						<key>LSItemContentTypes</key>
 						<array>
-							<xsl:for-each select="platform/format/ext[not(. = ../following-sibling::format/ext)]">
-								<string>
-									<xsl:value-of select="translate(../../@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-/ ','abcdefghijklmnopqrstuvwxyz')" />.<xsl:value-of select="translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')" />
-								</string>
+							<xsl:for-each select="platform">
+								<string><xsl:value-of select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-/ ','abcdefghijklmnopqrstuvwxyz')" />.image</string>
 							</xsl:for-each>
+							<string>recoil.image</string>
 						</array>
 					</dict>
 				</array>
@@ -67,32 +66,61 @@
 				<real>17</real>
 				<key>UTImportedTypeDeclarations</key>
 				<array>
-					<xsl:for-each select="platform/format/ext[not(. = ../following-sibling::format/ext)]">
-						<xsl:variable name="ext" select="translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')" />
+					<xsl:for-each select="platform">
+						<xsl:variable name="platform" select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-/ ','abcdefghijklmnopqrstuvwxyz')" />
 						<dict>
 							<key>UTTypeConformsTo</key>
 							<array>
 								<string>public.image</string>
 							</array>
 							<key>UTTypeDescription</key>
-							<string><xsl:value-of select="../../@name" /><xsl:text> </xsl:text><xsl:value-of select="../@name" /></string>
+							<string><xsl:value-of select="@name" /> Image</string>
 							<key>UTTypeIdentifier</key>
-							<string><xsl:value-of select="translate(../../@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-/ ','abcdefghijklmnopqrstuvwxyz')" />.<xsl:value-of select="$ext" /></string>
+							<string><xsl:value-of select="$platform" />.image</string>
 							<key>UTTypeTagSpecification</key>
 							<dict>
 								<key>public.filename-extension</key>
 								<array>
-									<string><xsl:value-of select="$ext" /></string>
+									<xsl:for-each select="format/ext[not(. = following::ext)]">
+										<xsl:variable name="ext" select="." />
+										<xsl:if test="count(../../../platform[format/ext = $ext]) = 1">
+											<string><xsl:value-of select="translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')" /></string>
+										</xsl:if>
+									</xsl:for-each>
 								</array>
 								<key>public.mime-type</key>
 								<array>
-									<string>application/x-<xsl:value-of select="$ext" /></string>
-									<string>image/<xsl:value-of select="$ext" /></string>
-									<string>image/x-<xsl:value-of select="$ext" /></string>
+									<string>image/x-<xsl:value-of select="$platform" /></string>
 								</array>
 							</dict>
 						</dict>
 					</xsl:for-each>
+					<dict>
+						<key>UTTypeConformsTo</key>
+						<array>
+							<string>public.image</string>
+						</array>
+						<key>UTTypeDescription</key>
+						<string>Retro Computer Image</string>
+						<key>UTTypeIdentifier</key>
+						<string>recoil.image</string>
+						<key>UTTypeTagSpecification</key>
+						<dict>
+							<key>public.filename-extension</key>
+							<array>
+								<xsl:for-each select="platform/format/ext[not(. = following::ext)]">
+									<xsl:variable name="ext" select="." />
+									<xsl:if test="count(../../../platform[format/ext = $ext]) != 1">
+										<string><xsl:value-of select="translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')" /></string>
+									</xsl:if>
+								</xsl:for-each>
+							</array>
+							<key>public.mime-type</key>
+							<array>
+								<string>image/x-recoil</string>
+							</array>
+						</dict>
+					</dict>
 				</array>
 			</dict>
 		</plist>
