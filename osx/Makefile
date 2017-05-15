@@ -14,7 +14,7 @@ $(BINARY): qlrecoil.c ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.
 	mkdir -p $(@D) && gcc -O1 -Wall -o $@ -I .. -dynamiclib -arch x86_64 -arch i386 -mmacosx-version-min=10.5 qlrecoil.c ../recoil-stdio.c ../recoil.c -framework QuickLook -framework ApplicationServices -framework CoreFoundation && strip -x $@
 
 $(PLIST): Info.plist.xsl ../formats.xml
-	mkdir -p $(@D) && xsltproc -o $@ Info.plist.xsl ../formats.xml
+	mkdir -p $(@D) && xsltproc --stringparam version $(VERSION) -o $@ Info.plist.xsl ../formats.xml
 
 %.c %.h: %.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../zx81.fnt
 	cito -o $*.c -I .. $<

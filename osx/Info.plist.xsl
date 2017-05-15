@@ -1,4 +1,5 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+	<xsl:param name="version">1.0.0</xsl:param>
 	<xsl:output method="xml" indent="yes" doctype-public="-//Apple//DTD PLIST 1.0//EN" doctype-system="http://www.apple.com/DTDs/PropertyList-1.0.dtd" />
 	<xsl:template match="/formats">
 		<xsl:comment>Generated automatically from formats.xml and Info.plist.xsl. Do not edit.</xsl:comment>
@@ -31,9 +32,9 @@
 				<key>CFBundleName</key>
 				<string>qlrecoil</string>
 				<key>CFBundleShortVersionString</key>
-				<string>1</string>
+				<string><xsl:value-of select="$version" /></string>
 				<key>CFBundleVersion</key>
-				<string>1.0</string>
+				<string><xsl:value-of select="$version" /></string>
 				<key>CFPlugInDynamicRegisterFunction</key>
 				<string></string>
 				<key>CFPlugInDynamicRegistration</key>
