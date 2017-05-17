@@ -12740,40 +12740,74 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	static bool HasG2fRaster(byte[] content, int contentOffset, int count, int hitClr)
+	{
+		do {
+			switch (content[contentOffset]) {
+			case 0: // NOP
+			case 1: // LDA #
+			case 2: // LDX #
+			case 3: // LDY #
+			case 0x41: // LDA zp
+			case 0x42: // LDX zp
+			case 0x43: // LDY zp
+			case 0x61: // LDA abcd
+			case 0x62: // LDX abcd
+			case 0x63: // LDY abcd
+				break;
+			case 0x81: // STA
+			case 0x82: // STX
+			case 0x83: // STY
+				if (content[contentOffset + 1] != hitClr)
+					return true;
+				break;
+			default: // unexpected
+				return true;
+			}
+			contentOffset += 2;
+		} while (--count > 0);
+		return false;
+	}
+
 	bool DecodeMch(byte[] content, int contentLength)
 	{
 		int columns;
-		bool sprites;
 		switch (contentLength) {
 		case 30 * 32 * 9 + 5 * 240:
-			columns = 32;
-			sprites = false;
-			break;
 		case 30 * 32 * 9 + 20 * 240 + 5 * 256 + 240 * 29 * 2 + 1 + 32:
 			columns = 32;
-			sprites = true;
 			break;
 		case 30 * 40 * 9 + 5 * 240: // 12000
-			columns = 40;
-			sprites = false;
-			break;
 		case 30 * 40 * 9 + 20 * 240 + 5 * 256 + 240 * 29 * 2 + 1 + 32: // 30833
 			columns = 40;
-			sprites = true;
 			break;
 		case 30 * 48 * 9 + 5 * 240:
-			columns = 48;
-			sprites = false;
-			break;
 		case 30 * 48 * 9 + 20 * 240 + 5 * 256 + 240 * 29 * 2 + 1 + 32:
 			columns = 48;
-			sprites = true;
 			break;
 		default:
 			return false;
 		}
-		if ((content[0] & 0x7e) != 4) // TODO: for now only ANTIC 4, no GTIA mode
+		int bitmapLength = columns * (30 * 9);
+		bool sprites = contentLength > bitmapLength + 5 * 240;
+		bool charMode;
+		switch (content[0] & 0x7f) {
+		case 4: // ANTIC 4, GED+
+			if (sprites && HasG2fRaster(content, bitmapLength + (20 * 240 + 5 * 256), 240 * 29, 0x1e))
+				return false;
+			charMode = true;
+			break;
+		case 5: // ANTIC 4, DLI
+			charMode = true;
+			break;
+		case 6: // ANTIC 14, GED-
+			if (sprites && HasG2fRaster(content, bitmapLength + (20 * 240 + 5 * 256), 240 * 29, 0x1e))
+				return false;
+			charMode = false;
+			break;
+		default: // TODO: hires, GTIA mode, DLI+, PGR
 			return false;
+		}
 		SetSize(336, 240, RECOILResolution.Xe2x1);
 		byte[336 * 240] frame;
 		GtiaRenderer() gtia;
@@ -12781,7 +12815,7 @@ public class RECOIL
 		gtia.MissileHpos.Clear();
 		gtia.Prior = 1;
 		for (int y = 0; y < 240; y++) {
-			int colorsOffset = columns * (30 * 9) + y;
+			int colorsOffset = bitmapLength + y;
 			gtia.Colors[8] = content[colorsOffset] & 0xfe;
 			for (int i = 0; i < 4; i++) {
 				gtia.Colors[4 + i] = content[colorsOffset + (1 + i) * 240] & 0xfe;
@@ -12808,7 +12842,7 @@ public class RECOIL
 				else {
 					offset = ((y >> 3) * columns + column) * 9;
 					c = content[offset + 1 + (y & 7)] >> (~x & 6) & 3;
-					if (c == 3 && content[offset] >= 0x80)
+					if (charMode && c == 3 && content[offset] >= 0x80)
 						c = GtiaRenderer.PF3;
 					else
 						c = 8 << c & 0x70;
@@ -12819,6 +12853,9 @@ public class RECOIL
 		}
 		return ApplyAtari8Palette(frame);
 	}
+
+	static bool G2fHasRaster(byte[] content, int contentOffset)
+		return HasG2fRaster(content, contentOffset, 240 * 12, content[0] < 0x80 ? 0x16 : 0x1e);
 
 	bool DecodeG2fUnpacked(byte[] content, int contentLength)
 	{
@@ -12838,6 +12875,24 @@ public class RECOIL
 		int fontNumberOffset = fontsOffset + ((content[2] & 0x7f) + 1 << 10);
 		if (contentLength < fontNumberOffset + (modeOffset + 30))
 			return false;
+		bool charMode;
+		switch (content[fontNumberOffset + (30 + 33 * 256 + 2 * 240 * 290 + 1)] & 0x7f) {
+		case 1: // GED+
+			if (G2fHasRaster(content, fontNumberOffset + (30 + 33 * 256 + 2 * 240 * 290 + 256)))
+				return false;
+			charMode = true;
+			break;
+		case 2: // DLI
+			charMode = true;
+			break;
+		case 3: // GED-
+			if (G2fHasRaster(content, fontNumberOffset + (30 + 33 * 256 + 2 * 240 * 290 + 256)))
+				return false;
+			charMode = false;
+			break;
+		default: // TODO: DLI+, PGR
+			return false;
+		}
 		byte[336 * 240] frame;
 		RECOILResolution resolution = RECOILResolution.Xe2x1;
 		GtiaRenderer() gtia;
@@ -12882,11 +12937,11 @@ public class RECOIL
 						switch (mode) {
 						case 1:
 							objects = GtiaRenderer.PF2;
-							hiresPixels = ch >= 0x80 ? c ^ 3 : c;
+							hiresPixels = charMode && ch >= 0x80 ? c ^ 3 : c;
 							resolution = RECOILResolution.Xe1x1;
 							break;
 						case 2:
-							objects = c == 3 && ch >= 0x80 ? GtiaRenderer.PF3 : 8 << c & 0x70;
+							objects = charMode && c == 3 && ch >= 0x80 ? GtiaRenderer.PF3 : 8 << c & 0x70;
 							break;
 						// TODO: case 4
 						default:
