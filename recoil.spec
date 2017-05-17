@@ -1,5 +1,5 @@
 Name: recoil
-Version: 3.5.0
+Version: 4.0.0
 Release: 1
 Summary: Viewer of retro computer image files
 License: GPLv2+
@@ -67,6 +67,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/update-mime-database %{_datadir}/mime &> /dev/null || :
 
 %changelog
+* Wed May 17 2017 Piotr Fusik <fox@scene.pl>
+- 4.0.0-1
+
 * Thu Dec 1 2016 Piotr Fusik <fox@scene.pl>
 - 3.5.0-1
 

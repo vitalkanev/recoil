@@ -1,5 +1,5 @@
 ﻿<div>
-	<release project="RECOIL" version="4.0.0" date="2017-05-??">
+	<release project="RECOIL" version="4.0.0" date="2017-05-17">
 		<ul title="Formats">
 			<li>Atari 8-bit: added Graph2Font (G2F), GED, Floor Designer (FGE), Standard Graphics 3 (SG3), Graphic Arts Department (PIC), Texture Maker0 16x16x16 (TX0), DrawIt, Sketch-PadDles (SKP), improved MCH</li>
 			<li>Atari ST/TT/Falcon: added dozens of formats and improved the existing ones, thanks to Lonny Pursell</li>
