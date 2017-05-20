@@ -1,4 +1,4 @@
-all: index.html formats.html html5recoil.html news.html contact.html recoil.js
+all: index.html formats.html html5recoil.html news.html contact.html privacy.html recoil.js
 
 index.html: www.xsl index.xml
 	xsltproc --stringparam title Home $^ | xmllint --valid --nonet -o $@ -
@@ -11,6 +11,9 @@ news.html: www.xsl news.xml
 
 contact.html: www.xsl contact.xml
 	xsltproc --stringparam title Contact $^ | xmllint --valid --nonet -o $@ -
+
+privacy.html: www.xsl privacy.xml
+	xsltproc --stringparam title Privacy $^ | xmllint --valid --nonet -o $@ -
 
 html5recoil.html: www.xsl html5recoil.xml
 	xsltproc --stringparam title HTML5 $^ | xmllint --dropdtd --schema /etc/xml/xhtml5.xsd --nonet -o $@ -
