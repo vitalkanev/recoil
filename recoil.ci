@@ -3360,7 +3360,7 @@ public class RECOIL
 	/// Maximum height of a decoded image.
 	public const int MaxHeight = 1856;
 	/// Maximum number of pixels in a decoded image.
-	public const int MaxPixelsLength = 1440 * 1856;
+	public const int MaxPixelsLength = 1701 * 1678;
 
 	/// Decoded image width.
 	int Width;
