@@ -7289,6 +7289,29 @@ public class RECOIL
 		int width = content[12] << 8 | content[13];
 		int height = content[14] << 8 | content[15];
 
+		if (headerLength == 18 && content[16] == 0 && content[17] == 3) {
+			// Ventura Publisher true color, e.g. BILD0005.IMG
+			SetSize(width, height, RECOILResolution.Falcon1x1);
+			int contentOffset = 18;
+			int pixelsLength = width * height;
+			int count = 0;
+			for (int i = 0; i < pixelsLength; i++) {
+				if (count == 0) {
+					if (contentOffset + 1 >= contentLength || content[contentOffset++] != 0x80)
+						return false;
+					count = content[contentOffset++];
+					if (count == 0)
+						return false;
+				}
+				if (contentOffset + 2 >= contentLength)
+					return false;
+				Pixels[i] = content[contentOffset + 2] << 16 | content[contentOffset + 1] << 8 | content[contentOffset]; // BGR
+				contentOffset += 3;
+				count--;
+			}
+			return true;
+		}
+
 		switch (bitplanes) {
 		case 1:
 		case 2:
