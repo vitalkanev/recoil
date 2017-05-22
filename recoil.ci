@@ -7323,8 +7323,19 @@ public class RECOIL
 			}
 			else if (headerLength == 22 + (2 << bitplanes) && IsSttt(content, bitplanes))
 				SetStPalette(content, 22, 1 << bitplanes);
-			else if (bitplanes > 4)
-				return false;
+			else if (bitplanes == 8) {
+				// grayscale, inverted bits in reverse order
+				int rgb = 0xffffff;
+				for (int c = 0; c < 256; c++) {
+					ContentPalette[c] = rgb;
+					// decrement in reverse bit order
+					for (int mask = 0x808080; ; mask >>= 1) {
+						rgb ^= mask;
+						if ((rgb & mask) == 0)
+							break;
+					}
+				}
+			}
 			else if (headerLength == 50 && content[16] == 0 && content[17] == 0x80)
 				SetStPalette(content, 18, 16); // HyperPaint
 			else
