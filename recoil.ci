@@ -5999,13 +5999,14 @@ public class RECOIL
 	bool DecodeKoa(byte[] content, int contentLength)
 	{
 		switch (contentLength) {
+		case 10001: // KOA
+			return DecodeC64Multicolor(320, content, 0, 0x1f40, 0x2328, content[0x2710]);
 		case 10003: // GIG, KLA, KOA
 		case 10006: // RPM
-			break;
+			return DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2712]);
 		default:
 			return false;
 		}
-		return DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2712]);
 	}
 
 	bool DecodeGg(byte[] content, int contentLength)
