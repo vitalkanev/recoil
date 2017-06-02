@@ -74,7 +74,7 @@ android {
         variant.registerResGeneratingTask generateIcon, ICON_DIR
         variant.registerJavaGeneratingTask cito, CITO_JAVA_DIR
         if (variant.name == 'release') {
-            variant.outputs[0].outputFile file('recoil-' + versionName + '.apk')
+            variant.outputs[0].outputFile file('recoil-' + versionName + '-android.apk')
         }
     }
     signingConfigs {
