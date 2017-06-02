@@ -1,7 +1,7 @@
 ﻿/*
  * App.xaml.cs - Universal Windows application
  *
- * Copyright (C) 2014-2016  Piotr Fusik
+ * Copyright (C) 2014-2017  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -62,6 +62,7 @@ namespace RECOIL
 			if (page != null) {
 				StorageFile file = args.Files[0] as StorageFile;
 				await page.ShowFile(file);
+				await page.SetNeighboring(args.NeighboringFilesQuery, file);
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 ﻿/*
  * MainPage.xaml.cs - Universal Windows application
  *
- * Copyright (C) 2014-2016  Piotr Fusik
+ * Copyright (C) 2014-2017  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -22,9 +22,11 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.Storage;
+using Windows.Storage.Search;
 using Windows.Storage.Streams;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
@@ -35,6 +37,9 @@ namespace RECOIL
 {
 	public sealed partial class MainPage : Page
 	{
+		IReadOnlyList<StorageFile> Files;
+		int Index;
+
 		public MainPage()
 		{
 			InitializeComponent();
@@ -91,10 +96,51 @@ namespace RECOIL
 			BottomAppBar.Content = file.Name;
 		}
 
+		void SetIndex(int index)
+		{
+			Index = index;
+			PreviousButton.IsEnabled = index > 0;
+			NextButton.IsEnabled = index + 1 < Files.Count;
+		}
+
+		public async Task SetNeighboring(StorageFileQueryResult neighboring, StorageFile file)
+		{
+			Visibility buttonVisibility;
+			if (neighboring != null) {
+				Files = await neighboring.GetFilesAsync();
+				uint index = await neighboring.FindStartIndexAsync(file);
+				SetIndex(index <= int.MaxValue ? (int) index : 0);
+				buttonVisibility = Visibility.Visible;
+			}
+			else {
+				Files = null;
+				buttonVisibility = Visibility.Collapsed;
+			}
+			PreviousButton.Visibility = buttonVisibility;
+			NextButton.Visibility = buttonVisibility;
+		}
+
 		async void OpenFile(object sender, RoutedEventArgs e)
 		{
 			StorageFile file = await FilePicker.PickFile();
 			await ShowFile(file);
+			await SetNeighboring(null, null);
+		}
+
+		async void OpenPrevious(object sender, RoutedEventArgs e)
+		{
+			if (Files != null && Index > 0) {
+				SetIndex(Index - 1);
+				await ShowFile(Files[Index]);
+			}
+		}
+
+		async void OpenNext(object sender, RoutedEventArgs e)
+		{
+			if (Files != null && Index + 1 < Files.Count) {
+				SetIndex(Index + 1);
+				await ShowFile(Files[Index]);
+			}
 		}
 	}
 }
