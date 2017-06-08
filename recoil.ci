@@ -131,6 +131,14 @@ enum IceFrameMode
 	Gr13Gtia11
 }
 
+enum AnticMode
+{
+	Blank,
+	FourColor,
+	FiveColor,
+	HiRes
+}
+
 /// Read-only stream backed by a byte array.
 class Stream
 {
@@ -2835,7 +2843,7 @@ class PInterpreter : Stream
 	}
 }
 
-class GtiaRenderer
+abstract class GtiaRenderer
 {
 	byte[4] PlayerHpos;
 	byte[4] MissileHpos;
@@ -2862,31 +2870,6 @@ class GtiaRenderer
 			int size = value >> (i << 1) & 3;
 			sizes[i] = size == 2 ? 1 : size + 1;
 		}
-	}
-
-	static bool SetG2fSprite(byte[] hpos, byte[] sizes, int i, byte[] content, int spriteOffset)
-	{
-		spriteOffset += i << 10;
-		int value = content[spriteOffset + 1];
-		if (value >= 0x80) {
-			hpos[i] = 0;
-			return true;
-		}
-		value &= 15;
-		switch (value) {
-		case 0:
-			value = 1;
-			break;
-		case 1:
-		case 2:
-		case 4:
-			break;
-		default:
-			return false;
-		}
-		sizes[i] = value;
-		hpos[i] = (0x20 + content[spriteOffset]).LowByte;
-		return true;
 	}
 
 	void Poke(int addr, int value)
@@ -2961,7 +2944,7 @@ class GtiaRenderer
 	const int PF3  = 0x80;
 	const int PF23 = PF2 | PF3;
 
-	int GetColor(int hpos, int objects)
+	int GetPmg(int hpos, int objects)
 	{
 		for (int i = 0; i < 4; i++) {
 			if (PlayerHpos[i] == hpos) {
@@ -2974,12 +2957,11 @@ class GtiaRenderer
 			}
 		}
 
-		int prior = Prior;
-		if ((prior & 0x10) != 0 && (MissileShiftRegister & 0xaa) != 0)
+		if ((Prior & 0x10) != 0 && (MissileShiftRegister & 0xaa) != 0)
 			objects |= PF3;
 		for (int i = 0; i < 4; i++) {
 			if ((PlayerShiftRegister[i] & 0x80) != 0
-			 || ((prior & 0x10) == 0 && (MissileShiftRegister & 2 << (i << 1)) != 0))
+			 || ((Prior & 0x10) == 0 && (MissileShiftRegister & 2 << (i << 1)) != 0))
 				objects |= 1 << i;
 
 			if (--PlayerSizeCounter[i] == 0) {
@@ -2993,9 +2975,14 @@ class GtiaRenderer
 				MissileSizeCounter[i] = MissileSize[i];
 			}
 		}
+		return objects;
+	}
 
+	int GetColor(int objects)
+	{
 		if (objects == 0)
 			return Colors[8]; // COLBAK
+		int prior = Prior;
 		int color = 0;
 		if ((objects & P01) != 0) {
 			if (((objects & PF01) == 0 || (prior & 0xc) == 0)
@@ -3043,19 +3030,147 @@ class GtiaRenderer
 		// We need to start processing PMG on the left border.
 		// The leftmost PMG we can see is a quad-sized player.
 		for (int hpos = startHpos - 31; hpos < startHpos; hpos++)
-			GetColor(hpos, 0);
+			GetPmg(hpos, 0);
 	}
 
-	int DecodeGedSpan(byte[] bitmap, int bitmapOffset, int hpos, int untilHpos, byte[] frame, int frameOffset)
+	byte[] Content;
+	int PlayfieldColumns;
+
+	abstract int GetPlayfieldByte(int y, int column);
+
+	int DrawSpan(int y, int hpos, int untilHpos, AnticMode anticMode, byte[] frame, int width)
 	{
+		int gtiaMode = Prior >> 6;
 		for (; hpos < untilHpos; hpos++) {
-			int x = hpos - 0x30 << 1;
-			int c = bitmap[bitmapOffset + (x >> 3)] >> (~x & 6) & 3;
-			int objects = 8 << c & 0x70; // 0, GTIA_PF0, GTIA_PF1 or GTIA_PF2
-			frame[frameOffset + x + 1] = frame[frameOffset + x] = GetColor(hpos, objects);
+			int x = hpos;
+			int objects = 0;
+			int playfield = 0;
+			if (gtiaMode == 2) {
+				// GTIA 10
+				x--; // shifted right half a pixel
+				objects = P0; // border is COLPM0
+			}
+
+			if (anticMode != AnticMode.Blank) {
+				int column = (x >> 2) + (PlayfieldColumns >> 1) - 32;
+				if (column >= 0 && column < PlayfieldColumns) {
+					// fetch playfield
+					playfield = GetPlayfieldByte(y, column);
+					bool inverseChar = playfield >= 0x100;
+					if (inverseChar && anticMode == AnticMode.HiRes)
+						playfield = 0x1ff - playfield; // TODO: bitmap mode
+					if (gtiaMode == 0) {
+						playfield = playfield >> ((~x & 3) << 1) & 3;
+						objects = anticMode == AnticMode.HiRes ? PF2 :
+							anticMode == AnticMode.FiveColor && playfield == 3 && inverseChar ? PF3 :
+							8 << playfield & 0x70;
+					}
+					else {
+						// GTIA mode
+						// TODO: AnticMode.FiveColor
+						if ((x & 2) == 0)
+							playfield >>= 4;
+						playfield &= 0xf;
+						if (gtiaMode == 2) {
+							const byte[16] gtia10Objects = { P0, P1, P2, P3, PF0, PF1, PF2, PF3, 0, 0, 0, 0, PF0, PF1, PF2, PF3 };
+							objects = gtia10Objects[playfield];
+						}
+					}
+				}
+			}
+
+			// add sprites, apply priority logic
+			objects = GetPmg(hpos, objects);
+			int c = GetColor(objects);
+
+			// set pixels, adding hires or GTIA 9/11 pixels if needed
+			int frameOffset = y * width + (hpos + (width >> 2) - 128 << 1);
+			switch (gtiaMode) {
+			case 0:
+				if (anticMode != AnticMode.HiRes)
+					break;
+				frame[frameOffset] = (playfield & 2) == 0 ? c : (c & 0xf0) + (Colors[5] & 0xe);
+				frame[frameOffset + 1] = (playfield & 1) == 0 ? c : (c & 0xf0) + (Colors[5] & 0xe);
+				continue; // pixels already written
+			case 2: // GTIA 10
+				break;
+			default:
+				if ((objects & (P01 | P23)) != 0)
+					break; // players cover GTIA 9/11, even when fifth player is on top
+				// assert objects == 0 || objects == PF3;
+				if (gtiaMode == 1) // GTIA 9
+					c |= playfield;
+				else if (playfield == 0) // GTIA 11 background
+					c &= 0xf0;
+				else // GTIA 11
+					c |= playfield << 4;
+				break;
+			}
+			frame[frameOffset + 1] = frame[frameOffset] = c;
 		}
 		return hpos;
 	}
+
+	void SetG2fColors(int contentOffset, int contentStride, int count, int gtiaMode)
+	{
+		const byte[9] normalRegisters = { 8, 4, 5, 6, 7, 0, 1, 2, 3 };
+		for (int i = 0; i < count; i++)
+			Colors[(gtiaMode & 0xc0) == 0x80 ? i : normalRegisters[i]] = Content[contentOffset + i * contentStride] & 0xfe;
+	}
+}
+
+class GedRenderer : GtiaRenderer
+{
+	override int GetPlayfieldByte(int y, int column)
+	{
+		return Content[0xce6 + y * 40 + column];
+	}
+}
+
+class MchRenderer : GtiaRenderer
+{
+	override int GetPlayfieldByte(int y, int column)
+	{
+		int offset = ((y >> 3) * PlayfieldColumns + column) * 9;
+		return (Content[offset] & 0x80) << 1 | Content[offset + 1 + (y & 7)];
+	}
+}
+
+class G2fRenderer : GtiaRenderer
+{
+	int FontOffset;
+
+	override int GetPlayfieldByte(int y, int column)
+	{
+		int ch = Content[3 + (y >> 3) * PlayfieldColumns + column];
+		return (ch & 0x80) << 1 | Content[FontOffset + ((ch & 0x7f) << 3) + (y & 7)];
+	}
+
+	static bool SetSprite(byte[] hpos, byte[] sizes, int i, byte[] content, int spriteOffset)
+	{
+		spriteOffset += i << 10;
+		int value = content[spriteOffset + 1];
+		if (value >= 0x80) {
+			hpos[i] = 0;
+			return true;
+		}
+		value &= 15;
+		switch (value) {
+		case 0:
+			value = 1;
+			break;
+		case 1:
+		case 2:
+		case 4:
+			break;
+		default:
+			return false;
+		}
+		sizes[i] = value;
+		hpos[i] = (0x20 + content[spriteOffset]).LowByte;
+		return true;
+	}
+
 }
 
 class InflateStream : Stream
@@ -12734,7 +12849,7 @@ public class RECOIL
 		if (cycle > 7)
 			return false;
 
-		GtiaRenderer() gtia;
+		GedRenderer() gtia;
 		GtiaRenderer.SetSpriteSizes(gtia.MissileSize, content[0xcd6 + 5]); // SIZEM
 		gtia.Colors[7] = content[0xcd6 + 7] & 0xfe; // COLPF3
 		gtia.Colors[8] = content[0xcd6 + 8] & 0xfe; // COLBAK
@@ -12748,6 +12863,8 @@ public class RECOIL
 			gtia.Colors[i] = content[0xcd6 + i] & 0xfe; // COLPM0-3
 		}
 
+		gtia.Content = content;
+		gtia.PlayfieldColumns = 40;
 		SetSize(320, 200, RECOILResolution.Xe2x1);
 		byte[320 * 200] frame;
 		for (int y = 0; y < 200; y++) {
@@ -12758,19 +12875,17 @@ public class RECOIL
 			gtia.Colors[6] = content[806 + y] & 0xfe; // COLPF2
 			gtia.StartLine(0x30);
 
-			int bitmapOffset = 0xce6 + y * 40;
-			int frameOffset = y * 320;
-			int hpos = gtia.DecodeGedSpan(content, bitmapOffset, 0x30, 0x30 + 15 + (cycle << 3), frame, frameOffset);
+			int hpos = gtia.DrawSpan(y, 0x30, 0x30 + 15 + (cycle << 3), AnticMode.FourColor, frame, 320);
 			gtia.Colors[4] = content[1006 + y] & 0xfe;
-			hpos = gtia.DecodeGedSpan(content, bitmapOffset, hpos, cycle < 4 ? hpos + 32 : 0x30 + 75 - 16 + (cycle << 2), frame, frameOffset);
+			hpos = gtia.DrawSpan(y, hpos, cycle < 4 ? hpos + 32 : 0x30 + 75 - 16 + (cycle << 2), AnticMode.FourColor, frame, 320);
 			gtia.Colors[5] = content[1206 + y] & 0xfe;
-			hpos = gtia.DecodeGedSpan(content, bitmapOffset, hpos, 0x30 + 75 + (cycle << 2), frame, frameOffset);
+			hpos = gtia.DrawSpan(y, hpos, 0x30 + 75 + (cycle << 2), AnticMode.FourColor, frame, 320);
 			gtia.Colors[6] = content[1406 + y] & 0xfe;
-			hpos = gtia.DecodeGedSpan(content, bitmapOffset, hpos, hpos + 24, frame, frameOffset);
+			hpos = gtia.DrawSpan(y, hpos, hpos + 24, AnticMode.FourColor, frame, 320);
 			gtia.Colors[4] = content[1606 + y] & 0xfe;
-			hpos = gtia.DecodeGedSpan(content, bitmapOffset, hpos, hpos + 24, frame, frameOffset);
+			hpos = gtia.DrawSpan(y, hpos, hpos + 24, AnticMode.FourColor, frame, 320);
 			gtia.Colors[5] = content[1806 + y] & 0xfe;
-			hpos = gtia.DecodeGedSpan(content, bitmapOffset, hpos, 0xd0, frame, frameOffset);
+			hpos = gtia.DrawSpan(y, hpos, 0xd0, AnticMode.FourColor, frame, 320);
 		}
 		return ApplyAtari8Palette(frame);
 	}
@@ -12825,66 +12940,77 @@ public class RECOIL
 		}
 		int bitmapLength = columns * (30 * 9);
 		bool sprites = contentLength > bitmapLength + 5 * 240;
-		bool charMode;
-		switch (content[0] & 0x7f) {
-		case 4: // ANTIC 4, GED+
+		AnticMode anticMode;
+		switch (content[0] & 3) {
+		case 0: // GED+
 			if (sprites && HasG2fRaster(content, bitmapLength + (20 * 240 + 5 * 256), 240 * 29, 0x1e))
 				return false;
-			charMode = true;
+			anticMode = AnticMode.FiveColor;
 			break;
-		case 5: // ANTIC 4, DLI
-			charMode = true;
+		case 1: // DLI
+			anticMode = AnticMode.FiveColor;
 			break;
-		case 6: // ANTIC 14, GED-
+		case 2: // GED-
 			if (sprites && HasG2fRaster(content, bitmapLength + (20 * 240 + 5 * 256), 240 * 29, 0x1e))
 				return false;
-			charMode = false;
+			anticMode = AnticMode.FourColor;
 			break;
-		default: // TODO: hires, GTIA mode, DLI+, PGR
+		default: // TODO: PGR
 			return false;
 		}
-		SetSize(336, 240, RECOILResolution.Xe2x1);
+		RECOILResolution resolution;
+		int gtiaMode = 0;
+		switch (content[0] & 0x7c) {
+		case 0:
+			anticMode = AnticMode.HiRes;
+			resolution = RECOILResolution.Xe1x1;
+			break;
+		case 4:
+			resolution = RECOILResolution.Xe2x1;
+			break;
+		case 8:
+			anticMode = AnticMode.HiRes;
+			resolution = RECOILResolution.Xe4x1;
+			gtiaMode = 0x40;
+			break;
+		case 0x18:
+			anticMode = AnticMode.HiRes;
+			resolution = RECOILResolution.Xe4x1;
+			gtiaMode = 0x80;
+			break;
+		case 0x28:
+			anticMode = AnticMode.HiRes;
+			resolution = RECOILResolution.Xe4x1;
+			gtiaMode = 0xc0;
+			break;
+		default: // TODO: DLI+
+			return false;
+		}
+		SetSize(336, 240, resolution);
 		byte[336 * 240] frame;
-		GtiaRenderer() gtia;
+		MchRenderer() gtia;
 		gtia.PlayerHpos.Clear();
 		gtia.MissileHpos.Clear();
-		gtia.Prior = 1;
+		gtia.Colors.Clear();
+		gtia.Prior = gtiaMode;
+		gtia.Content = content;
+		gtia.PlayfieldColumns = columns;
 		for (int y = 0; y < 240; y++) {
 			int colorsOffset = bitmapLength + y;
-			gtia.Colors[8] = content[colorsOffset] & 0xfe;
-			for (int i = 0; i < 4; i++) {
-				gtia.Colors[4 + i] = content[colorsOffset + (1 + i) * 240] & 0xfe;
-				if (sprites) {
-					gtia.Colors[i] = content[colorsOffset + (5 + i) * 240] & 0xfe;
+			gtia.SetG2fColors(colorsOffset, 240, sprites ? 9 : 5, gtiaMode);
+			if (sprites) {
+				for (int i = 0; i < 4; i++) {
 					gtia.PlayerHpos[i] = content[colorsOffset + (9 + i) * 240];
 					gtia.MissileHpos[i] = content[colorsOffset + (13 + i) * 240];
 				}
-			}
-			if (sprites) {
 				GtiaRenderer.SetSpriteSizes(gtia.PlayerSize, content[colorsOffset + 17 * 240]);
 				GtiaRenderer.SetSpriteSizes(gtia.MissileSize, content[colorsOffset + 18 * 240]);
-				gtia.Prior = content[colorsOffset + 19 * 240];
+				gtia.Prior = gtiaMode | content[colorsOffset + 19 * 240];
 				gtia.ProcessSpriteDma(content, colorsOffset + 20 * 240);
 			}
 
 			gtia.StartLine(0x2c);
-			for (int x = 0; x < 336; x += 2) {
-				int column = (x >> 3) + (columns >> 1) - 21;
-				int c;
-				int offset;
-				if (column < 0 || column >= columns)
-					c = 0;
-				else {
-					offset = ((y >> 3) * columns + column) * 9;
-					c = content[offset + 1 + (y & 7)] >> (~x & 6) & 3;
-					if (charMode && c == 3 && content[offset] >= 0x80)
-						c = GtiaRenderer.PF3;
-					else
-						c = 8 << c & 0x70;
-				}
-				offset = y * 336 + x;
-				frame[offset + 1] = frame[offset] = gtia.GetColor(0x2c + (x >> 1), c);
-			}
+			gtia.DrawSpan(y, 0x2c, 0xd4, anticMode, frame, 336);
 		}
 		return ApplyAtari8Palette(frame);
 	}
@@ -12929,65 +13055,62 @@ public class RECOIL
 			return false;
 		}
 		byte[336 * 240] frame;
-		RECOILResolution resolution = RECOILResolution.Xe2x1;
-		GtiaRenderer() gtia;
+		RECOILResolution resolution = RECOILResolution.Xe4x1;
+		G2fRenderer() gtia;
+		gtia.Content = content;
+		gtia.PlayfieldColumns = columns;
 		for (int y = 0; y < 240; y++) {
 			int row = y >> 3;
-			int fontOffset = fontsOffset + ((content[fontNumberOffset + row] & 0x7f) << 10);
-			if (fontOffset >= fontNumberOffset)
+			gtia.FontOffset = fontsOffset + ((content[fontNumberOffset + row] & 0x7f) << 10);
+			if (gtia.FontOffset >= fontNumberOffset)
 				return false;
-			int mode = content[fontNumberOffset + modeOffset + row];
+
+			int spriteOffset = fontNumberOffset + (30 + 9 * 256) + (y << 1);
+			int prior = content[spriteOffset + 1] >> 4 & 7;
+			const byte[] priors = { 4, 2, 1, 8, 0 };
+			if (prior >= priors.Length)
+				return false;
+			prior = priors[prior] | (content[spriteOffset + 1025] & 0x30);
+
+			AnticMode anticMode;
+			switch (content[fontNumberOffset + modeOffset + row]) {
+			case 1:
+				resolution = RECOILResolution.Xe1x1;
+				anticMode = AnticMode.HiRes;
+				break;
+			case 2:
+				if (resolution == RECOILResolution.Xe4x1)
+					resolution = RECOILResolution.Xe2x1;
+				anticMode = charMode ? AnticMode.FiveColor : AnticMode.FourColor;
+				break;
+			case 4:
+				// TODO: RECOILResolution.Xe2x1 if sprites?
+				const byte[8] gtiaModes = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x80, 0xc0, 0x40 };
+				prior |= gtiaModes[content[1] & 7];
+				anticMode = AnticMode.HiRes;
+				break;
+			case 0xff:
+				anticMode = AnticMode.Blank;
+				break;
+			default:
+				return false;
+			}
 
 			int colorsOffset = fontNumberOffset + 30 + y;
-			gtia.Colors[8] = content[colorsOffset] & 0xfe;
-			int spriteOffset = fontNumberOffset + (30 + 9 * 256) + (y << 1);
+			gtia.SetG2fColors(colorsOffset, 256, 9, prior);
 			int missileGraphics = 0;
 			for (int i = 0; i < 4; i++) {
-				gtia.Colors[4 + i] = content[colorsOffset + (1 + i << 8)] & 0xfe;
-				gtia.Colors[i] = content[colorsOffset + (5 + i << 8)] & 0xfe;
-				if (!GtiaRenderer.SetG2fSprite(gtia.PlayerHpos, gtia.PlayerSize, i, content, spriteOffset)
-				 || !GtiaRenderer.SetG2fSprite(gtia.MissileHpos, gtia.MissileSize, i, content, spriteOffset + 512))
+				if (!G2fRenderer.SetSprite(gtia.PlayerHpos, gtia.PlayerSize, i, content, spriteOffset)
+				 || !G2fRenderer.SetSprite(gtia.MissileHpos, gtia.MissileSize, i, content, spriteOffset + 512))
 					return false;
 				gtia.PlayerGraphics[i] = content[colorsOffset + 0x1900 + (i << 9)];
 				missileGraphics |= content[colorsOffset + 0x1a00 + (i << 9)] >> 6 << (i << 1);
 			}
 			gtia.MissileGraphics = missileGraphics;
-
-			int prior = content[spriteOffset + 1] >> 4 & 7;
-			const byte[] priors = { 4, 2, 1, 8, 0 };
-			if (prior >= priors.Length)
-				return false;
-			gtia.Prior = priors[prior] | (content[spriteOffset + 1025] & 0x30);
+			gtia.Prior = prior;
 
 			gtia.StartLine(0x2c);
-			for (int x = 0; x < 336; x += 2) {
-				int objects = 0;
-				int hiresPixels = 0;
-				int c;
-				if (mode != 0xff) {
-					int column = (x >> 3) + (columns >> 1) - 21;
-					if (column >= 0 && column < columns) {
-						int ch = content[3 + row * columns + column];
-						c = content[fontOffset + ((ch & 0x7f) << 3) + (y & 7)] >> (~x & 6) & 3;
-						switch (mode) {
-						case 1:
-							objects = GtiaRenderer.PF2;
-							hiresPixels = charMode && ch >= 0x80 ? c ^ 3 : c;
-							resolution = RECOILResolution.Xe1x1;
-							break;
-						case 2:
-							objects = charMode && c == 3 && ch >= 0x80 ? GtiaRenderer.PF3 : 8 << c & 0x70;
-							break;
-						// TODO: case 4
-						default:
-							return false;
-						}
-					}
-				}
-				c = gtia.GetColor(0x2c + (x >> 1), objects);
-				frame[y * 336 + x] = (hiresPixels & 2) != 0 ? (c & 0xf0) + (gtia.Colors[5] & 0xe) : c;
-				frame[y * 336 + x + 1] = (hiresPixels & 1) != 0 ? (c & 0xf0) + (gtia.Colors[5] & 0xe) : c;
-			}
+			gtia.DrawSpan(y, 0x2c, 0xd4, anticMode, frame, 336);
 		}
 		SetSize(336, 240, resolution);
 		return ApplyAtari8Palette(frame);

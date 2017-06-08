@@ -97,7 +97,7 @@
 		<format name="Fun with Art" width="160" height="192" colors="128"><ext>FWA</ext></format>
 		<format name="Graphics 10" width="80" maxHeight="240" colors="9"><ext>G10</ext></format>
 		<format name="Graphics 11" width="80" maxHeight="240" colors="16"><ext>G11</ext></format>
-		<format name="Graph2Font" maxWidth="336" height="240" colors="128"><ext>G2F</ext></format>
+		<format name="Graph2Font" maxWidth="336" height="240" colors="256"><ext>G2F</ext></format>
 		<format name="GED" width="160" height="200" colors="128"><ext>GED</ext></format>
 		<format name="Gephard Hires Graphics" maxWidth="320" maxHeight="200" colors="2"><ext>GHG</ext></format>
 		<format name="Graphics 7" width="160" maxHeight="120" colors="4"><ext>GR7</ext></format>
@@ -136,7 +136,7 @@
 		<format name="EnvisionPC"><ext>MAP</ext></format>
 		<format name="XL-Paint MAX" width="160" height="192" frames="2"><ext>MAX</ext></format>
 		<format name="Mad Designer" width="512" height="256" colors="2"><ext>MBG</ext></format>
-		<format name="Graph2Font" width="168" height="240" colors="128"><ext>MCH</ext></format>
+		<format name="Graph2Font" maxWidth="336" height="240" colors="256"><ext>MCH</ext></format>
 		<format name="McPainter" width="160" height="200" colors="16" frames="2"><ext>MCP</ext></format>
 		<format name="Paradox" width="160" height="100" colors="16"><ext>MCPP</ext></format>
 		<format width="160" height="192" colors="9"><ext>MCS</ext></format>
