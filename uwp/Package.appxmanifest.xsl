@@ -26,7 +26,6 @@
 			</Resources>
 
 			<Capabilities>
-				<uap:Capability Name="documentsLibrary" />
 				<uap:Capability Name="picturesLibrary" />
 			</Capabilities>
 
