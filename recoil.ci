@@ -3129,21 +3129,27 @@ class GedRenderer : GtiaRenderer
 
 class MchRenderer : GtiaRenderer
 {
+	bool DliPlus;
+
 	override int GetPlayfieldByte(int y, int column)
 	{
 		int offset = ((y >> 3) * PlayfieldColumns + column) * 9;
-		return (Content[offset] & 0x80) << 1 | Content[offset + 1 + (y & 7)];
+		int shift = DliPlus && (y & 4) != 0 ? 2 : 1;
+		return (Content[offset] << shift & 0x100) | Content[offset + 1 + (y & 7)];
 	}
 }
 
 class G2fRenderer : GtiaRenderer
 {
 	int FontOffset;
+	int Inverse2Offset;
 
 	override int GetPlayfieldByte(int y, int column)
 	{
-		int ch = Content[3 + (y >> 3) * PlayfieldColumns + column];
-		return (ch & 0x80) << 1 | Content[FontOffset + ((ch & 0x7f) << 3) + (y & 7)];
+		int charOffset = (y >> 3) * PlayfieldColumns + column;
+		int ch = Content[3 + charOffset];
+		int inverse = Inverse2Offset >= 0 && (y & 4) != 0 ? Content[Inverse2Offset + charOffset] : ch;
+		return (inverse & 0x80) << 1 | Content[FontOffset + ((ch & 0x7f) << 3) + (y & 7)];
 	}
 
 	static bool SetSprite(byte[] hpos, byte[] sizes, int i, byte[] content, int spriteOffset)
@@ -12960,7 +12966,7 @@ public class RECOIL
 		}
 		RECOILResolution resolution;
 		int gtiaMode = 0;
-		switch (content[0] & 0x7c) {
+		switch (content[0] & 0x3c) {
 		case 0:
 			anticMode = AnticMode.HiRes;
 			resolution = RECOILResolution.Xe1x1;
@@ -12983,7 +12989,7 @@ public class RECOIL
 			resolution = RECOILResolution.Xe4x1;
 			gtiaMode = 0xc0;
 			break;
-		default: // TODO: DLI+
+		default:
 			return false;
 		}
 		SetSize(336, 240, resolution);
@@ -12995,6 +13001,14 @@ public class RECOIL
 		gtia.Prior = gtiaMode;
 		gtia.Content = content;
 		gtia.PlayfieldColumns = columns;
+		gtia.DliPlus = false;
+		for (int i = 0; i < bitmapLength; i += 9) {
+			if ((content[i] & 0x40) != 0) {
+				gtia.DliPlus = true;
+				break;
+			}
+		}
+
 		for (int y = 0; y < 240; y++) {
 			int colorsOffset = bitmapLength + y;
 			gtia.SetG2fColors(colorsOffset, 240, sprites ? 9 : 5, gtiaMode);
@@ -13021,7 +13035,7 @@ public class RECOIL
 	bool DecodeG2fUnpacked(byte[] content, int contentLength)
 	{
 		const int modeOffset = 30 + 33 * 256 + 2 * 240 * 290 + 256 + 240 * 24;
-		if (contentLength < 3 + 30 * 32 + 1024 + modeOffset)
+		if (contentLength < 3 + 30 * 32 + 1024 + modeOffset + 30)
 			return false;
 		int columns = content[0] & 0x7f;
 		switch (columns) {
@@ -13037,6 +13051,7 @@ public class RECOIL
 		if (contentLength < fontNumberOffset + (modeOffset + 30))
 			return false;
 		bool charMode;
+		int inverse2Offset = -1;
 		switch (content[fontNumberOffset + (30 + 33 * 256 + 2 * 240 * 290 + 1)] & 0x7f) {
 		case 1: // GED+
 			if (G2fHasRaster(content, fontNumberOffset + (30 + 33 * 256 + 2 * 240 * 290 + 256)))
@@ -13051,7 +13066,13 @@ public class RECOIL
 				return false;
 			charMode = false;
 			break;
-		default: // TODO: DLI+, PGR
+		case 0x42: // DLI+
+			charMode = true;
+			inverse2Offset = fontNumberOffset + (modeOffset + 256 + 1 + 5 * 256 + 3 + 240 * 48 * 12 + 1);
+			if (contentLength < inverse2Offset + 30 * columns)
+				return false;
+			break;
+		default: // TODO: PGR
 			return false;
 		}
 		byte[336 * 240] frame;
@@ -13059,6 +13080,7 @@ public class RECOIL
 		G2fRenderer() gtia;
 		gtia.Content = content;
 		gtia.PlayfieldColumns = columns;
+		gtia.Inverse2Offset = inverse2Offset;
 		for (int y = 0; y < 240; y++) {
 			int row = y >> 3;
 			gtia.FontOffset = fontsOffset + ((content[fontNumberOffset + row] & 0x7f) << 10);
@@ -13121,7 +13143,8 @@ public class RECOIL
 		if (contentLength < 11)
 			return false;
 		if (IsStringAt(content, 0, "G2FZLIB")) {
-			const int maxUnpackedLength = 3 + 30 * 48 + 30 * 1024 + 30 + 33 * 256 + 2 * 240 * 290 + 256 + 240 * 24 + 30;
+			const int maxUnpackedLength = 3 + 30 * 48 + 30 * 1024 + 30 + 33 * 256 + 2 * 240 * 290 + 256 + 240 * 24
+				+ 256 + 1 + 5 * 256 + 3 + 240 * 48 * 12 + 1 + 30 * 48;
 			byte[] unpacked = new byte[maxUnpackedLength];
 			InflateStream() stream;
 			stream.Content = content;
