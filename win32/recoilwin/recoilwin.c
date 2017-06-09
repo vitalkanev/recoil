@@ -261,6 +261,14 @@ static void ZoomOut(void)
 	} while (!Repaint(FALSE));
 }
 
+static void ZoomSet(int value)
+{
+	if (fullscreen)
+		return;
+	zoom = value;
+	Repaint(TRUE);
+}
+
 static BOOL OpenImage(BOOL show_error)
 {
 	static BYTE content[RECOIL_MAX_CONTENT_LENGTH];
@@ -288,6 +296,10 @@ static BOOL OpenImage(BOOL show_error)
 	SetMenuEnabled(IDM_FULLSCREEN, image_loaded);
 	SetMenuEnabled(IDM_ZOOMIN, image_loaded);
 	SetMenuEnabled(IDM_ZOOMOUT, image_loaded);
+	SetMenuEnabled(IDM_ZOOM1, image_loaded);
+	SetMenuEnabled(IDM_ZOOM2, image_loaded);
+	SetMenuEnabled(IDM_ZOOM3, image_loaded);
+	SetMenuEnabled(IDM_ZOOM4, image_loaded);
 	if (!image_loaded) {
 		SetMenuEnabled(IDM_INVERT, FALSE);
 		SetWindowText(hWnd, APP_TITLE);
@@ -622,6 +634,18 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			break;
 		case IDM_ZOOMOUT:
 			ZoomOut();
+			break;
+		case IDM_ZOOM1:
+			ZoomSet(100);
+			break;
+		case IDM_ZOOM2:
+			ZoomSet(200);
+			break;
+		case IDM_ZOOM3:
+			ZoomSet(300);
+			break;
+		case IDM_ZOOM4:
+			ZoomSet(400);
 			break;
 		case IDM_INVERT:
 			if (bitmap.bmiHeader.biClrUsed == 2) {
