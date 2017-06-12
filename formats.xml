@@ -27,6 +27,11 @@
 		</format>
 		<format name="8x8 font" colors="2"><ext>FNT</ext></format>
 		<format name="HinterGrundBild" width="512" height="256" colors="2"><ext>HGB</ext></format>
+		<format name="Perfect Pix" maxWidth="384" maxHeight="272" frames="2">
+			<ext>PPH</ext>
+			<companionExt>ODD</companionExt>
+			<companionExt>EVE</companionExt>
+		</format>
 		<format name="Advanced OCP Art Studio">
 			<ext>SCR</ext>
 			<companionExt>PAL</companionExt>
