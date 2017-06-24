@@ -6576,6 +6576,91 @@ public class RECOIL
 		}
 	}
 
+	bool DecodeSpd(byte[] content, int contentLength)
+	{
+		if (contentLength < 67)
+			return false;
+		int headerLength;
+		int spriteCount;
+		if (content[0] == 'S' && content[1] == 'P' && content[2] == 'D' && content[3] == 1) {
+			// SpritePad 2
+			headerLength = 6;
+			spriteCount = content[4] + 1;
+			if (contentLength < 9 + (spriteCount << 6))
+				return false;
+		}
+		else  {
+			// SpritePad 1
+			if ((contentLength & 63) != 3
+			 || content[0] > 0xf || content[1] > 0xf || content[2] > 0xf)
+				return false;
+			headerLength = 0;
+			spriteCount = contentLength >> 6;
+		}
+
+		RECOILResolution resolution = RECOILResolution.C642x1;
+		for (int spriteNo = 0; spriteNo < spriteCount; spriteNo++) {
+			if (content[headerLength + 66 + (spriteNo << 6)] < 0x80) {
+				resolution = RECOILResolution.C641x1;
+				break;
+			}
+		}
+		const int spriteWidth = 24;
+		const int spriteHeight = 21;
+		const int horizontalGap = 2;
+		const int verticalGap = 2;
+		int width;
+		int height;
+		if (spriteCount <= 16) {
+			width = spriteCount * (spriteWidth + horizontalGap) - horizontalGap;
+			height = spriteHeight;
+		}
+		else {
+			width = 16 * spriteWidth + 15 * horizontalGap;
+			height = (spriteCount + 15 >> 4) * (spriteHeight + verticalGap) - verticalGap;
+		}
+		if (!SetSize(width, height, resolution))
+			return false;
+
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int spriteNo = x / (spriteWidth + horizontalGap) + (y / (spriteHeight + verticalGap) << 4);
+				int c = headerLength;
+				if (spriteNo < spriteCount) {
+					int row = y % (spriteHeight + verticalGap);
+					if (row < spriteHeight) {
+						int column = x % (spriteWidth + horizontalGap);
+						if (column < spriteWidth) {
+							int spriteOffset = headerLength + 3 + (spriteNo << 6);
+							int b = content[spriteOffset + row * 3 + (column >> 3)];
+							if (content[spriteOffset + 63] < 0x80) {
+								if ((b >> (~column & 7) & 1) != 0)
+									c = spriteOffset + 63;
+							}
+							else {
+								switch (b >> (~column & 6) & 3) {
+								case 1:
+									c = headerLength + 1;
+									break;
+								case 2:
+									c = spriteOffset + 63;
+									break;
+								case 3:
+									c = headerLength + 2;
+									break;
+								default:
+									break;
+								}
+							}
+						}
+					}
+				}
+				Pixels[y * width + x] = C64Palette[content[c] & 0xf];
+			}
+		}
+		return true;
+	}
+
 	// Atari ST formats.
 
 	bool DecodeDoo(byte[] content, int contentLength)
@@ -13736,6 +13821,7 @@ public class RECOIL
 		case PackExt("SIF"):
 		case PackExt("SKP"):
 		case PackExt("SPC"):
+		case PackExt("SPD"):
 		case PackExt("SPR"):
 		case PackExt("SPS"):
 		case PackExt("SPU"):
@@ -14384,6 +14470,8 @@ public class RECOIL
 		case PackExt("SPC"):
 			return DecodeStSpc(content, contentLength)
 				|| DecodeAtari8Spc(content, contentLength);
+		case PackExt("SPD"):
+			return DecodeSpd(content, contentLength);
 		case PackExt("SPR"):
 			return DecodeSpr(content, contentLength);
 		case PackExt("SPS"):
