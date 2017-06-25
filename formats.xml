@@ -366,6 +366,7 @@
 	<platform name="Commodore 64" href="http://en.wikipedia.org/wiki/Commodore_64">
 		<format name="GoDot" width="320" height="200" colors="16"><ext>4BT</ext></format>
 		<format name="8x8 font" colors="2"><ext>64C</ext></format>
+		<format name="SEUCK sprites" colors="16"><ext>A</ext></format>
 		<format name="Wigmore Artist 64" width="160" height="200" colors="16">
 			<ext>A64</ext>
 			<ext>WIG</ext>

@@ -6585,6 +6585,49 @@ public class RECOIL
 		}
 	}
 
+	bool DecodeA(byte[] content, int contentLength)
+	{
+		if (contentLength != 8130 || content[0] != 0x42 || content[1] != 0)
+			return false;
+		const int spriteWidth = 24;
+		const int spriteHeight = 21;
+		const int horizontalGap = 2;
+		const int verticalGap = 2;
+		const int width = 16 * spriteWidth + 16 * horizontalGap;
+		const int height = 8 * spriteHeight + 7 * verticalGap;
+		SetSize(width, height, RECOILResolution.C642x1);
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int c = 11; // gray background
+				int row = y % (spriteHeight + verticalGap);
+				if (row < spriteHeight) {
+					int column = x % (spriteWidth + horizontalGap);
+					if (column < spriteWidth) {
+						int spriteNo = x / (spriteWidth + horizontalGap) + (y / (spriteHeight + verticalGap) << 4);
+						if (spriteNo < 127) {
+							int spriteOffset = 2+ (spriteNo << 6);
+							switch (content[spriteOffset + row * 3 + (column >> 3)] >> (~column & 6) & 3) {
+							case 1:
+								c = 0; // black;
+								break;
+							case 2:
+								c = content[spriteOffset + 63] & 0xf;
+								break;
+							case 3:
+								c = 1; // white
+								break;
+							default:
+								break;
+							}
+						}
+					}
+				}
+				Pixels[y * width + x] = C64Palette[c];
+			}
+		}
+		return true;
+	}
+
 	bool DecodeSpd(byte[] content, int contentLength)
 	{
 		if (contentLength < 67)
@@ -6633,29 +6676,29 @@ public class RECOIL
 
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
-				int spriteNo = x / (spriteWidth + horizontalGap) + (y / (spriteHeight + verticalGap) << 4);
-				int c = headerLength;
-				if (spriteNo < spriteCount) {
-					int row = y % (spriteHeight + verticalGap);
-					if (row < spriteHeight) {
-						int column = x % (spriteWidth + horizontalGap);
-						if (column < spriteWidth) {
-							int spriteOffset = headerLength + 3 + (spriteNo << 6);
-							int b = content[spriteOffset + row * 3 + (column >> 3)];
-							if (content[spriteOffset + 63] < 0x80) {
+				int c = 0;
+				int row = y % (spriteHeight + verticalGap);
+				if (row < spriteHeight) {
+					int column = x % (spriteWidth + horizontalGap);
+					if (column < spriteWidth) {
+						int spriteNo = x / (spriteWidth + horizontalGap) + (y / (spriteHeight + verticalGap) << 4);
+						if (spriteNo < spriteCount) {
+							int spriteOffset = 3 + (spriteNo << 6);
+							int b = content[headerLength + spriteOffset + row * 3 + (column >> 3)];
+							if (content[headerLength + spriteOffset + 63] < 0x80) {
 								if ((b >> (~column & 7) & 1) != 0)
 									c = spriteOffset + 63;
 							}
 							else {
 								switch (b >> (~column & 6) & 3) {
 								case 1:
-									c = headerLength + 1;
+									c = 1;
 									break;
 								case 2:
 									c = spriteOffset + 63;
 									break;
 								case 3:
-									c = headerLength + 2;
+									c = 2;
 									break;
 								default:
 									break;
@@ -6664,7 +6707,7 @@ public class RECOIL
 						}
 					}
 				}
-				Pixels[y * width + x] = C64Palette[content[c] & 0xf];
+				Pixels[y * width + x] = C64Palette[content[headerLength + c] & 0xf];
 			}
 		}
 		return true;
@@ -13517,6 +13560,7 @@ public class RECOIL
 		case PackExt("4PL"):
 		case PackExt("4PM"):
 		case PackExt("64C"):
+		case PackExt("A"):
 		case PackExt("A4R"):
 		case PackExt("A64"):
 		case PackExt("WIG"):
@@ -13898,6 +13942,8 @@ public class RECOIL
 			return Decode4pm(content, contentLength);
 		case PackExt("64C"):
 			return Decode64c(content, contentLength);
+		case PackExt("A"):
+			return DecodeA(content, contentLength);
 		case PackExt("A4R"):
 			return DecodeA4r(content, contentLength);
 		case PackExt("A64"):
