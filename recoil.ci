@@ -6013,6 +6013,15 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeG(byte[] content, int contentLength)
+	{
+		if (contentLength != 514 || content[0] != 0x42 || content[1] != 0)
+			return false;
+		SetSize(256, 16, RECOILResolution.C641x1);
+		DecodeBlackAndWhiteFont(content, 2, 514, 8);
+		return true;
+	}
+
 	const int[16] C64Palette = {
 		0x000000,
 		0xffffff,
@@ -13612,6 +13621,7 @@ public class RECOIL
 		case PackExt("FTC"):
 		case PackExt("FUN"):
 		case PackExt("FWA"):
+		case PackExt("G"):
 		case PackExt("G10"):
 		case PackExt("G11"):
 		case PackExt("G2F"):
@@ -14084,6 +14094,8 @@ public class RECOIL
 				|| DecodeFalconFun(content, contentLength);
 		case PackExt("FWA"):
 			return DecodeFwa(content, contentLength);
+		case PackExt("G"):
+			return DecodeG(content, contentLength);
 		case PackExt("G10"):
 			return DecodeG10(content, contentLength);
 		case PackExt("G11"):
