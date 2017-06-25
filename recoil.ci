@@ -101,6 +101,7 @@ enum RECOILResolution
 	SamCoupe1x1,
 	X68K1x1,
 	Spectrum1x1,
+	Trs1x1,
 	Trs1x2,
 	Coco1x1,
 	Coco2x2,
@@ -3585,6 +3586,7 @@ public class RECOIL
 			return "Sharp X68000";
 		case RECOILResolution.Spectrum1x1:
 			return "ZX Spectrum";
+		case RECOILResolution.Trs1x1:
 		case RECOILResolution.Trs1x2:
 			return "TRS-80";
 		case RECOILResolution.Coco1x1:
@@ -4046,6 +4048,37 @@ public class RECOIL
 				int pixelsOffset = y * 1280 + x;
 				Pixels[pixelsOffset + 640] = Pixels[pixelsOffset] = c;
 			}
+		}
+		return true;
+	}
+
+	bool DecodeRle(byte[] content, int contentLength)
+	{
+		if (contentLength < 520
+		 || content[0] != 0x1b || content[1] != 0x47 || content[2] != 0x48)
+			return false;
+		SetSize(256, 192, RECOILResolution.Trs1x1);
+		int count = 0;
+		int contentOffset = 3;
+		int c = 0xffffff;
+		for (int pixelsOffset = 0; pixelsOffset < 256 * 192; pixelsOffset++) {
+			while (count == 0) {
+				if (contentOffset >= contentLength)
+					return false;
+				count = content[contentOffset++];
+				if (count < 0x20 || count > 0x7f) {
+					if (pixelsOffset == 256 * 192 - 1) {
+						// last pixel is often missing
+						Pixels[pixelsOffset] = c;
+						return true;
+					}
+					return false;
+				}
+				c ^= 0xffffff;
+				count -= 0x20;
+			}
+			Pixels[pixelsOffset] = c;
+			count--;
 		}
 		return true;
 	}
@@ -13833,6 +13866,7 @@ public class RECOIL
 		case PackExt("RGB"):
 		case PackExt("RGH"):
 		case PackExt("RIP"):
+		case PackExt("RLE"):
 		case PackExt("RM0"):
 		case PackExt("RM1"):
 		case PackExt("RM2"):
@@ -14454,6 +14488,8 @@ public class RECOIL
 			return DecodeRgh(content, contentLength);
 		case PackExt("RIP"):
 			return DecodeRip(content, contentLength);
+		case PackExt("RLE"):
+			return DecodeRle(content, contentLength);
 		case PackExt("RM0"):
 			return DecodeRm(content, contentLength, 0, RECOILResolution.Xe2x2);
 		case PackExt("RM1"):
