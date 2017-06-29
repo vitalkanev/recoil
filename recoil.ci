@@ -5961,6 +5961,20 @@ public class RECOIL
 			&& DecodeBlackAndWhite(content, 8, contentLength, false, 0xffffff);
 	}
 
+	bool DecodePict(byte[] content, int contentLength)
+	{
+		if (contentLength < 20 || !IsStringAt(content, 2, "BRUS")
+		 || content[6] != 4 || content[10] != 1 || content[11] != 2
+		 || content[12] != 0x50 || content[13] != 0x90 || content[14] != 1)
+			return false;
+		SetSize(640, 400, RECOILResolution.C1281x1);
+		PgcStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 18;
+		rle.ContentLength = contentLength;
+		return DecodeRleBlackAndWhite(rle, 0xffffff);
+	}
+
 	// Commodore 16 formats.
 
 	void SetC16Palette()
@@ -13847,6 +13861,7 @@ public class RECOIL
 		case PackExt("PI7"):
 		case PackExt("PI9"):
 		case PackExt("PIC"):
+		case PackExt("PICT"):
 		case PackExt("PIX"):
 		case PackExt("PL4"):
 		case PackExt("PLA"):
@@ -14448,6 +14463,8 @@ public class RECOIL
 			return DecodeFuckpaint(content, contentLength);
 		case PackExt("PIC"):
 			return DecodePic(content, contentLength);
+		case PackExt("PICT"):
+			return DecodePict(content, contentLength);
 		case PackExt("PIX"):
 			return DecodeFalconPix(content, contentLength)
 				|| DecodeCocoMax(content, contentLength);

@@ -456,6 +456,7 @@
 			<ext>BM</ext>
 			<ext>VBM</ext>
 		</format>
+		<format name="BASIC 8" width="640" height="400" colors="2"><ext>PICT</ext></format>
 	</platform>
 	<platform name="MSX" href="http://en.wikipedia.org/wiki/MSX">
 		<format name="Maki-chan Graphics">
