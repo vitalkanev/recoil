@@ -13937,6 +13937,7 @@ public class RECOIL
 		case PackExt("TXE"):
 		case PackExt("TXS"):
 		case PackExt("VBM"):
+		case PackExt("BM"):
 		case PackExt("VIC"):
 		case PackExt("VZI"):
 		case PackExt("WIN"):
@@ -14613,6 +14614,7 @@ public class RECOIL
 		case PackExt("TXS"):
 			return DecodeTxs(content, contentLength);
 		case PackExt("VBM"):
+		case PackExt("BM"):
 			return DecodeVbm(content, contentLength);
 		case PackExt("VIC"):
 			return DecodeVic(content, contentLength);

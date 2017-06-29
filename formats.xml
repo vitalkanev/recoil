@@ -452,7 +452,10 @@
 		<format name="Vidcom 64Paint" width="160" height="200" colors="16"><ext>VID</ext></format>
 	</platform>
 	<platform name="Commodore 128" href="http://en.wikipedia.org/wiki/Commodore_128">
-		<format name="VDC BitMap" colors="2"><ext>VBM</ext></format>
+		<format name="VDC BitMap" colors="2">
+			<ext>BM</ext>
+			<ext>VBM</ext>
+		</format>
 	</platform>
 	<platform name="MSX" href="http://en.wikipedia.org/wiki/MSX">
 		<format name="Maki-chan Graphics">
