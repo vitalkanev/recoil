@@ -5964,10 +5964,12 @@ public class RECOIL
 	bool DecodePict(byte[] content, int contentLength)
 	{
 		if (contentLength < 20 || !IsStringAt(content, 2, "BRUS")
-		 || content[6] != 4 || content[10] != 1 || content[11] != 2
-		 || content[12] != 0x50 || content[13] != 0x90 || content[14] != 1)
+		 || content[6] != 4 || content[10] != 1 || content[11] != 2)
 			return false;
-		SetSize(640, 400, RECOILResolution.C1281x1);
+		int width = content[12] << 3;
+		int height = content[13] | content[14] << 8;
+		if (!SetSize(width, height, RECOILResolution.C1281x1))
+			return false;
 		PgcStream() rle;
 		rle.Content = content;
 		rle.ContentOffset = 18;
