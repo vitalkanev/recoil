@@ -5961,20 +5961,70 @@ public class RECOIL
 			&& DecodeBlackAndWhite(content, 8, contentLength, false, 0xffffff);
 	}
 
-	bool DecodePict(byte[] content, int contentLength)
+	bool DecodeBrus(byte[] content, int contentLength)
 	{
 		if (contentLength < 20 || !IsStringAt(content, 2, "BRUS")
 		 || content[6] != 4 || content[10] != 1 || content[11] != 2)
 			return false;
-		int width = content[12] << 3;
-		int height = content[13] | content[14] << 8;
-		if (!SetSize(width, height, RECOILResolution.C1281x1))
+		const int maxColumns = 90;
+		int columns = content[12];
+		if (columns == 0 || columns > maxColumns)
 			return false;
+		const int maxHeight = 700;
+		int height = content[13] | content[14] << 8;
+		if (height == 0 || height > maxHeight)
+			return false;
+		int width = columns << 3;
+		SetSize(width, height, RECOILResolution.C1281x1);
+
+		int bitmapLength = height * columns;
+		byte[maxHeight * maxColumns] bitmap;
 		PgcStream() rle;
 		rle.Content = content;
 		rle.ContentOffset = 18;
 		rle.ContentLength = contentLength;
-		return DecodeRleBlackAndWhite(rle, 0xffffff);
+		if (!rle.Unpack(bitmap, 0, 1, bitmapLength))
+			return false;
+		int contentOffset = rle.ContentOffset;
+		if (contentOffset + 4 >= contentLength
+		 || !IsStringAt(content, contentOffset, "COLR")) {
+			// BASIC 8
+			return DecodeBlackAndWhite(bitmap, 0, bitmapLength, false, 0xffffff);
+		}
+
+		// I Paint
+		rle.ContentOffset = contentOffset + 4;
+		byte[2 * maxColumns] colors;
+		for (int y = 0; y < height; y++) {
+			if ((y & 7) == 0 && !rle.Unpack(colors, 0, 1, columns << 1))
+				return false;
+			for (int x = 0; x < width; x++) {
+				int column = x >> 3;
+				int c = colors[(y & 1) * columns + column];
+				if ((bitmap[y * columns + column] >> (~x & 7) & 1) == 0)
+					c >>= 4;
+				const int[16] palette = {
+					0x000000,
+					0x555555,
+					0x0000aa,
+					0x5555ff,
+					0x00aa00,
+					0x55ff55,
+					0x00aaaa,
+					0x55ffff,
+					0xaa0000,
+					0xff5555,
+					0xaa00aa,
+					0xff55ff,
+					0xaa5500,
+					0xffff55,
+					0xaaaaaa,
+					0xffffff
+				};
+				Pixels[y * width + x] = palette[c & 0xf];
+			}
+		}
+		return true;
 	}
 
 	// Commodore 16 formats.
@@ -13643,6 +13693,9 @@ public class RECOIL
 		case PackExt("BBG"):
 		case PackExt("BFLI"):
 		case PackExt("BG9"):
+		case PackExt("BRUS"):
+		case PackExt("IP"):
+		case PackExt("PICT"):
 		case PackExt("G09"):
 		case PackExt("BGP"):
 		case PackExt("BKG"):
@@ -13863,7 +13916,6 @@ public class RECOIL
 		case PackExt("PI7"):
 		case PackExt("PI9"):
 		case PackExt("PIC"):
-		case PackExt("PICT"):
 		case PackExt("PIX"):
 		case PackExt("PL4"):
 		case PackExt("PLA"):
@@ -14062,6 +14114,10 @@ public class RECOIL
 			return DecodeBgp(content, contentLength);
 		case PackExt("BKG"):
 			return DecodeBkg(content, contentLength);
+		case PackExt("BRUS"):
+		case PackExt("IP"):
+		case PackExt("PICT"):
+			return DecodeBrus(content, contentLength);
 		case PackExt("BL1"):
 		case PackExt("BL2"):
 		case PackExt("BL3"):
@@ -14465,8 +14521,6 @@ public class RECOIL
 			return DecodeFuckpaint(content, contentLength);
 		case PackExt("PIC"):
 			return DecodePic(content, contentLength);
-		case PackExt("PICT"):
-			return DecodePict(content, contentLength);
 		case PackExt("PIX"):
 			return DecodeFalconPix(content, contentLength)
 				|| DecodeCocoMax(content, contentLength);
