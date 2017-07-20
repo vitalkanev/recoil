@@ -166,11 +166,11 @@
 								<xsl:text>x</xsl:text>
 								<xsl:value-of select="@height" />
 							</xsl:when>
-							<xsl:if test="@unit">
-								<xsl:text> </xsl:text>
-								<xsl:value-of select="@unit" />
-							</xsl:if>
 						</xsl:choose>
+						<xsl:if test="@unit">
+							<xsl:text> </xsl:text>
+							<xsl:value-of select="@unit" />
+						</xsl:if>
 					</td>
 					<td>
 						<xsl:choose>
