@@ -11856,8 +11856,9 @@ public class RECOIL
 		SetSize(320, 192, doubleHeight == 0 ? RECOILResolution.Xe2x1 : RECOILResolution.Xe2x2);
 		byte[320 * 192] frame;
 		SetXeOsDefaultColors();
+		byte[] font = BinaryResource("atari8.fnt");
 		for (int offset = 0; offset < contentLength; offset += 20)
-			DecodeAtari8Gr1Line(content, offset, BinaryResource("atari8.fnt"), 0, frame, offset << 7 + doubleHeight, doubleHeight);
+			DecodeAtari8Gr1Line(content, offset, font, 0, frame, offset << 7 + doubleHeight, doubleHeight);
 		return ApplyAtari8Palette(frame);
 	}
 
