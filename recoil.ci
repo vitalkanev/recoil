@@ -10141,12 +10141,12 @@ public class RECOIL
 			DecodeAtari8Gr0Line(characters, (y >> 3) * charactersStride, font, fontOffset, frame, y * Width, 8);
 	}
 
-	void DecodeAtari8Gr1Line(byte[] content, int charactersOffset, int fontOffset, byte[] frame, int frameOffset, int doubleLine)
+	void DecodeAtari8Gr1Line(byte[] content, int charactersOffset, byte[] font, int fontOffset, byte[] frame, int frameOffset, int doubleLine)
 	{
 		for (int y = 0; y < 8 << doubleLine; y++) {
 			for (int x = 0; x < Width; x++) {
 				int ch = content[charactersOffset + (x >> 4)];
-				int b = content[fontOffset + ((ch & 0x3f) << 3) + (y >> doubleLine)] >> (~(x >> 1) & 7) & 1;
+				int b = font[fontOffset + ((ch & 0x3f) << 3) + (y >> doubleLine)] >> (~(x >> 1) & 7) & 1;
 				frame[frameOffset + x] = GtiaColors[b == 0 ? 8 : 4 + (ch >> 6)];
 			}
 			frameOffset += Width;
@@ -11849,6 +11849,18 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeGr1(byte[] content, int contentLength, int doubleHeight)
+	{
+		if (contentLength != (480 >> doubleHeight))
+			return false;
+		SetSize(320, 192, doubleHeight == 0 ? RECOILResolution.Xe2x1 : RECOILResolution.Xe2x2);
+		byte[320 * 192] frame;
+		SetXeOsDefaultColors();
+		for (int offset = 0; offset < contentLength; offset += 20)
+			DecodeAtari8Gr1Line(content, offset, BinaryResource("atari8.fnt"), 0, frame, offset << 7 + doubleHeight, doubleHeight);
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodeAcs(byte[] content, int contentLength)
 	{
 		if (contentLength != 1028)
@@ -12092,7 +12104,7 @@ public class RECOIL
 				DecodeAtari8Gr12Line(content, charactersOffset, content, fontOffset, frame, frameOffset, mode & 1);
 				break;
 			case 3:
-				DecodeAtari8Gr1Line(content, charactersOffset, fontOffset, frame, frameOffset, mode & 1);
+				DecodeAtari8Gr1Line(content, charactersOffset, content, fontOffset, frame, frameOffset, mode & 1);
 				break;
 			}
 			charactersOffset += columns;
@@ -13787,6 +13799,8 @@ public class RECOIL
 		case PackExt("GG"):
 		case PackExt("GHG"):
 		case PackExt("GOD"):
+		case PackExt("GR1"):
+		case PackExt("GR2"):
 		case PackExt("GR3"):
 		case PackExt("GR7"):
 		case PackExt("GR8"):
@@ -14278,6 +14292,10 @@ public class RECOIL
 			return DecodeGhg(content, contentLength);
 		case PackExt("GOD"):
 			return DecodeGod(content, contentLength);
+		case PackExt("GR1"):
+			return DecodeGr1(content, contentLength, 0);
+		case PackExt("GR2"):
+			return DecodeGr1(content, contentLength, 1);
 		case PackExt("GR3"):
 			return DecodeGr3(content, contentLength);
 		case PackExt("GR7"):
