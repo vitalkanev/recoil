@@ -10283,6 +10283,17 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeGr3(byte[] content, int contentLength)
+	{
+		if (contentLength != 244)
+			return false;
+		SetSize(320, 192, RECOILResolution.Xe8x8);
+		byte[320 * 192] frame;
+		SetBakPF012(content, 240, 1);
+		DecodeAtari8Gr3(content, frame);
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodeDit(byte[] content, int contentLength)
 	{
 		if (contentLength != 3845)
@@ -13776,6 +13787,7 @@ public class RECOIL
 		case PackExt("GG"):
 		case PackExt("GHG"):
 		case PackExt("GOD"):
+		case PackExt("GR3"):
 		case PackExt("GR7"):
 		case PackExt("GR8"):
 		case PackExt("GR9"):
@@ -14266,6 +14278,8 @@ public class RECOIL
 			return DecodeGhg(content, contentLength);
 		case PackExt("GOD"):
 			return DecodeGod(content, contentLength);
+		case PackExt("GR3"):
+			return DecodeGr3(content, contentLength);
 		case PackExt("GR7"):
 			return DecodeGr7(content, 0, contentLength);
 		case PackExt("GR8"):
