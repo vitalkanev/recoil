@@ -26,7 +26,7 @@
 					.tabs li a { padding: 10px; text-decoration: none; }
 					.content { background-color: #fff; border: solid #888 1px; border-top-style: none; padding: 10px; }
 					table { border-collapse: collapse; }
-					th, td { border: solid #888 1px; }
+					th, td { border: solid #888 1px; padding-left: 1ex; padding-right: 1ex; }
 					th { background-color: #ddd; }
 				</style>
 				<xsl:apply-templates select="html/script" />
