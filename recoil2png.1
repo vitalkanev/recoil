@@ -1,0 +1,51 @@
+.TH RECOIL2PNG 1 "September 5, 2017" "Retro Computer Image Library"
+.SH NAME
+recoil2png \- convert retro computer image to PNG
+.SH SYNOPSIS
+.B recoil2png
+.B [\-o
+.I OUTPUTFILE
+.B ]
+.I INPUTFILE...
+.SH DESCRIPTION
+.B recoil2png
+converts pictures in native formats of vintage computers to the PNG format.
+If multiple input files are specified, each one is converted separately.
+
+.B recoil2png
+recognizes over 300 formats native to the following computers:
+Amiga, Amstrad CPC, Apple II, Atari 8-bit, Atari Portfolio, Atari ST,
+Atari TT, Atari Falcon, BBC Micro, Commodore 16, Commodore 64, Commodore 128,
+Macintosh 128K, MSX, NEC PC-88, NEC PC-98, Oric, SAM Coupe, Sharp X68000,
+TRS-80, TRS-80 Color Computer, ZX81 and ZX Spectrum.
+See http://recoil.sourceforge.net/ for the full list of formats.
+
+Input files must have the filename extension that matches the format.
+
+Some pictures are composed of multiple files \- they must share their
+filename and only differ by their extensions.  You should only pass
+the filename of the "main" file.
+
+.SH OPTIONS
+.TP
+\fB\-o\fR \fIFILE\fR, \fB\-\-output\fR=\fIFILE\fR
+Set output PNG file name.
+If you do not specify this option, the name of the input file is reused,
+with the extension changed to "png".
+.TP
+\fB\-p\fR \fIFILE\fR, \fB\-\-palette\fR=\fIFILE\fR
+Use the specified RGB palette for Atari 8-bit pictures.
+The palette file must be 768 bytes long.
+This option only affects Atari 8-bit formats.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Display help message and exit.
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+Display version information and exit.
+.SH COPYRIGHT
+.B recoil2png
+is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published
+by the Free Software Foundation; either version 2 of the License,
+or (at your option) any later version.

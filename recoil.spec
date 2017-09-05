@@ -54,6 +54,7 @@ rm -rf $RPM_BUILD_ROOT
 %files 2png
 %defattr(-,root,root)
 %{_bindir}/recoil2png
+%{_mandir}/man1/recoil2png
 
 %files thumbnailer
 %defattr(-,root,root)

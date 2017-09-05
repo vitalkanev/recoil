@@ -52,11 +52,12 @@ install: install-thumbnailer $(if $(CAN_INSTALL_MAGICK),install-magick)
 uninstall: uninstall-thumbnailer $(if $(CAN_INSTALL_MAGICK),uninstall-magick)
 
 install-recoil2png: recoil2png
-	mkdir -p $(PREFIX)/bin
+	mkdir -p $(PREFIX)/bin $(PREFIX)/share/man/man1
 	$(INSTALL_PROGRAM) recoil2png $(PREFIX)/bin/recoil2png
+	$(INSTALL_DATA) recoil2png.1 $(PREFIX)/share/man/man1/recoil2png.1
 
 uninstall-recoil2png:
-	rm -f $(PREFIX)/bin/recoil2png
+	rm -f $(PREFIX)/bin/recoil2png $(PREFIX)/share/man/man1/recoil2png.1
 
 ifdef CAN_INSTALL_MAGICK
 
