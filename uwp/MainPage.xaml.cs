@@ -93,7 +93,7 @@ namespace RECOIL
 
 			// display
 			Image.Source = bitmap;
-			BottomAppBar.Content = file.Name;
+			FileName.Text = file.Name;
 		}
 
 		void SetIndex(int index)
