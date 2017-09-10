@@ -15,8 +15,8 @@ contact.html: www.xsl contact.xml
 privacy.html: www.xsl privacy.xml
 	xsltproc --stringparam title Privacy $^ | xmllint --valid --nonet -o $@ -
 
-html5recoil.html: www.xsl html5recoil.xml
-	xsltproc --stringparam title HTML5 $^ | xmllint --dropdtd --schema /etc/xml/xhtml5.xsd --nonet -o $@ -
+html5recoil.html: www.xsl html5recoil.xml ../formats.xml
+	xsltproc --stringparam title HTML5 www.xsl html5recoil.xml | xmllint --dropdtd --schema /etc/xml/xhtml5.xsd --nonet -o $@ -
 
 recoil.js: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../zx81.fnt
 	cito -o $@ -l js-ta -I .. $<
