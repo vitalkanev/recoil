@@ -233,6 +233,20 @@
 		</ul>
 	</xsl:template>
 
+	<xsl:template match="input[@type='file']">
+		<input>
+			<xsl:copy-of select="@*" />
+			<xsl:attribute name="accept">
+				<xsl:for-each select="document('../formats.xml')/formats/platform/format/ext[not(. = following::ext)]">
+					<xsl:sort />
+					<xsl:if test="position() != 1">,</xsl:if>
+					<xsl:text>.</xsl:text>
+					<xsl:value-of select="translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')" />
+				</xsl:for-each>
+			</xsl:attribute>
+		</input>
+	</xsl:template>
+
 	<xsl:template match="a[@href]|br|canvas|div|h2|img|input|li|ol|p|script|tt|ul">
 		<xsl:element name="{name()}">
 			<xsl:copy-of select="@*" />
