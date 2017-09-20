@@ -2174,6 +2174,8 @@ class Q4Stream : RleStream
 				LastRepeatValue = 0;
 				return true;
 			}
+
+			// LZW
 			offsets[codes] = unpackedLength;
 			if (code <= 16) {
 				// literal
@@ -3037,6 +3039,8 @@ abstract class GtiaRenderer
 	byte[] Content;
 	int PlayfieldColumns;
 
+	/// Fetches playfield data at the given location.
+	/// Returns playfield byte, plus bit 8 for character code bit 7 ("inverse").
 	abstract int GetPlayfieldByte(int y, int column);
 
 	int DrawSpan(int y, int hpos, int untilHpos, AnticMode anticMode, byte[] frame, int width)
@@ -3443,6 +3447,9 @@ class InflateStream : Stream
 	}
 }
 
+/// Decoder of images in formats native to vintage computers.
+/// Decodes file contents passed as a byte array
+/// into a 24-bit RGB bitmap.
 public class RECOIL
 {
 	/// RECOIL version - major part.
