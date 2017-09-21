@@ -51,6 +51,7 @@
 	<platform name="Apple Macintosh" href="http://en.wikipedia.org/wiki/Macintosh_128K">
 		<format name="MacPaint" width="576" height="720" colors="2">
 			<ext>MAC</ext>
+			<ext>PNT</ext>
 			<ext>PNTG</ext>
 		</format>
 	</platform>

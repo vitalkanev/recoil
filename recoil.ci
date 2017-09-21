@@ -13957,7 +13957,6 @@ public class RECOIL
 		case PackExt("PMD"):
 		case PackExt("PMG"):
 		case PackExt("PNT"):
-		case PackExt("TPI"):
 		case PackExt("PPH"):
 		case PackExt("PPP"):
 		case PackExt("PA3"):
@@ -14033,6 +14032,7 @@ public class RECOIL
 		case PackExt("TN5"):
 		case PackExt("TN6"):
 		case PackExt("TNY"):
+		case PackExt("TPI"):
 		case PackExt("TRE"):
 		case PackExt("TRP"):
 		case PackExt("TRU"):
@@ -14575,8 +14575,8 @@ public class RECOIL
 		case PackExt("PMG"):
 			return DecodePmg(content, contentLength);
 		case PackExt("PNT"):
-		case PackExt("TPI"):
-			return DecodePnt(content, contentLength);
+			return DecodePnt(content, contentLength)
+				|| DecodeMac(content, contentLength);
 		case PackExt("PPH"):
 			return DecodePph(filename, content, contentLength);
 		case PackExt("PPP"):
@@ -14714,6 +14714,8 @@ public class RECOIL
 		case PackExt("TN6"):
 		case PackExt("TNY"):
 			return DecodeTny(content, contentLength);
+		case PackExt("TPI"):
+			return DecodePnt(content, contentLength);
 		case PackExt("TRE"):
 			return DecodeTre(content, contentLength);
 		case PackExt("TRP"):
