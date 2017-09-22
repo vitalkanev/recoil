@@ -45,6 +45,9 @@ namespace RECOIL
 			InitializeComponent();
 		}
 
+		const string Disclaimer = "\nAre you opening a vintage computer image? " +
+			"This app only supports such files.";
+
 		public async Task ShowFile(StorageFile file)
 		{
 			if (file == null)
@@ -55,7 +58,7 @@ namespace RECOIL
 			try {
 				ulong length = (await file.GetBasicPropertiesAsync()).Size;
 				if (length > Recoil.RECOIL.MaxContentLength) {
-					await new MessageDialog("File too long").ShowAsync();
+					await new MessageDialog("File too long." + Disclaimer).ShowAsync();
 					return;
 				}
 				IBuffer buffer = await FileIO.ReadBufferAsync(file);
@@ -69,7 +72,7 @@ namespace RECOIL
 			// decode
 			Recoil.RECOIL recoil = new Recoil.RECOIL();
 			if (!recoil.Decode(file.Name, content, content.Length)) {
-				await new MessageDialog("Decoding error").ShowAsync();
+				await new MessageDialog("Decoding error." + Disclaimer).ShowAsync();
 				return;
 			}
 			int width = recoil.GetWidth();
