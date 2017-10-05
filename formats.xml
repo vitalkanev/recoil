@@ -446,6 +446,7 @@
 		<format name="Multi-Lace Editor" width="320" height="56" colors="10" frames="2"><ext>MLE</ext></format>
 		<format name="Advanced Art Studio" width="160" height="200" colors="16"><ext>OCP</ext></format>
 		<format name="Picasso 64" width="160" height="200" colors="16"><ext>P64</ext></format>
+		<format name="PETSCII Editor" width="40" height="25" unit="characters" colors="16"><ext>PET</ext></format>
 		<format name="Blazing Paddles" width="160" height="200" colors="16"><ext>PI</ext></format>
 		<format name="Paint Magic" width="160" height="200" colors="16"><ext>PMG</ext></format>
 		<format name="Rainbow Painter" width="160" height="200" colors="16"><ext>RP</ext></format>

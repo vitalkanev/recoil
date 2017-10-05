@@ -6816,6 +6816,25 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodePet(byte[] content, int contentLength)
+	{
+		if (contentLength != 2026)
+			return false;
+		SetSize(320, 200, RECOILResolution.C641x1);
+		byte[] font = BinaryResource("c64.fnt");
+		for (int y = 0; y < 200; y++) {
+			for (int x = 0; x < 320; x++) {
+				int offset = (y & ~7) * 5 + (x >> 3);
+				if ((font[content[2 + offset] << 3 | (y & 7)] >> (~x & 7) & 1) == 0)
+					offset = 0x3eb;
+				else
+					offset += 0x402;
+				Pixels[y * 320 + x] = C64Palette[content[offset] & 0xf];
+			}
+		}
+		return true;
+	}
+
 	// Atari ST formats.
 
 	bool DecodeDoo(byte[] content, int contentLength)
@@ -13931,6 +13950,7 @@ public class RECOIL
 		case PackExt("PC3"):
 		case PackExt("PCI"):
 		case PackExt("PCS"):
+		case PackExt("PET"):
 		case PackExt("PG1"):
 		case PackExt("PG2"):
 		case PackExt("PG3"):
@@ -14531,6 +14551,8 @@ public class RECOIL
 			return DecodePci(content, contentLength);
 		case PackExt("PCS"):
 			return DecodePcs(content, contentLength);
+		case PackExt("PET"):
+			return DecodePet(content, contentLength);
 		case PackExt("PG1"):
 		case PackExt("PG2"):
 			return DecodeSc(content, contentLength)

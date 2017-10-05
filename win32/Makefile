@@ -58,14 +58,14 @@ paint.net/RecoilPaintDotNet.dll: paint.net/RecoilPaintDotNet.cs paint.net/Recoil
 paint.net/RecoilFileTypeFactory.cs: paint.net/RecoilFileTypeFactory.cs.xsl ../formats.xml
 	$(DO)$(XSLTPROC)
 
-paint.net/RECOIL.cs: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../zx81.fnt
+paint.net/RECOIL.cs: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../c64.fnt ../zx81.fnt
 	$(DO)$(CITO) -o $@ -I .. -n Recoil $<
 
 ../formats.h: ../formats.h.xsl ../formats.xml
 	$(DO)$(XSLTPROC)
 
 # http://www.cmcrossroads.com/article/rules-multiple-outputs-gnu-make
-%.c %.h: %.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../zx81.fnt
+%.c %.h: %.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../c64.fnt ../zx81.fnt
 	$(DO)$(CITO) -o $*.c -I .. $<
 
 recoil.ico: ../recoil-512x512.png

@@ -16,7 +16,7 @@ $(BINARY): qlrecoil.c ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.
 $(PLIST): Info.plist.xsl ../formats.xml
 	mkdir -p $(@D) && xsltproc --stringparam version $(VERSION) -o $@ Info.plist.xsl ../formats.xml
 
-%.c %.h: %.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../zx81.fnt
+%.c %.h: %.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../c64.fnt ../zx81.fnt
 	cito -o $*.c -I .. $<
 
 clean:

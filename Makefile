@@ -38,7 +38,7 @@ formats.h: formats.h.xsl formats.xml
 	xsltproc -o $@ formats.h.xsl formats.xml
 
 # http://www.cmcrossroads.com/article/rules-multiple-outputs-gnu-make
-%.c %.h: %.ci atari8.fnt altirrapal.pal c16.pal zx81.fnt
+%.c %.h: %.ci atari8.fnt altirrapal.pal c16.pal c64.fnt zx81.fnt
 	$(CITO) -o $*.c $<
 
 benchmark: benchmark.c recoil-stdio.c recoil-stdio.h recoil.c recoil.h
