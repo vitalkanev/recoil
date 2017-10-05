@@ -4936,6 +4936,8 @@ public class RECOIL
 	bool DecodeScr(string filename, byte[] content, int contentLength)
 	{
 		switch (contentLength) {
+		case 1002:
+			return DecodeScrCol(filename, content, contentLength);
 		case 6144:
 			SetZx();
 			DecodeZx(content, 0, -1, ZxAttributesNone, 0);
@@ -6830,6 +6832,29 @@ public class RECOIL
 				else
 					offset += 0x402;
 				Pixels[y * 320 + x] = C64Palette[content[offset] & 0xf];
+			}
+		}
+		return true;
+	}
+
+	bool DecodeScrCol(string filename, byte[] content, int contentLength)
+	{
+		if (contentLength != 1002)
+			return false;
+		byte[1002 + 1] colors;
+		if (ReadCompanionFile(filename, "COL", "col", colors, colors.Length) != 1002)
+			return false;
+		SetSize(320, 200, RECOILResolution.C641x1);
+		byte[] font = BinaryResource("c64.fnt");
+		for (int y = 0; y < 200; y++) {
+			for (int x = 0; x < 320; x++) {
+				int offset = 2 + (y & ~7) * 5 + (x >> 3);
+				int c;
+				if ((font[content[offset] << 3 | (y & 7)] >> (~x & 7) & 1) == 0)
+					c = 0;
+				else
+					c = colors[offset] & 0xf;
+				Pixels[y * 320 + x] = C64Palette[c];
 			}
 		}
 		return true;
