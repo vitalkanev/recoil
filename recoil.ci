@@ -3361,11 +3361,8 @@ class InflateStream : Stream
 				int symbol = FetchCode(PrimaryTree);
 				if (symbol < 0)
 					return -1;
-				else if (symbol < 256) {
+				else if (symbol < 256)
 					unpacked[unpackedOffset++] = symbol;
-					if (unpackedOffset == unpackedLength)
-						return unpackedOffset;
-				}
 				else if (symbol == 256)
 					break;
 				else {
@@ -3420,9 +3417,9 @@ class InflateStream : Stream
 					if (!RECOIL.CopyPrevious(unpacked, unpackedOffset, distance, count))
 						return -1;
 					unpackedOffset += count;
-					if (unpackedOffset == unpackedLength)
-						return unpackedOffset;
 				}
+				if (unpackedOffset == unpackedLength)
+					return unpackedOffset;
 			}
 		} while (lastBlock == 0);
 		return unpackedOffset;
