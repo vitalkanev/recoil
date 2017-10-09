@@ -117,7 +117,9 @@
 		Likewise, "3 frames" means three different alternating pictures and more flickering.
 		RECOIL displays such pictures by averaging frames into a static image.</p>
 		<p>You can find some sample files in
-		<a href="http://recoil.sourceforge.net/examples.zip">examples.zip</a>.</p>
+		<a href="http://recoil.sourceforge.net/examples.zip">examples.zip</a>.
+		This is the collection of my test files, so they are often interesting
+		because of the underlying encoding, rather than the visual effect.</p>
 		<table>
 			<tr>
 				<th>Platform</th>
