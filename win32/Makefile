@@ -85,7 +85,7 @@ x64-setup: ../../recoil-$(VERSION)-win64.msi
 	$(DO)$(LIGHT) -ext WixUIExtension -sice:ICE69 -sice:ICE80 $<
 
 i686/recoil.wixobj x86_64/recoil.wixobj: setup/recoil.wxs setup/formats.wxi
-	$(DO)$(CANDLE) $(and $(@D:i686=), -arch x64) -dVERSION=$(VERSION) $<
+	$(DO)$(CANDLE) $(and $(@D:i686=), -arch x64) $<
 
 setup/formats.wxi: setup/formats.wxi.xsl ../formats.xml
 	$(DO)$(XSLTPROC)

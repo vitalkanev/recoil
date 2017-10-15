@@ -4,6 +4,10 @@
 		<xsl:comment>Generated automatically from formats.xml and formats.wxi.xsl. Do not edit.</xsl:comment>
 		<Include>
 			<xsl:processing-instruction name="define">
+				<xsl:text>VERSION=</xsl:text>
+				<xsl:value-of select="@version" />
+			</xsl:processing-instruction>
+			<xsl:processing-instruction name="define">
 				<xsl:text>FIRST_EXT=</xsl:text>
 				<xsl:for-each select="platform/format/ext">
 					<xsl:sort />

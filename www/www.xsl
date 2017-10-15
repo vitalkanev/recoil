@@ -4,6 +4,7 @@
 		doctype-public="-//W3C//DTD XHTML 1.1//EN" 
 		doctype-system="http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd" />
 	<xsl:param name="title" />
+	<xsl:variable name="version" select="document('../formats.xml')/formats/@version" />
 
 	<xsl:template match="/">
 		<html xml:lang="en">
@@ -61,7 +62,7 @@
 					<a href="/">Home</a>
 				</xsl:when>
 				<xsl:when test="$page = 'Download'">
-					<a href="http://sourceforge.net/projects/recoil/files/recoil/4.0.0/">Download</a>
+					<a href="http://sourceforge.net/projects/recoil/files/recoil/{$version}/">Download</a>
 				</xsl:when>
 				<xsl:when test="$page = 'HTML5'">
 					<a href="html5recoil.html">HTML5</a>
@@ -73,6 +74,10 @@
 				</xsl:otherwise>
 			</xsl:choose>
 		</li>
+	</xsl:template>
+
+	<xsl:template match="version">
+		<xsl:value-of select="$version" />
 	</xsl:template>
 
 	<xsl:template match="release">
