@@ -1,8 +1,30 @@
 ﻿<div>
+	<release project="RECOIL" version="4.1.0" date="2017-10-18">
+		<ul title="New formats">
+			<li>Amstrad CPC: Mode 5 (CM5+GFX), Perfect Pix (PPH+ODD+EVE)</li>
+			<li>Atari 8-bit: Mad Studio (GR1, GR2, GR3)</li>
+			<li>Commodore 64: SpritePad (SPD), SEUCK (A, G), PETSCII Editor (PET, SCR+COL)</li>
+			<li>Commodore 128: BASIC 8 (PICT, BRUS), I Paint (IP)</li>
+			<li>TRS-80: CompuServe RLE (RLE)</li>
+		</ul>
+		<ul title="Improved formats">
+			<li>Apple Macintosh: PNT</li>
+			<li>Atari 8-bit: G2F (GTIA modes, DLI+), MCH</li>
+			<li>Atari Falcon: IMG</li>
+			<li>Commodore 64: KOA</li>
+			<li>Commodore 128: BM</li>
+		</ul>
+		<ul title="Ports">
+			<li>RECOILWin: press 1-4 for 1x-4x zoom</li>
+			<li>HTML 5: filter in the file picker</li>
+			<li>Linux: added recoil2png man page</li>
+		</ul>
+	</release>
+
 	<release project="RECOIL" version="4.0.0" date="2017-05-17">
 		<ul title="Formats">
-			<li>Atari 8-bit: added Graph2Font (G2F), GED, Floor Designer (FGE), Standard Graphics 3 (SG3), Graphic Arts Department (PIC), Texture Maker0 16x16x16 (TX0), DrawIt, Sketch-PadDles (SKP), improved MCH</li>
 			<li>Atari ST/TT/Falcon: added dozens of formats and improved the existing ones, thanks to Lonny Pursell</li>
+			<li>Atari 8-bit: added Graph2Font (G2F), GED, Floor Designer (FGE), Standard Graphics 3 (SG3), Graphic Arts Department (PIC), Texture Maker0 16x16x16 (TX0), DrawIt, Sketch-PadDles (SKP), improved MCH</li>
 			<li>Amiga: slightly improved IFF</li>
 			<li>ZX81: added ZXpaintyONE (ZP1, RAW), fixed P</li>
 		</ul>
