@@ -3,8 +3,8 @@ VERSION = 4.0.0
 BINARY = bin/RECOIL.qlgenerator/Contents/MacOS/qlrecoil 
 PLIST = bin/RECOIL.qlgenerator/Contents/Info.plist
 
-recoil-$(VERSION)-osx.dmg: bin/QuickLook $(BINARY) $(PLIST)
-	hdiutil create -volname recoil-$(VERSION)-osx -srcfolder bin -format UDBZ -imagekey bzip2-level=3 -ov $@
+recoil-$(VERSION)-macos.dmg: bin/QuickLook $(BINARY) $(PLIST)
+	hdiutil create -volname recoil-$(VERSION)-macos -srcfolder bin -format UDBZ -imagekey bzip2-level=3 -ov $@
 
 bin/QuickLook:
 	mkdir -p $(@D) && ln -s /Library/QuickLook $@
@@ -20,7 +20,7 @@ $(PLIST): Info.plist.xsl ../formats.xml
 	cito -o $*.c -I .. $<
 
 clean:
-	rm -rf recoil-$(VERSION)-osx.dmg bin
+	rm -rf recoil-$(VERSION)-macos.dmg bin
 
 .PHONY: clean
 
