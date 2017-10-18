@@ -1,19 +1,19 @@
 all: index.html formats.html html5recoil.html news.html contact.html privacy.html recoil.js
 
-index.html: www.xsl index.xml
-	xsltproc --stringparam title Home $^ | xmllint --valid --nonet -o $@ -
+index.html: www.xsl index.xml ../formats.xml
+	xsltproc --stringparam title Home www.xsl index.xml | xmllint --valid --nonet -o $@ -
 
 formats.html: www.xsl ../formats.xml
-	xsltproc --stringparam title Formats $^ | xmllint --valid --nonet -o $@ -
+	xsltproc --stringparam title Formats www.xsl ../formats.xml | xmllint --valid --nonet -o $@ -
 
-news.html: www.xsl news.xml
-	xsltproc --stringparam title News $^ | xmllint --valid --nonet -o $@ -
+news.html: www.xsl news.xml ../formats.xml
+	xsltproc --stringparam title News www.xsl news.xml | xmllint --valid --nonet -o $@ -
 
-contact.html: www.xsl contact.xml
-	xsltproc --stringparam title Contact $^ | xmllint --valid --nonet -o $@ -
+contact.html: www.xsl contact.xml ../formats.xml
+	xsltproc --stringparam title Contact www.xsl contact.xml | xmllint --valid --nonet -o $@ -
 
-privacy.html: www.xsl privacy.xml
-	xsltproc --stringparam title Privacy $^ | xmllint --valid --nonet -o $@ -
+privacy.html: www.xsl privacy.xml ../formats.xml
+	xsltproc --stringparam title Privacy www.xsl privacy.xml | xmllint --valid --nonet -o $@ -
 
 html5recoil.html: www.xsl html5recoil.xml ../formats.xml
 	xsltproc --stringparam title HTML5 www.xsl html5recoil.xml | xmllint --dropdtd --schema /etc/xml/xhtml5.xsd --nonet -o $@ -
