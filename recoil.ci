@@ -3996,7 +3996,8 @@ public class RECOIL
 	{
 		for (int y = 0; y < Height; y++) {
 			for (int x = 0; x < 256; x++) {
-				int offset = contentOffset + ((y & -fontHeight) << 5) + (x >> 3) * fontHeight + (y & fontHeight - 1);
+				int row = y % fontHeight;
+				int offset = contentOffset + ((y - row) << 5) + (x >> 3) * fontHeight + row;
 				int c;
 				if (offset < contentLength) {
 					c = content[offset] >> (~x & 7) & 1;
@@ -13592,6 +13593,18 @@ public class RECOIL
 
 	// PC formats.
 
+	bool DecodeImage72Fnt(byte[] content, int contentLength)
+	{
+		if (contentLength < 4 || content[0] != 0 || content[1] != 8) // TODO: wider fonts
+			return false;
+		int fontHeight = content[2];
+		if (contentLength != 3 + (fontHeight << 8))
+			return false;
+		SetSize(256, fontHeight << 3, RECOILResolution.Pc1x1);
+		DecodeBlackAndWhiteFont(content, 3, contentLength, fontHeight);
+		return true;
+	}
+
 	bool DecodeMsp(byte[] content, int contentLength)
 	{
 		if (contentLength < 32)
@@ -14312,7 +14325,8 @@ public class RECOIL
 			return DecodeGdosFnt(content, contentLength)
 				|| DecodeAtari8Fnt(content, contentLength)
 				|| DecodeStFnt(content, contentLength)
-				|| DecodeAmstradFnt(content, contentLength);
+				|| DecodeAmstradFnt(content, contentLength)
+				|| DecodeImage72Fnt(content, contentLength);
 		case PackExt("FP2"):
 			return DecodeC64Fun(content, contentLength);
 		case PackExt("FPT"):
