@@ -13591,6 +13591,17 @@ public class RECOIL
 		return DecodeG2fUnpacked(content, contentLength);
 	}
 
+	bool DecodeDap(byte[] content, int contentLength)
+	{
+		if (contentLength != 77568)
+			return false;
+		SetSize(320, 240, RECOILResolution.Xe1x1);
+		for (int i = 0; i < 256; i++)
+			ContentPalette[i] = content[0x12c00 + i] << 16 | content[0x12d00 + i] << 8 | content[0x12e00 + i];
+		DecodeBytes(content, 0);
+		return true;
+	}
+
 	// PC formats.
 
 	bool DecodeImage72Fnt(byte[] content, int contentLength)
@@ -13817,6 +13828,7 @@ public class RECOIL
 		case PackExt("CUT"):
 		case PackExt("CWG"):
 		case PackExt("DA4"):
+		case PackExt("DAP"):
 		case PackExt("DC1"):
 		case PackExt("DD"):
 		case PackExt("DEL"):
@@ -14265,6 +14277,8 @@ public class RECOIL
 			return contentLength == 10007 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2713]);
 		case PackExt("DA4"):
 			return DecodeDa4(content, contentLength);
+		case PackExt("DAP"):
+			return DecodeDap(content, contentLength);
 		case PackExt("DC1"):
 			return DecodeDc1(content, contentLength);
 		case PackExt("DD"):
