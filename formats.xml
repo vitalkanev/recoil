@@ -540,6 +540,7 @@
 	<platform name="TRS-80" href="http://en.wikipedia.org/wiki/TRS-80">
 		<format width="640" height="240" colors="2"><ext>HR</ext></format>
 		<format name="CompuServe RLE" width="256" height="192" colors="2"><ext>RLE</ext></format>
+		<format name="MagicDraw" width="640" height="240" colors="2"><ext>SHR</ext></format>
 	</platform>
 	<platform name="TRS-80 Color Computer" href="http://en.wikipedia.org/wiki/TRS-80_Color_Computer">
 		<format width="40" height="56" colors="2"><ext>CLP</ext></format>

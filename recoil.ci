@@ -3762,6 +3762,7 @@ public class RECOIL
 		case RECOILResolution.Amiga1x2:
 		case RECOILResolution.St1x2:
 		case RECOILResolution.Ste1x2:
+		case RECOILResolution.Trs1x2:
 			offset = (offset << 1) + x;
 			Pixels[offset + Width] = Pixels[offset] = rgb;
 			break;
@@ -3978,15 +3979,17 @@ public class RECOIL
 
 	bool DecodeRleBlackAndWhite(RleStream rle, int backgroundColor)
 	{
-		for (int y = 0; y < Height; y++) {
+		int width = GetOriginalWidth();
+		int height = GetOriginalHeight();
+		for (int y = 0; y < height; y++) {
 			int b = 0;
-			for (int x = 0; x < Width; x++) {
+			for (int x = 0; x < width; x++) {
 				if ((x & 7) == 0) {
 					b = rle.ReadRle();
 					if (b < 0)
 						return false;
 				}
-				Pixels[y * Width + x] = (b >> (~x & 7) & 1) == 0 ? backgroundColor : backgroundColor ^ 0xffffff;
+				SetScaledPixel(x, y, (b >> (~x & 7) & 1) == 0 ? backgroundColor : backgroundColor ^ 0xffffff);
 			}
 		}
 		return true;
@@ -4055,6 +4058,16 @@ public class RECOIL
 			}
 		}
 		return true;
+	}
+
+	bool DecodeTrsShr(byte[] content, int contentLength)
+	{
+		SetSize(640, 480, RECOILResolution.Trs1x2);
+		PgcStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 0;
+		rle.ContentLength = contentLength;
+		return DecodeRleBlackAndWhite(rle, 0);
 	}
 
 	bool DecodeRle(byte[] content, int contentLength)
@@ -5448,7 +5461,7 @@ public class RECOIL
 			Pixels[y * 320 + x] = ContentPalette[GetNibble(content, y * 160, x)];
 	}
 
-	bool DecodeShr(byte[] content, int contentLength)
+	bool DecodeAppleIIShr(byte[] content, int contentLength)
 	{
 		if (contentLength != 32768)
 			return false;
@@ -14741,8 +14754,9 @@ public class RECOIL
 		case PackExt("SHP"):
 			return DecodeShp(content, contentLength);
 		case PackExt("SHR"):
-			return DecodeShr(content, contentLength)
-				|| DecodeSh3(content, contentLength);
+			return DecodeAppleIIShr(content, contentLength)
+				|| DecodeSh3(content, contentLength)
+				|| DecodeTrsShr(content, contentLength);
 		case PackExt("SIF"):
 			return DecodeSif(content, contentLength);
 		case PackExt("SKP"):
