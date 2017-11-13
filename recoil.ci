@@ -8433,11 +8433,9 @@ public class RECOIL
 
 	bool DecodePbx01(byte[] content, int contentLength, int bitplanes, int lineHeight)
 	{
-		if (content[128 + 33] != 0)
-			return false;
 		byte[32512] unpacked;
 		content = UnpackPbx(content, contentLength, unpacked, 512, bitplanes << 1, 32512);
-		if (content == null)
+		if (content == null || content[128 + 33] != 0)
 			return false;
 		int paletteOffset = 128;
 		for (int y = 0; y < 200; y++) {
