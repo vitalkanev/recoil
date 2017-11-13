@@ -9081,10 +9081,8 @@ public class RECOIL
 			case 32:
 				if (bitplanes > 4)
 					return false;
-				SetStPalette(content, 30, 16);
 				break;
 			case 1024:
-				SetFalconPalette(content, 30);
 				break;
 			default:
 				return false;
@@ -9093,6 +9091,10 @@ public class RECOIL
 			if (30 + paletteLength + height * bytesPerLine > contentLength
 			 || !SetSize(width, height, RECOILResolution.Falcon1x1))
 				return false;
+			if (paletteLength == 32)
+				SetStPalette(content, 30, 16);
+			else
+				SetFalconPalette(content, 30);
 			DecodeBitplanes(content, 30 + paletteLength, bytesPerLine, bitplanes, 0, width, height);
 			return true;
 		case 16:
