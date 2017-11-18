@@ -5204,6 +5204,40 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeBsc(byte[] content, int contentLength)
+	{
+		if (contentLength != 11136)
+			return false;
+		SetSize(384, 304, RECOILResolution.Spectrum1x1);
+		int borderOffset = 0x1b00;
+		for (int y = 0; y < 304; y++) {
+			int c = 0;
+			for (int x = 0; x < 384; x++) {
+				if (y >= 64 && y < 256 && x >= 64 && x < 320) {
+					int bY = y - 64;
+					int col = (x >> 3) - 8;
+					int a = content[0x1800 + (bY >> 3 << 5) + col];
+					c = a;
+					if ((content[((bY & 0xc0) << 5) + ((bY & 7) << 8) + ((bY & 0x38) << 2) + col] >> (~x & 7) & 1) == 0)
+						c >>= 3;
+					c = GetZxColor(c);
+					if ((a & 0x40) == 0)
+						c &= 0xcdcdcd;
+				}
+				else if ((x & 7) == 0) {
+					c = content[borderOffset];
+					if ((x & 8) != 0) {
+						borderOffset++;
+						c >>= 3;
+					}
+					c = GetZxColor(c) & 0xcdcdcd;
+				}
+				Pixels[y * 384 + x] = c;
+			}
+		}
+		return true;
+	}
+
 	// MSX formats.
 
 	const byte[32] Msx1Palette = {
@@ -13829,6 +13863,7 @@ public class RECOIL
 		case PackExt("BLD"):
 		case PackExt("BML"):
 		case PackExt("BRU"):
+		case PackExt("BSC"):
 		case PackExt("CA1"):
 		case PackExt("CA2"):
 		case PackExt("CA3"):
@@ -14258,6 +14293,8 @@ public class RECOIL
 			return DecodeBml(content, contentLength);
 		case PackExt("BRU"):
 			return DecodeBru(content, contentLength);
+		case PackExt("BSC"):
+			return DecodeBsc(content, contentLength);
 		case PackExt("CA1"):
 		case PackExt("CA2"):
 		case PackExt("CA3"):

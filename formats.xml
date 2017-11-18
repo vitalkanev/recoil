@@ -562,6 +562,7 @@
 	<platform name="ZX Spectrum" href="http://en.wikipedia.org/wiki/ZX_Spectrum">
 		<format width="256" height="192" colors="8" frames="3"><ext>3</ext></format>
 		<format name="Attributes" width="32" height="24" unit="characters" colors="15"><ext>ATR</ext></format>
+		<format name="Border Screen" width="384" height="304" colors="15"><ext>BSC</ext></format>
 		<format name="4x8 font" colors="2"><ext>CH4</ext></format>
 		<format name="6x8 font" colors="2"><ext>CH6</ext></format>
 		<format name="8x8 font" colors="2"><ext>CH8</ext></format>
