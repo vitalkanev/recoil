@@ -540,6 +540,9 @@
 	<platform name="Sharp X68000" href="https://en.wikipedia.org/wiki/X68000">
 		<format colors="65536"><ext>PIC</ext></format>
 	</platform>
+	<platform name="Timex 2048" href="https://en.wikipedia.org/wiki/Timex_Computer_2048">
+		<format name="Hi-res" width="512" height="192" colors="2"><ext>SCR</ext></format>
+	</platform>
 	<platform name="TRS-80" href="http://en.wikipedia.org/wiki/TRS-80">
 		<format width="640" height="240" colors="2"><ext>HR</ext></format>
 		<format name="CompuServe RLE" width="256" height="192" colors="2"><ext>RLE</ext></format>

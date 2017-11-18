@@ -101,6 +101,7 @@ enum RECOILResolution
 	SamCoupe1x1,
 	X68K1x1,
 	Spectrum1x1,
+	Timex1x2,
 	Trs1x1,
 	Trs1x2,
 	Coco1x1,
@@ -3590,6 +3591,8 @@ public class RECOIL
 			return "Sharp X68000";
 		case RECOILResolution.Spectrum1x1:
 			return "ZX Spectrum";
+		case RECOILResolution.Timex1x2:
+			return "Timex 2048";
 		case RECOILResolution.Trs1x1:
 		case RECOILResolution.Trs1x2:
 			return "TRS-80";
@@ -3645,6 +3648,7 @@ public class RECOIL
 		case RECOILResolution.Bbc1x2:
 		case RECOILResolution.Msx1x2:
 		case RECOILResolution.Pc881x2:
+		case RECOILResolution.Timex1x2:
 		case RECOILResolution.Trs1x2:
 		case RECOILResolution.Coco2x2:
 			return Height >> 1;
@@ -4842,6 +4846,9 @@ public class RECOIL
 
 	// ZX Spectrum formats.
 
+	static int GetZxColor(int c)
+		return (c >> 1 & 1) * 0xff0000 | (c >> 2 & 1) * 0x00ff00 | (c & 1) * 0x0000ff;
+
 	void SetZx()
 	{
 		SetSize(256, 192, RECOILResolution.Spectrum1x1);
@@ -4849,9 +4856,7 @@ public class RECOIL
 		// Here we layout them as ULAplus 64-entry palette
 		// so that we can share code in DecodeZx.
 		for (int i = 0; i < 64; i++) {
-			int rgb = (i >> 1 & 1) * 0xff0000
-				| (i >> 2 & 1) * 0x00ff00
-				| (i & 1) * 0x0000ff;
+			int rgb = GetZxColor(i);
 			if ((i & 0x10) == 0) // not bright
 				rgb &= 0xcdcdcd;
 			ContentPalette[i] = rgb;
@@ -4947,6 +4952,19 @@ public class RECOIL
 		}
 	}
 
+	void DecodeTimexHires(byte[] content)
+	{
+		SetSize(512, 384, RECOILResolution.Timex1x2);
+		int inkColor = GetZxColor(content[12288] >> 3);
+		for (int y = 0; y < 192; y++) {
+			for (int x = 0; x < 512; x++) {
+				int c = content[(x & 8) * 768 + ((y & 0xc0) << 5) + ((y & 7) << 8) + ((y & 0x38) << 2) + (x >> 4)] >> (~x & 7) & 1;
+				int offset = (y << 10) + x;
+				Pixels[offset + 512] = Pixels[offset] = c == 0 ? inkColor ^ 0xffffff : inkColor;
+			}
+		}
+	}
+
 	bool DecodeScr(string filename, byte[] content, int contentLength)
 	{
 		switch (contentLength) {
@@ -4968,6 +4986,9 @@ public class RECOIL
 		case 12288:
 			SetZx();
 			DecodeZx(content, 0, 0x1800, ZxAttributesTimex, 0);
+			return true;
+		case 12289:
+			DecodeTimexHires(content);
 			return true;
 		case 12352: // untested, based on https://web.archive.org/web/20140315185332/http://www.zxshed.co.uk/sinclairfaq/index.php5?title=ULAplus
 			SetUlaPlus(content, 0x3000);
