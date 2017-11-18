@@ -5572,7 +5572,6 @@ public class RECOIL
 		if (contentLength != 24617 || content[24616] != 0xff)
 			return false;
 
-		int[16] palette;
 		for (int i = 0; i < 16; i++) {
 			int c = content[0x6000 + i];
 			int rgb = 0;
@@ -5590,18 +5589,11 @@ public class RECOIL
 				rgb |= 0x920000; // R2
 			if ((c & 0x40) != 0)
 				rgb |= 0x009200; // G2
-			palette[i] = rgb;
+			ContentPalette[i] = rgb;
 		}
 
 		SetSize(256, 192, RECOILResolution.SamCoupe1x1);
-		for (int y = 0; y < 192; y++) {
-			for (int x = 0; x < 256; x++) {
-				int c = content[(y << 7) + (x >> 1)];
-				if ((x & 1) == 0)
-					c >>= 4;
-				Pixels[(y << 8) + x] = palette[c & 0xf];
-			}
-		}
+		DecodeNibbles(content, 0, 128);
 		return true;
 	}
 
