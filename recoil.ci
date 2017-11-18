@@ -14082,6 +14082,7 @@ public class RECOIL
 		case PackExt("YJK"):
 		case PackExt("SCR"):
 		case PackExt("SCS4"):
+		case PackExt("SS4"):
 		case PackExt("SG3"):
 		case PackExt("SGE"):
 		case PackExt("SH3"):
@@ -14736,6 +14737,7 @@ public class RECOIL
 		case PackExt("SCR"):
 			return DecodeScr(filename, content, contentLength);
 		case PackExt("SCS4"):
+		case PackExt("SS4"):
 			return DecodeScs4(content, contentLength);
 		case PackExt("SD0"):
 			return DecodeSd(content, contentLength, 0);
