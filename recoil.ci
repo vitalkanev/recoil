@@ -5206,17 +5206,28 @@ public class RECOIL
 
 	bool DecodeBsc(byte[] content, int contentLength)
 	{
-		if (contentLength != 11136)
+		int borderOffset;
+		switch (contentLength) {
+		case 11136: // BSC
+			borderOffset = 0x1b00;
+			break;
+		case 11904: // BMC4
+			borderOffset = 0x1e00;
+			break;
+		default:
 			return false;
+		}
 		SetSize(384, 304, RECOILResolution.Spectrum1x1);
-		int borderOffset = 0x1b00;
 		for (int y = 0; y < 304; y++) {
 			int c = 0;
 			for (int x = 0; x < 384; x++) {
 				if (y >= 64 && y < 256 && x >= 64 && x < 320) {
 					int bY = y - 64;
 					int col = (x >> 3) - 8;
-					int a = content[0x1800 + (bY >> 3 << 5) + col];
+					int a = 0x1800 + (bY >> 3 << 5) + col;
+					if (contentLength == 11904 && (bY & 4) != 0)
+						a += 0x300;
+					a = content[a];
 					c = a;
 					if ((content[((bY & 0xc0) << 5) + ((bY & 7) << 8) + ((bY & 0x38) << 2) + col] >> (~x & 7) & 1) == 0)
 						c >>= 3;
@@ -13864,6 +13875,7 @@ public class RECOIL
 		case PackExt("BML"):
 		case PackExt("BRU"):
 		case PackExt("BSC"):
+		case PackExt("BMC4"):
 		case PackExt("CA1"):
 		case PackExt("CA2"):
 		case PackExt("CA3"):
@@ -14294,6 +14306,7 @@ public class RECOIL
 		case PackExt("BRU"):
 			return DecodeBru(content, contentLength);
 		case PackExt("BSC"):
+		case PackExt("BMC4"):
 			return DecodeBsc(content, contentLength);
 		case PackExt("CA1"):
 		case PackExt("CA2"):
