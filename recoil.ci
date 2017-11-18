@@ -101,6 +101,7 @@ enum RECOILResolution
 	SamCoupe1x1,
 	X68K1x1,
 	Spectrum1x1,
+	Timex1x1,
 	Timex1x2,
 	Trs1x1,
 	Trs1x2,
@@ -3591,6 +3592,7 @@ public class RECOIL
 			return "Sharp X68000";
 		case RECOILResolution.Spectrum1x1:
 			return "ZX Spectrum";
+		case RECOILResolution.Timex1x1:
 		case RECOILResolution.Timex1x2:
 			return "Timex 2048";
 		case RECOILResolution.Trs1x1:
@@ -4849,9 +4851,9 @@ public class RECOIL
 	static int GetZxColor(int c)
 		return (c >> 1 & 1) * 0xff0000 | (c >> 2 & 1) * 0x00ff00 | (c & 1) * 0x0000ff;
 
-	void SetZx()
+	void SetZx(RECOILResolution resolution)
 	{
-		SetSize(256, 192, RECOILResolution.Spectrum1x1);
+		SetSize(256, 192, resolution);
 		// The original ZX Spectrum palette has 16 entries: 8 normal + 8 bright.
 		// Here we layout them as ULAplus 64-entry palette
 		// so that we can share code in DecodeZx.
@@ -4971,12 +4973,12 @@ public class RECOIL
 		case 1002:
 			return DecodeScrCol(filename, content, contentLength);
 		case 6144:
-			SetZx();
+			SetZx(RECOILResolution.Spectrum1x1);
 			DecodeZx(content, 0, -1, ZxAttributesNone, 0);
 			return true;
 		case 6912:
 		case 6913: // border color - ignore
-			SetZx();
+			SetZx(RECOILResolution.Spectrum1x1);
 			DecodeZx(content, 0, 0x1800, ZxAttributes8x8, 0);
 			return true;
 		case 6976:
@@ -4984,7 +4986,7 @@ public class RECOIL
 			DecodeZx(content, 0, 0x1800, ZxAttributes8x8, 0);
 			return true;
 		case 12288:
-			SetZx();
+			SetZx(RECOILResolution.Timex1x1);
 			DecodeZx(content, 0, 0x1800, ZxAttributesTimex, 0);
 			return true;
 		case 12289:
@@ -5003,7 +5005,7 @@ public class RECOIL
 	{
 		if (contentLength != 9216)
 			return false;
-		SetZx();
+		SetZx(RECOILResolution.Spectrum1x1);
 		DecodeZx(content, 0, 0x1800, ZxAttributes8x2, 0);
 		return true;
 	}
@@ -5012,7 +5014,7 @@ public class RECOIL
 	{
 		if (contentLength != 12288)
 			return false;
-		SetZx();
+		SetZx(RECOILResolution.Spectrum1x1);
 		DecodeZx(content, bitmapOffset, 0x1800, ZxAttributes8x1, 0);
 		return true;
 	}
@@ -5021,7 +5023,7 @@ public class RECOIL
 	{
 		if (contentLength != 13824)
 			return false;
-		SetZx();
+		SetZx(RECOILResolution.Spectrum1x1);
 		DecodeZx(content, 0, 0x1800, ZxAttributes8x8, 0);
 		DecodeZx(content, 0x1b00, 0x3300, ZxAttributes8x8, 256 * 192);
 		return ApplyBlend();
@@ -5039,7 +5041,7 @@ public class RECOIL
 		case 1:
 			if (contentLength != 19456)
 				return false;
-			SetZx();
+			SetZx(RECOILResolution.Spectrum1x1);
 			DecodeZx(content, 0x100, 0x4900, ZxAttributesMg1, 0);
 			DecodeZx(content, 0x1900, 0x4a80, ZxAttributesMg1, 256 * 192);
 			return ApplyBlend();
@@ -5057,7 +5059,7 @@ public class RECOIL
 		}
 		if (contentLength != 256 + 2 * 6144 + (2 * 6144 >> attributesMode))
 			return false;
-		SetZx();
+		SetZx(RECOILResolution.Spectrum1x1);
 		DecodeZx(content, 0x100, 0x3100, attributesMode, 0);
 		DecodeZx(content, 0x1900, 0x3100 + (6144 >> attributesMode), attributesMode, 256 * 192);
 		return ApplyBlend();
@@ -5067,7 +5069,7 @@ public class RECOIL
 	{
 		if (contentLength != 768)
 			return false;
-		SetZx();
+		SetZx(RECOILResolution.Spectrum1x1);
 		DecodeZx(content, ZxBitmapCheckerboard, 0, ZxAttributes8x8, 0);
 		return true;
 	}
@@ -5078,7 +5080,7 @@ public class RECOIL
 		if (contentLength != 1628 || content[0] != 0x76 || content[1] != 0xaf || content[2] != 0xd3 || content[3] != 0xfe
 		 || content[4] != 0x21 || content[5] != 0x00 || content[6] != 0x58)
 			return false;
-		SetZx();
+		SetZx(RECOILResolution.Spectrum1x1);
 		DecodeZx(content, ZxBitmapHlr, 0x5c, ZxAttributes8x8, 0);
 		DecodeZx(content, ZxBitmapHlr, 0x35c, ZxAttributes8x8, 256 * 192);
 		return ApplyBlend();
@@ -5178,7 +5180,7 @@ public class RECOIL
 
 		for (int y = 0; y < 192; y++) {
 			if (y == 24 && s.IsEof()) {
-				SetZx();
+				SetZx(RECOILResolution.Spectrum1x1);
 				DecodeZx(scr, ZxBitmapLinear, 0x1800, ZxAttributes8x8, 0);
 				return true;
 			}
@@ -5197,7 +5199,7 @@ public class RECOIL
 
 		if (!s.IsEof())
 			return false;
-		SetZx();
+		SetZx(RECOILResolution.Spectrum1x1);
 		DecodeZx(scr, ZxBitmapLinear, 0x1800, ZxAttributes8x1, 0);
 		return true;
 	}
