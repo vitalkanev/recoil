@@ -5257,14 +5257,6 @@ public class RECOIL
 		return true;
 	}
 
-	void SetSxgPalette(byte[] content, int paletteOffset, int colors)
-	{
-		for (int i = 0; i < colors; i++) {
-			int offset = paletteOffset + (i << 1);
-			ContentPalette[i] = GetR5G5B5Color(content[offset] | content[offset + 1] << 8);
-		}
-	}
-
 	bool DecodeSxg(byte[] content, int contentLength)
 	{
 		if (contentLength < 19 || content[0] != 0x7f
@@ -5274,22 +5266,41 @@ public class RECOIL
 		int height = content[10] | content[11] << 8;
 		if (!SetSize(width, height, RECOILResolution.Spectrum1x1))
 			return false;
+
 		int paletteOffset = 14 + content[12] + (content[13] << 8);
 		int bitmapOffset = 16 + content[14] + (content[15] << 8);
+		int paletteLength = bitmapOffset - paletteOffset;
+		if ((paletteLength & 1) != 0 || paletteLength > 256 * 2)
+			return false;
+		ContentPalette.Clear();
+		int colors = paletteLength >> 1;
+		for (int i = 0; i < colors; i++) {
+			int offset = paletteOffset + (i << 1);
+			int c = content[offset] | content[offset + 1] << 8;
+			if (c < 0x8000) {
+				// 25 levels per component
+				int r = c >> 10;
+				int g = c >> 5 & 0x1f;
+				int b = c & 0x1f;
+				if (r > 24 || g > 24 || b > 24)
+					return false;
+				c = r * 255 / 24 << 16 | g * 255 / 24 << 8 | b * 255 / 24;
+			}
+			else
+				c = GetR5G5B5Color(c);
+			ContentPalette[i] = c;
+		}
+
 		switch (content[7]) {
 		case 1:
-			if (contentLength < paletteOffset + 32
-			 || (width & 1) != 0
+			if ((width & 1) != 0
 			 || contentLength != bitmapOffset + (width >> 1) * height)
 				return false;
-			SetSxgPalette(content, paletteOffset, 16);
 			DecodeNibbles(content, bitmapOffset, width >> 1);
 			return true;
 		case 2:
-			if (contentLength < paletteOffset + 512
-			 || contentLength != bitmapOffset + width * height)
+			if (contentLength != bitmapOffset + width * height)
 				return false;
-			SetSxgPalette(content, paletteOffset, 256);
 			DecodeBytes(content, bitmapOffset);
 			return true;
 		default:
