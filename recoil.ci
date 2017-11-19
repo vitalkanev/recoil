@@ -5257,6 +5257,53 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeChrd(byte[] content, int contentLength)
+	{
+		if (contentLength < 15 || !IsStringAt(content, 0, "chr$"))
+			return false;
+		int columns = content[4];
+		int rows = content[5];
+		int bytesPerCell = content[6];
+		int cells = rows * columns;
+		int frames;
+		switch (bytesPerCell) {
+		case 9:
+			frames = 1;
+			break;
+		case 18:
+			if (cells << 7 > MaxPixelsLength)
+				return false;
+			frames = 2;
+			break;
+		default:
+			return false;
+		}
+		if (contentLength != 7 + cells * bytesPerCell
+		 || !SetSize(columns << 3, rows << 3, RECOILResolution.Spectrum1x1))
+			return false;
+		int contentOffset = 7;
+		for (int row = 0; row < rows; row++) {
+			for (int column = 0; column < columns; column++) {
+				for (int frame = 0; frame < frames; frame++) {
+					int a = content[contentOffset + 8];
+					for (int y = 0; y < 8; y++) {
+						for (int x = 0; x < 8; x++) {
+							int c = content[contentOffset + y] >> (7 - x) & 1;
+							c = GetZxColor(c == 0 ? a >> 3 : a);
+							if ((a & 0x40) == 0)
+								c &= 0xcdcdcd;
+							Pixels[(((frame * rows + row << 3) + y) * columns + column << 3) + x] = c;
+						}
+					}
+					contentOffset += 9;
+				}
+			}
+		}
+		if (frames == 2)
+			ApplyBlend();
+		return true;
+	}
+
 	bool DecodeSxg(byte[] content, int contentLength)
 	{
 		if (contentLength < 19 || content[0] != 0x7f
@@ -13940,6 +13987,7 @@ public class RECOIL
 		case PackExt("CE2"):
 		case PackExt("CE3"):
 		case PackExt("CEL"):
+		case PackExt("CH$"):
 		case PackExt("CH4"):
 		case PackExt("CH6"):
 		case PackExt("CH8"):
@@ -14378,6 +14426,8 @@ public class RECOIL
 			return DecodeCe(content, contentLength);
 		case PackExt("CEL"):
 			return DecodeCel(content, contentLength);
+		case PackExt("CH$"):
+			return DecodeChrd(content, contentLength);
 		case PackExt("CH4"):
 		case PackExt("CH6"):
 		case PackExt("CH8"):

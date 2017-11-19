@@ -332,7 +332,7 @@
 					<Component Id="IM_MOD_RL_recoil_.dll" Win64="no">
 						<File Name="IM_MOD_RL_recoil_.dll" Source="i686\IM_MOD_RL_recoil_.dll" Checksum="yes" KeyPath="yes" />
 						<?foreach EXT in $(var.RECOIL_EXTS)?>
-							<?if $(var.EXT) != "b&w" ?><!-- TODO: don't skip it -->
+							<?if $(var.EXT) != "b&w" and $(var.EXT) != "ch$" ?><!-- TODO: don't skip -->
 								<util:XmlConfig Id="coder.xml_$(var.EXT)_Element_create" On="install" Action="create" Node="element" ElementPath="/codermap" Name="coder" File="[CODER.XML]" />
 								<util:XmlConfig Id="coder.xml_$(var.EXT)_Magick_create" ElementPath="coder.xml_$(var.EXT)_Element_create" Name="magick" Value="$(var.EXT)" File="[CODER.XML]" />
 								<util:XmlConfig Id="coder.xml_$(var.EXT)_Name_create" ElementPath="coder.xml_$(var.EXT)_Element_create" Name="name" Value="RECOIL" File="[CODER.XML]" />
@@ -346,7 +346,7 @@
 						<Component Id="IM_MOD_RL_recoil_64.dll" Win64="yes">
 							<File Id="IM_MOD_RL_recoil_64.dll" Name="IM_MOD_RL_recoil_.dll" Source="x86_64\IM_MOD_RL_recoil_.dll" Checksum="yes" KeyPath="yes" />
 							<?foreach EXT in $(var.RECOIL_EXTS)?>
-								<?if $(var.EXT) != "b&w" ?><!-- TODO: don't skip it -->
+								<?if $(var.EXT) != "b&w" and $(var.EXT) != "ch$" ?><!-- TODO: don't skip -->
 									<util:XmlConfig Id="coder64.xml_$(var.EXT)_Element_create" On="install" Action="create" Node="element" ElementPath="/codermap" Name="coder" File="[CODER64.XML]" />
 									<util:XmlConfig Id="coder64.xml_$(var.EXT)_Magick_create" ElementPath="coder64.xml_$(var.EXT)_Element_create" Name="magick" Value="$(var.EXT)" File="[CODER64.XML]" />
 									<util:XmlConfig Id="coder64.xml_$(var.EXT)_Name_create" ElementPath="coder64.xml_$(var.EXT)_Element_create" Name="name" Value="RECOIL" File="[CODER64.XML]" />
