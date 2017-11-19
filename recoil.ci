@@ -3915,6 +3915,14 @@ public class RECOIL
 		return c | (c >> 5 & 0x070707);
 	}
 
+	static int GetR5G5B5Color(int c)
+	{
+		// 0RRRRRGG GGGBBBBB
+		c = (c & 0x7c00) << 9 | (c & 0x3e0) << 6 | (c & 0x1f) << 3;
+		// RRRRR000 GGGGG000 BBBBB000
+		return c | (c >> 5 & 0x070707);
+	}
+
 	static int GetFalconTrueColor(byte[] content, int contentOffset)
 	{
 		int rg = content[contentOffset]; // RRRRRGGG
@@ -5247,6 +5255,46 @@ public class RECOIL
 			}
 		}
 		return true;
+	}
+
+	void SetSxgPalette(byte[] content, int paletteOffset, int colors)
+	{
+		for (int i = 0; i < colors; i++) {
+			int offset = paletteOffset + (i << 1);
+			ContentPalette[i] = GetR5G5B5Color(content[offset] | content[offset + 1] << 8);
+		}
+	}
+
+	bool DecodeSxg(byte[] content, int contentLength)
+	{
+		if (contentLength < 19 || content[0] != 0x7f
+		 || content[1] != 'S' || content[2] != 'X' || content[3] != 'G' || content[6] != 0)
+			return false;
+		int width = content[8] | content[9] << 8;
+		int height = content[10] | content[11] << 8;
+		if (!SetSize(width, height, RECOILResolution.Spectrum1x1))
+			return false;
+		int paletteOffset = 14 + content[12] + (content[13] << 8);
+		int bitmapOffset = 16 + content[14] + (content[15] << 8);
+		switch (content[7]) {
+		case 1:
+			if (contentLength < paletteOffset + 32
+			 || (width & 1) != 0
+			 || contentLength != bitmapOffset + (width >> 1) * height)
+				return false;
+			SetSxgPalette(content, paletteOffset, 16);
+			DecodeNibbles(content, bitmapOffset, width >> 1);
+			return true;
+		case 2:
+			if (contentLength < paletteOffset + 512
+			 || contentLength != bitmapOffset + width * height)
+				return false;
+			SetSxgPalette(content, paletteOffset, 256);
+			DecodeBytes(content, bitmapOffset);
+			return true;
+		default:
+			return false;
+		}
 	}
 
 	// MSX formats.
@@ -8761,12 +8809,8 @@ public class RECOIL
 					int c = content[offset] << 8 | content[offset + 1];
 					if (c >= 0x8000)
 						return false;
-					// 0RRRRRGG GGGBBBBB
-					c = (c & 0x7c00) << 9 | (c & 0x3e0) << 6 | (c & 0x1f) << 3;
-					// RRRRR000 GGGGG000 BBBBB000
-					c |= c >> 5 & 0x070707;
 					offset = y * 1280 + x;
-					Pixels[offset + 640] = Pixels[offset] = c;
+					Pixels[offset + 640] = Pixels[offset] = GetR5G5B5Color(c);
 				}
 			}
 			return true;
@@ -14163,6 +14207,7 @@ public class RECOIL
 		case PackExt("SR7"):
 		case PackExt("SRT"):
 		case PackExt("SSB"):
+		case PackExt("SXG"):
 		case PackExt("SXS"):
 		case PackExt("TCP"):
 		case PackExt("TG1"):
@@ -14849,6 +14894,8 @@ public class RECOIL
 			return DecodeSrt(content, contentLength);
 		case PackExt("SSB"):
 			return DecodeSsb(content, contentLength);
+		case PackExt("SXG"):
+			return DecodeSxg(content, contentLength);
 		case PackExt("SXS"):
 			return DecodeSxs(content, contentLength);
 		case PackExt("TCP"):
