@@ -143,6 +143,10 @@
 					</xsl:if>
 					<td>
 						<xsl:value-of select="../@name" />
+						<xsl:if test="@hardware">
+							<xsl:text> </xsl:text>
+							<xsl:value-of select="@hardware" />
+						</xsl:if>
 					</td>
 					<td>
 						<xsl:for-each select="ext">
