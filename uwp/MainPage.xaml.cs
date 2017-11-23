@@ -25,6 +25,8 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.DataTransfer;
+using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.Search;
 using Windows.Storage.Streams;
@@ -97,6 +99,7 @@ namespace RECOIL
 			// display
 			Image.Source = bitmap;
 			FileName.Text = file.Name;
+			CopyButton.Visibility = Visibility.Visible;
 		}
 
 		void SetIndex(int index)
@@ -144,6 +147,19 @@ namespace RECOIL
 				SetIndex(Index + 1);
 				await ShowFile(Files[Index]);
 			}
+		}
+
+		async void Copy(object sender, RoutedEventArgs e)
+		{
+			InMemoryRandomAccessStream stream = new InMemoryRandomAccessStream();
+			BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, stream);
+			WriteableBitmap bitmap = (WriteableBitmap) Image.Source;
+			encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Ignore,
+				(uint) bitmap.PixelWidth, (uint) bitmap.PixelHeight, 96, 96, bitmap.PixelBuffer.ToArray());
+			await encoder.FlushAsync();
+			DataPackage package = new DataPackage();
+			package.SetBitmap(RandomAccessStreamReference.CreateFromStream(stream));
+			Clipboard.SetContent(package);
 		}
 	}
 }
