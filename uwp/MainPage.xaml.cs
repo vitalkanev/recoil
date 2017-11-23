@@ -28,6 +28,7 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
+using Windows.Storage.Pickers;
 using Windows.Storage.Search;
 using Windows.Storage.Streams;
 using Windows.UI.Popups;
@@ -99,6 +100,7 @@ namespace RECOIL
 			// display
 			Image.Source = bitmap;
 			FileName.Text = file.Name;
+			SaveAsButton.Visibility = Visibility.Visible;
 			CopyButton.Visibility = Visibility.Visible;
 		}
 
@@ -149,17 +151,46 @@ namespace RECOIL
 			}
 		}
 
-		async void Copy(object sender, RoutedEventArgs e)
+		async Task SaveTo(IRandomAccessStream stream)
 		{
-			InMemoryRandomAccessStream stream = new InMemoryRandomAccessStream();
 			BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, stream);
 			WriteableBitmap bitmap = (WriteableBitmap) Image.Source;
 			encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Ignore,
 				(uint) bitmap.PixelWidth, (uint) bitmap.PixelHeight, 96, 96, bitmap.PixelBuffer.ToArray());
 			await encoder.FlushAsync();
+		}
+
+		async void SaveAs(object sender, RoutedEventArgs e)
+		{
+			FileSavePicker picker = new FileSavePicker {
+				SuggestedStartLocation = PickerLocationId.PicturesLibrary,
+				SuggestedFileName = FileName.Text,
+				FileTypeChoices = { { "PNG Image", new string[] { ".png" } } } };
+			StorageFile file = await picker.PickSaveFileAsync();
+			if (file != null) {
+				try {
+					using (IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.ReadWrite)) {
+						await SaveTo(stream);
+					}
+				}
+				catch (Exception) {
+					await new MessageDialog("Error saving file").ShowAsync();
+				}
+			}
+		}
+
+		async void Copy(object sender, RoutedEventArgs e)
+		{
+			InMemoryRandomAccessStream stream = new InMemoryRandomAccessStream();
+			await SaveTo(stream);
 			DataPackage package = new DataPackage();
 			package.SetBitmap(RandomAccessStreamReference.CreateFromStream(stream));
-			Clipboard.SetContent(package);
+			try {
+				Clipboard.SetContent(package);
+			}
+			catch (Exception) {
+				await new MessageDialog("Clipboard error").ShowAsync();
+			}
 		}
 	}
 }

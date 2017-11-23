@@ -11,6 +11,7 @@
 				<TextBlock Name="FileName" Margin="12" />
 			</CommandBar.Content>
 			<AppBarButton Icon="OpenFile" Label="Open" Click="OpenFile" />
+			<AppBarButton Name="SaveAsButton" Icon="Save" Label="Save as" Click="SaveAs" Visibility="Collapsed" />
 			<AppBarButton Name="CopyButton" Icon="Copy" Label="Copy" Click="Copy" Visibility="Collapsed" />
 			<AppBarButton Name="PreviousButton" Icon="Back" Label="Previous" Click="OpenPrevious" Visibility="Collapsed" />
 			<AppBarButton Name="NextButton" Icon="Forward" Label="Next" Click="OpenNext" Visibility="Collapsed" />
