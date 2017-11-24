@@ -35,6 +35,7 @@ using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Imaging;
+using Windows.UI.Xaml.Navigation;
 
 namespace RECOIL
 {
@@ -101,6 +102,7 @@ namespace RECOIL
 			Image.Source = bitmap;
 			FileName.Text = file.Name;
 			SaveAsButton.Visibility = Visibility.Visible;
+			ShareButton.Visibility = Visibility.Visible;
 			CopyButton.Visibility = Visibility.Visible;
 		}
 
@@ -179,18 +181,49 @@ namespace RECOIL
 			}
 		}
 
-		async void Copy(object sender, RoutedEventArgs e)
+		async Task PutBitmap(DataPackage package)
 		{
 			InMemoryRandomAccessStream stream = new InMemoryRandomAccessStream();
 			await SaveTo(stream);
-			DataPackage package = new DataPackage();
 			package.SetBitmap(RandomAccessStreamReference.CreateFromStream(stream));
+		}
+
+		async void Copy(object sender, RoutedEventArgs e)
+		{
+			DataPackage package = new DataPackage();
+			await PutBitmap(package);
 			try {
 				Clipboard.SetContent(package);
 			}
 			catch (Exception) {
 				await new MessageDialog("Clipboard error").ShowAsync();
 			}
+		}
+
+		async void OnDataRequested(DataTransferManager sender, DataRequestedEventArgs e)
+		{
+			if (Image.Source == null)
+				return; // do we need this?
+			DataRequestDeferral deferral = e.Request.GetDeferral();
+			DataPackage package = e.Request.Data;
+			package.Properties.Title = FileName.Text;
+			await PutBitmap(package);
+			deferral.Complete();
+		}
+
+		protected override void OnNavigatedTo(NavigationEventArgs e)
+		{
+			DataTransferManager.GetForCurrentView().DataRequested += OnDataRequested;
+		}
+
+		protected override void OnNavigatedFrom(NavigationEventArgs e)
+		{
+			DataTransferManager.GetForCurrentView().DataRequested -= OnDataRequested;
+		}
+
+		void Share(object sender, RoutedEventArgs e)
+		{
+			DataTransferManager.ShowShareUI();
 		}
 	}
 }
