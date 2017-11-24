@@ -10,12 +10,12 @@
 			<CommandBar.Content >
 				<TextBlock Name="FileName" Margin="12" />
 			</CommandBar.Content>
-			<AppBarButton Icon="OpenFile" Label="Open" Click="OpenFile" />
-			<AppBarButton Name="SaveAsButton" Icon="Save" Label="Save as" Click="SaveAs" Visibility="Collapsed" />
-			<AppBarButton Name="ShareButton" Icon="Share" Label="Share" Click="Share" Visibility="Collapsed" />
-			<AppBarButton Name="CopyButton" Icon="Copy" Label="Copy" Click="Copy" Visibility="Collapsed" />
-			<AppBarButton Name="PreviousButton" Icon="Back" Label="Previous" Click="OpenPrevious" Visibility="Collapsed" />
-			<AppBarButton Name="NextButton" Icon="Forward" Label="Next" Click="OpenNext" Visibility="Collapsed" />
+			<AppBarButton Icon="OpenFile" Label="Open" Click="OpenFile" ToolTipService.ToolTip="Open a file to display" />
+			<AppBarButton Name="SaveAsButton" Icon="Save" Label="Save as" Click="SaveAs" ToolTipService.ToolTip="Save as PNG" Visibility="Collapsed" />
+			<AppBarButton Name="ShareButton" Icon="Share" Label="Share" Click="Share" ToolTipService.ToolTip="Share via another app" Visibility="Collapsed" />
+			<AppBarButton Name="CopyButton" Icon="Copy" Label="Copy" Click="Copy" ToolTipService.ToolTip="Copy to clipboard" Visibility="Collapsed" />
+			<AppBarButton Name="PreviousButton" Icon="Back" Label="Previous" Click="OpenPrevious" ToolTipService.ToolTip="Previous file" Visibility="Collapsed" />
+			<AppBarButton Name="NextButton" Icon="Forward" Label="Next" Click="OpenNext" ToolTipService.ToolTip="Next file" Visibility="Collapsed" />
 		</CommandBar>
 	</Page.BottomAppBar>
 </Page>
