@@ -2,22 +2,33 @@ apply plugin: 'com.android.application'
 
 buildscript {
     repositories {
+        google()
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.3'
+        classpath 'com.android.tools.build:gradle:3.0.1'
     }
 }
 
 final MANIFEST_FILE = 'build/generated/AndroidManifest.xml'
+// closure has access to MANIFEST_FILE, unlike a function
+def doGenerateManifest = {
+    ant.xslt(
+        in: '../formats.xml',
+        style: 'AndroidManifest.xsl',
+        out: MANIFEST_FILE)
+}
+// call while evaluating the script, because the Android plugin 3.x
+// will read the manifest before it executes any tasks
+// and will fail if the manifest doesn't exist
+doGenerateManifest()
+// to handle "gradle clean assembleRelease" ("Rebuild" in Android Studio)
+// we need to regenerate the manifest on build
 task generateManifest() {
     inputs.files '../formats.xml', 'AndroidManifest.xsl'
     outputs.file MANIFEST_FILE
     doFirst {
-        ant.xslt(
-            in: '../formats.xml',
-            style: 'AndroidManifest.xsl',
-            out: MANIFEST_FILE)
+        doGenerateManifest()
     }
 }
 preBuild.dependsOn generateManifest
@@ -55,11 +66,8 @@ task copyJavaResources(type:Copy) {
 preBuild.dependsOn copyJavaResources
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion '25.0.3'
-    defaultConfig {
-        applicationId 'net.sf.recoil'
-    }
+    compileSdkVersion 26
+    buildToolsVersion '27.0.0'
     sourceSets {
         main {
             manifest {
@@ -74,7 +82,7 @@ android {
         variant.registerResGeneratingTask generateIcon, ICON_DIR
         variant.registerJavaGeneratingTask cito, CITO_JAVA_DIR
         if (variant.name == 'release') {
-            variant.outputs[0].outputFile file('recoil-' + versionName + '-android.apk')
+            variant.outputs[0].outputFileName = "recoil-$versionName-android.apk"
         }
     }
     signingConfigs {
