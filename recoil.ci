@@ -5418,11 +5418,35 @@ public class RECOIL
 			SetMsxPalette(Msx1Palette, 0);
 		SetSize(256, 192, RECOILResolution.Msx1x1);
 		for (int y = 0; y < 192; y++) {
-			int fontOffset = 7 + ((y &0xc0) << 5);
+			int fontOffset = 7 + ((y &0xc0) << 5) + (y & 7);
 			for (int x = 0; x < 256; x++) {
-				int b = fontOffset + (content[0x1807 + ((y & ~7) << 2) + (x >> 3)] << 3) + (y & 7);
+				int b = fontOffset + (content[0x1807 + ((y & ~7) << 2) + (x >> 3)] << 3);
 				int c = content[0x2000 + b];
 				Pixels[(y << 8) + x] = ContentPalette[(content[b] >> (~x & 7) & 1) == 0 ? c & 0xf : c >> 4];
+			}
+		}
+
+		if (contentLength == 16391) {
+			// 32 sprites
+			for (int offset = 7 + 0x1b7c; offset >= 7 + 0x1b00; offset -= 4) {
+				int yPos = content[offset]; // 0xe1..0xff - sprite at the top
+				int xPos = content[offset + 1];
+				int spriteOffset = 0x3807 + ((content[offset + 2] & 0xfc) << 3);
+				int c = content[offset + 3];
+				if (c >= 0x80)
+					xPos -= 32;
+				c = ContentPalette[c & 0xf];
+				for (int row = 0; row < 16; row++) {
+					int y = yPos + row & 0xff;
+					if (y >= 192)
+						continue;
+					for (int column = 0; column < 16; column++) {
+						int x = xPos + column;
+						if (x >= 0 && x < 256
+						 && (content[spriteOffset + ((column & 8) << 1) + row] >> (~column & 7) & 1) != 0)
+							Pixels[(y << 8) + x] = c;
+					}
+				}
 			}
 		}
 		return true;
