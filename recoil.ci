@@ -65,7 +65,8 @@ enum RECOILResolution
 	Amstrad2x1,
 	Amstrad1x2,
 	AppleII1x1,
-	AppleII1x2,
+	AppleIIe1x2,
+	AppleIIGS1x1,
 	Macintosh1x1,
 	Xe1x1,
 	Xe2x1,
@@ -3537,8 +3538,11 @@ public class RECOIL
 		case RECOILResolution.Amstrad1x2:
 			return "Amstrad CPC";
 		case RECOILResolution.AppleII1x1:
-		case RECOILResolution.AppleII1x2:
 			return "Apple II";
+		case RECOILResolution.AppleIIe1x2:
+			return "Apple IIe";
+		case RECOILResolution.AppleIIGS1x1:
+			return "Apple IIGS";
 		case RECOILResolution.Macintosh1x1:
 			return "Apple Macintosh";
 		case RECOILResolution.Xe1x1:
@@ -3648,7 +3652,7 @@ public class RECOIL
 		switch (Resolution) {
 		case RECOILResolution.Amiga1x2:
 		case RECOILResolution.Amstrad1x2:
-		case RECOILResolution.AppleII1x2:
+		case RECOILResolution.AppleIIe1x2:
 		case RECOILResolution.Xe2x2:
 		case RECOILResolution.Xe4x2:
 		case RECOILResolution.St1x2:
@@ -5639,7 +5643,7 @@ public class RECOIL
 	{
 		if (contentLength != 16384)
 			return false;
-		SetSize(560, 384, RECOILResolution.AppleII1x2);
+		SetSize(560, 384, RECOILResolution.AppleIIe1x2);
 		for (int y = 0; y < 192; y++) {
 			int lineOffset = (y & 7) << 10 | (y & 0x38) << 4 | (y >> 6) * 40;
 			for (int x = 0; x < 560; x++) {
@@ -5674,7 +5678,7 @@ public class RECOIL
 	{
 		if (contentLength != 32768)
 			return false;
-		SetSize(320, 200, RECOILResolution.AppleII1x1);
+		SetSize(320, 200, RECOILResolution.AppleIIGS1x1);
 		for (int y = 0; y < 200; y++)
 			DecodeShrLine(content, y, 0x7e00 + ((content[0x7d00 + y] & 0xf) << 5));
 		return true;
@@ -5684,7 +5688,7 @@ public class RECOIL
 	{
 		if (contentLength != 38400)
 			return false;
-		SetSize(320, 200, RECOILResolution.AppleII1x1);
+		SetSize(320, 200, RECOILResolution.AppleIIGS1x1);
 		for (int y = 0; y < 200; y++)
 			DecodeShrLine(content, y, 0x7d1e + (y << 5));
 		return true;
