@@ -91,8 +91,10 @@ enum RECOILResolution
 	C641x1,
 	C642x1,
 	C1281x1,
-	Msx1x1,
-	Msx1x2,
+	Msx11x1,
+	Msx21x1,
+	Msx21x2,
+	Msx2Plus1x1,
 	Oric1x1,
 	Pc1x1,
 	Pc881x2,
@@ -3573,9 +3575,13 @@ public class RECOIL
 			return "Commodore 64";
 		case RECOILResolution.C1281x1:
 			return "Commodore 128";
-		case RECOILResolution.Msx1x1:
-		case RECOILResolution.Msx1x2:
+		case RECOILResolution.Msx11x1:
 			return "MSX";
+		case RECOILResolution.Msx21x1:
+		case RECOILResolution.Msx21x2:
+			return "MSX2";
+		case RECOILResolution.Msx2Plus1x1:
+			return "MSX2+";
 		case RECOILResolution.Oric1x1:
 			return "Oric";
 		case RECOILResolution.Pc1x1:
@@ -3648,7 +3654,7 @@ public class RECOIL
 		case RECOILResolution.St1x2:
 		case RECOILResolution.Ste1x2:
 		case RECOILResolution.Bbc1x2:
-		case RECOILResolution.Msx1x2:
+		case RECOILResolution.Msx21x2:
 		case RECOILResolution.Pc881x2:
 		case RECOILResolution.Timex1x2:
 		case RECOILResolution.Trs1x2:
@@ -3733,7 +3739,7 @@ public class RECOIL
 		case RECOILResolution.Amiga1x2:
 		case RECOILResolution.St1x2:
 		case RECOILResolution.Ste1x2:
-		case RECOILResolution.Msx1x2:
+		case RECOILResolution.Msx21x2:
 		case RECOILResolution.Pc881x2:
 			height <<= 1;
 			break;
@@ -3898,7 +3904,7 @@ public class RECOIL
 
 	void DecodeNibbles(byte[] content, int contentOffset, int contentStride)
 	{
-		int doubleHeight = Resolution == RECOILResolution.Msx1x2 || Resolution == RECOILResolution.Pc881x2 ? 1 : 0;
+		int doubleHeight = Resolution == RECOILResolution.Msx21x2 || Resolution == RECOILResolution.Pc881x2 ? 1 : 0;
 		for (int y = 0; y < Height; ) {
 			for (int x = 0; x < Width; x++)
 				Pixels[y * Width + x] = ContentPalette[GetNibble(content, contentOffset, x)];
@@ -5412,11 +5418,16 @@ public class RECOIL
 	{
 		if (contentLength < 14343 || content[0] != 0xfe || GetMsxHeader(content) < 0x37ff)
 			return false;
-		if (IsMsxPalette(content, 0x1b87))
+		RECOILResolution resolution;
+		if (IsMsxPalette(content, 0x1b87)) {
 			SetMsxPalette(content, 0x1b87);
-		else
+			resolution = RECOILResolution.Msx21x1;
+		}
+		else {
 			SetMsxPalette(Msx1Palette, 0);
-		SetSize(256, 192, RECOILResolution.Msx1x1);
+			resolution = RECOILResolution.Msx11x1;
+		}
+		SetSize(256, 192, resolution);
 		for (int y = 0; y < 192; y++) {
 			int fontOffset = 7 + ((y &0xc0) << 5) + (y & 7);
 			for (int x = 0; x < 256; x++) {
@@ -5454,7 +5465,7 @@ public class RECOIL
 
 	bool DecodeMsx5(byte[] content)
 	{
-		SetSize(256, 212, RECOILResolution.Msx1x1);
+		SetSize(256, 212, RECOILResolution.Msx21x1);
 		DecodeNibbles(content, 7, 128);
 		return true;
 	}
@@ -5506,7 +5517,7 @@ public class RECOIL
 
 	bool DecodeMsx7(byte[] content)
 	{
-		SetSize(512, 212 * 2, RECOILResolution.Msx1x2);
+		SetSize(512, 212 * 2, RECOILResolution.Msx21x2);
 		DecodeNibbles(content, 7, 256);
 		return true;
 	}
@@ -5540,7 +5551,7 @@ public class RECOIL
 			return false;
 		for (int c = 0; c < 256; c++)
 			ContentPalette[c] = GetG3R3B2Color(c);
-		SetSize(256, 212, RECOILResolution.Msx1x1);
+		SetSize(256, 212, RECOILResolution.Msx21x1);
 		DecodeBytes(content, 7);
 		return true;
 	}
@@ -5590,7 +5601,7 @@ public class RECOIL
 		content = UnpackSr(content, contentLength, unpacked);
 		if (content == null)
 			return false;
-		SetSize(256, 212, RECOILResolution.Msx1x1);
+		SetSize(256, 212, RECOILResolution.Msx2Plus1x1);
 		DecodeMsxYjkScreen(content, 7, false);
 		return true;
 	}
@@ -5600,7 +5611,7 @@ public class RECOIL
 		if (contentLength < 64167 || content[0] != 0xfe || GetMsxHeader(content) < 0xd3ff)
 			return false;
 		SetMsxPalette(content, 0xfa87);
-		SetSize(256, 212, RECOILResolution.Msx1x1);
+		SetSize(256, 212, RECOILResolution.Msx2Plus1x1);
 		DecodeMsxYjkScreen(content, 7, true);
 		return true;
 	}
@@ -6118,16 +6129,16 @@ public class RECOIL
 			resolution = (content[headerOffset + 3] & 1) == 0 ? RECOILResolution.Pc981x1 : RECOILResolution.Pc881x2;
 			break;
 		case 0x04:
-			resolution = RECOILResolution.Msx1x2;
+			resolution = RECOILResolution.Msx21x2;
 			break;
 		case 0x14:
 		case 0x54:
-			resolution = RECOILResolution.Msx1x1;
+			resolution = RECOILResolution.Msx21x1;
 			break;
 		case 0x24:
 		case 0x44:
 			width >>= 1;
-			resolution = RECOILResolution.Msx1x1;
+			resolution = RECOILResolution.Msx2Plus1x1;
 			break;
 		default:
 			return false;

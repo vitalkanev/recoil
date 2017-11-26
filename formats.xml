@@ -473,13 +473,15 @@
 		<format name="I Paint" colors="16"><ext>IP</ext></format>
 	</platform>
 	<platform name="MSX" href="http://en.wikipedia.org/wiki/MSX">
-		<format name="Maki-chan Graphics">
-			<ext>MAG</ext>
-			<ext>MAX</ext>
-		</format>
 		<format name="Screen 2" width="256" height="192" colors="15">
 			<ext>SC2</ext>
 			<ext>GRP</ext>
+		</format>
+	</platform>
+	<platform name="MSX2" href="http://en.wikipedia.org/wiki/MSX">
+		<format name="Maki-chan Graphics">
+			<ext>MAG</ext>
+			<ext>MAX</ext>
 		</format>
 		<format name="Screen 5" width="256" height="212" colors="16">
 			<ext>SC5</ext>
@@ -493,12 +495,6 @@
 			<ext>SC8</ext>
 			<ext>PIC</ext>
 		</format>
-		<format name="Screen 10" width="256" height="212" colors="12515"><ext>SCA</ext></format>
-		<format name="Screen 12" width="256" height="212" colors="19268">
-			<ext>SCC</ext>
-			<ext>SRS</ext>
-			<ext>YJK</ext>
-		</format>
 		<format name="Graph Saurus" width="256" height="212" colors="16">
 			<ext>SR5</ext>
 			<companionExt>PL5</companionExt>
@@ -508,6 +504,14 @@
 			<companionExt>PL7</companionExt>
 		</format>
 		<format name="Graph Saurus" width="256" height="212" colors="256"><ext>SR8</ext></format>
+	</platform>
+	<platform name="MSX2+" href="http://en.wikipedia.org/wiki/MSX">
+		<format name="Screen 10" width="256" height="212" colors="12515"><ext>SCA</ext></format>
+		<format name="Screen 12" width="256" height="212" colors="19268">
+			<ext>SCC</ext>
+			<ext>SRS</ext>
+			<ext>YJK</ext>
+		</format>
 	</platform>
 	<platform name="NEC PC-88" href="https://en.wikipedia.org/wiki/PC-8800_Series">
 		<format name="Maki-chan Graphics" colors="8"><ext>MAG</ext></format>
