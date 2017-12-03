@@ -143,6 +143,7 @@
 		<format name="Interlace Studio" width="160" height="200" frames="2"><ext>IST</ext></format>
 		<format name="Jet Graphics Planner" colors="4"><ext>JGP</ext></format>
 		<format name="Kompresor do Animatora" colors="4"><ext>KPR</ext></format>
+		<format name="KSS-Paint" width="160" height="160" colors="4"><ext fake="true">KSS</ext></format>
 		<format name="Ludek Maker" colors="4"><ext>LDM</ext></format>
 		<format name="Larka Edytor Obiektów trybu $4+" colors="5"><ext>LEO</ext></format>
 		<format name="Technicolor Dream" width="80" height="119" colors="256">

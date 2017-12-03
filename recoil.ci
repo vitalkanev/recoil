@@ -10752,6 +10752,17 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeKss(byte[] content, int contentLength)
+	{
+		if (contentLength != 6404)
+			return false;
+		SetSize(320, 160, RECOILResolution.Xe2x1);
+		byte[320 * 160] frame;
+		SetBakPF012(content, 6400, 1);
+		DecodeAtari8Gr15(content, 0, 40, frame, 0, 320, 160);
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodeMic(byte[] content, int contentLength)
 	{
 		if (contentLength == 15872) {
@@ -14167,6 +14178,7 @@ public class RECOIL
 		case PackExt("GIG"):
 		case PackExt("RPM"):
 		case PackExt("KPR"):
+		case PackExt("KSS"):
 		case PackExt("LDM"):
 		case PackExt("LEO"):
 		case PackExt("LP3"):
@@ -14732,6 +14744,8 @@ public class RECOIL
 			return DecodeKoa(content, contentLength);
 		case PackExt("KPR"):
 			return DecodeKpr(content, contentLength);
+		case PackExt("KSS"):
+			return DecodeKss(content, contentLength);
 		case PackExt("LDM"):
 			return DecodeLdm(content, contentLength);
 		case PackExt("LEO"):
