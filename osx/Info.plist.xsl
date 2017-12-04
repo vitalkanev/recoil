@@ -14,7 +14,7 @@
 						<key>LSItemContentTypes</key>
 						<array>
 							<xsl:for-each select="platform">
-								<string><xsl:value-of select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-/ ','abcdefghijklmnopqrstuvwxyz')" />.image</string>
+								<string><xsl:value-of select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ+-/ ','abcdefghijklmnopqrstuvwxyzp')" />.image</string>
 							</xsl:for-each>
 							<string>recoil.image</string>
 						</array>
@@ -67,7 +67,7 @@
 				<key>UTImportedTypeDeclarations</key>
 				<array>
 					<xsl:for-each select="platform">
-						<xsl:variable name="platform" select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-/ ','abcdefghijklmnopqrstuvwxyz')" />
+						<xsl:variable name="platform" select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ+-/ ','abcdefghijklmnopqrstuvwxyzp')" />
 						<dict>
 							<key>UTTypeConformsTo</key>
 							<array>

@@ -97,7 +97,7 @@
 		<ul>
 			<xsl:for-each select="platform">
 				<li>
-					<a href="#{translate(@name, ' /', '--')}">
+					<a href="#{translate(@name, ' +/', '-p-')}">
 						<xsl:value-of select="count(format)" />
 						<xsl:text> format</xsl:text>
 						<xsl:if test="count(format) != 1">s</xsl:if>
@@ -138,7 +138,7 @@
 				<tr>
 					<xsl:if test="not(preceding-sibling::format)">
 						<xsl:attribute name="id">
-							<xsl:value-of select="translate(../@name, ' /', '--')" />
+							<xsl:value-of select="translate(../@name, ' +/', '-p-')" />
 						</xsl:attribute>
 					</xsl:if>
 					<td>
