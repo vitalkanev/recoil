@@ -3137,6 +3137,16 @@ class GedRenderer : GtiaRenderer
 	}
 }
 
+class PgrRenderer : GtiaRenderer
+{
+	int ScreenOffset;
+
+	override int GetPlayfieldByte(int y, int column)
+	{
+		return Content[ScreenOffset + column];
+	}
+}
+
 class MchRenderer : GtiaRenderer
 {
 	bool DliPlus;
@@ -13554,6 +13564,117 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodePgr(byte[] content, int contentLength)
+	{
+		if (contentLength < 1776
+		 || 6 + ParseAtari8ExecutableHeader(content, 0) != contentLength
+		 || content[2] != 6 || content[3] != 0x82
+		 || !IsStringAt(content, 8, "PowerGFX"))
+			return false;
+		PgrRenderer() gtia;
+		for (int i = 0; i < 14; i++) {
+			gtia.Poke(i, content[0x1f8 + i]);
+			gtia.Poke(14 + i, content[0x2f8 + i]);
+		}
+		gtia.Content = content;
+		int dmaCtl = content[0x306];
+		switch (dmaCtl & 0xf3) {
+		case 0x31:
+			gtia.PlayfieldColumns = 32;
+			break;
+		case 0x32:
+			gtia.PlayfieldColumns = 40;
+			break;
+		default:
+			return false;
+		}
+
+		int dlOffset = 0x10;
+		int rasterOffset = content[6] + (content[7] << 8) - 0x8200;
+		if (rasterOffset < 0x600)
+			return false;
+		gtia.ScreenOffset = -1;
+		int a = 0;
+		byte[336 * 240] frame;
+		RECOILResolution resolution = RECOILResolution.Xe4x1;
+		for (int y = 0; y < 240; y++) {
+			int dlOp = content[dlOffset++];
+			switch (dlOp) {
+			case 0x00:
+			case 0x0e:
+			case 0x0f:
+				break;
+			case 0x41:
+				dlOffset--;
+				break;
+			case 0x4e:
+			case 0x4f:
+				gtia.ScreenOffset = content[dlOffset] + (content[dlOffset + 1] << 8) - 0x8200;
+				dlOffset += 2;
+				break;
+			default:
+				return false;
+			}
+
+			AnticMode anticMode;
+			switch (dlOp & 0xf) {
+			case 0xe:
+				anticMode = AnticMode.FourColor;
+				if (resolution == RECOILResolution.Xe4x1 && gtia.Prior < 0x40)
+					resolution = RECOILResolution.Xe2x1;
+				break;
+			case 0xf:
+				anticMode = AnticMode.HiRes;
+				if (gtia.Prior < 0x40)
+					resolution = RECOILResolution.Xe1x1;
+				break;
+			default:
+				anticMode = AnticMode.Blank;
+				break;
+			}
+
+			if (anticMode != AnticMode.Blank
+			 && (gtia.ScreenOffset < 0x600 || gtia.ScreenOffset + 40 > contentLength))
+				return false;
+			gtia.StartLine(0x2c);
+			if ((dmaCtl & 4) != 0)
+				gtia.MissileGraphics = content[0x108 + y];
+			if ((dmaCtl & 8) != 0) {
+				for (int i = 0; i < 4; i++)
+					gtia.PlayerGraphics[i] = content[0x208 + (i << 8) + y];
+			}
+
+			for (;;) {
+				// TODO: pixel-exact
+				if (rasterOffset >= contentLength)
+					return false;
+				int rasterOp = content[rasterOffset++];
+				if ((rasterOp & 0x20) != 0) {
+					if (rasterOffset >= contentLength)
+						return false;
+					a = content[rasterOffset++];
+				}
+				int addr = rasterOp & 0x1f;
+				if (addr <= 0x1b) {
+					gtia.Poke(addr, a);
+					if (rasterOp >= 0x80)
+						break;
+				}
+				else {
+					int nops = (rasterOp >> 6 & 3) | (rasterOp & 3) << 2;
+					if (nops == 0)
+						break;
+				}
+			}
+
+			gtia.DrawSpan(y, 0x2c, 0xd4, anticMode, frame, 336);
+			if (anticMode != AnticMode.Blank)
+				gtia.ScreenOffset += gtia.PlayfieldColumns;
+		}
+		SetSize(336, 240, resolution);
+		return ApplyAtari8Palette(frame);
+	}
+
 	static bool HasG2fRaster(byte[] content, int contentOffset, int count, int hitClr)
 	{
 		do {
@@ -14235,6 +14356,7 @@ public class RECOIL
 		case PackExt("PG3"):
 		case PackExt("PGC"):
 		case PackExt("PGF"):
+		case PackExt("PGR"):
 		case PackExt("PI"):
 		case PackExt("PI1"):
 		case PackExt("PI2"):
@@ -14854,6 +14976,8 @@ public class RECOIL
 			return DecodePgc(content, contentLength);
 		case PackExt("PGF"):
 			return DecodePgf(content, contentLength);
+		case PackExt("PGR"):
+			return DecodePgr(content, contentLength);
 		case PackExt("PI"):
 			return contentLength == 10242 && DecodeC64Multicolor(320, content, 2, 0x2002, 0x2402, content[0x1f82]);
 		case PackExt("PI1"):
