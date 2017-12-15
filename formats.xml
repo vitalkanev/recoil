@@ -125,6 +125,7 @@
 			<ext name="High resolution Color Interlace">HCI</ext>
 			<ext>HR2</ext>
 		</format>
+		<format name="Hard Color Map" width="128" height="192" colors="9"><ext>HCM</ext></format>
 		<format name="Hard Interlace Picture" width="160" height="200" grayscale="30" frames="2"><ext>HIP</ext></format>
 		<format name="Grass' Slideshow" width="160" height="192" colors="4"><ext>HPM</ext></format>
 		<format width="256" height="239" colors="3" frames="2"><ext>HR</ext></format>

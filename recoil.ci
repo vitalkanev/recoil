@@ -3129,6 +3129,14 @@ abstract class GtiaRenderer
 	}
 }
 
+class HcmRenderer : GtiaRenderer
+{
+	override int GetPlayfieldByte(int y, int column)
+	{
+		return Content[0x810 + (y << 5) + column];
+	}
+}
+
 class GedRenderer : GtiaRenderer
 {
 	override int GetPlayfieldByte(int y, int column)
@@ -13514,6 +13522,53 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeHcm(byte[] content, int contentLength)
+	{
+		if (contentLength != 8208 || !IsStringAt(content, 0, "HCMA8") || content[5] != 1)
+			return false;
+		HcmRenderer() gtia;
+		int leftSprite;
+		switch (content[6]) {
+		case 0:
+			leftSprite = 2;
+			gtia.Prior = 0x00;
+			break;
+		case 2:
+			leftSprite = 1;
+			gtia.Prior = 0x24;
+			break;
+		default:
+			return false;
+		}
+		gtia.PlayerHpos[3] = gtia.PlayerHpos[3 - leftSprite] = 0x68;
+		gtia.MissileHpos[leftSprite] = gtia.MissileHpos[0] = 0x88;
+		gtia.MissileHpos[3] = gtia.MissileHpos[3 - leftSprite] = 0x90;
+		for (int i = 0; i < 4; i++)
+			gtia.MissileSize[i] = gtia.PlayerSize[i] = 4;
+		gtia.Colors[8] = content[7] & 0xfe; // COLBAK
+		gtia.Colors[3 - leftSprite] = gtia.Colors[0] = content[8] & 0xfe; // COLPM0, COLPM1/2
+		gtia.Colors[3] = gtia.Colors[leftSprite] = content[9] & 0xfe; // COLPM2/1, COLPM3
+		gtia.Colors[4] = content[10] & 0xfe; // COLPF0
+		gtia.Colors[5] = content[11] & 0xfe; // COLPF1
+		gtia.Colors[6] = content[12] & 0xfe; // COLPF2
+		gtia.Content = content;
+		gtia.PlayfieldColumns = 32;
+
+		SetSize(256, 192, RECOILResolution.Xe2x1);
+		byte[256 * 192] frame;
+		for (int y = 0; y < 192; y++) {
+			gtia.PlayerHpos[leftSprite] = gtia.PlayerHpos[0] = 0x48;
+			gtia.ProcessSpriteDma(content, 0x330 + y);
+			gtia.StartLine(0x40);
+			gtia.DrawSpan(y, 0x40, 0x80, AnticMode.FourColor, frame, 256);
+			gtia.PlayerHpos[leftSprite] = gtia.PlayerHpos[0] = 0x98;
+			gtia.PlayerGraphics[0] = content[0x30 + y];
+			gtia.PlayerGraphics[leftSprite] = content[0x130 + y];
+			gtia.DrawSpan(y, 0x80, 0xc0, AnticMode.FourColor, frame, 256);
+		}
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodeGed(byte[] content, int contentLength)
 	{
 		if (contentLength != 11302
@@ -14229,6 +14284,7 @@ public class RECOIL
 		case PackExt("GR8"):
 		case PackExt("GR9"):
 		case PackExt("GUN"):
+		case PackExt("HCM"):
 		case PackExt("HED"):
 		case PackExt("HFC"):
 		case PackExt("HGB"):
@@ -14744,6 +14800,8 @@ public class RECOIL
 			return DecodeSc2(content, contentLength);
 		case PackExt("GUN"):
 			return DecodeGun(content, contentLength);
+		case PackExt("HCM"):
+			return DecodeHcm(content, contentLength);
 		case PackExt("HED"):
 			return DecodeHed(content, contentLength);
 		case PackExt("HFC"):
