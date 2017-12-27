@@ -1,7 +1,7 @@
 /*
  * FileUtil.java - RECOIL for Android
  *
- * Copyright (C) 2013-2016  Piotr Fusik
+ * Copyright (C) 2013-2017  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -26,6 +26,7 @@ package net.sf.recoil;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.view.MenuItem;
 import java.io.File;
@@ -52,9 +53,20 @@ abstract class FileUtil
 		return displayName;
 	}
 
-	static Uri getRootDirectory()
+	static Uri getInternalStorage()
 	{
-		return Uri.parse("file:///");
+		return Uri.fromFile(Environment.getExternalStorageDirectory());
+	}
+
+	static Uri getSdCard(Context context)
+	{
+		String path = AndroidSupport.getInstance().getSdCard(context);
+		if (path != null) {
+			File file = new File(path);
+			if (file.isDirectory())
+				return Uri.fromFile(file);
+		}
+		return null;
 	}
 
 	static boolean isZip(String filename)

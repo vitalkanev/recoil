@@ -1,7 +1,7 @@
 /*
  * AndroidSupport.java - RECOIL for Android
  *
- * Copyright (C) 2016  Piotr Fusik
+ * Copyright (C) 2016-2017  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -24,12 +24,12 @@
 package net.sf.recoil;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.text.TextUtils;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
@@ -39,18 +39,13 @@ class AndroidSupport
 	static AndroidSupport getInstance()
 	{
 		int api = Build.VERSION.SDK_INT;
+		if (api >= Build.VERSION_CODES.KITKAT)
+			return new Android19Support();
 		if (api >= Build.VERSION_CODES.HONEYCOMB_MR1)
 			return new Android12Support();
 		if (api >= Build.VERSION_CODES.HONEYCOMB)
 			return new Android11Support();
-		if (api >= Build.VERSION_CODES.FROYO)
-			return new Android8Support();
 		return new AndroidSupport();
-	}
-
-	Uri getDownloadsDirectory()
-	{
-		return null;
 	}
 
 	Set<String> getStringSet(SharedPreferences preferences, String key, Set<String> defValues)
@@ -73,18 +68,14 @@ class AndroidSupport
 	void setHasAlpha(Bitmap bitmap, boolean hasAlpha)
 	{
 	}
-}
 
-class Android8Support extends AndroidSupport
-{
-	@Override
-	Uri getDownloadsDirectory()
+	String getSdCard(Context context)
 	{
-		return Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS));
+		return "/storage/sdcard1";
 	}
 }
 
-class Android11Support extends Android8Support
+class Android11Support extends AndroidSupport
 {
 	@Override
 	Set<String> getStringSet(SharedPreferences preferences, String key, Set<String> defValues)
@@ -111,5 +102,22 @@ class Android12Support extends Android11Support
 	void setHasAlpha(Bitmap bitmap, boolean hasAlpha)
 	{
 		bitmap.setHasAlpha(hasAlpha);
+	}
+}
+
+class Android19Support extends Android12Support
+{
+	private static final String EXTERNAL_DIR = "/Android/data/net.sf.recoil/files";
+
+	@Override
+	String getSdCard(Context context)
+	{
+		File[] dirs = context.getExternalFilesDirs(null);
+		if (dirs.length > 1) {
+			String path = dirs[1].getPath();
+			if (path.endsWith(EXTERNAL_DIR))
+				return path.substring(0, path.length() - EXTERNAL_DIR.length());
+		}
+		return super.getSdCard(context);
 	}
 }
