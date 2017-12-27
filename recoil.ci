@@ -10090,6 +10090,7 @@ public class RECOIL
 						rast.ContentOffset = nextChunkOffset + 8;
 						rast.ContentLength = contentLength;
 						multiPalette = rast;
+						resolution = RECOILResolution.Ste1x1;
 					}
 					else if (IsStringAt(content, chunkEndOffset, "RAST")) {
 						// unaligned chunk, not conforming to the IFF format
@@ -10097,6 +10098,7 @@ public class RECOIL
 						rast.ContentOffset = chunkEndOffset + 8;
 						rast.ContentLength = contentLength;
 						multiPalette = rast;
+						resolution = RECOILResolution.Ste1x1;
 					}
 				}
 				return DecodeIffUnpacked(unpacked, width, height, resolution, bitplanes, colors, camg, multiPalette);
@@ -14992,7 +14994,7 @@ public class RECOIL
 			return DecodeMur(filename, content, contentLength);
 		case PackExt("NEO"):
 			return DecodeNeo(filename, content, contentLength)
-				|| DecodeIff(content, contentLength, RECOILResolution.St1x1);
+				|| DecodeIff(content, contentLength, RECOILResolution.Ste1x1);
 		case PackExt("NLQ"):
 			return DecodeNlq(content, contentLength);
 		case PackExt("OCP"):
