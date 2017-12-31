@@ -61,6 +61,9 @@ paint.net/RecoilFileTypeFactory.cs: paint.net/RecoilFileTypeFactory.cs.xsl ../fo
 paint.net/RECOIL.cs: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../c64.fnt ../zx81.fnt
 	$(DO)$(CITO) -o $@ -I .. -n Recoil $<
 
+i686/by-platform.exe: by-platform.c recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h
+	$(DO)$(CC)
+
 ../formats.h: ../formats.h.xsl ../formats.xml
 	$(DO)$(XSLTPROC)
 
