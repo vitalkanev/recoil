@@ -1,7 +1,7 @@
 /*
  * Viewer.java - RECOIL for Android
  *
- * Copyright (C) 2013-2016  Piotr Fusik
+ * Copyright (C) 2013-2017  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -165,7 +165,9 @@ public class Viewer extends Activity implements AdapterView.OnItemSelectedListen
 		gallery.setHorizontalFadingEdgeEnabled(false);
 		gallery.setAdapter(new GalleryAdapter(this));
 		gallery.setOnItemSelectedListener(this);
-		gallery.setSelection(filenames.indexOf(filename));
+		int index = filenames.indexOf(filename);
+		if (index >= 0)
+			gallery.setSelection(index);
 		setContentView(gallery);
 	}
 

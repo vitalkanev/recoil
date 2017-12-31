@@ -24,6 +24,7 @@
 package net.sf.recoil;
 
 import android.app.ListActivity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -35,14 +36,43 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.TreeSet;
 
 public class FileSelector extends ListActivity
 {
 	private Uri uri;
+	private int directoryCount;
 	private boolean isSearch;
+
+	private boolean isDirectoryOrZip(int position)
+	{
+		if (position < directoryCount)
+			return true;
+		String name = (String) getListAdapter().getItem(position);
+		return FileUtil.isZip(name);
+	}
+
+	private class FileAdapter extends ArrayAdapter<String>
+	{
+		private FileAdapter(Collection<String> directories, Collection<String> files)
+		{
+			super(FileSelector.this, R.layout.filename_list_item);
+			addAll(directories);
+			addAll(files);
+		}
+
+		public View getView(int position, View convertView, ViewGroup parent)
+		{
+			TextView view = (TextView) super.getView(position, convertView, parent);
+			int icon = isDirectoryOrZip(position) ? R.drawable.ic_folder : R.drawable.ic_image;
+			view.setCompoundDrawablesWithIntrinsicBounds(icon, 0, 0, 0);
+			return view;
+		}
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState)
@@ -62,24 +92,25 @@ public class FileSelector extends ListActivity
 		int emptyViewId;
 		try {
 			files = FileUtil.list(uri, directories);
-			files.addAll(0, directories);
 			emptyViewId = R.layout.no_files;
 		}
 		catch (IOException ex) {
 			files = new ArrayList<String>();
+			directories.clear();
 			emptyViewId = R.layout.access_denied;
 		}
 		View emptyView = getLayoutInflater().inflate(emptyViewId, null);
 		((ViewGroup) listView.getParent()).addView(emptyView);
 		listView.setEmptyView(emptyView);
-		setListAdapter(new ArrayAdapter<String>(this, R.layout.filename_list_item, files));
+		directoryCount = directories.size();
+		setListAdapter(new FileAdapter(directories, files));
 	}
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id)
 	{
 		String name = (String) l.getItemAtPosition(position);
-		Class klass = RECOIL.isOurFile(name) ? Viewer.class : FileSelector.class;
+		Class klass = isDirectoryOrZip(position) ? FileSelector.class : Viewer.class;
 		Intent intent = new Intent(Intent.ACTION_VIEW, FileUtil.buildUri(uri, name), this, klass);
 		startActivity(intent);
 	}

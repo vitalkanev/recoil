@@ -75,6 +75,15 @@ abstract class FileUtil
 		return n >= 4 && filename.regionMatches(true, n - 4, ".zip", 0, 4);
 	}
 
+	private static String getZipPath(String path)
+	{
+		if (path == null || path.length() == 0)
+			return "";
+		if (path.endsWith("/"))
+			return path;
+		return path + '/';
+	}
+
 	private static void listDirectory(File dir, TreeSet<String> directories, ArrayList<String> files) throws IOException
 	{
 		File[] entries = dir.listFiles();
@@ -84,7 +93,7 @@ abstract class FileUtil
 			String name = entry.getName();
 			if (entry.isDirectory()) {
 				if (directories != null)
-					directories.add(name + '/');
+					directories.add(name);
 			}
 			else if (RECOIL.isOurFile(name))
 				files.add(name);
@@ -95,8 +104,7 @@ abstract class FileUtil
 
 	private static void listZipDirectory(File zipFile, String zipPath, TreeSet<String> directories, ArrayList<String> files) throws IOException
 	{
-		if (zipPath == null)
-			zipPath = "";
+		zipPath = getZipPath(zipPath);
 		int zipPathLen = zipPath.length();
 		ZipFile zip = new ZipFile(zipFile);
 		try {
@@ -110,8 +118,8 @@ abstract class FileUtil
 						if (i >= 0) {
 							// file in a subdirectory
 							if (directories != null) {
-								// add subdirectory with the trailing slash
-								directories.add(name.substring(zipPathLen, i + 1));
+								// add subdirectory
+								directories.add(name.substring(zipPathLen, i));
 							}
 						}
 						else
@@ -146,10 +154,7 @@ abstract class FileUtil
 	{
 		if (isZip(baseUri.getPath())) {
 			String zipPath = baseUri.getFragment();
-			if (zipPath == null)
-				zipPath = relativePath;
-			else
-				zipPath += relativePath;
+			zipPath = getZipPath(zipPath) + relativePath;
 			return baseUri.buildUpon().fragment(zipPath).build();
 		}
 		return Uri.withAppendedPath(baseUri, Uri.encode(relativePath));
