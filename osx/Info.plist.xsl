@@ -53,7 +53,7 @@
 				<key>CFPlugInUnloadFunction</key>
 				<string></string>
 				<key>NSHumanReadableCopyright</key>
-				<string>Copyright © 2014-2017 Piotr Fusik, Adrian Matoga, Petri Pyy. All rights reserved.</string>
+				<string>Copyright © 2014-2018 Piotr Fusik, Adrian Matoga, Petri Pyy. All rights reserved.</string>
 				<key>QLNeedsToBeRunInMainThread</key>
 				<false/>
 				<key>QLPreviewHeight</key>
