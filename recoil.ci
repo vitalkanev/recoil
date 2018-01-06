@@ -5565,16 +5565,35 @@ public class RECOIL
 		return DecodeMsx7(content);
 	}
 
+	void SetSc8Palette()
+	{
+		for (int c = 0; c < 256; c++)
+			ContentPalette[c] = GetG3R3B2Color(c);
+	}
+
 	bool DecodeSc8(byte[] content, int contentLength)
 	{
 		byte[54279] unpacked = 0;
 		content = UnpackSr(content, contentLength, unpacked);
 		if (content == null)
 			return false;
-		for (int c = 0; c < 256; c++)
-			ContentPalette[c] = GetG3R3B2Color(c);
+		SetSc8Palette();
 		SetSize(256, 212, RECOILResolution.Msx21x1);
 		DecodeBytes(content, 7);
+		return true;
+	}
+
+	bool DecodeGl8(byte[] content, int contentLength)
+	{
+		if (contentLength < 5)
+			return false;
+		int width = content[0] | content[1] << 8;
+		int height = content[2] | content[3] << 8;
+		if (contentLength != 4 + width * height
+		 || !SetSize(width, height, RECOILResolution.Msx21x1))
+			return false;
+		SetSc8Palette();
+		DecodeBytes(content, 4);
 		return true;
 	}
 
@@ -14278,6 +14297,7 @@ public class RECOIL
 		case PackExt("GFB"):
 		case PackExt("GG"):
 		case PackExt("GHG"):
+		case PackExt("GL8"):
 		case PackExt("GOD"):
 		case PackExt("GR1"):
 		case PackExt("GR2"):
@@ -14784,6 +14804,8 @@ public class RECOIL
 			return DecodeGg(content, contentLength);
 		case PackExt("GHG"):
 			return DecodeGhg(content, contentLength);
+		case PackExt("GL8"):
+			return DecodeGl8(content, contentLength);
 		case PackExt("GOD"):
 			return DecodeGod(content, contentLength);
 		case PackExt("GR1"):
