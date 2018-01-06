@@ -5514,21 +5514,6 @@ public class RECOIL
 		return DecodeMsx5(content);
 	}
 
-	bool DecodeGl5(string filename, byte[] content, int contentLength)
-	{
-		if (contentLength < 5)
-			return false;
-		int width = content[0] | content[1] << 8;
-		int height = content[2] | content[3] << 8;
-		int contentStride = width + 1 >> 1;
-		if (contentLength != 4 + contentStride * height
-		 || !SetSize(width, height, RECOILResolution.Msx21x1))
-			return false;
-		SetMsxCompanionPalette(filename, "PL5", "pl5");
-		DecodeNibbles(content, 4, contentStride);
-		return true;
-	}
-
 	static byte[] UnpackSr(byte[] content, int contentLength, byte[] unpacked)
 	{
 		if (contentLength < 7)
@@ -5579,6 +5564,28 @@ public class RECOIL
 		SetMsxCompanionPalette(filename, "PL7", "pl7");
 		return DecodeMsx7(content);
 	}
+
+	bool DecodeGl16(string filename, byte[] content, int contentLength,
+		RECOILResolution resolution, string upperExt, string lowerExt)
+	{
+		if (contentLength < 5)
+			return false;
+		int width = content[0] | content[1] << 8;
+		int height = content[2] | content[3] << 8;
+		int contentStride = width + 1 >> 1;
+		if (contentLength != 4 + contentStride * height
+		 || !SetScaledSize(width, height, resolution))
+			return false;
+		SetMsxCompanionPalette(filename, upperExt, lowerExt);
+		DecodeNibbles(content, 4, contentStride);
+		return true;
+	}
+
+	bool DecodeGl5(string filename, byte[] content, int contentLength)
+		return DecodeGl16(filename, content, contentLength, RECOILResolution.Msx21x1, "PL5", "pl5");
+
+	bool DecodeGl7(string filename, byte[] content, int contentLength)
+		return DecodeGl16(filename, content, contentLength, RECOILResolution.Msx21x2, "PL7", "pl7");
 
 	void SetSc8Palette()
 	{
@@ -14313,6 +14320,7 @@ public class RECOIL
 		case PackExt("GG"):
 		case PackExt("GHG"):
 		case PackExt("GL5"):
+		case PackExt("GL7"):
 		case PackExt("GL8"):
 		case PackExt("GOD"):
 		case PackExt("GR1"):
@@ -14822,6 +14830,8 @@ public class RECOIL
 			return DecodeGhg(content, contentLength);
 		case PackExt("GL5"):
 			return DecodeGl5(filename, content, contentLength);
+		case PackExt("GL7"):
+			return DecodeGl7(filename, content, contentLength);
 		case PackExt("GL8"):
 			return DecodeGl8(content, contentLength);
 		case PackExt("GOD"):
