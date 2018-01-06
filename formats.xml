@@ -486,6 +486,10 @@
 		</format>
 	</platform>
 	<platform name="MSX2" href="http://en.wikipedia.org/wiki/MSX">
+		<format colors="16">
+			<ext>GL5</ext>
+			<companionExt>PL5</companionExt>
+		</format>
 		<format colors="256"><ext>GL8</ext></format>
 		<format name="Maki-chan Graphics">
 			<ext>MAG</ext>

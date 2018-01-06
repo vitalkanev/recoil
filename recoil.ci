@@ -5514,6 +5514,21 @@ public class RECOIL
 		return DecodeMsx5(content);
 	}
 
+	bool DecodeGl5(string filename, byte[] content, int contentLength)
+	{
+		if (contentLength < 5)
+			return false;
+		int width = content[0] | content[1] << 8;
+		int height = content[2] | content[3] << 8;
+		int contentStride = width + 1 >> 1;
+		if (contentLength != 4 + contentStride * height
+		 || !SetSize(width, height, RECOILResolution.Msx21x1))
+			return false;
+		SetMsxCompanionPalette(filename, "PL5", "pl5");
+		DecodeNibbles(content, 4, contentStride);
+		return true;
+	}
+
 	static byte[] UnpackSr(byte[] content, int contentLength, byte[] unpacked)
 	{
 		if (contentLength < 7)
@@ -14297,6 +14312,7 @@ public class RECOIL
 		case PackExt("GFB"):
 		case PackExt("GG"):
 		case PackExt("GHG"):
+		case PackExt("GL5"):
 		case PackExt("GL8"):
 		case PackExt("GOD"):
 		case PackExt("GR1"):
@@ -14804,6 +14820,8 @@ public class RECOIL
 			return DecodeGg(content, contentLength);
 		case PackExt("GHG"):
 			return DecodeGhg(content, contentLength);
+		case PackExt("GL5"):
+			return DecodeGl5(filename, content, contentLength);
 		case PackExt("GL8"):
 			return DecodeGl8(content, contentLength);
 		case PackExt("GOD"):
