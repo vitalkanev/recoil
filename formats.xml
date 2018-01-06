@@ -519,6 +519,10 @@
 			<ext>SR5</ext>
 			<companionExt>PL5</companionExt>
 		</format>
+		<format name="Graph Saurus" width="512" height="212" colors="4">
+			<ext>SR6</ext>
+			<companionExt>PL6</companionExt>
+		</format>
 		<format name="Graph Saurus" width="512" height="212" colors="16">
 			<ext>SR7</ext>
 			<companionExt>PL7</companionExt>

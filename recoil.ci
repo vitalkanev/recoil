@@ -5514,6 +5514,44 @@ public class RECOIL
 		return DecodeMsx5(content);
 	}
 
+	bool DecodeMsx6(string filename, byte[] content, int contentOffset, int contentLength, int width, int height)
+	{
+		if (!SetSize(width, height << 1, RECOILResolution.Msx21x2))
+			return false;
+		byte[8] palette;
+		if (ReadCompanionFile(filename, "PL6", "pl6", palette, 8) == 8)
+			SetMsxPalette(palette, 0, 4);
+		else {
+			ContentPalette[0] = 0x000000;
+			ContentPalette[1] = 0x249224; // from index 12
+			ContentPalette[2] = 0x24db24;
+			ContentPalette[3] = 0x6dff6d;
+		}
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int offset = (y * width << 1) + x;
+				Pixels[offset + width] = Pixels[offset] =
+					ContentPalette[content[contentOffset + (y * width + x >> 2)] >> ((~x & 3) << 1) & 3];
+			}
+		}
+		return true;
+	}
+
+	bool DecodeSr6(string filename, byte[] content, int contentLength)
+		return contentLength >= 27143 && content[0] == 0xfe
+			&& DecodeMsx6(filename, content, 7, contentLength, 512, 212);
+
+	bool DecodeGl6(string filename, byte[] content, int contentLength)
+	{
+		if (contentLength < 5)
+			return false;
+		int width = content[0] | content[1] << 8;
+		int height = content[2] | content[3] << 8;
+		return (width & 3) == 0
+			&& contentLength == 4 + (width >> 2) * height
+			&& DecodeMsx6(filename, content, 4, contentLength, width, height);
+	}
+
 	static byte[] UnpackSr(byte[] content, int contentLength, byte[] unpacked)
 	{
 		if (contentLength < 7)
@@ -5563,35 +5601,6 @@ public class RECOIL
 			return false;
 		SetMsxCompanionPalette(filename, "PL7", "pl7");
 		return DecodeMsx7(content);
-	}
-
-	bool DecodeGl6(string filename, byte[] content, int contentLength)
-	{
-		if (contentLength < 5)
-			return false;
-		int width = content[0] | content[1] << 8;
-		int height = content[2] | content[3] << 8;
-		if ((width & 3) != 0
-		 || contentLength != 4 + (width >> 2) * height
-		 || !SetSize(width, height << 1, RECOILResolution.Msx21x2))
-			return false;
-		byte[8] palette;
-		if (ReadCompanionFile(filename, "PL6", "pl6", palette, 8) == 8)
-			SetMsxPalette(palette, 0, 4);
-		else {
-			ContentPalette[0] = 0x000000;
-			ContentPalette[1] = 0x249224; // from index 12
-			ContentPalette[2] = 0x24db24;
-			ContentPalette[3] = 0x6dff6d;
-		}
-		for (int y = 0; y < height; y++) {
-			for (int x = 0; x < width; x++) {
-				int offset = (y * width << 1) + x;
-				Pixels[offset + width] = Pixels[offset] =
-					ContentPalette[content[4 + (y * width + x >> 2)] >> ((~x & 3) << 1) & 3];
-			}
-		}
-		return true;
 	}
 
 	bool DecodeGl16(string filename, byte[] content, int contentLength,
@@ -14587,6 +14596,7 @@ public class RECOIL
 		case PackExt("SPU"):
 		case PackExt("SPX"):
 		case PackExt("SR5"):
+		case PackExt("SR6"):
 		case PackExt("SR7"):
 		case PackExt("SRT"):
 		case PackExt("SSB"):
@@ -15292,6 +15302,8 @@ public class RECOIL
 			return DecodeSpx(content, contentLength);
 		case PackExt("SR5"):
 			return DecodeSr5(filename, content, contentLength);
+		case PackExt("SR6"):
+			return DecodeSr6(filename, content, contentLength);
 		case PackExt("SR7"):
 			return DecodeSr7(filename, content, contentLength);
 		case PackExt("SRT"):
