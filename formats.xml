@@ -490,6 +490,10 @@
 			<ext>GL5</ext>
 			<companionExt>PL5</companionExt>
 		</format>
+		<format colors="4">
+			<ext>GL6</ext>
+			<companionExt>PL6</companionExt>
+		</format>
 		<format colors="16">
 			<ext>GL7</ext>
 			<companionExt>PL7</companionExt>
