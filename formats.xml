@@ -522,6 +522,10 @@
 		<format name="Graph Saurus" width="256" height="212" colors="256"><ext>SR8</ext></format>
 	</platform>
 	<platform name="MSX2+" href="http://en.wikipedia.org/wiki/MSX">
+		<format colors="19268">
+			<ext>GLC</ext>
+			<ext>GLS</ext>
+		</format>
 		<format name="Screen 10" width="256" height="212" colors="12515"><ext>SCA</ext></format>
 		<format name="Screen 12" width="256" height="212" colors="19268">
 			<ext>SCC</ext>

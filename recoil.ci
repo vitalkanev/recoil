@@ -5669,6 +5669,20 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeGlc(byte[] content, int contentLength)
+	{
+		if (contentLength < 8)
+			return false;
+		int width = content[0] | content[1] << 8;
+		int height = content[2] | content[3] << 8;
+		if ((width & 3) != 0
+		 || contentLength != 4 + width * height
+		 || !SetSize(width, height, RECOILResolution.Msx2Plus1x1))
+			return false;
+		DecodeMsxYjkScreen(content, 4, false);
+		return true;
+	}
+
 	bool DecodeSca(byte[] content, int contentLength)
 	{
 		if (contentLength < 64167 || content[0] != 0xfe || GetMsxHeader(content) < 0xd3ff)
@@ -14322,6 +14336,8 @@ public class RECOIL
 		case PackExt("GL5"):
 		case PackExt("GL7"):
 		case PackExt("GL8"):
+		case PackExt("GLC"):
+		case PackExt("GLS"):
 		case PackExt("GOD"):
 		case PackExt("GR1"):
 		case PackExt("GR2"):
@@ -14834,6 +14850,9 @@ public class RECOIL
 			return DecodeGl7(filename, content, contentLength);
 		case PackExt("GL8"):
 			return DecodeGl8(content, contentLength);
+		case PackExt("GLC"):
+		case PackExt("GLS"):
+			return DecodeGlc(content, contentLength);
 		case PackExt("GOD"):
 			return DecodeGod(content, contentLength);
 		case PackExt("GR1"):
