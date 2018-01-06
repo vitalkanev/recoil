@@ -5669,7 +5669,17 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodeGlc(byte[] content, int contentLength)
+	bool DecodeSca(byte[] content, int contentLength)
+	{
+		if (contentLength < 64167 || content[0] != 0xfe || GetMsxHeader(content) < 0xd3ff)
+			return false;
+		SetMsxPalette(content, 0xfa87);
+		SetSize(256, 212, RECOILResolution.Msx2Plus1x1);
+		DecodeMsxYjkScreen(content, 7, true);
+		return true;
+	}
+
+	bool DecodeGlYjk(string filename, byte[] content, int contentLength)
 	{
 		if (contentLength < 8)
 			return false;
@@ -5679,17 +5689,9 @@ public class RECOIL
 		 || contentLength != 4 + width * height
 		 || !SetSize(width, height, RECOILResolution.Msx2Plus1x1))
 			return false;
-		DecodeMsxYjkScreen(content, 4, false);
-		return true;
-	}
-
-	bool DecodeSca(byte[] content, int contentLength)
-	{
-		if (contentLength < 64167 || content[0] != 0xfe || GetMsxHeader(content) < 0xd3ff)
-			return false;
-		SetMsxPalette(content, 0xfa87);
-		SetSize(256, 212, RECOILResolution.Msx2Plus1x1);
-		DecodeMsxYjkScreen(content, 7, true);
+		if (filename != null)
+			SetMsxCompanionPalette(filename, "PLA", "pla");
+		DecodeMsxYjkScreen(content, 4, filename != null);
 		return true;
 	}
 
@@ -14336,6 +14338,7 @@ public class RECOIL
 		case PackExt("GL5"):
 		case PackExt("GL7"):
 		case PackExt("GL8"):
+		case PackExt("GLA"):
 		case PackExt("GLC"):
 		case PackExt("GLS"):
 		case PackExt("GOD"):
@@ -14850,9 +14853,11 @@ public class RECOIL
 			return DecodeGl7(filename, content, contentLength);
 		case PackExt("GL8"):
 			return DecodeGl8(content, contentLength);
+		case PackExt("GLA"):
+			return DecodeGlYjk(filename, content, contentLength);
 		case PackExt("GLC"):
 		case PackExt("GLS"):
-			return DecodeGlc(content, contentLength);
+			return DecodeGlYjk(null, content, contentLength);
 		case PackExt("GOD"):
 			return DecodeGod(content, contentLength);
 		case PackExt("GR1"):

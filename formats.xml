@@ -522,6 +522,10 @@
 		<format name="Graph Saurus" width="256" height="212" colors="256"><ext>SR8</ext></format>
 	</platform>
 	<platform name="MSX2+" href="http://en.wikipedia.org/wiki/MSX">
+		<format colors="12515">
+			<ext>GLA</ext>
+			<companionExt>PLA</companionExt>
+		</format>
 		<format colors="19268">
 			<ext>GLC</ext>
 			<ext>GLS</ext>
