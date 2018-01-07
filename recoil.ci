@@ -5514,10 +5514,29 @@ public class RECOIL
 		return DecodeMsx5(content);
 	}
 
-	bool DecodeMsx6(string filename, byte[] content, int contentOffset, int contentLength, int width, int height)
+	void DecodeMsx6(byte[] content, int contentOffset)
 	{
-		if (!SetSize(width, height << 1, RECOILResolution.Msx21x2))
+		for (int y = 0; y < Height >> 1; y++) {
+			for (int x = 0; x < Width; x++) {
+				int offset = (y * Width << 1) + x;
+				Pixels[offset + Width] = Pixels[offset] =
+					ContentPalette[content[contentOffset + (y * Width + x >> 2)] >> ((~x & 3) << 1) & 3];
+			}
+		}
+	}
+
+	bool DecodeSc6(byte[] content, int contentLength)
+	{
+		if (contentLength < 30351 || content[0] != 0xfe || GetMsxHeader(content) < 0x769f)
 			return false;
+		SetSize(512, 424, RECOILResolution.Msx21x2);
+		SetMsxPalette(content, 0x7687, 4);
+		DecodeMsx6(content, 7);
+		return true;
+	}
+
+	void SetMsx6Palette(string filename)
+	{
 		byte[8] palette;
 		if (ReadCompanionFile(filename, "PL6", "pl6", palette, 8) == 8)
 			SetMsxPalette(palette, 0, 4);
@@ -5527,19 +5546,17 @@ public class RECOIL
 			ContentPalette[2] = 0x24db24;
 			ContentPalette[3] = 0x6dff6d;
 		}
-		for (int y = 0; y < height; y++) {
-			for (int x = 0; x < width; x++) {
-				int offset = (y * width << 1) + x;
-				Pixels[offset + width] = Pixels[offset] =
-					ContentPalette[content[contentOffset + (y * width + x >> 2)] >> ((~x & 3) << 1) & 3];
-			}
-		}
-		return true;
 	}
 
 	bool DecodeSr6(string filename, byte[] content, int contentLength)
-		return contentLength >= 27143 && content[0] == 0xfe
-			&& DecodeMsx6(filename, content, 7, contentLength, 512, 212);
+	{
+		if (contentLength < 27143 || content[0] != 0xfe)
+			return false;
+		SetSize(512, 424, RECOILResolution.Msx21x2);
+		SetMsx6Palette(filename);
+		DecodeMsx6(content, 7);
+		return true;
+	}
 
 	bool DecodeGl6(string filename, byte[] content, int contentLength)
 	{
@@ -5547,9 +5564,13 @@ public class RECOIL
 			return false;
 		int width = content[0] | content[1] << 8;
 		int height = content[2] | content[3] << 8;
-		return (width & 3) == 0
-			&& contentLength == 4 + (width >> 2) * height
-			&& DecodeMsx6(filename, content, 4, contentLength, width, height);
+		if ((width & 3) != 0
+		 || contentLength != 4 + (width >> 2) * height
+		 || !SetSize(width, height << 1, RECOILResolution.Msx21x2))
+			return false;
+		SetMsx6Palette(filename);
+		DecodeMsx6(content, 4);
+		return true;
 	}
 
 	static byte[] UnpackSr(byte[] content, int contentLength, byte[] unpacked)
@@ -14567,6 +14588,7 @@ public class RECOIL
 		case PackExt("GRP"):
 		case PackExt("SC5"):
 		case PackExt("GE5"):
+		case PackExt("SC6"):
 		case PackExt("SC7"):
 		case PackExt("GE7"):
 		case PackExt("SC8"):
@@ -15247,6 +15269,8 @@ public class RECOIL
 		case PackExt("SC5"):
 		case PackExt("GE5"):
 			return DecodeSc5(content, contentLength);
+		case PackExt("SC6"):
+			return DecodeSc6(content, contentLength);
 		case PackExt("SC7"):
 		case PackExt("GE7"):
 			return DecodeSc7(content, contentLength);
