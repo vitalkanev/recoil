@@ -5505,7 +5505,8 @@ public class RECOIL
 		SetMsxPalette(content, 0x7687, 16);
 		byte[27143] interlace;
 		if (ReadCompanionFile(filename, "S15", "s15", interlace, 27143) != 27143
-		 || interlace[0] != 0xfe)
+		 || interlace[0] != 0xfe
+		 || GetMsxHeader(interlace) < 0x69ff)
 			return DecodeMsx5(content);
 		SetSize(512, 424, RECOILResolution.Msx22x1);
 		Frames = 2;
@@ -5549,7 +5550,8 @@ public class RECOIL
 		SetMsxPalette(content, 0x7687, 4);
 		byte[27143] interlace;
 		if (ReadCompanionFile(filename, "S16", "s16", interlace, 27143) != 27143
-		 || interlace[0] != 0xfe) {
+		 || interlace[0] != 0xfe
+		 || GetMsxHeader(interlace) < 0x69ff) {
 			SetSize(512, 424, RECOILResolution.Msx21x2);
 			return DecodeMsx6(content, 7);
 		}
@@ -5578,7 +5580,7 @@ public class RECOIL
 
 	bool DecodeSr6(string filename, byte[] content, int contentLength)
 	{
-		if (contentLength < 27143 || content[0] != 0xfe)
+		if (contentLength < 27143 || content[0] != 0xfe || GetMsxHeader(content) < 0x69ff)
 			return false;
 		SetSize(512, 424, RECOILResolution.Msx21x2);
 		SetMsx6Palette(filename);
@@ -5639,15 +5641,25 @@ public class RECOIL
 			SetMsxPalette(Msx1Palette, 0, 16);
 		byte[54279] interlace;
 		if (ReadCompanionFile(filename, "S17", "s17", interlace, 54279) != 54279
-		 || interlace[0] != 0xfe)
+		 || interlace[0] != 0xfe
+		 || GetMsxHeader(interlace) < 0xd3ff)
 			return DecodeMsx7(content);
 		SetSize(512, 424, RECOILResolution.Msx21x1);
 		Frames = 2;
-		for (int y = 0; y < 424; y++) {
-			int lineOffset = 7 + (y >> 1 << 8);
+		for (int y = 0; y < 424; y++)
 			for (int x = 0; x < 512; x++)
-				Pixels[(y << 9) + x] = ContentPalette[GetNibble((y & 1) == 0 ? content : interlace, lineOffset, x)];
-		}
+				Pixels[(y << 9) + x] = ContentPalette[GetNibble((y & 1) == 0 ? content : interlace, 7 + (y >> 1 << 8), x)];
+		return true;
+	}
+
+	bool DecodeSri(string filename, byte[] content, int contentLength)
+	{
+		if (contentLength != 108544)
+			return false;
+		SetMsxCompanionPalette(filename, "PL7", "pl7");
+		SetSize(512, 424, RECOILResolution.Msx21x1);
+		Frames = 2;
+		DecodeNibbles(content, 0, 256);
 		return true;
 	}
 
@@ -5699,7 +5711,8 @@ public class RECOIL
 		if (filename != null) {
 			byte[54279] interlace;
 			if (ReadCompanionFile(filename, "S18", "s18", interlace, 54279) == 54279
-			 && interlace[0] == 0xfe) {
+			 && interlace[0] == 0xfe
+			 && GetMsxHeader(interlace) >= 0xd3ff) {
 				SetSize(512, 424, RECOILResolution.Msx22x1);
 				Frames = 2;
 				for (int y = 0; y < 424; y++) {
@@ -5773,7 +5786,8 @@ public class RECOIL
 	{
 		byte[54279] interlace;
 		if (ReadCompanionFile(filename, usePalette ? "S1A" : "S1C", usePalette ? "s1a" : "s1c", interlace, 54279) == 54279
-		 && interlace[0] == 0xfe) {
+		 && interlace[0] == 0xfe
+		 && GetMsxHeader(interlace) >= 0xd3ff) {
 			SetSize(512, 424, RECOILResolution.Msx2Plus2x1);
 			Frames = 2;
 			for (int y = 0; y < 424; y++) {
@@ -14479,6 +14493,7 @@ public class RECOIL
 		case PackExt("GR7"):
 		case PackExt("GR8"):
 		case PackExt("GR9"):
+		case PackExt("GRP"):
 		case PackExt("GUN"):
 		case PackExt("HCM"):
 		case PackExt("HED"):
@@ -14656,7 +14671,6 @@ public class RECOIL
 		case PackExt("SC0"):
 		case PackExt("SC1"):
 		case PackExt("SC2"):
-		case PackExt("GRP"):
 		case PackExt("SC5"):
 		case PackExt("GE5"):
 		case PackExt("SC6"):
@@ -14692,6 +14706,7 @@ public class RECOIL
 		case PackExt("SR5"):
 		case PackExt("SR6"):
 		case PackExt("SR7"):
+		case PackExt("SRI"):
 		case PackExt("SRT"):
 		case PackExt("SSB"):
 		case PackExt("SXG"):
@@ -15403,6 +15418,8 @@ public class RECOIL
 			return DecodeSr6(filename, content, contentLength);
 		case PackExt("SR7"):
 			return DecodeSr7(filename, content, contentLength);
+		case PackExt("SRI"):
+			return DecodeSri(filename, content, contentLength);
 		case PackExt("SRT"):
 			return DecodeSrt(content, contentLength);
 		case PackExt("SSB"):

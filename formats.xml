@@ -546,6 +546,10 @@
 			<companionExt>PL7</companionExt>
 		</format>
 		<format name="Graph Saurus" width="256" height="212" colors="256"><ext>SR8</ext></format>
+		<format name="Graph Saurus" width="512" height="424" colors="16" frames="2">
+			<ext>SRI</ext>
+			<companionExt>PL7</companionExt>
+		</format>
 	</platform>
 	<platform name="MSX2+" href="http://en.wikipedia.org/wiki/MSX">
 		<format colors="12515">
