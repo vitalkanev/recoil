@@ -14570,6 +14570,7 @@ public class RECOIL
 		case PackExt("SC7"):
 		case PackExt("GE7"):
 		case PackExt("SC8"):
+		case PackExt("GE8"):
 		case PackExt("SR8"):
 		case PackExt("SCA"):
 		case PackExt("SCC"):
@@ -15250,6 +15251,7 @@ public class RECOIL
 		case PackExt("GE7"):
 			return DecodeSc7(content, contentLength);
 		case PackExt("SC8"):
+		case PackExt("GE8"):
 		case PackExt("SR8"):
 			return DecodeSc8(content, contentLength);
 		case PackExt("SCA"):
