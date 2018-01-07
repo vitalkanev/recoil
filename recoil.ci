@@ -5531,7 +5531,7 @@ public class RECOIL
 		return DecodeMsx5(content);
 	}
 
-	void DecodeMsx6(byte[] content, int contentOffset)
+	bool DecodeMsx6(byte[] content, int contentOffset)
 	{
 		for (int y = 0; y < Height; y++) {
 			for (int x = 0; x < Width; x++) {
@@ -5539,16 +5539,28 @@ public class RECOIL
 				Pixels[y * Width + x] = ContentPalette[b >> ((~x & 3) << 1) & 3];
 			}
 		}
+		return true;
 	}
 
-	bool DecodeSc6(byte[] content, int contentLength)
+	bool DecodeSc6(string filename, byte[] content, int contentLength)
 	{
 		if (contentLength < 30351 || content[0] != 0xfe || GetMsxHeader(content) < 0x769f)
 			return false;
-		SetSize(512, 424, RECOILResolution.Msx21x2);
 		SetMsxPalette(content, 0x7687, 4);
-		DecodeMsx6(content, 7);
-		return true;
+		byte[27143] interlace;
+		if (ReadCompanionFile(filename, "S16", "s16", interlace, 27143) != 27143
+		 || interlace[0] != 0xfe) {
+			SetSize(512, 424, RECOILResolution.Msx21x2);
+			return DecodeMsx6(content, 7);
+		}
+		SetSize(512, 424, RECOILResolution.Msx21x1);
+		for (int y = 0; y < 424; y++) {
+			for (int x = 0; x < 512; x++) {
+				int b = ((y & 1) == 0 ? content : interlace)[7 + (y >> 1 << 7) + (x >> 2)];
+				Pixels[(y << 9) + x] = ContentPalette[b >> ((~x & 3) << 1) & 3];
+			}
+		}
+		return true;		
 	}
 
 	void SetMsx6Palette(string filename)
@@ -5570,8 +5582,7 @@ public class RECOIL
 			return false;
 		SetSize(512, 424, RECOILResolution.Msx21x2);
 		SetMsx6Palette(filename);
-		DecodeMsx6(content, 7);
-		return true;
+		return DecodeMsx6(content, 7);
 	}
 
 	bool DecodeGl6(string filename, byte[] content, int contentLength)
@@ -5585,8 +5596,7 @@ public class RECOIL
 		 || !SetSize(width, height << 1, RECOILResolution.Msx21x2))
 			return false;
 		SetMsx6Palette(filename);
-		DecodeMsx6(content, 4);
-		return true;
+		return DecodeMsx6(content, 4);
 	}
 
 	static byte[] UnpackSr(byte[] content, int contentLength, byte[] unpacked)
@@ -15330,7 +15340,7 @@ public class RECOIL
 		case PackExt("GE5"):
 			return DecodeSc5(filename, content, contentLength);
 		case PackExt("SC6"):
-			return DecodeSc6(content, contentLength);
+			return DecodeSc6(filename, content, contentLength);
 		case PackExt("SC7"):
 		case PackExt("GE7"):
 			return DecodeSc7(filename, content, contentLength);

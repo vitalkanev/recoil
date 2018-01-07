@@ -512,6 +512,10 @@
 			<companionExt>S15</companionExt>
 		</format>
 		<format name="Screen 6" width="512" height="212" colors="4"><ext>SC6</ext></format>
+		<format name="Screen 6 interlaced" width="512" height="424" colors="4" frames="2">
+			<ext>SC6</ext>
+			<companionExt>S16</companionExt>
+		</format>
 		<format name="Screen 7" width="512" height="212" colors="16">
 			<ext>SC7</ext>
 			<ext>GE7</ext>
