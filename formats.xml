@@ -565,12 +565,12 @@
 			<ext>SCA</ext>
 			<companionExt>S1A</companionExt>
 		</format>
-		<format name="Screen 12" width="256" height="212" colors="19268">
+		<format name="Screen 12" width="256" maxHeight="212" colors="19268">
 			<ext>SCC</ext>
 			<ext>SRS</ext>
 			<ext>YJK</ext>
 		</format>
-		<format name="Screen 12 interlaced" width="256" height="424" colors="19268" frames="2">
+		<format name="Screen 12 interlaced" width="256" maxHeight="424" colors="19268" frames="2">
 			<ext>SCC</ext>
 			<companionExt>S1C</companionExt>
 		</format>

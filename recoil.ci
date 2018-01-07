@@ -5782,15 +5782,15 @@ public class RECOIL
 			Pixels[i] = DecodeMsxYjk(content, contentOffset, i, usePalette);
 	}
 
-	void DecodeSccSca(string filename, byte[] content, bool usePalette)
+	void DecodeSccSca(string filename, byte[] content, int height, bool usePalette)
 	{
 		byte[54279] interlace;
-		if (ReadCompanionFile(filename, usePalette ? "S1A" : "S1C", usePalette ? "s1a" : "s1c", interlace, 54279) == 54279
+		if (ReadCompanionFile(filename, usePalette ? "S1A" : "S1C", usePalette ? "s1a" : "s1c", interlace, (height << 8) + 7) == (height << 8) + 7
 		 && interlace[0] == 0xfe
-		 && GetMsxHeader(interlace) >= 0xd3ff) {
-			SetSize(512, 424, RECOILResolution.Msx2Plus2x1);
+		 && GetMsxHeader(interlace) >= (height << 8) - 1) {
+			SetSize(512, height << 1, RECOILResolution.Msx2Plus2x1);
 			Frames = 2;
-			for (int y = 0; y < 424; y++) {
+			for (int y = 0; y < height << 1; y++) {
 				for (int x = 0; x < 512; x++) {
 					Pixels[(y << 9) + x] = DecodeMsxYjk((y & 1) == 0 ? content : interlace,
 						7 + (y >> 1 << 8), x >> 1, usePalette);
@@ -5798,18 +5798,24 @@ public class RECOIL
 			}
 		}
 		else {
-			SetSize(256, 212, RECOILResolution.Msx2Plus1x1);
+			SetSize(256, height, RECOILResolution.Msx2Plus1x1);
 			DecodeMsxYjkScreen(content, 7, usePalette);
 		}
 	}
 
 	bool DecodeScc(string filename, byte[] content, int contentLength)
 	{
-		byte[54279] unpacked = 0;
-		content = UnpackSr(content, contentLength, unpacked);
-		if (content == null)
-			return false;
-		DecodeSccSca(filename, content, false);
+		int height;
+		if (contentLength == 49159 && content[0] == 0xfe && GetMsxHeader(content) == 0xbfff)
+			height = 192;
+		else {
+			byte[54279] unpacked = 0;
+			content = UnpackSr(content, contentLength, unpacked);
+			if (content == null)
+				return false;
+			height = 212;
+		}
+		DecodeSccSca(filename, content, height, false);
 		return true;
 	}
 
@@ -5818,7 +5824,7 @@ public class RECOIL
 		if (contentLength < 64167 || content[0] != 0xfe || GetMsxHeader(content) < 0xd3ff)
 			return false;
 		SetMsxPalette(content, 0xfa87, 16);
-		DecodeSccSca(filename, content, true);
+		DecodeSccSca(filename, content, 212, true);
 		return true;
 	}
 
