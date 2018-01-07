@@ -94,6 +94,7 @@ enum RECOILResolution
 	C1281x1,
 	Msx11x1,
 	Msx21x1,
+	Msx22x1,
 	Msx21x2,
 	Msx2Plus1x1,
 	Oric1x1,
@@ -3600,6 +3601,7 @@ public class RECOIL
 		case RECOILResolution.Msx11x1:
 			return "MSX";
 		case RECOILResolution.Msx21x1:
+		case RECOILResolution.Msx22x1:
 		case RECOILResolution.Msx21x2:
 			return "MSX2";
 		case RECOILResolution.Msx2Plus1x1:
@@ -3650,6 +3652,7 @@ public class RECOIL
 		case RECOILResolution.C162x1:
 		case RECOILResolution.C642x1:
 		case RECOILResolution.Coco2x2:
+		case RECOILResolution.Msx22x1:
 			return Width >> 1;
 		case RECOILResolution.Amiga4x1:
 		case RECOILResolution.Xe4x1:
@@ -5663,13 +5666,28 @@ public class RECOIL
 			ContentPalette[c] = GetG3R3B2Color(c);
 	}
 
-	bool DecodeSc8(byte[] content, int contentLength)
+	bool DecodeSc8(string filename, byte[] content, int contentLength)
 	{
 		byte[54279] unpacked = 0;
 		content = UnpackSr(content, contentLength, unpacked);
 		if (content == null)
 			return false;
 		SetSc8Palette();
+		if (filename != null) {
+			byte[54279] interlace;
+			if (ReadCompanionFile(filename, "S18", "s18", interlace, 54279) == 54279
+			 && interlace[0] == 0xfe) {
+				SetSize(512, 424, RECOILResolution.Msx22x1);
+				Frames = 2;
+				for (int y = 0; y < 424; y++) {
+					for (int x = 0; x < 512; x++) {
+						int c = ((y & 1) == 0 ? content : interlace)[7 + (y >> 1 << 8) + (x >> 1)];
+						Pixels[(y << 9) + x] = ContentPalette[c];
+					}
+				}
+				return true;
+			}
+		}
 		SetSize(256, 212, RECOILResolution.Msx21x1);
 		DecodeBytes(content, 7);
 		return true;
@@ -11066,7 +11084,7 @@ public class RECOIL
 		// Graphic Arts Department uses .PIC too.
 		return DecodeDoo(content, contentLength)
 			|| DecodeStPi(content, contentLength)
-			|| DecodeSc8(content, contentLength)
+			|| DecodeSc8(null, content, contentLength)
 			|| DecodeGad(content, contentLength);
 	}
 
@@ -15288,7 +15306,7 @@ public class RECOIL
 		case PackExt("SC8"):
 		case PackExt("GE8"):
 		case PackExt("SR8"):
-			return DecodeSc8(content, contentLength);
+			return DecodeSc8(filename, content, contentLength);
 		case PackExt("SCA"):
 			return DecodeSca(content, contentLength);
 		case PackExt("SCC"):

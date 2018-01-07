@@ -521,6 +521,10 @@
 			<ext>GE8</ext>
 			<ext>PIC</ext>
 		</format>
+		<format name="Screen 8 interlaced" width="256" height="424" colors="256" frames="2">
+			<ext>SC8</ext>
+			<companionExt>S18</companionExt>
+		</format>
 		<format name="Graph Saurus" width="256" height="212" colors="16">
 			<ext>SR5</ext>
 			<companionExt>PL5</companionExt>
