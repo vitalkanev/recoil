@@ -554,6 +554,10 @@
 			<ext>SRS</ext>
 			<ext>YJK</ext>
 		</format>
+		<format name="Screen 12 interlaced" width="256" height="424" colors="19268" frames="2">
+			<ext>SCC</ext>
+			<companionExt>S1C</companionExt>
+		</format>
 	</platform>
 	<platform name="NEC PC-88" href="https://en.wikipedia.org/wiki/PC-8800_Series">
 		<format name="Maki-chan Graphics" colors="8"><ext>MAG</ext></format>

@@ -97,6 +97,7 @@ enum RECOILResolution
 	Msx22x1,
 	Msx21x2,
 	Msx2Plus1x1,
+	Msx2Plus2x1,
 	Oric1x1,
 	Pc1x1,
 	Pc881x2,
@@ -3605,6 +3606,7 @@ public class RECOIL
 		case RECOILResolution.Msx21x2:
 			return "MSX2";
 		case RECOILResolution.Msx2Plus1x1:
+		case RECOILResolution.Msx2Plus2x1:
 			return "MSX2+";
 		case RECOILResolution.Oric1x1:
 			return "Oric";
@@ -3653,6 +3655,7 @@ public class RECOIL
 		case RECOILResolution.C642x1:
 		case RECOILResolution.Coco2x2:
 		case RECOILResolution.Msx22x1:
+		case RECOILResolution.Msx2Plus2x1:
 			return Width >> 1;
 		case RECOILResolution.Amiga4x1:
 		case RECOILResolution.Xe4x1:
@@ -5746,14 +5749,27 @@ public class RECOIL
 			Pixels[i] = DecodeMsxYjk(content, contentOffset, i, usePalette);
 	}
 
-	bool DecodeScc(byte[] content, int contentLength)
+	bool DecodeScc(string filename, byte[] content, int contentLength)
 	{
 		byte[54279] unpacked = 0;
 		content = UnpackSr(content, contentLength, unpacked);
 		if (content == null)
 			return false;
-		SetSize(256, 212, RECOILResolution.Msx2Plus1x1);
-		DecodeMsxYjkScreen(content, 7, false);
+		byte[54279] interlace;
+		if (ReadCompanionFile(filename, "S1C", "s1c", interlace, 54279) != 54279
+		 || interlace[0] != 0xfe) {
+			SetSize(256, 212, RECOILResolution.Msx2Plus1x1);
+			DecodeMsxYjkScreen(content, 7, false);
+			return true;
+		}
+		SetSize(512, 424, RECOILResolution.Msx2Plus2x1);
+		Frames = 2;
+		for (int y = 0; y < 424; y++) {
+			for (int x = 0; x < 512; x++) {
+				Pixels[(y << 9) + x] = DecodeMsxYjk((y & 1) == 0 ? content : interlace,
+					7 + (y >> 1 << 8), x >> 1, false);
+			}
+		}
 		return true;
 	}
 
@@ -15312,7 +15328,7 @@ public class RECOIL
 		case PackExt("SCC"):
 		case PackExt("SRS"):
 		case PackExt("YJK"):
-			return DecodeScc(content, contentLength);
+			return DecodeScc(filename, content, contentLength);
 		case PackExt("SCR"):
 			return DecodeScr(filename, content, contentLength);
 		case PackExt("SCS4"):
