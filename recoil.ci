@@ -5749,37 +5749,42 @@ public class RECOIL
 			Pixels[i] = DecodeMsxYjk(content, contentOffset, i, usePalette);
 	}
 
+	void DecodeSccSca(string filename, byte[] content, bool usePalette)
+	{
+		byte[54279] interlace;
+		if (ReadCompanionFile(filename, usePalette ? "S1A" : "S1C", usePalette ? "s1a" : "s1c", interlace, 54279) == 54279
+		 && interlace[0] == 0xfe) {
+			SetSize(512, 424, RECOILResolution.Msx2Plus2x1);
+			Frames = 2;
+			for (int y = 0; y < 424; y++) {
+				for (int x = 0; x < 512; x++) {
+					Pixels[(y << 9) + x] = DecodeMsxYjk((y & 1) == 0 ? content : interlace,
+						7 + (y >> 1 << 8), x >> 1, usePalette);
+				}
+			}
+		}
+		else {
+			SetSize(256, 212, RECOILResolution.Msx2Plus1x1);
+			DecodeMsxYjkScreen(content, 7, usePalette);
+		}
+	}
+
 	bool DecodeScc(string filename, byte[] content, int contentLength)
 	{
 		byte[54279] unpacked = 0;
 		content = UnpackSr(content, contentLength, unpacked);
 		if (content == null)
 			return false;
-		byte[54279] interlace;
-		if (ReadCompanionFile(filename, "S1C", "s1c", interlace, 54279) != 54279
-		 || interlace[0] != 0xfe) {
-			SetSize(256, 212, RECOILResolution.Msx2Plus1x1);
-			DecodeMsxYjkScreen(content, 7, false);
-			return true;
-		}
-		SetSize(512, 424, RECOILResolution.Msx2Plus2x1);
-		Frames = 2;
-		for (int y = 0; y < 424; y++) {
-			for (int x = 0; x < 512; x++) {
-				Pixels[(y << 9) + x] = DecodeMsxYjk((y & 1) == 0 ? content : interlace,
-					7 + (y >> 1 << 8), x >> 1, false);
-			}
-		}
+		DecodeSccSca(filename, content, false);
 		return true;
 	}
 
-	bool DecodeSca(byte[] content, int contentLength)
+	bool DecodeSca(string filename, byte[] content, int contentLength)
 	{
 		if (contentLength < 64167 || content[0] != 0xfe || GetMsxHeader(content) < 0xd3ff)
 			return false;
 		SetMsxPalette(content, 0xfa87, 16);
-		SetSize(256, 212, RECOILResolution.Msx2Plus1x1);
-		DecodeMsxYjkScreen(content, 7, true);
+		DecodeSccSca(filename, content, true);
 		return true;
 	}
 
@@ -15324,7 +15329,7 @@ public class RECOIL
 		case PackExt("SR8"):
 			return DecodeSc8(filename, content, contentLength);
 		case PackExt("SCA"):
-			return DecodeSca(content, contentLength);
+			return DecodeSca(filename, content, contentLength);
 		case PackExt("SCC"):
 		case PackExt("SRS"):
 		case PackExt("YJK"):
