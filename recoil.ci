@@ -5603,7 +5603,7 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodeSc7(byte[] content, int contentLength)
+	bool DecodeSc7(string filename, byte[] content, int contentLength)
 	{
 		if (contentLength < 54279 || content[0] != 0xfe || GetMsxHeader(content) < 0xd3ff)
 			return false;
@@ -5611,7 +5611,18 @@ public class RECOIL
 			SetMsxPalette(content, 0xfa87, 16);
 		else
 			SetMsxPalette(Msx1Palette, 0, 16);
-		return DecodeMsx7(content);
+		byte[54279] interlace;
+		if (ReadCompanionFile(filename, "S17", "s17", interlace, 54279) != 54279
+		 || interlace[0] != 0xfe)
+			return DecodeMsx7(content);
+		SetSize(512, 424, RECOILResolution.Msx21x1);
+		Frames = 2;
+		for (int y = 0; y < 424; y++) {
+			int lineOffset = 7 + (y >> 1 << 8);
+			for (int x = 0; x < 512; x++)
+				Pixels[(y << 9) + x] = ContentPalette[GetNibble((y & 1) == 0 ? content : interlace, lineOffset, x)];
+		}
+		return true;
 	}
 
 	bool DecodeSr7(string filename, byte[] content, int contentLength)
@@ -15273,7 +15284,7 @@ public class RECOIL
 			return DecodeSc6(content, contentLength);
 		case PackExt("SC7"):
 		case PackExt("GE7"):
-			return DecodeSc7(content, contentLength);
+			return DecodeSc7(filename, content, contentLength);
 		case PackExt("SC8"):
 		case PackExt("GE8"):
 		case PackExt("SR8"):
