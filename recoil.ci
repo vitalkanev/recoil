@@ -6345,7 +6345,8 @@ public class RECOIL
 			break;
 		case 0x24:
 		case 0x44:
-			width >>= 1;
+			if (colors == 16)
+				width >>= 1;
 			resolution = RECOILResolution.Msx2Plus1x1;
 			break;
 		default:
