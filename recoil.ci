@@ -5579,8 +5579,9 @@ public class RECOIL
 	{
 		for (int y = 0; y < Height; y++) {
 			for (int x = 0; x < Width; x++) {
-				int b = content[contentOffset + ((y >> 1) * Width + x >> 2)];
-				Pixels[y * Width + x] = ContentPalette[b >> ((~x & 3) << 1) & 3];
+				int offset = (y >> 1) * Width + x;
+				int b = content[contentOffset + (offset >> 2)];
+				Pixels[y * Width + x] = ContentPalette[b >> ((~offset & 3) << 1) & 3];
 			}
 		}
 		return true;
@@ -5641,6 +5642,21 @@ public class RECOIL
 		 || !SetSize(width, height << 1, RECOILResolution.Msx21x2))
 			return false;
 		SetMsx6Palette(filename);
+		return DecodeMsx6(content, 4);
+	}
+
+	bool DecodeStp(byte[] content, int contentLength)
+	{
+		if (contentLength < 5)
+			return false;
+		int width = content[0] | content[1] << 8;
+		int height = content[2] | content[3] << 8;
+		if (contentLength < 4 + (width * height + 3 >> 2)
+		 || !SetSize(width, height << 1, RECOILResolution.Msx21x2))
+			return false;
+		ContentPalette[0] = 0xffffff;
+		ContentPalette[1] = 0;
+		ContentPalette[3] = ContentPalette[2] = 0; // reserved for program GUI
 		return DecodeMsx6(content, 4);
 	}
 
@@ -14760,6 +14776,7 @@ public class RECOIL
 		case PackExt("SRI"):
 		case PackExt("SRT"):
 		case PackExt("SSB"):
+		case PackExt("STP"):
 		case PackExt("SXG"):
 		case PackExt("SXS"):
 		case PackExt("TCP"):
@@ -15479,6 +15496,8 @@ public class RECOIL
 			return DecodeSrt(content, contentLength);
 		case PackExt("SSB"):
 			return DecodeSsb(content, contentLength);
+		case PackExt("STP"):
+			return DecodeStp(content, contentLength);
 		case PackExt("SXG"):
 			return DecodeSxg(content, contentLength);
 		case PackExt("SXS"):
