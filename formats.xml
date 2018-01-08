@@ -504,6 +504,7 @@
 			<ext>MAG</ext>
 			<ext>MAX</ext>
 		</format>
+		<format name="Screen 4" width="256" height="192" colors="16"><ext>SC4</ext></format>
 		<format name="Screen 5" width="256" height="212" colors="16">
 			<ext>SC5</ext>
 			<ext>GE5</ext>

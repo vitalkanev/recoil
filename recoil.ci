@@ -5446,6 +5446,45 @@ public class RECOIL
 		}
 	}
 
+	void DecodeSc2Sc4(byte[] content, RECOILResolution resolution)
+	{
+		SetSize(256, 192, resolution);
+		for (int y = 0; y < 192; y++) {
+			int fontOffset = 7 + ((y &0xc0) << 5) + (y & 7);
+			for (int x = 0; x < 256; x++) {
+				int b = fontOffset + (content[0x1807 + ((y & ~7) << 2) + (x >> 3)] << 3);
+				int c = content[0x2000 + b];
+				Pixels[(y << 8) + x] = ContentPalette[(content[b] >> (~x & 7) & 1) == 0 ? c & 0xf : c >> 4];
+			}
+		}
+	}
+
+	void DecodeMsxSprites(byte[] content, bool msx2)
+	{
+		for (int sprite = 31; sprite >= 0; sprite--) {
+			int offset = (msx2 ? 0x1e07 : 0x1b07) + (sprite << 2);
+			int yPos = content[offset]; // 0xe1..0xff - sprite at the top
+			int xPos = content[offset + 1];
+			int spriteOffset = 0x3807 + ((content[offset + 2] & 0xfc) << 3);
+			for (int row = 0; row < 16; row++) {
+				int y = yPos + row & 0xff;
+				if (y >= 192)
+					continue;
+				int c = content[msx2 ? 0x1c07 + (sprite << 4) + row : offset + 3];
+				if (c >= 0x80)
+					xPos -= 32;
+				// TODO: if (msx2 && (c & 0x40) != 0) OR
+				c = ContentPalette[c & 0xf];
+				for (int column = 0; column < 16; column++) {
+					int x = xPos + column;
+					if (x >= 0 && x < 256
+					 && (content[spriteOffset + ((column & 8) << 1) + row] >> (~column & 7) & 1) != 0)
+						Pixels[(y << 8) + x] = c;
+				}
+			}
+		}
+	}
+
 	bool DecodeSc2(byte[] content, int contentLength)
 	{
 		if (contentLength < 14343 || content[0] != 0xfe || GetMsxHeader(content) < 0x37ff)
@@ -5459,39 +5498,10 @@ public class RECOIL
 			SetMsxPalette(Msx1Palette, 0, 16);
 			resolution = RECOILResolution.Msx11x1;
 		}
-		SetSize(256, 192, resolution);
-		for (int y = 0; y < 192; y++) {
-			int fontOffset = 7 + ((y &0xc0) << 5) + (y & 7);
-			for (int x = 0; x < 256; x++) {
-				int b = fontOffset + (content[0x1807 + ((y & ~7) << 2) + (x >> 3)] << 3);
-				int c = content[0x2000 + b];
-				Pixels[(y << 8) + x] = ContentPalette[(content[b] >> (~x & 7) & 1) == 0 ? c & 0xf : c >> 4];
-			}
-		}
+		DecodeSc2Sc4(content, resolution);
 
-		if (contentLength == 16391) {
-			// 32 sprites
-			for (int offset = 7 + 0x1b7c; offset >= 7 + 0x1b00; offset -= 4) {
-				int yPos = content[offset]; // 0xe1..0xff - sprite at the top
-				int xPos = content[offset + 1];
-				int spriteOffset = 0x3807 + ((content[offset + 2] & 0xfc) << 3);
-				int c = content[offset + 3];
-				if (c >= 0x80)
-					xPos -= 32;
-				c = ContentPalette[c & 0xf];
-				for (int row = 0; row < 16; row++) {
-					int y = yPos + row & 0xff;
-					if (y >= 192)
-						continue;
-					for (int column = 0; column < 16; column++) {
-						int x = xPos + column;
-						if (x >= 0 && x < 256
-						 && (content[spriteOffset + ((column & 8) << 1) + row] >> (~column & 7) & 1) != 0)
-							Pixels[(y << 8) + x] = c;
-					}
-				}
-			}
-		}
+		if (contentLength == 16391)
+			DecodeMsxSprites(content, false);
 		return true;
 	}
 
@@ -5511,6 +5521,16 @@ public class RECOIL
 				Pixels[(y << 8) + x] = ContentPalette[c];
 			}
 		}
+		return true;
+	}
+
+	bool DecodeSc4(byte[] content, int contentLength)
+	{
+		if (contentLength < 16391 || content[0] != 0xfe || GetMsxHeader(content) < 0x3fff)
+			return false;
+		SetMsxPalette(content, 0x1b87, 16);
+		DecodeSc2Sc4(content, RECOILResolution.Msx21x1);
+		DecodeMsxSprites(content, true);
 		return true;
 	}
 
@@ -14701,6 +14721,7 @@ public class RECOIL
 		case PackExt("SC1"):
 		case PackExt("SC2"):
 		case PackExt("SC3"):
+		case PackExt("SC4"):
 		case PackExt("SC5"):
 		case PackExt("GE5"):
 		case PackExt("SC6"):
@@ -15384,6 +15405,8 @@ public class RECOIL
 				|| DecodeSc2(content, contentLength);
 		case PackExt("SC3"):
 			return DecodeSc3(content, contentLength);
+		case PackExt("SC4"):
+			return DecodeSc4(content, contentLength);
 		case PackExt("SC5"):
 		case PackExt("GE5"):
 			return DecodeSc5(filename, content, contentLength);
