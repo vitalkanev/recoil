@@ -487,6 +487,7 @@
 		<format name="Screen 3" width="64" height="48" colors="15"><ext>SC3</ext></format>
 	</platform>
 	<platform name="MSX2" href="http://en.wikipedia.org/wiki/MSX">
+		<format name="Dynamic Publisher font" width="512" height="160" colors="2"><ext>FNT</ext></format>
 		<format colors="16">
 			<ext>GL5</ext>
 			<companionExt>PL5</companionExt>
@@ -504,6 +505,7 @@
 			<ext>MAG</ext>
 			<ext>MAX</ext>
 		</format>
+		<format name="Dynamic Publisher screen" width="512" height="704" colors="2"><ext>PCT</ext></format>
 		<format name="Screen 4" width="256" height="192" colors="16"><ext>SC4</ext></format>
 		<format name="Screen 5" width="256" height="212" colors="16">
 			<ext>SC5</ext>

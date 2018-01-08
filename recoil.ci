@@ -5802,6 +5802,46 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodePct(byte[] content, int contentLength)
+	{
+		if (contentLength < 384
+		 || (!IsStringAt(content, 0, "DYNAMIC") && !IsStringAt(content, 0, "E U R O"))
+		 || !IsStringAt(content, 7, " PUBLISHER "))
+			return false;
+		int height;
+		int contentOffset;
+		if (IsStringAt(content, 18, "SCREEN")) {
+			height = 704;
+			contentOffset = 0x180;
+		}
+		else if (IsStringAt(content, 18, "FONT")) {
+			height = 160;
+			contentOffset = 0x200;
+		}
+		else
+			return false;
+		SetSize(512, height << 1, RECOILResolution.Msx21x2);
+		CciStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = contentOffset;
+		rle.ContentLength = contentLength;
+		for (int y = 0; y < height; y++) {
+			int b = 0;
+			for (int x = 0; x < 512; x++) {
+				if ((x & 7) == 0) {
+					b = rle.ReadRle();
+					if (b < 0)
+						return false;
+				}
+				int offset = (y << 10) + x;
+				// low nibble first
+				Pixels[offset + 512] = Pixels[offset] =
+					(b >> ((x ^ 3) & 7) & 1) == 0 ? 0xffffff : 0;
+			}
+		}
+		return true;
+	}
+
 	int DecodeMsxYjk(byte[] content, int contentOffset, int i, bool usePalette)
 	{
 		int y = content[contentOffset + i] >> 3;
@@ -14682,6 +14722,7 @@ public class RECOIL
 		case PackExt("PC3"):
 		case PackExt("PCI"):
 		case PackExt("PCS"):
+		case PackExt("PCT"):
 		case PackExt("PET"):
 		case PackExt("PG1"):
 		case PackExt("PG2"):
@@ -15032,7 +15073,8 @@ public class RECOIL
 			return DecodeFli(content, contentLength)
 				|| DecodeBml(content, contentLength);
 		case PackExt("FNT"):
-			return DecodeGdosFnt(content, contentLength)
+			return DecodePct(content, contentLength)
+				|| DecodeGdosFnt(content, contentLength)
 				|| DecodeAtari8Fnt(content, contentLength)
 				|| DecodeStFnt(content, contentLength)
 				|| DecodeAmstradFnt(content, contentLength)
@@ -15317,6 +15359,8 @@ public class RECOIL
 			return DecodePci(content, contentLength);
 		case PackExt("PCS"):
 			return DecodePcs(content, contentLength);
+		case PackExt("PCT"):
+			return DecodePct(content, contentLength);
 		case PackExt("PET"):
 			return DecodePet(content, contentLength);
 		case PackExt("PG1"):
