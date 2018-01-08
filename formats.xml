@@ -484,6 +484,7 @@
 			<ext>SC2</ext>
 			<ext>GRP</ext>
 		</format>
+		<format name="Screen 3" width="64" height="48" colors="15"><ext>SC3</ext></format>
 	</platform>
 	<platform name="MSX2" href="http://en.wikipedia.org/wiki/MSX">
 		<format colors="16">

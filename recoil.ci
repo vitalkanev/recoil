@@ -93,6 +93,7 @@ enum RECOILResolution
 	C642x1,
 	C1281x1,
 	Msx11x1,
+	Msx14x4,
 	Msx21x1,
 	Msx22x1,
 	Msx21x2,
@@ -3600,6 +3601,7 @@ public class RECOIL
 		case RECOILResolution.C1281x1:
 			return "Commodore 128";
 		case RECOILResolution.Msx11x1:
+		case RECOILResolution.Msx14x4:
 			return "MSX";
 		case RECOILResolution.Msx21x1:
 		case RECOILResolution.Msx22x1:
@@ -3658,6 +3660,7 @@ public class RECOIL
 		case RECOILResolution.Msx2Plus2x1:
 			return Width >> 1;
 		case RECOILResolution.Amiga4x1:
+		case RECOILResolution.Msx14x4:
 		case RECOILResolution.Xe4x1:
 		case RECOILResolution.Xe4x2:
 		case RECOILResolution.Xe4x4:
@@ -3689,6 +3692,7 @@ public class RECOIL
 		case RECOILResolution.Coco2x2:
 			return Height >> 1;
 		case RECOILResolution.Amiga1x4:
+		case RECOILResolution.Msx14x4:
 		case RECOILResolution.Xe4x4:
 			return Height >> 2;
 		case RECOILResolution.Xe8x8:
@@ -5486,6 +5490,25 @@ public class RECOIL
 							Pixels[(y << 8) + x] = c;
 					}
 				}
+			}
+		}
+		return true;
+	}
+
+	bool DecodeSc3(byte[] content, int contentLength)
+	{
+		if (contentLength < 1543 || content[0] != 0xfe || GetMsxHeader(content) < 0x5ff)
+			return false;
+		if (contentLength >= 0x2047 && IsMsxPalette(content, 0x2027))
+			SetMsxPalette(content, 0x2027, 16);
+		else
+			SetMsxPalette(Msx1Palette, 0, 16);
+		SetSize(256, 192, RECOILResolution.Msx14x4);
+		for (int y = 0; y < 192; y++) {
+			for (int x = 0; x < 256; x++) {
+				int c = contentLength >= 0xb07 ? content[0x807 + ((y & ~7) << 2) + (x >> 3)] : (y & 0xe0) + (x >> 3);
+				c = content[7 + (c << 3) + (y >> 2 & 7)] >> (~x & 4) & 0xf;
+				Pixels[(y << 8) + x] = ContentPalette[c];
 			}
 		}
 		return true;
@@ -14677,6 +14700,7 @@ public class RECOIL
 		case PackExt("SC0"):
 		case PackExt("SC1"):
 		case PackExt("SC2"):
+		case PackExt("SC3"):
 		case PackExt("SC5"):
 		case PackExt("GE5"):
 		case PackExt("SC6"):
@@ -15358,6 +15382,8 @@ public class RECOIL
 		case PackExt("SC2"):
 			return DecodeSc(content, contentLength)
 				|| DecodeSc2(content, contentLength);
+		case PackExt("SC3"):
+			return DecodeSc3(content, contentLength);
 		case PackExt("SC5"):
 		case PackExt("GE5"):
 			return DecodeSc5(filename, content, contentLength);
