@@ -5521,6 +5521,8 @@ public class RECOIL
 				Pixels[(y << 8) + x] = ContentPalette[c];
 			}
 		}
+		if (contentLength == 16391)
+			DecodeMsxSprites(content, false);
 		return true;
 	}
 
