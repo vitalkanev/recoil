@@ -5463,7 +5463,7 @@ public class RECOIL
 	{
 		for (int sprite = 31; sprite >= 0; sprite--) {
 			int offset = (msx2 ? 0x1e07 : 0x1b07) + (sprite << 2);
-			int yPos = content[offset]; // 0xe1..0xff - sprite at the top
+			int yPos = content[offset] + 1; // 0xe1..0xff - sprite at the top
 			int xPos = content[offset + 1];
 			int spriteOffset = 0x3807 + ((content[offset + 2] & 0xfc) << 3);
 			for (int row = 0; row < 16; row++) {
