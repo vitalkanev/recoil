@@ -79,7 +79,6 @@ function populateFiles(contents, mainFilenames)
 		select.style.display = "none";
 		break;
 	default:
-		mainFilenames.sort();
 		select.innerHTML = "";
 		mainFilenames.forEach(function(name) {
 				var option = document.createElement("option");
@@ -100,10 +99,10 @@ function openFiles(files)
 	var contents = new Object();
 	var count = files.length;
 	Array.prototype.forEach.call(files, function(file) {
+			if (RECOIL.isOurFile(file.name))
+				mainFilenames.push(file.name);
 			var reader = new FileReader();
 			reader.onload = function (e) {
-				if (RECOIL.isOurFile(file.name))
-					mainFilenames.push(file.name);
 				contents[file.name] = new Uint8Array(e.target.result);
 				if (--count == 0)
 					populateFiles(contents, mainFilenames);
