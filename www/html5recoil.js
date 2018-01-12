@@ -21,13 +21,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-function recoil2canvas(contents, mainFilename)
+var recoilFiles;
+
+function recoil2canvas(mainFilename)
 {
 	var recoil = new RECOIL();
 	recoil.readFile = function(filename, content, contentLength) {
-		if (!contents.hasOwnProperty(filename))
+		if (!recoilFiles.hasOwnProperty(filename))
 			return -1;
-		var source = contents[filename];
+		var source = recoilFiles[filename];
 		if (contentLength > source.length)
 			contentLength = source.length;
 		for (var i = 0; i < contentLength; i++)
@@ -35,7 +37,7 @@ function recoil2canvas(contents, mainFilename)
 		return contentLength;
 	}
 
-	var content = contents[mainFilename];
+	var content = recoilFiles[mainFilename];
 	if (!recoil.decode(mainFilename, content, content.length)) {
 		alert("Error!");
 		return;
@@ -66,23 +68,45 @@ function recoil2canvas(contents, mainFilename)
 		document.getElementById("fullScreenButton").style.display = "";
 }
 
+function populateFiles(contents, mainFilenames)
+{
+	var select = document.getElementById("fileSelect");
+	switch (mainFilenames.length) {
+	case 0:
+		alert("No supported file selected");
+		return;
+	case 1:
+		select.style.display = "none";
+		break;
+	default:
+		mainFilenames.sort();
+		select.innerHTML = "";
+		mainFilenames.forEach(function(name) {
+				var option = document.createElement("option");
+				option.text = name;
+				option.value = name;
+				select.add(option);
+			});
+		select.style.display = "";
+		break;
+	}
+	recoilFiles = contents;
+	recoil2canvas(mainFilenames[0]);
+}
+
 function openFiles(files)
 {
-	var mainFilename;
+	var mainFilenames = new Array();
 	var contents = new Object();
 	var count = files.length;
 	Array.prototype.forEach.call(files, function(file) {
 			var reader = new FileReader();
 			reader.onload = function (e) {
 				if (RECOIL.isOurFile(file.name))
-					mainFilename = file.name;
+					mainFilenames.push(file.name);
 				contents[file.name] = new Uint8Array(e.target.result);
-				if (--count == 0) {
-					if (mainFilename === undefined)
-						alert("Unsupported file");
-					else
-						recoil2canvas(contents, mainFilename);
-				}
+				if (--count == 0)
+					populateFiles(contents, mainFilenames);
 			};
 			reader.readAsArrayBuffer(file);
 		});

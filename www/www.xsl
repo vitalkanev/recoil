@@ -258,7 +258,7 @@
 		</input>
 	</xsl:template>
 
-	<xsl:template match="a[@href]|br|canvas|div|h2|img|input|li|ol|p|script|tt|ul">
+	<xsl:template match="a[@href]|br|canvas|div|h2|img|input|li|ol|p|select|script|tt|ul">
 		<xsl:element name="{name()}">
 			<xsl:copy-of select="@*" />
 			<xsl:apply-templates />

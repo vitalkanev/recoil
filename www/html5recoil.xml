@@ -27,7 +27,11 @@
 		<p>This page decodes pictures in formats native to retro computers.
 		Decoding takes place in your browser, nothing is sent over the network.</p>
 
-		<p>Select file: <input type="file" multiple="multiple" onchange="openFiles(this.files)" /></p>
+		<p>
+			Select file:
+			<input type="file" multiple="multiple" onchange="openFiles(this.files)" />
+			<select id="fileSelect" onchange="recoil2canvas(this.value)" style="display: none"> </select>
+		</p>
 		<div style="border: solid #800080 1px; padding-top: 2em; padding-bottom: 2em;" ondragenter="dragHelper(event)" ondragover="dragHelper(event)" ondrop="onDrop(event)">
 			... or drag&amp;drop a file here!<br />
 			<canvas id="canvas" width="1" height="1"> </canvas>
