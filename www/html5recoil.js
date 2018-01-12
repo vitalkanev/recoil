@@ -1,7 +1,7 @@
 /*
  * html5recoil.js - HTML 5 viewer
  *
- * Copyright (C) 2013  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2013-2018  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -21,10 +21,22 @@
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-function recoil2canvas(filename, content)
+function recoil2canvas(contents, mainFilename)
 {
 	var recoil = new RECOIL();
-	if (!recoil.decode(filename, content, content.length)) {
+	recoil.readFile = function(filename, content, contentLength) {
+		if (!contents.hasOwnProperty(filename))
+			return -1;
+		var source = contents[filename];
+		if (contentLength > source.length)
+			contentLength = source.length;
+		for (var i = 0; i < contentLength; i++)
+			content[i] = source[i];
+		return contentLength;
+	}
+
+	var content = contents[mainFilename];
+	if (!recoil.decode(mainFilename, content, content.length)) {
 		alert("Error!");
 		return;
 	}
@@ -52,4 +64,26 @@ function recoil2canvas(filename, content)
 
 	if (canvas.webkitRequestFullScreen || canvas.mozRequestFullScreen)
 		document.getElementById("fullScreenButton").style.display = "";
+}
+
+function openFiles(files)
+{
+	var mainFilename;
+	var contents = new Object();
+	var count = files.length;
+	Array.prototype.forEach.call(files, function(file) {
+			var reader = new FileReader();
+			reader.onload = function (e) {
+				if (RECOIL.isOurFile(file.name))
+					mainFilename = file.name;
+				contents[file.name] = new Uint8Array(e.target.result);
+				if (--count == 0) {
+					if (mainFilename === undefined)
+						alert("Unsupported file");
+					else
+						recoil2canvas(contents, mainFilename);
+				}
+			};
+			reader.readAsArrayBuffer(file);
+		});
 }

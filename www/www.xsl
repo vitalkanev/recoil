@@ -248,7 +248,7 @@
 		<input>
 			<xsl:copy-of select="@*" />
 			<xsl:attribute name="accept">
-				<xsl:for-each select="document('../formats.xml')/formats/platform/format/ext[not(. = following::ext)]">
+				<xsl:for-each select="document('../formats.xml')/formats/platform/format/*[(self::ext or self::companionExt) and not(. = following::ext) and not(. = following::companionExt)]">
 					<xsl:sort />
 					<xsl:if test="position() != 1">,</xsl:if>
 					<xsl:text>.</xsl:text>
