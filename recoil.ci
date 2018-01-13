@@ -5459,27 +5459,69 @@ public class RECOIL
 		}
 	}
 
-	void DecodeMsxSprites(byte[] content, bool msx2)
+	void DecodeMsxSprites(byte[] content, int attributesOffset, int patternsOffset)
 	{
+		bool msx2 = attributesOffset != 0x1b07;
+		bool hires = Resolution == RECOILResolution.Msx21x2;
+		int height = Height;
+		if (hires)
+			height >>= 1;
 		for (int sprite = 31; sprite >= 0; sprite--) {
-			int offset = (msx2 ? 0x1e07 : 0x1b07) + (sprite << 2);
-			int yPos = content[offset] + 1; // 0xe1..0xff - sprite at the top
-			int xPos = content[offset + 1];
-			int spriteOffset = 0x3807 + ((content[offset + 2] & 0xfc) << 3);
+			int attributeOffset = attributesOffset + (sprite << 2);
 			for (int row = 0; row < 16; row++) {
-				int y = yPos + row & 0xff;
-				if (y >= 192)
+				int y = content[attributeOffset] + 1 + row & 0xff;
+				if (y >= height)
 					continue;
-				int c = content[msx2 ? 0x1c07 + (sprite << 4) + row : offset + 3];
+				int c = content[msx2 ? attributesOffset - 0x200 + (sprite << 4) + row : attributeOffset + 3];
+				int xPos = content[attributeOffset + 1];
 				if (c >= 0x80)
 					xPos -= 32;
-				// TODO: if (msx2 && (c & 0x40) != 0) OR
-				c = ContentPalette[c & 0xf];
-				for (int column = 0; column < 16; column++) {
+				int pattern = patternsOffset + ((content[attributeOffset + 2] & 0xfc) << 3) + row;
+				pattern = content[pattern] << 8 | content[pattern + 16];
+
+				for (int column = -15; column < 31; column++) {
 					int x = xPos + column;
-					if (x >= 0 && x < 256
-					 && (content[spriteOffset + ((column & 8) << 1) + row] >> (~column & 7) & 1) != 0)
-						Pixels[(y << 8) + x] = c;
+					if (x < 0 || x >= 256)
+						continue;
+					int color = 0;
+					if (column >= 0 && column < 16 && (pattern >> (15 - column) & 1) != 0)
+						color = c + 0x40; // 0x40 is arbitrary to make c==0 not transparent
+					if (msx2) {
+						// handle OR color
+						if ((c & 0x40) != 0)
+							continue;
+						for (int sprite2 = sprite + 1; sprite2 < 32; sprite2++) {
+							int attributeOffset2 = attributesOffset + (sprite2 << 2);
+							int row2 = y - content[attributeOffset2] - 1 & 0xff;
+							if (row2 >= 16)
+								continue;
+							int c2 = content[attributesOffset - 0x200 + (sprite2 << 4) + row2];
+							if ((c2 & 0x40) == 0)
+								break;
+							int xPos2 = content[attributeOffset2 + 1];
+							if (c2 >= 0x80)
+								xPos2 -= 32;
+							int distance = xPos2 - xPos;
+							if (distance < -15 || distance > 15)
+								continue;
+							int pattern2 = patternsOffset + ((content[attributeOffset2 + 2] & 0xfc) << 3) + row2;
+							pattern2 = content[pattern2] << 8 | content[pattern2 + 16];
+							if ((distance >= 0 ? pattern & pattern2 >> distance : pattern2 & pattern >> -distance) == 0)
+								continue; // sprites don't overlap
+							int column2 = x - xPos2;
+							if (column2 >= 0 && column2 < 16 && (pattern2 >> (15 - column2) & 1) != 0)
+								color |= c2;
+						}
+					}
+					if (color != 0) {
+						color = ContentPalette[color & 0xf];
+						if (hires) {
+							int offset = (y << 10) + (x << 1);
+							Pixels[offset + 513] = Pixels[offset + 512] = Pixels[offset + 1] = Pixels[offset] = color;
+						}
+						else
+							Pixels[(y << 8) + x] = color;
+					}
 				}
 			}
 		}
@@ -5501,7 +5543,7 @@ public class RECOIL
 		DecodeSc2Sc4(content, resolution);
 
 		if (contentLength == 16391)
-			DecodeMsxSprites(content, false);
+			DecodeMsxSprites(content, 0x1b07, 0x3807);
 		return true;
 	}
 
@@ -5522,7 +5564,7 @@ public class RECOIL
 			}
 		}
 		if (contentLength == 16391)
-			DecodeMsxSprites(content, false);
+			DecodeMsxSprites(content, 0x1b07, 0x3807);
 		return true;
 	}
 
@@ -5532,15 +5574,14 @@ public class RECOIL
 			return false;
 		SetMsxPalette(content, 0x1b87, 16);
 		DecodeSc2Sc4(content, RECOILResolution.Msx21x1);
-		DecodeMsxSprites(content, true);
+		DecodeMsxSprites(content, 0x1e07, 0x3807);
 		return true;
 	}
 
-	bool DecodeMsx5(byte[] content)
+	void DecodeMsx5(byte[] content)
 	{
 		SetSize(256, 212, RECOILResolution.Msx21x1);
 		DecodeNibbles(content, 7, 128);
-		return true;
 	}
 
 	bool DecodeSc5(string filename, byte[] content, int contentLength)
@@ -5551,8 +5592,12 @@ public class RECOIL
 		byte[27143] interlace;
 		if (ReadCompanionFile(filename, "S15", "s15", interlace, 27143) != 27143
 		 || interlace[0] != 0xfe
-		 || GetMsxHeader(interlace) < 0x69ff)
-			return DecodeMsx5(content);
+		 || GetMsxHeader(interlace) < 0x69ff) {
+			DecodeMsx5(content);
+			if (contentLength == 32775)
+				DecodeMsxSprites(content, 0x7607, 0x7807);
+			return true;
+		}
 		SetSize(512, 424, RECOILResolution.Msx22x1);
 		Frames = 2;
 		for (int y = 0; y < 424; y++) {
@@ -5574,7 +5619,8 @@ public class RECOIL
 		if (contentLength < 27143 || content[0] != 0xfe || GetMsxHeader(content) < 0x69ff)
 			return false;
 		SetMsxCompanionPalette(filename, "PL5", "pl5");
-		return DecodeMsx5(content);
+		DecodeMsx5(content);
+		return true;
 	}
 
 	bool DecodeMsx6(byte[] content, int contentOffset)
@@ -5685,11 +5731,10 @@ public class RECOIL
 		}
 	}
 
-	bool DecodeMsx7(byte[] content)
+	void DecodeMsx7(byte[] content)
 	{
 		SetSize(512, 212 * 2, RECOILResolution.Msx21x2);
 		DecodeNibbles(content, 7, 256);
-		return true;
 	}
 
 	bool DecodeSc7(string filename, byte[] content, int contentLength)
@@ -5703,8 +5748,12 @@ public class RECOIL
 		byte[54279] interlace;
 		if (ReadCompanionFile(filename, "S17", "s17", interlace, 54279) != 54279
 		 || interlace[0] != 0xfe
-		 || GetMsxHeader(interlace) < 0xd3ff)
-			return DecodeMsx7(content);
+		 || GetMsxHeader(interlace) < 0xd3ff) {
+			DecodeMsx7(content);
+			if (contentLength == 64167)
+				DecodeMsxSprites(content, 0xfa07, 0xf007);
+			return true;
+		}
 		SetSize(512, 424, RECOILResolution.Msx21x1);
 		Frames = 2;
 		for (int y = 0; y < 424; y++)
@@ -5731,7 +5780,8 @@ public class RECOIL
 		if (content == null)
 			return false;
 		SetMsxCompanionPalette(filename, "PL7", "pl7");
-		return DecodeMsx7(content);
+		DecodeMsx7(content);
+		return true;
 	}
 
 	bool DecodeGl16(string filename, byte[] content, int contentLength,
@@ -5787,6 +5837,10 @@ public class RECOIL
 		}
 		SetSize(256, 212, RECOILResolution.Msx21x1);
 		DecodeBytes(content, 7);
+		if (contentLength == 64167) {
+			SetMsxPalette(content, 0xfa87, 16);
+			DecodeMsxSprites(content, 0xfa07, 0xf007);
+		}
 		return true;
 	}
 
@@ -5883,7 +5937,7 @@ public class RECOIL
 			Pixels[i] = DecodeMsxYjk(content, contentOffset, i, usePalette);
 	}
 
-	void DecodeSccSca(string filename, byte[] content, int height, bool usePalette)
+	void DecodeSccSca(string filename, byte[] content, int contentLength, int height, bool usePalette)
 	{
 		byte[54279] interlace;
 		if (ReadCompanionFile(filename, usePalette ? "S1A" : "S1C", usePalette ? "s1a" : "s1c", interlace, (height << 8) + 7) == (height << 8) + 7
@@ -5901,6 +5955,8 @@ public class RECOIL
 		else {
 			SetSize(256, height, RECOILResolution.Msx2Plus1x1);
 			DecodeMsxYjkScreen(content, 7, usePalette);
+			if (contentLength == 64167 && content[0] == 0xfe)
+				DecodeMsxSprites(content, 0xfa07, 0xf007);
 		}
 	}
 
@@ -5916,7 +5972,7 @@ public class RECOIL
 				return false;
 			height = 212;
 		}
-		DecodeSccSca(filename, content, height, false);
+		DecodeSccSca(filename, content, contentLength, height, false);
 		return true;
 	}
 
@@ -5925,7 +5981,7 @@ public class RECOIL
 		if (contentLength < 64167 || content[0] != 0xfe || GetMsxHeader(content) < 0xd3ff)
 			return false;
 		SetMsxPalette(content, 0xfa87, 16);
-		DecodeSccSca(filename, content, 212, true);
+		DecodeSccSca(filename, content, contentLength, 212, true);
 		return true;
 	}
 
