@@ -5847,7 +5847,25 @@ public class RECOIL
 		SetSize(256, 212, RECOILResolution.Msx21x1);
 		DecodeBytes(content, 7);
 		if (contentLength == 64167) {
-			SetMsxPalette(content, 0xfa87, 16);
+			const byte[32] spritePalette = {
+				0x00, 0,
+				0x02, 0,
+				0x30, 0,
+				0x32, 0,
+				0x00, 3,
+				0x02, 3,
+				0x30, 3,
+				0x32, 3,
+				0x72, 4,
+				0x07, 0,
+				0x70, 0,
+				0x77, 0,
+				0x00, 7,
+				0x07, 7,
+				0x70, 7,
+				0x77, 7
+			};
+			SetMsxPalette(spritePalette, 0, 16);
 			DecodeMsxSprites(content, 8, 0xfa07, 0xf007);
 		}
 		return true;
