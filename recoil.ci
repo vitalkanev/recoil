@@ -5461,8 +5461,11 @@ public class RECOIL
 
 	void DecodeMsxSprites(byte[] content, int mode, int attributesOffset, int patternsOffset)
 	{
+		int spriteCount;
+		for (spriteCount = 0; spriteCount < 32 && content[attributesOffset + (spriteCount << 2)] != (mode >= 4 ? 216 : 208); spriteCount++) {
+		}
 		int height = mode <= 4 ? 192 : 212;
-		for (int sprite = 31; sprite >= 0; sprite--) {
+		for (int sprite = spriteCount - 1; sprite >= 0; sprite--) {
 			int attributeOffset = attributesOffset + (sprite << 2);
 			for (int row = 0; row < 16; row++) {
 				int y = content[attributeOffset] + 1 + row & 0xff;
@@ -5487,7 +5490,7 @@ public class RECOIL
 						// handle OR color
 						if ((c & 0x40) != 0)
 							continue; // will be rendered with the lower-index sprites
-						for (int sprite2 = sprite + 1; sprite2 < 32; sprite2++) {
+						for (int sprite2 = sprite + 1; sprite2 < spriteCount; sprite2++) {
 							int attributeOffset2 = attributesOffset + (sprite2 << 2);
 							int row2 = y - content[attributeOffset2] - 1 & 0xff;
 							if (row2 >= 16)
