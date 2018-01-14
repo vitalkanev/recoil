@@ -5964,8 +5964,10 @@ public class RECOIL
 		else {
 			SetSize(256, height, RECOILResolution.Msx2Plus1x1);
 			DecodeMsxYjkScreen(content, 7, usePalette);
-			if (contentLength == 64167 && content[0] == 0xfe)
+			if (contentLength == 64167 && content[0] == 0xfe) {
+				SetMsxPalette(content, 0xfa87, 16); // wasn't set for SCC
 				DecodeMsxSprites(content, 12, 0xfa07, 0xf007);
+			}
 		}
 	}
 
