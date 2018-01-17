@@ -5466,6 +5466,7 @@ public class RECOIL
 			for (int x = 0; x < 256; x++) {
 				int color = 0;
 				bool enableOr = false;
+				int spritesPerLine = mode >= 4 ? 8 : 4;
 				for (int sprite = 0; sprite < 32; sprite++) {
 					int attributeOffset = attributesOffset + (sprite << 2);
 					int spriteY = content[attributeOffset];
@@ -5474,6 +5475,8 @@ public class RECOIL
 					int row = y - spriteY - 1 & 0xff;
 					if (row >= 16)
 						continue;
+					if (--spritesPerLine == -1)
+						break;
 					int c = content[mode >= 4 ? attributesOffset - 0x200 + (sprite << 4) + row : attributeOffset + 3];
 					if (mode < 4 || (c & 0x40) == 0) {
 						if (color != 0)
