@@ -5461,75 +5461,57 @@ public class RECOIL
 
 	void DecodeMsxSprites(byte[] content, int mode, int attributesOffset, int patternsOffset)
 	{
-		int spriteCount;
-		for (spriteCount = 0; spriteCount < 32 && content[attributesOffset + (spriteCount << 2)] != (mode >= 4 ? 216 : 208); spriteCount++) {
-		}
 		int height = mode <= 4 ? 192 : 212;
-		for (int sprite = spriteCount - 1; sprite >= 0; sprite--) {
-			int attributeOffset = attributesOffset + (sprite << 2);
-			for (int row = 0; row < 16; row++) {
-				int y = content[attributeOffset] + 1 + row & 0xff;
-				if (y >= height)
-					continue;
-				int c = content[mode >= 4 ? attributesOffset - 0x200 + (sprite << 4) + row : attributeOffset + 3];
-				int xPos = content[attributeOffset + 1];
-				if (c >= 0x80)
-					xPos -= 32;
-				int pattern = patternsOffset + ((content[attributeOffset + 2] & 0xfc) << 3) + row;
-				pattern = content[pattern] << 8 | content[pattern + 16];
-
-				for (int column = -15; column < 31; column++) {
-					int x = xPos + column;
-					if (x < 0 || x >= 256)
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < 256; x++) {
+				int color = 0;
+				bool enableOr = false;
+				for (int sprite = 0; sprite < 32; sprite++) {
+					int attributeOffset = attributesOffset + (sprite << 2);
+					int spriteY = content[attributeOffset];
+					if (spriteY == (mode >= 4 ? 216 : 208))
+						break;
+					int row = y - spriteY - 1 & 0xff;
+					if (row >= 16)
 						continue;
-					int color = 0;
-					if (column >= 0 && column < 16 && (pattern >> (15 - column) & 1) != 0)
-						color = c + 0x40; // 0x40 is arbitrary to make c==0 not transparent
-
-					if (mode >= 4) {
-						// handle OR color
-						if ((c & 0x40) != 0)
-							continue; // will be rendered with the lower-index sprites
-						for (int sprite2 = sprite + 1; sprite2 < spriteCount; sprite2++) {
-							int attributeOffset2 = attributesOffset + (sprite2 << 2);
-							int row2 = y - content[attributeOffset2] - 1 & 0xff;
-							if (row2 >= 16)
-								continue; // sprites don't overlap
-							int c2 = content[attributesOffset - 0x200 + (sprite2 << 4) + row2];
-							if ((c2 & 0x40) == 0)
-								break; // finish OR
-							int xPos2 = content[attributeOffset2 + 1];
-							if (c2 >= 0x80)
-								xPos2 -= 32;
-							int distance = xPos2 - xPos;
-							if (distance < -15 || distance > 15)
-								continue; // sprites don't overlap
-							int pattern2 = patternsOffset + ((content[attributeOffset2 + 2] & 0xfc) << 3) + row2;
-							pattern2 = content[pattern2] << 8 | content[pattern2 + 16];
-							if ((distance >= 0 ? pattern & pattern2 >> distance : pattern2 & pattern >> -distance) == 0)
-								continue; // sprites don't overlap
-							int column2 = x - xPos2;
-							if (column2 >= 0 && column2 < 16 && (pattern2 >> (15 - column2) & 1) != 0)
-								color |= c2;
-						}
+					int c = content[mode >= 4 ? attributesOffset - 0x200 + (sprite << 4) + row : attributeOffset + 3];
+					if (mode < 4 || (c & 0x40) == 0) {
+						if (color != 0)
+							break; // got sprite previously, paint it
+						enableOr = false; // disable OR until we hit column 0
 					}
-
-					if (color != 0) {
-						int offset;
-						switch (mode) {
-						case 6:
-							offset = (y << 10) + (x << 1);
-							Pixels[offset + 512] = Pixels[offset] = ContentPalette[color >> 2 & 3];
-							Pixels[offset + 513] = Pixels[offset + 1] = ContentPalette[color & 3];
-							break;
-						case 7:
-							offset = (y << 10) + (x << 1);
-							Pixels[offset + 513] = Pixels[offset + 512] = Pixels[offset + 1] = Pixels[offset] = ContentPalette[color & 0xf];
-							break;
-						default:
-							Pixels[(y << 8) + x] = ContentPalette[color & 0xf];
-							break;
-						}
+					else if (!enableOr)
+						continue;
+					int column = x - content[attributeOffset + 1];
+					if (c >= 0x80)
+						column += 32;
+					if (column < 0)
+						continue;
+					enableOr = true;
+					if (column >= 16)
+						continue;
+					int pattern = patternsOffset + ((content[attributeOffset + 2] & 0xfc) << 3) + row;
+					if ((content[pattern + ((column & 8) << 1)] >> (~column & 7) & 1) == 0)
+						continue;
+					color |= c;
+					if (mode >= 4)
+						color |= 0x10; // 0x10 is arbitrary to make c==0 not transparent
+				}
+				if (color != 0) {
+					int offset;
+					switch (mode) {
+					case 6:
+						offset = (y << 10) + (x << 1);
+						Pixels[offset + 512] = Pixels[offset] = ContentPalette[color >> 2 & 3];
+						Pixels[offset + 513] = Pixels[offset + 1] = ContentPalette[color & 3];
+						break;
+					case 7:
+						offset = (y << 10) + (x << 1);
+						Pixels[offset + 513] = Pixels[offset + 512] = Pixels[offset + 1] = Pixels[offset] = ContentPalette[color & 0xf];
+						break;
+					default:
+						Pixels[(y << 8) + x] = ContentPalette[color & 0xf];
+						break;
 					}
 				}
 			}
