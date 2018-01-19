@@ -5475,23 +5475,20 @@ public class RECOIL
 					int row = y - spriteY - 1 & 0xff;
 					if (row >= 16)
 						continue;
-					if (--spritesPerLine == -1)
+					if (--spritesPerLine < 0)
 						break;
 					int c = content[mode >= 4 ? attributesOffset - 0x200 + (sprite << 4) + row : attributeOffset + 3];
 					if (mode < 4 || (c & 0x40) == 0) {
 						if (color != 0)
 							break; // got sprite previously, paint it
-						enableOr = false; // disable OR until we hit column 0
+						enableOr = true;
 					}
 					else if (!enableOr)
 						continue;
 					int column = x - content[attributeOffset + 1];
 					if (c >= 0x80)
 						column += 32;
-					if (column < 0)
-						continue;
-					enableOr = true;
-					if (column >= 16)
+					if (column < 0 || column >= 16)
 						continue;
 					int pattern = patternsOffset + ((content[attributeOffset + 2] & 0xfc) << 3) + row;
 					if ((content[pattern + ((column & 8) << 1)] >> (~column & 7) & 1) == 0)
