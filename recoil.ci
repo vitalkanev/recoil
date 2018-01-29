@@ -5642,6 +5642,7 @@ public class RECOIL
 			return true;
 		}
 		SetSize(512, 424, RECOILResolution.Msx21x1);
+		Frames = 2;
 		for (int y = 0; y < 424; y++) {
 			for (int x = 0; x < 512; x++) {
 				int b = ((y & 1) == 0 ? content : interlace)[7 + (y >> 1 << 7) + (x >> 2)];
