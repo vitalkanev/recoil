@@ -6451,7 +6451,7 @@ public class RECOIL
 			return false;
 		byte[MaxWidth + 7 >> 3] deltas = 0;
 		for (int y = 0; y < height; y++) {
-			for (int x = 0; x < bytesPerLine; x += 2) {
+			for (int x = 0; x + 1 < bytesPerLine; x += 2) {
 				int delta = deltas[x >> 2];
 				if ((x & 2) == 0) {
 					switch (haveDelta.ReadBit()) {
@@ -6485,9 +6485,11 @@ public class RECOIL
 					if (sourceX < 0 || sourceY < 0)
 						return false;
 					unpacked[y * bytesPerLine + x] = unpacked[sourceY * bytesPerLine + sourceX];
-					unpacked[y * bytesPerLine + x +1] = unpacked[sourceY * bytesPerLine + sourceX + 1];
+					unpacked[y * bytesPerLine + x + 1] = unpacked[sourceY * bytesPerLine + sourceX + 1];
 				}
 			}
+			if ((bytesPerLine & 2) != 0 && (deltas[bytesPerLine >> 2] & 0xf) == 0)
+				colorOffset += 2;
 		}
 		return true;
 	}
@@ -6517,8 +6519,7 @@ public class RECOIL
 			colors = 16;
 		}
 		else {
-			if (headerOffset + (32 + 256 * 3) >= contentLength
-			 || (width & 3) != 0)
+			if (headerOffset + (32 + 256 * 3) >= contentLength)
 				return false;
 			bytesPerLine = width;
 			colors = 256;
