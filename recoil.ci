@@ -6525,25 +6525,29 @@ public class RECOIL
 			colors = 256;
 		}
 		RECOILResolution resolution;
-		switch (content[headerOffset + 2]) {
-		case 0x00:
-			resolution = (content[headerOffset + 3] & 1) == 0 ? RECOILResolution.Pc981x1 : RECOILResolution.Pc881x2;
-			break;
-		case 0x04:
-			resolution = RECOILResolution.Msx21x2;
-			break;
-		case 0x14:
-		case 0x54:
-			resolution = RECOILResolution.Msx21x1;
-			break;
-		case 0x24:
-		case 0x44:
-			if (colors == 16)
-				width >>= 1;
-			resolution = RECOILResolution.Msx2Plus1x1;
-			break;
-		default:
-			return false;
+		if (content[headerOffset + 1] == 0x68)
+			resolution = RECOILResolution.X68K1x1;
+		else {
+			switch (content[headerOffset + 2]) {
+			case 0x00:
+				resolution = (content[headerOffset + 3] & 1) == 0 ? RECOILResolution.Pc981x1 : RECOILResolution.Pc881x2;
+				break;
+			case 0x04:
+				resolution = RECOILResolution.Msx21x2;
+				break;
+			case 0x14:
+			case 0x54:
+				resolution = RECOILResolution.Msx21x1;
+				break;
+			case 0x24:
+			case 0x44:
+				if (colors == 16)
+					width >>= 1;
+				resolution = RECOILResolution.Msx2Plus1x1;
+				break;
+			default:
+				return false;
+			}
 		}
 		if (!SetScaledSize(width, height, resolution))
 			return false;

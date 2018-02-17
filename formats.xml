@@ -609,6 +609,7 @@
 		</format>
 	</platform>
 	<platform name="Sharp X68000" href="https://en.wikipedia.org/wiki/X68000">
+		<format name="Maki-chan Graphics" colors="16"><ext>MAG</ext></format>
 		<format colors="65536"><ext>PIC</ext></format>
 	</platform>
 	<platform name="Timex 2048" href="https://en.wikipedia.org/wiki/Timex_Computer_2048">
