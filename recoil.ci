@@ -6449,33 +6449,34 @@ public class RECOIL
 		int colorOffset = headerOffset + Get32LittleEndian(content, headerOffset + 24);
 		if (haveDelta.ContentOffset < 0 || deltaOffset < 0 || colorOffset < 0)
 			return false;
-		byte[MaxWidth + 7 >> 3] deltas = 0;
+		byte[MaxWidth + 3 >> 2] deltas = 0;
 		for (int y = 0; y < height; y++) {
-			for (int x = 0; x + 1 < bytesPerLine; x += 2) {
-				int delta = deltas[x >> 2];
-				if ((x & 2) == 0) {
-					switch (haveDelta.ReadBit()) {
-					case 0:
-						break;
-					case 1:
-						if (deltaOffset >= contentLength)
+			int delta = 0; // initialize only to avoid warnings
+			for (int x = 0; x < bytesPerLine; x++) {
+				if ((x & 1) == 0) {
+					delta = deltas[x >> 2];
+					if ((x & 2) == 0) {
+						switch (haveDelta.ReadBit()) {
+						case 0:
+							break;
+						case 1:
+							if (deltaOffset >= contentLength)
+								return false;
+							delta ^= content[deltaOffset++];
+							deltas[x >> 2] = delta;
+							break;
+						default:
 							return false;
-						delta ^= content[deltaOffset++];
-						deltas[x >> 2] = delta;
-						break;
-					default:
-						return false;
+						}
+						delta >>= 4;
 					}
-					delta >>= 4;
+					else
+						delta &= 0xf;
 				}
-				else
-					delta &= 0xf;
 				if (delta == 0) {
-					if (colorOffset + 1 >= contentLength)
+					if (colorOffset >= contentLength)
 						return false;
-					unpacked[y * bytesPerLine + x] = content[colorOffset];
-					unpacked[y * bytesPerLine + x + 1] = content[colorOffset + 1];
-					colorOffset += 2;
+					unpacked[y * bytesPerLine + x] = content[colorOffset++];
 				}
 				else {
 					const byte[16] deltaX = { 0, 2, 4, 8, 0, 2, 0, 2, 4, 0, 2, 4, 0, 2, 4, 0 };
@@ -6485,11 +6486,10 @@ public class RECOIL
 					if (sourceX < 0 || sourceY < 0)
 						return false;
 					unpacked[y * bytesPerLine + x] = unpacked[sourceY * bytesPerLine + sourceX];
-					unpacked[y * bytesPerLine + x + 1] = unpacked[sourceY * bytesPerLine + sourceX + 1];
 				}
 			}
-			if ((bytesPerLine & 2) != 0 && (deltas[bytesPerLine >> 2] & 0xf) == 0)
-				colorOffset += 2;
+			if ((deltas[bytesPerLine >> 2] & 0xf) == 0)
+				colorOffset += -bytesPerLine & 3;
 		}
 		return true;
 	}
