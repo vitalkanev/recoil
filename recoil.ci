@@ -6488,8 +6488,10 @@ public class RECOIL
 					unpacked[y * bytesPerLine + x] = unpacked[sourceY * bytesPerLine + sourceX];
 				}
 			}
-			if ((deltas[bytesPerLine >> 2] & 0xf) == 0)
-				colorOffset += -bytesPerLine & 3;
+			if ((bytesPerLine & 1) != 0 && delta == 0)
+				colorOffset++;
+			if ((bytesPerLine + 1 & 2) != 0 && (deltas[bytesPerLine >> 2] & 0xf) == 0)
+				colorOffset += 2;
 		}
 		return true;
 	}
