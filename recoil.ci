@@ -6525,19 +6525,21 @@ public class RECOIL
 			colors = 256;
 		}
 		RECOILResolution resolution;
-		if (content[headerOffset + 1] == 0x68)
-			resolution = RECOILResolution.X68K1x1;
-		else {
-			switch (content[headerOffset + 2]) {
+		int msxMode = 0;
+		switch (content[headerOffset + 1]) {
+		case 0x00:
+			resolution = (content[headerOffset + 3] & 1) == 0 ? RECOILResolution.Pc981x1 : RECOILResolution.Pc881x2;
+			break;
+		case 0x03:
+			msxMode = content[headerOffset + 2];
+			switch (msxMode) {
 			case 0x00:
-				resolution = (content[headerOffset + 3] & 1) == 0 ? RECOILResolution.Pc981x1 : RECOILResolution.Pc881x2;
-				break;
-			case 0x04:
-				resolution = RECOILResolution.Msx21x2;
-				break;
 			case 0x14:
 			case 0x54:
 				resolution = RECOILResolution.Msx21x1;
+				break;
+			case 0x04:
+				resolution = RECOILResolution.Msx21x2;
 				break;
 			case 0x24:
 			case 0x44:
@@ -6548,6 +6550,24 @@ public class RECOIL
 			default:
 				return false;
 			}
+			break;
+		case 0x62: // untested
+		case 0x70: // untested
+			resolution = RECOILResolution.Pc981x1;
+			break;
+		case 0x68:
+			resolution = RECOILResolution.X68K1x1;
+			break;
+		case 0x88: // untested
+			resolution = RECOILResolution.Pc881x2;
+			break;
+		case 0x99: // untested
+			resolution = RECOILResolution.Macintosh1x1;
+			break;
+		// case 0xff: Hellon - untested
+		default: // try to decode anyway
+			resolution = RECOILResolution.Msx21x1; // arbitrary
+			break;
 		}
 		if (!SetScaledSize(width, height, resolution))
 			return false;
@@ -6558,7 +6578,7 @@ public class RECOIL
 			return false;
 		}
 		SetMagPalette(content, headerOffset + 32, colors);
-		switch (content[headerOffset + 2]) {
+		switch (msxMode) {
 		case 0x24:
 			DecodeMsxYjkScreen(unpacked, 0, true);
 			break;
