@@ -5911,43 +5911,51 @@ public class RECOIL
 		return true;
 	}
 
-	int DecodeMsxYjk(byte[] content, int contentOffset, int i, bool usePalette)
+	int DecodeMsxYjk(byte[] content, int contentOffset, int x, bool usePalette)
 	{
-		int y = content[contentOffset + i] >> 3;
+		int y = content[contentOffset + x] >> 3;
 		if (usePalette && (y & 1) != 0)
 			return ContentPalette[y >> 1];
-		i = contentOffset + (i & ~3);
-		int k = (content[i] & 7) | (content[i + 1] & 7) << 3;
-		int j = (content[i + 2] & 7) | (content[i + 3] & 7) << 3;
-		// to 6-bit signed
-		k -= (k & 0x20) << 1;
-		j -= (j & 0x20) << 1;
-		// YJK to RGB
-		int r = y + j;
-		if (r < 0)
-			r = 0;
-		else if (r > 31)
-			r = 31;
-		int g = y + k;
-		if (g < 0)
-			g = 0;
-		else if (g > 31)
-			g = 31;
-		int b = (((5 * y - k) >> 1) - j) >> 1;
-		if (b < 0)
-			b = 0;
-		else if (b > 31)
-			b = 31;
-		int rgb = r << 16 | g << 8 | b;
+		int rgb;
+		if ((x | 3) >= Width) {
+			// missing color information
+			// not sure if correct, but at least avoids buffer overflow
+			rgb = y * 0x010101;
+		}
+		else {
+			x = contentOffset + (x & ~3);
+			int k = (content[x] & 7) | (content[x + 1] & 7) << 3;
+			int j = (content[x + 2] & 7) | (content[x + 3] & 7) << 3;
+			// to 6-bit signed
+			k -= (k & 0x20) << 1;
+			j -= (j & 0x20) << 1;
+			// YJK to RGB
+			int r = y + j;
+			if (r < 0)
+				r = 0;
+			else if (r > 31)
+				r = 31;
+			int g = y + k;
+			if (g < 0)
+				g = 0;
+			else if (g > 31)
+				g = 31;
+			int b = (((5 * y - k) >> 1) - j) >> 1;
+			if (b < 0)
+				b = 0;
+			else if (b > 31)
+				b = 31;
+			rgb = r << 16 | g << 8 | b;
+		}
 		// 5-bit RGB to 8-bit RGB
 		return rgb << 3 | (rgb >> 2 & 0x070707);
 	}
 
 	void DecodeMsxYjkScreen(byte[] content, int contentOffset, bool usePalette)
 	{
-		int pixelsLength = Width * Height;
-		for (int i = 0; i < pixelsLength; i++)
-			Pixels[i] = DecodeMsxYjk(content, contentOffset, i, usePalette);
+		for (int y = 0; y < Height; y++)
+			for (int x = 0; x < Width; x++)
+				Pixels[y * Width + x] = DecodeMsxYjk(content, contentOffset + y * Width, x, usePalette);
 	}
 
 	void DecodeSccSca(string filename, byte[] content, int contentLength, int height, bool usePalette)
@@ -6006,8 +6014,7 @@ public class RECOIL
 			return false;
 		int width = content[0] | content[1] << 8;
 		int height = content[2] | content[3] << 8;
-		if ((width & 3) != 0
-		 || contentLength != 4 + width * height
+		if (contentLength != 4 + width * height
 		 || !SetSize(width, height, RECOILResolution.Msx2Plus1x1))
 			return false;
 		if (filename != null)
@@ -6517,7 +6524,7 @@ public class RECOIL
 		int bytesPerLine;
 		int colors;
 		if (content[headerOffset + 3] < 0x80) {
-			bytesPerLine = width + 7 >> 1 & ~3;
+			bytesPerLine = width + 1 >> 1;
 			colors = 16;
 		}
 		else {
