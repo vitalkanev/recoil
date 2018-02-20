@@ -23,7 +23,7 @@
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <AppxBundle>Always</AppxBundle>
     <AppxBundlePlatforms>x86|x64|arm</AppxBundlePlatforms>
-    <PackageCertificateThumbprint>D3B067669D64BB4FBCECE22BCF0E74E10E7A7B09</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>0C9CCBDD79A7C94AE840862C12C7998661D879D3</PackageCertificateThumbprint>
     <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
@@ -89,7 +89,9 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="FilePicker.cs" />
     <Compile Include="RECOIL.cs" />
-    <AppxManifest Include="Package.appxmanifest" />
+    <AppxManifest Include="Package.appxmanifest">
+      <SubType>Designer</SubType>
+    </AppxManifest>
     <Content Include="Assets\FileLogo.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
     <Content Include="Assets\Square150x150Logo.scale-200.png" />

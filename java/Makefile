@@ -1,4 +1,4 @@
-VERSION = 4.2.0-ALPHA3
+VERSION = 4.2.0
 SEVENZIP = 7z a -mx=9 -bd -bso0
 
 RESOURCES := ../atari8.fnt ../altirrapal.pal ../c16.pal ../c64.fnt ../zx81.fnt

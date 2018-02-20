@@ -1,4 +1,25 @@
 ﻿<div>
+	<release project="RECOIL" version="4.2.0" date="2018-02-20">
+		<ul title="New formats">
+			<li>Atari 8-bit: SlideShow for VBXE (DAP), KSS-Paint (KSS), PowerGraphics (PGR), Hard Color Map (HCM)</li>
+			<li>MSX: GL5+PL5, GL6+PL6, GL7+PL7, GL8, GLA+PLA, GLC, SC3, SC4, SC5+S15, SC6, SC6+S16, SC7+S17, SC8+S18, SCA+S1A, SCC+S1C, SR6, SRI+PL7, PCT, STP, FNT, thanks FRS</li>
+			<li>PC: Image 72 font (FNT)</li>
+			<li>Timex 2048: hi-res (SCR)</li>
+			<li>TRS-80: MagicDraw (SHR)</li>
+			<li>ZX Spectrum: Border Screen (BSC), Border Screen Multicolor 8x4 (BMC4), Speccy eXtended Graphics (SXG), CHR$ (CH$)</li>
+		</ul>
+		<ul title="Improved formats">
+			<li>Atari STE: NEOchrome Master (NEO)</li>
+			<li>MSX: implemented sprites (SC2, SC3, SC4, SC5, SC6, SC7, SC8, SCA, SCC), fixed some files (MAG)</li>
+		</ul>
+		<ul title="Ports">
+			<li>Android: file picker now shows internal storage, SD card and icons</li>
+			<li>HTML 5: browse multiple images and multi-file images</li>
+			<li>Windows 10: added: save as PNG, share, copy to clipboard</li>
+		</ul>
+		<p>More detailed platform information: Apple II/IIe/IIGS, MSX/MSX2/MSX2+, non-standard display adapters (VBXE, ULAplus, Evolution)</p>
+	</release>
+
 	<release project="RECOIL" version="4.1.0" date="2017-10-18">
 		<ul title="New formats">
 			<li>Amstrad CPC: Mode 5 (CM5+GFX), Perfect Pix (PPH+ODD+EVE)</li>
