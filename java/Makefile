@@ -22,3 +22,9 @@ recoil-$(VERSION)-javadoc.zip: recoil-$(VERSION)-javadoc/index.html
 
 recoil-$(VERSION)-javadoc/index.html: java/RECOIL.java
 	javadoc -d $(@D) java/*.java
+
+clean:
+	$(RM) recoil-$(VERSION)-java.jar recoil-$(VERSION)-javadoc.zip
+	rm -rf net java recoil-$(VERSION)-javadoc
+
+.PHONY: clean
