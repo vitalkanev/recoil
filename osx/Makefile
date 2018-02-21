@@ -4,7 +4,7 @@ BINARY = bin/RECOIL.qlgenerator/Contents/MacOS/qlrecoil
 PLIST = bin/RECOIL.qlgenerator/Contents/Info.plist
 
 recoil-$(VERSION)-macos.dmg: bin/QuickLook $(BINARY) $(PLIST)
-	hdiutil create -volname recoil-$(VERSION)-macos -srcfolder bin -format UDBZ -imagekey bzip2-level=3 -ov $@
+	hdiutil create -volname recoil-$(VERSION)-macos -srcfolder bin -format UDBZ -fs HFS+ -imagekey bzip2-level=3 -ov $@
 
 bin/QuickLook:
 	mkdir -p $(@D) && ln -s /Library/QuickLook $@
