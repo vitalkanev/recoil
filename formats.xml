@@ -109,6 +109,7 @@
 		<format name="Atari CAD" width="320" height="160" colors="2"><ext>DRG</ext></format>
 		<format name="The Last Word font" colors="2"><ext>F80</ext></format>
 		<format name="Floor Designer" width="64" height="40" grayscale="16"><ext>FGE</ext></format>
+		<format name="Atari FontMaker" colors="2"><ext>FN2</ext></format>
 		<format name="8x8 font" colors="2"><ext>FNT</ext></format>
 		<format name="Fun with Art" width="160" height="192" colors="128"><ext>FWA</ext></format>
 		<format name="Graphics 10" width="80" maxHeight="240" colors="9"><ext>G10</ext></format>

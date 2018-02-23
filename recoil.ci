@@ -10806,7 +10806,9 @@ public class RECOIL
 		colors[1] = GtiaColors[6] & 0xf0 | GtiaColors[5] & 0x0e;
 		for (int y = 0; y < lines; y++) {
 			for (int x = 0; x < Width; x++) {
-				int ch = characters[charactersOffset + (x >> 3)];
+				int ch = charactersOffset + (x >> 3);
+				if (characters != null)
+					ch = characters[ch];
 				int b = font[fontOffset + ((ch & 0x7f) << 3) + (y & 7)];
 				if (lines == 10) {
 					// ANTIC 3 instead of ANTIC 2 / GR.0
@@ -12508,22 +12510,16 @@ public class RECOIL
 		default:
 			return false;
 		}
-		byte[128] characters;
-		for (int i = 0; i < 128; i++)
-			characters[i] = i;
-		return DecodeAtari8Font(characters, content, contentOffset);
+		return DecodeAtari8Font(null, content, contentOffset);
 	}
 
 	bool DecodeF80(byte[] content, int contentLength)
 	{
 		if (contentLength != 512)
 			return false;
-		byte[64] characters;
-		for (int i = 0; i < 64; i++)
-			characters[i] = i;
 		SetSize(128, 32, RECOILResolution.Xe1x1);
 		byte[128 * 32] frame;
-		DecodeAtari8Gr0(characters, 16, content, 0, frame);
+		DecodeAtari8Gr0(null, 16, content, 0, frame);
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -12539,6 +12535,19 @@ public class RECOIL
 		for (int i = 0; i < 128; i++)
 			characters[i] = (i & 0x41) | (i >> 4 & 2) | ((i & 0x1e) << 1);
 		return DecodeAtari8Font(characters, content, 6);
+	}
+
+	bool DecodeFn2(byte[] content, int contentLength)
+	{
+		if (contentLength != 2048)
+			return false;
+		SetSize(256, 64, RECOILResolution.Xe1x1);
+		GtiaColors[6] = 0x00;
+		GtiaColors[5] = 0x0e;
+		byte[256 * 64] frame;
+		for (int y = 0; y < 64; y += 8)
+			DecodeAtari8Gr0Line(null, y >> 4 << 5, content, (y & 8) << 7, frame, y << 8, 8);
+		return ApplyAtari8Palette(frame);
 	}
 
 	bool DecodeNlq(byte[] content, int contentLength)
@@ -14691,6 +14700,7 @@ public class RECOIL
 		case PackExt("FFLI"):
 		case PackExt("FGE"):
 		case PackExt("FLI"):
+		case PackExt("FN2"):
 		case PackExt("FNT"):
 		case PackExt("FP2"):
 		case PackExt("FPT"):
@@ -15195,6 +15205,8 @@ public class RECOIL
 		case PackExt("FLI"):
 			return DecodeFli(content, contentLength)
 				|| DecodeBml(content, contentLength);
+		case PackExt("FN2"):
+			return DecodeFn2(content, contentLength);
 		case PackExt("FNT"):
 			return DecodePct(content, contentLength)
 				|| DecodeGdosFnt(content, contentLength)
