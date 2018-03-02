@@ -1,4 +1,9 @@
 ﻿<div>
+	<release project="RECOIL" version="4.2.1" date="2018-03-02">
+		<p>Windows 10 only release, because 4.2.0 failed a Windows store certification.</p>
+		<p>New Atari 8-bit formats: F80, FN2.</p>
+	</release>
+
 	<release project="RECOIL" version="4.2.0" date="2018-02-20">
 		<ul title="New formats">
 			<li>Atari 8-bit: SlideShow for VBXE (DAP), KSS-Paint (KSS), PowerGraphics (PGR), Hard Color Map (HCM)</li>
