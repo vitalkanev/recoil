@@ -5803,8 +5803,12 @@ public class RECOIL
 
 	void SetSc8Palette()
 	{
-		for (int c = 0; c < 256; c++)
-			ContentPalette[c] = GetG3R3B2Color(c);
+		for (int c = 0; c < 256; c++) {
+			// 0bGGGRRRBB -> 0xRRGGBB
+			const byte[4] blues = { 0, 2, 4, 7 };
+			int rgb = (c & 0x1c) << 14 | (c & 0xe0) << 3 | blues[c & 3];
+			ContentPalette[c] = rgb << 5 | rgb << 2 | (rgb >> 1 & 0x030303);
+		}
 	}
 
 	bool DecodeSc8(string filename, byte[] content, int contentLength)
