@@ -5395,7 +5395,33 @@ public class RECOIL
 
 	// MSX formats.
 
-	const byte[32] Msx1Palette = {
+	void SetMsx1Palette()
+	{
+		// TMS9928/9929 Palette calculated with the standard video convertion
+		// formulas, but with the saturation set to 50%, to match the output
+		// of many European models and the Sharp HB-8000.
+		// The palette shown in Wikipedia is roughly the same as this,
+		// but with some tweaking.
+		// By Fabio R. Schmidlin <sd-snatcher@sourceforge.net>
+		ContentPalette[ 0] = 0x000800;
+		ContentPalette[ 1] = 0x000400;
+		ContentPalette[ 2] = 0x3abb43;
+		ContentPalette[ 3] = 0x70d377;
+		ContentPalette[ 4] = 0x5459d7;
+		ContentPalette[ 5] = 0x7b7be8;
+		ContentPalette[ 6] = 0xb3634b;
+		ContentPalette[ 7] = 0x61dfe7;
+		ContentPalette[ 8] = 0xd46a53;
+		ContentPalette[ 9] = 0xf88e77;
+		ContentPalette[10] = 0xc7c759;
+		ContentPalette[11] = 0xd9d481;
+		ContentPalette[12] = 0x36a53b;
+		ContentPalette[13] = 0xb06bae;
+		ContentPalette[14] = 0xc7d0c5;
+		ContentPalette[15] = 0xfafff8;
+	}
+
+	const byte[32] Msx2DefaultPalette = {
 		0x00, 0,
 		0x00, 0,
 		0x11, 6,
@@ -5522,17 +5548,14 @@ public class RECOIL
 	{
 		if (contentLength < 14343 || content[0] != 0xfe || GetMsxHeader(content) < 0x37ff)
 			return false;
-		RECOILResolution resolution;
 		if (IsMsxPalette(content, 0x1b87)) {
 			SetMsxPalette(content, 0x1b87, 16);
-			resolution = RECOILResolution.Msx21x1;
+			DecodeSc2Sc4(content, RECOILResolution.Msx21x1);
 		}
 		else {
-			SetMsxPalette(Msx1Palette, 0, 16);
-			resolution = RECOILResolution.Msx11x1;
+			SetMsx1Palette();
+			DecodeSc2Sc4(content, RECOILResolution.Msx11x1);
 		}
-		DecodeSc2Sc4(content, resolution);
-
 		if (contentLength == 16391)
 			DecodeMsxSprites(content, 2, 0x1b07, 0x3807);
 		return true;
@@ -5545,7 +5568,7 @@ public class RECOIL
 		if (contentLength >= 0x2047 && IsMsxPalette(content, 0x2027))
 			SetMsxPalette(content, 0x2027, 16);
 		else
-			SetMsxPalette(Msx1Palette, 0, 16);
+			SetMsx1Palette();
 		SetSize(256, 192, RECOILResolution.Msx14x4);
 		for (int y = 0; y < 192; y++) {
 			for (int x = 0; x < 256; x++) {
@@ -5602,7 +5625,7 @@ public class RECOIL
 	void SetMsxCompanionPalette(string filename, string upperExt, string lowerExt)
 	{
 		byte[32] palette;
-		SetMsxPalette(ReadCompanionFile(filename, upperExt, lowerExt, palette, 32) == 32 ? palette : Msx1Palette, 0, 16);
+		SetMsxPalette(ReadCompanionFile(filename, upperExt, lowerExt, palette, 32) == 32 ? palette : Msx2DefaultPalette, 0, 16);
 	}
 
 	bool DecodeSr5(string filename, byte[] content, int contentLength)
@@ -5739,7 +5762,7 @@ public class RECOIL
 		if (contentLength >= 64167)
 			SetMsxPalette(content, 0xfa87, 16);
 		else
-			SetMsxPalette(Msx1Palette, 0, 16);
+			SetMsxPalette(Msx2DefaultPalette, 0, 16);
 		byte[54279] interlace;
 		if (ReadCompanionFile(filename, "S17", "s17", interlace, 54279) != 54279
 		 || interlace[0] != 0xfe
