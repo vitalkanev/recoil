@@ -2236,6 +2236,137 @@ class Q4Stream : RleStream
 	}
 }
 
+class PiStream : BitStream
+{
+	byte[256 * 256] RecentColors;
+
+	int ReadInt(int bits, int maxBits)
+	{
+		for (; bits < maxBits; bits++) {
+			int b = ReadBit();
+			if (b == 0)
+				break;
+			if (b < 0)
+				return -1;
+		}
+		return 1 << bits | ReadBits(bits); // ReadBits can return -1
+	}
+
+	bool UnpackLiteral(int[] pixels, int pixelsOffset, int depth)
+	{
+		int offset;
+		switch (ReadBit()) {
+		case 1:
+			offset = ReadBit();
+			break;
+		case 0:
+			offset = ReadInt(1, depth - 1);
+			break;
+		default: // -1
+			return false;
+		}
+		if (offset < 0)
+			return false;
+		int recentOffset = pixelsOffset == 0 ? 0 : pixels[pixelsOffset - 1] << 8;
+		offset += recentOffset;
+		int c = RecentColors[offset];
+		for (; offset > recentOffset; offset--)
+			RecentColors[offset] = RecentColors[offset - 1];
+		RecentColors[offset] = c;
+		pixels[pixelsOffset] = c;
+		return true;
+	}
+
+	bool UnpackTwoLiterals(int[] pixels, int pixelsOffset, int pixelsLength, int depth)
+	{
+		if (!UnpackLiteral(pixels, pixelsOffset, depth))
+			return false;
+		return pixelsOffset + 1 >= pixelsLength
+			|| UnpackLiteral(pixels, pixelsOffset + 1, depth);
+	}
+
+	int ReadPosition()
+	{
+		int position = ReadBits(2);
+		if (position != 3)
+			return position;
+		position = ReadBit();
+		if (position < 0)
+			return -1;
+		return 3 + position;
+	}
+
+	bool Unpack(RECOIL recoil, int depth)
+	{
+		int colors = 1 << depth;
+		for (int i = 0; i < colors; i++)
+			for (int j = 0; j < colors; j++)
+				RecentColors[i << 8 | j] = i - j & (colors - 1);
+		// write palette indices to Pixels
+		// we back-reference indices and use Pixels to avoid extra allocations
+		int[] pixels = recoil.Pixels;
+		int width = recoil.Width;
+		int pixelsLength = width * recoil.Height;
+		if (!UnpackTwoLiterals(pixels, 0, pixelsLength, depth))
+			return false;
+
+		int lastPosition = -1;
+		for (int pixelsOffset = 0; pixelsOffset < pixelsLength; ) {
+			int position = ReadPosition();
+			if (position < 0)
+				return false;
+			if (position == lastPosition) {
+				do {
+					if (!UnpackTwoLiterals(pixels, pixelsOffset, pixelsLength, depth))
+						return false;
+					pixelsOffset += 2;
+				} while (pixelsOffset < pixelsLength && ReadBit() == 1);
+				lastPosition = -1;
+			}
+			else {
+				int length = ReadInt(0, 23); // 23 is arbitrary, assumes no more than ~16M pixels
+				if (length < 0)
+					return false;
+				lastPosition = position;
+				switch (position) {
+				case 0:
+					position = pixelsOffset == 0 ? 0 : pixelsOffset - 2;
+					position = pixels[position] == pixels[position + 1] ? 2 : 4;
+					break;
+				case 1:
+					position = width;
+					break;
+				case 2:
+					position = width << 1;
+					break;
+				case 3:
+					position = width - 1;
+					break;
+				case 4:
+					position = width + 1;
+					break;
+				default:
+					// assert false;
+					return false;
+				}
+				int copyEnd = pixelsOffset + (length << 1);
+				if (copyEnd > pixelsLength)
+					copyEnd = pixelsLength;
+				for (; pixelsOffset < copyEnd; pixelsOffset++) {
+					int sourceOffset = pixelsOffset - position;
+					if (sourceOffset < 0)
+						sourceOffset &= 1;
+					pixels[pixelsOffset] = pixels[sourceOffset];
+				}
+			}
+		}
+
+		for (int pixelsOffset = 0; pixelsOffset < pixelsLength; pixelsOffset++)
+			pixels[pixelsOffset] = recoil.ContentPalette[pixels[pixelsOffset]];
+		return true;
+	}
+}
+
 // FlashPack 2.1
 class A4rStream : Stream
 {
@@ -6417,6 +6548,37 @@ public class RECOIL
 			Pixels[i] = ContentPalette[b];
 		}
 		return true;
+	}
+
+	bool DecodePi(byte[] content, int contentLength)
+	{
+		if (contentLength < 18 || content[0] != 'P' || content[1] != 'i')
+			return false;
+		int contentOffset = 2;
+		do {
+			if (contentOffset + (1 + 10 + 4) >= contentLength)
+				return false;
+		} while (content[contentOffset++] != 0x1a);
+		if (content[contentOffset++] != 0)
+			return false;
+		int depth = content[contentOffset + 3];
+		int compressedOffset = contentOffset + 14 + (3 << depth);
+		if (content[contentOffset] != 0 // TODO: default palette
+		 || (depth != 4 && depth != 8)
+		 || content[contentOffset + 8] != 0 // TODO: skip
+		 || content[contentOffset + 9] != 0
+		 || compressedOffset >= contentLength)
+			return false;
+		int width = content[contentOffset + 10] << 8 | content[contentOffset + 11];
+		int height = content[contentOffset + 12] << 8 | content[contentOffset + 13];
+		if (!SetSize(width, height, RECOILResolution.Pc981x1))
+			return false;
+		DecodeR8G8B8Colors(content, contentOffset + 14, 1 << depth, ContentPalette);
+		PiStream() s;
+		s.Content = content;
+		s.ContentOffset = compressedOffset;
+		s.ContentLength = contentLength;
+		return s.Unpack(this, depth);
 	}
 
 	void SetMagPalette(byte[] content, int paletteOffset, int colors)
@@ -15538,7 +15700,8 @@ public class RECOIL
 		case PackExt("PGR"):
 			return DecodePgr(content, contentLength);
 		case PackExt("PI"):
-			return contentLength == 10242 && DecodeC64Multicolor(320, content, 2, 0x2002, 0x2402, content[0x1f82]);
+			return DecodePi(content, contentLength)
+				|| (contentLength == 10242 && DecodeC64Multicolor(320, content, 2, 0x2002, 0x2402, content[0x1f82]));
 		case PackExt("PI1"):
 		case PackExt("PI2"):
 		case PackExt("PI3"):
