@@ -3937,6 +3937,7 @@ public class RECOIL
 		case RECOILResolution.Amiga1x2:
 		case RECOILResolution.St1x2:
 		case RECOILResolution.Ste1x2:
+		case RECOILResolution.Msx21x2:
 		case RECOILResolution.Trs1x2:
 			offset = (offset << 1) + x;
 			Pixels[offset + Width] = Pixels[offset] = rgb;
@@ -5940,12 +5941,14 @@ public class RECOIL
 			return false;
 		int width = content[0] | content[1] << 8;
 		int height = content[2] | content[3] << 8;
-		int contentStride = width + 1 >> 1;
-		if (contentLength != 4 + contentStride * height
+		if (contentLength != 4 + (width * height + 1 >> 1)
 		 || !SetScaledSize(width, height, resolution))
 			return false;
 		SetMsxCompanionPalette(filename, upperExt, lowerExt);
-		DecodeNibbles(content, 4, contentStride);
+		// no line padding
+		for (int y = 0; y < height; y++)
+			for (int x = 0; x < width; x++)
+				SetScaledPixel(x, y, ContentPalette[GetNibble(content, 4, y * width + x)]);
 		return true;
 	}
 
