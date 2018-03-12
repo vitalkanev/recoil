@@ -14634,6 +14634,14 @@ public class RECOIL
 
 	// PC formats.
 
+	bool DecodeHs2(byte[] content, int contentLength)
+	{
+		if (contentLength % 105 != 0)
+			return false;
+		return SetSize(840, contentLength / 105, RECOILResolution.Pc1x1)
+			&& DecodeBlackAndWhite(content, 0, contentLength, false, 0);
+	}
+
 	bool DecodeImage72Fnt(byte[] content, int contentLength)
 	{
 		if (contentLength < 4 || content[0] != 0 || content[1] != 8) // TODO: wider fonts
@@ -14945,6 +14953,7 @@ public class RECOIL
 		case PackExt("HCI"):
 		case PackExt("HRM"):
 		case PackExt("HRS"):
+		case PackExt("HS2"):
 		case PackExt("IB3"):
 		case PackExt("IBI"):
 		case PackExt("IC1"):
@@ -15506,6 +15515,8 @@ public class RECOIL
 			return DecodeHrm(content, contentLength);
 		case PackExt("HRS"):
 			return DecodeHrs(content, contentLength);
+		case PackExt("HS2"):
+			return DecodeHs2(content, contentLength);
 		case PackExt("IB3"):
 		case PackExt("IBI"):
 			return DecodeIbi(content, contentLength);

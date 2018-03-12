@@ -599,6 +599,7 @@
 	</platform>
 	<platform name="PC" href="http://en.wikipedia.org/wiki/IBM_PC_compatible">
 		<format name="Award BIOS logo"><ext>EPA</ext></format>
+		<format name="Handy Scanner 2000 POSTERING" width="840" colors="2"><ext>HS2</ext></format>
 		<format name="Image 72 font" colors="2"><ext>FNT</ext></format>
 		<format name="Microsoft Paint version 1 or 2" colors="2"><ext>MSP</ext></format>
 	</platform>
