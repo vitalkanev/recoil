@@ -5835,26 +5835,17 @@ public class RECOIL
 			return false;
 		int width = content[0] | content[1] << 8;
 		int height = content[2] | content[3] << 8;
-		if ((width & 3) != 0
-		 || contentLength != 4 + (width >> 2) * height
-		 || !SetSize(width, height << 1, RECOILResolution.Msx21x2))
-			return false;
-		SetMsx6Palette(filename);
-		return DecodeMsx6(content, 4);
-	}
-
-	bool DecodeStp(byte[] content, int contentLength)
-	{
-		if (contentLength < 5)
-			return false;
-		int width = content[0] | content[1] << 8;
-		int height = content[2] | content[3] << 8;
 		if (contentLength < 4 + (width * height + 3 >> 2)
 		 || !SetSize(width, height << 1, RECOILResolution.Msx21x2))
 			return false;
-		ContentPalette[0] = 0xffffff;
-		ContentPalette[1] = 0;
-		ContentPalette[3] = ContentPalette[2] = 0; // reserved for program GUI
+		if (filename != null)
+			SetMsx6Palette(filename); // GL6
+		else {
+			// STP
+			ContentPalette[0] = 0xffffff;
+			ContentPalette[1] = 0;
+			ContentPalette[3] = ContentPalette[2] = 0; // reserved for program GUI
+		}
 		return DecodeMsx6(content, 4);
 	}
 
@@ -15880,7 +15871,7 @@ public class RECOIL
 		case PackExt("SSB"):
 			return DecodeSsb(content, contentLength);
 		case PackExt("STP"):
-			return DecodeStp(content, contentLength);
+			return DecodeGl6(null, content, contentLength);
 		case PackExt("SXG"):
 			return DecodeSxg(content, contentLength);
 		case PackExt("SXS"):
