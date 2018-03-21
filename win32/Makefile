@@ -37,13 +37,13 @@ i686/recoil2png.exe: ../recoil2png.c ../pngsave.c ../pngsave.h ../recoil-stdio.c
 i686/IM_MOD_RL_recoil_.dll x86_64/IM_MOD_RL_recoil_.dll: ../imagemagick/recoilmagick.c ../formats.h ../recoil.c ../recoil.h
 	$(DO)$(CC) $(LDFLAGS_DLL) -I"$(IMAGEMAGICK_$(@D)_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_$(@D)_DIR)"
  
-i686/Xrecoil.usr: xnview/Xrecoil.c ../formats.h recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h
+i686/Xrecoil.usr x86_64/Xrecoil.usr: xnview/Xrecoil.c ../formats.h recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h
 	$(DO)$(CC) $(LDFLAGS_DLL)
 
-i686/recoilwin.exe: recoilwin/recoilwin.c recoilwin/recoilwin.h recoil-win32.c recoil-win32.h i686/recoilwin-res.o ../pngsave.c ../pngsave.h ../formats.h ../recoil.c ../recoil.h
+%/recoilwin.exe: recoilwin/recoilwin.c recoilwin/recoilwin.h recoil-win32.c recoil-win32.h %/recoilwin-res.o ../pngsave.c ../pngsave.h ../formats.h ../recoil.c ../recoil.h
 	$(DO)$(CC) -Wl,-subsystem,windows -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng16 -lz
 
-i686/recoilwin-res.o: recoilwin/recoilwin.rc recoilwin/recoilwin.h recoil.ico ../recoil.h
+i686/recoilwin-res.o x86_64/recoilwin-res.o: recoilwin/recoilwin.rc recoilwin/recoilwin.h recoil.ico ../recoil.h
 	$(DO)$(WINDRES) -I.. $<
 
 i686/thumbrecoil.dll x86_64/thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../formats.h recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h

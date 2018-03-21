@@ -1,7 +1,7 @@
 /*
  * recoilwin.rc - RECOILWin GUI definition
  *
- * Copyright (C) 2009-2017  Piotr Fusik
+ * Copyright (C) 2009-2018  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -110,16 +110,22 @@ IDR_ACCELERATORS ACCELERATORS
 	"I", IDM_INVERT
 }
 
+#ifdef _WIN64
+#define PROCESSOR_ARCHITECTURE  "amd64"
+#else
+#define PROCESSOR_ARCHITECTURE  "X86"
+#endif
+
 1 24
 {
 	"<?xml version=""1.0""?>"
 	"<assembly xmlns=""urn:schemas-microsoft-com:asm.v1"" manifestVersion=""1.0"">"
 		"<assemblyIdentity version=""" RECOIL_VERSION ".0"" "
-			"processorArchitecture=""X86"" name=""RECOILWin"" type=""win32"" />"
+			"processorArchitecture=""" PROCESSOR_ARCHITECTURE """ name=""RECOILWin"" type=""win32"" />"
 		"<dependency>"
 			"<dependentAssembly>"
 				"<assemblyIdentity type=""win32"" name=""Microsoft.Windows.Common-Controls"" "
-					"version=""6.0.0.0"" processorArchitecture=""X86"" publicKeyToken=""6595b64144ccf1df"" language=""*"" />"
+					"version=""6.0.0.0"" processorArchitecture=""" PROCESSOR_ARCHITECTURE """ publicKeyToken=""6595b64144ccf1df"" language=""*"" />"
 			"</dependentAssembly>"
 		"</dependency>"
 		"<application xmlns=""urn:schemas-microsoft-com:asm.v3"">"
