@@ -14865,6 +14865,7 @@ public class RECOIL
 		case PackExt("DD"):
 		case PackExt("DEL"):
 		case PackExt("DG1"):
+		case PackExt("DHGR"):
 		case PackExt("DHR"):
 		case PackExt("DIN"):
 		case PackExt("DIT"):
@@ -15347,6 +15348,8 @@ public class RECOIL
 			return DecodeDel(content, contentLength);
 		case PackExt("DG1"):
 			return DecodeDg1(content, contentLength);
+		case PackExt("DHGR"):
+			return DecodeAppleIIDhr(content, contentLength);
 		case PackExt("DHR"):
 			return DecodeIff(content, contentLength, RECOILResolution.Amiga1x1)
 				|| DecodeAppleIIDhr(content, contentLength);
