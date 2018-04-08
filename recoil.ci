@@ -4881,6 +4881,132 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeSgx(byte[] content, int contentLength)
+	{
+		int width = 0;
+		int height = 0;
+		int chunkLeft = 0;
+		int rowHeight = 0;
+		for (int contentOffset = 0; contentOffset + 3 < contentLength; ) {
+			int chunkStride = content[contentOffset];
+			if (chunkStride == 0)
+				break;
+			if (chunkStride == 255) {
+				// next row
+				if (width == 0)
+					width = chunkLeft; // first row
+				else if (chunkLeft != width)
+					return false; // rows must be of same width
+				chunkLeft = 0;
+				contentOffset += 3;
+			}
+			else {
+				int chunkWidth;
+				int chunkHeight;
+				if (chunkStride <= 63) {
+					chunkWidth = content[contentOffset + 1];
+					if (chunkWidth + 3 >> 2 != chunkStride)
+						return false;
+					chunkHeight = content[contentOffset + 2];
+					contentOffset += 3;
+				}
+				else if (chunkStride == 64) {
+					if (contentOffset + 8 >= contentLength
+					 || content[contentOffset + 1] != 5) // TODO: 4-color
+						return false;
+					chunkStride = content[contentOffset + 2] | content[contentOffset + 3] << 8;
+					chunkWidth = content[contentOffset + 4] | content[contentOffset + 5] << 8;
+					if (chunkWidth + 1 >> 1 != chunkStride)
+						return false;
+					chunkHeight = content[contentOffset + 6] | content[contentOffset + 7] << 8;
+					contentOffset += 8;
+				}
+				else
+					return false;
+				if (chunkLeft == 0)
+					height += rowHeight = chunkHeight; // first chunk in row
+				else if (chunkHeight != rowHeight)
+					return false; // chunks in row must be of same height
+				chunkLeft += chunkWidth;
+				contentOffset += chunkHeight * chunkStride;
+				if (contentOffset > contentLength)
+					return false;
+			}
+		}
+		if (width == 0)
+			width = chunkLeft;
+		else if (chunkLeft != width)
+			return false;
+		if (!SetSize(width, height, RECOILResolution.Amstrad1x1))
+			return false;
+
+		chunkLeft = 0;
+		int chunkTop = 0;
+		rowHeight = 0;
+		for (int contentOffset = 0; contentOffset + 3 < contentLength; ) {
+			int chunkStride = content[contentOffset];
+			if (chunkStride == 0)
+				break;
+			if (chunkStride == 255) {
+				// next row
+				chunkLeft = 0;
+				chunkTop += rowHeight;
+				contentOffset += 3;
+			}
+			else {
+				int chunkWidth;
+				if (chunkStride <= 63) {
+					// 4 colors
+					chunkWidth = content[contentOffset + 1];
+					rowHeight = content[contentOffset + 2];
+					contentOffset += 3;
+					for (int y = 0; y < rowHeight; y++) {
+						for (int x = 0; x < chunkWidth; x++) {
+							int b = content[contentOffset + (x >> 2)] >> (~x & 3);
+							const int[4] palette = { 0xffffff, 0xaaaaaa, 0x000000, 0x555555 };
+							Pixels[(chunkTop + y) * width + chunkLeft + x] = palette[(b >> 3 & 2) + (b & 1)];
+						}
+						contentOffset += chunkStride;
+					}
+				}
+				else {
+					// 16 colors
+					chunkStride = content[contentOffset + 2] | content[contentOffset + 3] << 8;
+					chunkWidth = content[contentOffset + 4] | content[contentOffset + 5] << 8;
+					rowHeight = content[contentOffset + 6] | content[contentOffset + 7] << 8;
+					contentOffset += 8;
+					for (int y = 0; y < rowHeight; y++) {
+						for (int x = 0; x < chunkWidth; x++) {
+							int c = GetNibble(content, contentOffset, x);
+							const int[16] palette = {
+								0xffff80,
+								0x000000,
+								0xff8000,
+								0x800000,
+								0x00ffff,
+								0x000080,
+								0x8080ff,
+								0x0000ff,
+								0xffffff,
+								0x008000,
+								0x00ff00,
+								0xff00ff,
+								0xffff00,
+								0x808080,
+								0xff8080,
+								0xff0000
+							};
+							Pixels[(chunkTop + y) * width + chunkLeft + x] = palette[c];
+						}
+						contentOffset += chunkStride;
+					}
+				}
+				chunkLeft += chunkWidth;
+			}
+		}
+		return true;
+	}
+
 	bool SetAmstradFirmwarePalette(byte[] content, int contentOffset, int count)
 	{
 		for (int i = 0; i < count; i++) {
@@ -15123,6 +15249,7 @@ public class RECOIL
 		case PackExt("SS4"):
 		case PackExt("SG3"):
 		case PackExt("SGE"):
+		case PackExt("SGX"):
 		case PackExt("SH3"):
 		case PackExt("SHC"):
 		case PackExt("SHP"):
@@ -15834,6 +15961,8 @@ public class RECOIL
 			return DecodeSg3(content, contentLength);
 		case PackExt("SGE"):
 			return DecodeSge(content, contentLength);
+		case PackExt("SGX"):
+			return DecodeSgx(content, contentLength);
 		case PackExt("SH3"):
 			return DecodeSh3(content, contentLength);
 		case PackExt("SHC"):

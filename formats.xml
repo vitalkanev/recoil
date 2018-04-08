@@ -36,6 +36,7 @@
 			<ext>SCR</ext>
 			<companionExt>PAL</companionExt>
 		</format>
+		<format name="SymbOS graphic" colors="16"><ext>SGX</ext></format>
 		<format name="Advanced OCP Art Studio">
 			<ext>WIN</ext>
 			<companionExt>PAL</companionExt>
