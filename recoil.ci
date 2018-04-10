@@ -6478,6 +6478,9 @@ public class RECOIL
 			case 64:
 				if (!SetG9bPalette(content, 64))
 					return false;
+				// colors 64-255 are not expected
+				for (int c = 64; c < 256; c++)
+					ContentPalette[c] = 0;
 				break;
 			default:
 				return false;
