@@ -563,7 +563,7 @@
 		<format name="Dynamic Publisher stamp" colors="2"><ext>STP</ext></format>
 	</platform>
 	<platform name="MSX2+" href="http://en.wikipedia.org/wiki/MSX">
-		<format hardware="GFX9000" name="GFX9k" colors="32768"><ext>G9B</ext></format>
+		<format hardware="V9990 VDP" name="GFX9k" colors="32768"><ext>G9B</ext></format>
 		<format colors="12515">
 			<ext>GLA</ext>
 			<companionExt>PLA</companionExt>
