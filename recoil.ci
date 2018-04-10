@@ -1922,6 +1922,81 @@ class Tre1Stream : RleStream
 	}
 }
 
+class G9bStream : BitStream
+{
+	const int BlockEnd = -2;
+
+	int ReadLength()
+	{
+		for (int length = 1; length < 1 << 16;) {
+			switch (ReadBit()) {
+			case 0:
+				return length + 1;
+			case 1:
+				break;
+			default:
+				return -1;
+			}
+			length <<= 1;
+			switch (ReadBit()) {
+			case 0:
+				break;
+			case 1:
+				length++;
+				break;
+			default:
+				return -1;
+			}
+		}
+		return BlockEnd;
+	}
+
+	bool Unpack(byte[] unpacked, int headerLength, int unpackedLength)
+	{
+		ContentOffset = headerLength + 3;
+		for (int unpackedOffset = headerLength; unpackedOffset < unpackedLength;) {
+			int b;
+			switch (ReadBit()) {
+			case 0:
+				b = ReadByte();
+				if (b < 0)
+					return false;
+				unpacked[unpackedOffset++] = b;
+				break;
+			case 1:
+				int length = ReadLength();
+				if (length == BlockEnd) {
+					ContentOffset += 2; // skip block length
+					Bits = 0; // reset bit buffer
+					break;
+				}
+				if (length < 0 || unpackedOffset + length > unpackedLength)
+					return false;
+				int distance = ReadByte();
+				if (distance < 0)
+					return false;
+				if (distance >= 128) {
+					b = ReadBits(4);
+					if (b < 0)
+						return false;
+					distance += b - 1 << 7;
+				}
+				distance++;
+				if (unpackedOffset - distance < headerLength)
+					return false;
+				do {
+					unpacked[unpackedOffset] = unpacked[unpackedOffset - distance];
+					unpackedOffset++;
+				} while (--length > 0);
+				break;
+			default:
+				return false;
+			}
+		}
+		return true;
+	}
+}
+
 class Ice21Stream
 {
 	byte[] Content;
@@ -6299,6 +6374,139 @@ public class RECOIL
 			SetMsxCompanionPalette(filename, "PLA", "pla");
 		DecodeMsxYjkScreen(content, 4, filename != null);
 		return true;
+	}
+
+	bool SetG9bPalette(byte[] content, int colors)
+	{
+		for (int c = 0; c < colors; c++) {
+			int offset = 16 + c * 3;
+			int rgb = content[offset] << 16 | content[offset + 1] << 8 | content[offset + 2];
+			if ((rgb & 0xe0e0e0) != 0)
+				return false;
+			ContentPalette[c] = rgb << 3 | (rgb >> 2 & 0x070707);
+		}
+		return true;
+	}
+
+	const int G9bYuv = 0;
+
+	void DecodeG9bUnpacked(byte[] content, int depth)
+	{
+		int pixelsLength;
+		switch (depth) {
+		case 4:
+			DecodeNibbles(content, 16 + 16 * 3, Width + 1 >> 1);
+			break;
+
+		case 8:
+			DecodeBytes(content, 16 + 64 * 3);
+			break;
+
+		case G9bYuv:
+			pixelsLength = Width * Height;
+			for (int i = 0; i < pixelsLength; i++) {
+				int y = content[16 + i] >> 3;
+				int x = 16 + (i & ~3);
+				int v = (content[x] & 7) | (content[x + 1] & 7) << 3;
+				int u = (content[x + 2] & 7) | (content[x + 3] & 7) << 3;
+				// to 6-bit signed
+				u -= (u & 0x20) << 1;
+				v -= (v & 0x20) << 1;
+				// YUV to RGB
+				int r = y + u;
+				if (r < 0)
+					r = 0;
+				else if (r > 31)
+					r = 31;
+				int g = (((5 * y - v) >> 1) - u) >> 1;
+				if (g < 0)
+					g = 0;
+				else if (g > 31)
+					g = 31;
+				int b = y + v;
+				if (b < 0)
+					b = 0;
+				else if (b > 31)
+					b = 31;
+				int rgb = r << 16 | g << 8 | b;
+				// 5-bit RGB to 8-bit RGB
+				Pixels[i] = rgb << 3 | (rgb >> 2 & 0x070707);
+			}
+			break;
+
+		case 16:
+			pixelsLength = Width * Height;
+			for (int i = 0; i < pixelsLength; i++) {
+				int c = content[16 + (i << 1)] | content[17 + (i << 1)] << 8;
+				int rgb = (c & 0x3e0) << 14 | (c & 0x7c00) << 1 | (c & 0x1f) << 3;
+				Pixels[i] = rgb | (rgb >> 5 & 0x070707);
+			}
+			break;
+		}
+	}
+
+	bool DecodeG9b(byte[] content, int contentLength)
+	{
+		if (contentLength < 17
+		 || content[0] != 'G' || content[1] != '9' || content[2] != 'B'
+		 || content[3] != 11 || content[4] != 0)
+			return false;
+		int depth = content[5];
+		int headerLength = 16 + content[7] * 3;
+		int width = content[8] | content[9] << 8;
+		int height = content[10] | content[11] << 8;
+		if (contentLength <= headerLength
+		 || !SetSize(width, height, RECOILResolution.Msx2Plus1x1))
+			return false;
+		int unpackedLength = headerLength + (width * depth + 7 >> 3) * height;
+		switch (depth) {
+		// TODO: case 2:
+		case 4:
+			if (content[7] != 16
+			 || !SetG9bPalette(content, 16))
+				return false;
+			break;
+		case 8:
+			// TODO: fixed palette, YJK
+			switch (content[7]) {
+			case 0:
+				if (content[6] != 0xc0
+				 || (width & 3) != 0)
+					return false;
+				depth = G9bYuv;
+				break;
+			case 64:
+				if (!SetG9bPalette(content, 64))
+					return false;
+				break;
+			default:
+				return false;
+			}
+			break;
+		case 16:
+			break;
+		default:
+			return false;
+		}
+		switch (content[12]) {
+		case 0:
+			if (contentLength != unpackedLength)
+				return false;
+			DecodeG9bUnpacked(content, depth);
+			return true;
+		case 1:
+			byte[] unpacked = new byte[unpackedLength];
+			G9bStream() s;
+			s.Content = content;
+			s.ContentLength = contentLength;
+			bool ok = s.Unpack(unpacked, headerLength, unpackedLength);
+			if (ok)
+				DecodeG9bUnpacked(unpacked, depth);
+			delete unpacked;
+			return ok;
+		default:
+			return false;
+		}
 	}
 
 	// Apple II formats.
@@ -15029,6 +15237,7 @@ public class RECOIL
 		case PackExt("G10"):
 		case PackExt("G11"):
 		case PackExt("G2F"):
+		case PackExt("G9B"):
 		case PackExt("GED"):
 		case PackExt("GFB"):
 		case PackExt("GG"):
@@ -15555,6 +15764,8 @@ public class RECOIL
 			return DecodeG11(content, contentLength);
 		case PackExt("G2F"):
 			return DecodeG2f(content, contentLength);
+		case PackExt("G9B"):
+			return DecodeG9b(content, contentLength);
 		case PackExt("GED"):
 			return DecodeGed(content, contentLength);
 		case PackExt("GFB"):
