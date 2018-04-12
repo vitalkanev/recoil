@@ -8592,15 +8592,9 @@ public class RECOIL
 	}
 
 	bool DecodeArtDirector(byte[] content, int contentLength)
-	{
-		if (contentLength != 32512)
-			return false;
-		for (int palette = 0; palette < 8; palette++) {
-			if (content[0x7e00 + palette] != 0)
-				return DecodeStLow(content, 0, content, 0x7d00 + (palette << 5), 320, 200);
-		}
-		return false;
-	}
+		return contentLength == 32512
+			&& content[0x7e1f] < 8
+			&& DecodeStLow(content, 0, content, 0x7d00 + (content[0x7e1f] << 5), 320, 200);
 
 	bool DecodeSsb(byte[] content, int contentLength)
 		return contentLength == 32768
