@@ -21,16 +21,36 @@
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#ifdef WIN32
 #define _WIN32_WINNT 0x0500
 #include <windows.h>
-
-#include <stdlib.h>
-
 #include "recoil-win32.h"
-#include "formats.h"
 
 #define API __stdcall
 #define DLL_EXPORT __declspec(dllexport)
+#else
+
+#include "recoil.h"
+
+#define BOOL int32_t
+#define INT int32_t
+#define DWORD int32_t
+#define LPSTR char*
+#define LPCSTR const char*
+
+#define API
+#define DLL_EXPORT
+
+#define TRUE 1
+#define FALSE 0
+
+#endif
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+#include "formats.h"
 
 #define GFP_RGB	0
 #define GFP_BGR	1
@@ -89,6 +109,7 @@ DLL_EXPORT BOOL API gfpGetPluginInfo(DWORD version, LPSTR label, INT label_max_s
 
 DLL_EXPORT void * API gfpLoadPictureInit(LPCSTR filename)
 {
+#ifdef WIN32
 	HANDLE fh = CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 	LARGE_INTEGER size;
 	int content_len;
@@ -127,6 +148,50 @@ DLL_EXPORT void * API gfpLoadPictureInit(LPCSTR filename)
 
 	free(content);
 	return recoil;
+#else
+	FILE* fh = fopen(filename, "rb");
+	int size;
+	int content_len;
+	RECOIL *recoil;
+	unsigned char *content;
+	BOOL ok;
+
+	if (fh == NULL)
+		return NULL;
+	fseek(fh, 0, SEEK_END);
+	size = ftell(fh);
+	fseek(fh, 0, SEEK_SET);
+	if (size > RECOIL_MAX_CONTENT_LENGTH) {
+		fclose(fh);
+		return NULL;
+	}
+	content_len = size;
+
+	recoil = RECOIL_New();
+	if (recoil == NULL) {
+		fclose(fh);
+		return NULL;
+	}
+
+	content = (unsigned char *) malloc(content_len);
+	if (content == NULL) {
+		RECOIL_Delete(recoil);
+		fclose(fh);
+		return NULL;
+	}
+	content_len = fread(content, 1, content_len, fh);
+	ok = TRUE;
+	fclose(fh);
+
+	if (!ok || !RECOIL_Decode(recoil, filename, content, content_len)) {
+		free(content);
+		RECOIL_Delete(recoil);
+		return NULL;
+	}
+
+	free(content);
+	return recoil;
+#endif
 }
 
 DLL_EXPORT BOOL API gfpLoadPictureGetInfo(
@@ -195,7 +260,9 @@ DLL_EXPORT void API gfpSavePictureExit(void *ptr)
 {
 }
 
+#ifdef WIN32
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
 	return TRUE;
 }
+#endif
