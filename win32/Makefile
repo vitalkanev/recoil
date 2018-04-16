@@ -37,7 +37,7 @@ i686/recoil2png.exe: ../recoil2png.c ../pngsave.c ../pngsave.h ../recoil-stdio.c
 i686/IM_MOD_RL_recoil_.dll x86_64/IM_MOD_RL_recoil_.dll: ../imagemagick/recoilmagick.c ../formats.h ../recoil.c ../recoil.h
 	$(DO)$(CC) $(LDFLAGS_DLL) -I"$(IMAGEMAGICK_$(@D)_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_$(@D)_DIR)"
  
-i686/Xrecoil.usr x86_64/Xrecoil.usr: xnview/Xrecoil.c ../formats.h recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h
+i686/Xrecoil.usr x86_64/Xrecoil.usr: xnview/Xrecoil.c ../formats.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
 	$(DO)$(CC) $(LDFLAGS_DLL)
 
 %/recoilwin.exe: recoilwin/recoilwin.c recoilwin/recoilwin.h recoil-win32.c recoil-win32.h %/recoilwin-res.o ../pngsave.c ../pngsave.h ../formats.h ../recoil.c ../recoil.h

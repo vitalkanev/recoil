@@ -1,7 +1,7 @@
 /*
  * Xrecoil.c - RECOIL plugin for XnView http://www.xnview.com
  *
- * Copyright (C) 2009-2015  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2018  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -24,19 +24,17 @@
 #ifdef WIN32
 #define _WIN32_WINNT 0x0500
 #include <windows.h>
-#include "recoil-win32.h"
 
 #define API __stdcall
 #define DLL_EXPORT __declspec(dllexport)
+
 #else
 
-#include "recoil.h"
+#include <stdint.h>
 
 #define BOOL int32_t
+#define DWORD uint32_t
 #define INT int32_t
-#define DWORD int32_t
-#define LPSTR char*
-#define LPCSTR const char*
 
 #define API
 #define DLL_EXPORT
@@ -48,8 +46,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
+#include "recoil-stdio.h"
 #include "formats.h"
 
 #define GFP_RGB	0
@@ -64,26 +62,6 @@ typedef struct {
 	unsigned char blue[256];
 } GFP_COLORMAP;
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-DLL_EXPORT BOOL API gfpGetPluginInfo(DWORD version, LPSTR label, INT label_max_size, LPSTR extension, INT extension_max_size, INT *support);
-DLL_EXPORT void * API gfpLoadPictureInit(LPCSTR filename);
-DLL_EXPORT BOOL API gfpLoadPictureGetInfo(void * ptr, INT * pictype, INT * width, INT * height, INT * dpi, INT * bits_per_pixel, INT * bytes_per_line, BOOL * has_colormap, LPSTR label, INT label_max_size);
-DLL_EXPORT BOOL API gfpLoadPictureGetLine(void * ptr, INT line, unsigned char * buffer);
-DLL_EXPORT BOOL API gfpLoadPictureGetColormap(void * ptr, GFP_COLORMAP * cmap);
-DLL_EXPORT void API gfpLoadPictureExit(void * ptr);
-DLL_EXPORT BOOL API gfpSavePictureIsSupported(INT width, INT height, INT bits_per_pixel, BOOL has_colormap);
-DLL_EXPORT void * API gfpSavePictureInit(LPCSTR filename, INT width, INT height, INT bits_per_pixel, INT dpi, INT * picture_type, LPSTR label, INT label_max_size);
-DLL_EXPORT BOOL API gfpSavePicturePutLine(void * ptr, INT line, const unsigned char * buffer);
-DLL_EXPORT void API gfpSavePictureExit(void * ptr);
-
-#ifdef __cplusplus
-}
-#endif
-
 static size_t strlcpy(char *dst, const char *src, size_t size)
 {
 	int i;
@@ -95,7 +73,9 @@ static size_t strlcpy(char *dst, const char *src, size_t size)
 	return i;
 }
 
-DLL_EXPORT BOOL API gfpGetPluginInfo(DWORD version, LPSTR label, INT label_max_size, LPSTR extension, INT extension_max_size, INT *support)
+DLL_EXPORT BOOL API gfpGetPluginInfo(
+	DWORD version, char *label, INT label_max_size,
+	char *extension, INT extension_max_size, INT *support)
 {
 	if (version != 0x0002)
 		return FALSE;
@@ -107,40 +87,38 @@ DLL_EXPORT BOOL API gfpGetPluginInfo(DWORD version, LPSTR label, INT label_max_s
 	return TRUE;
 }
 
-DLL_EXPORT void * API gfpLoadPictureInit(LPCSTR filename)
+DLL_EXPORT void * API gfpLoadPictureInit(const char *filename)
 {
-#ifdef WIN32
-	HANDLE fh = CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-	LARGE_INTEGER size;
-	int content_len;
-	RECOIL *recoil;
-	unsigned char *content;
-	BOOL ok;
-
-	if (fh == INVALID_HANDLE_VALUE)
+	FILE *fp = fopen(filename, "rb");
+	if (fp == NULL)
 		return NULL;
-	if (!GetFileSizeEx(fh, &size) || size.HighPart != 0 || size.LowPart > RECOIL_MAX_CONTENT_LENGTH) {
-		CloseHandle(fh);
+	if (fseek(fp, 0, SEEK_END) != 0) {
+		fclose(fp);
 		return NULL;
 	}
-	content_len = size.LowPart;
+	int content_len = ftell(fp);
+	if (content_len > RECOIL_MAX_CONTENT_LENGTH
+	 || fseek(fp, 0, SEEK_SET) != 0) {
+		fclose(fp);
+		return NULL;
+	}
 
-	recoil = RECOILWin32_New();
+	RECOIL *recoil = RECOILStdio_New();
 	if (recoil == NULL) {
-		CloseHandle(fh);
+		fclose(fp);
 		return NULL;
 	}
 
-	content = (unsigned char *) malloc(content_len);
+	unsigned char *content = (unsigned char *) malloc(content_len);
 	if (content == NULL) {
 		RECOIL_Delete(recoil);
-		CloseHandle(fh);
+		fclose(fp);
 		return NULL;
 	}
-	ok = ReadFile(fh, content, content_len, (LPDWORD) &content_len, NULL);
-	CloseHandle(fh);
+	content_len = fread(content, 1, content_len, fp);
+	fclose(fp);
 
-	if (!ok || !RECOIL_Decode(recoil, filename, content, content_len)) {
+	if (!RECOIL_Decode(recoil, filename, content, content_len)) {
 		free(content);
 		RECOIL_Delete(recoil);
 		return NULL;
@@ -148,56 +126,12 @@ DLL_EXPORT void * API gfpLoadPictureInit(LPCSTR filename)
 
 	free(content);
 	return recoil;
-#else
-	FILE* fh = fopen(filename, "rb");
-	int size;
-	int content_len;
-	RECOIL *recoil;
-	unsigned char *content;
-	BOOL ok;
-
-	if (fh == NULL)
-		return NULL;
-	fseek(fh, 0, SEEK_END);
-	size = ftell(fh);
-	fseek(fh, 0, SEEK_SET);
-	if (size > RECOIL_MAX_CONTENT_LENGTH) {
-		fclose(fh);
-		return NULL;
-	}
-	content_len = size;
-
-	recoil = RECOIL_New();
-	if (recoil == NULL) {
-		fclose(fh);
-		return NULL;
-	}
-
-	content = (unsigned char *) malloc(content_len);
-	if (content == NULL) {
-		RECOIL_Delete(recoil);
-		fclose(fh);
-		return NULL;
-	}
-	content_len = fread(content, 1, content_len, fh);
-	ok = TRUE;
-	fclose(fh);
-
-	if (!ok || !RECOIL_Decode(recoil, filename, content, content_len)) {
-		free(content);
-		RECOIL_Delete(recoil);
-		return NULL;
-	}
-
-	free(content);
-	return recoil;
-#endif
 }
 
 DLL_EXPORT BOOL API gfpLoadPictureGetInfo(
 	void *ptr, INT *pictype, INT *width, INT *height,
 	INT *dpi, INT *bits_per_pixel, INT *bytes_per_line,
-	BOOL *has_colormap, LPSTR label, INT label_max_size)
+	BOOL *has_colormap, char *label, INT label_max_size)
 {
 	const RECOIL *recoil = (const RECOIL *) ptr;
 
@@ -246,7 +180,9 @@ DLL_EXPORT BOOL API gfpSavePictureIsSupported(INT width, INT height, INT bits_pe
 	return FALSE;
 }
 
-DLL_EXPORT void * API gfpSavePictureInit(LPCSTR filename, INT width, INT height, INT bits_per_pixel, INT dpi, INT * picture_type, LPSTR label, INT label_max_size)
+DLL_EXPORT void * API gfpSavePictureInit(
+	const char *filename, INT width, INT height, INT bits_per_pixel,
+	INT dpi, INT *picture_type, char *label, INT label_max_size)
 {
 	return NULL;
 }
