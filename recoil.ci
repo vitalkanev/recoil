@@ -486,8 +486,10 @@ class HblPalette : MultiPalette
 
 	bool Init()
 	{
-		ContentOffset = 848;
-		for (int row = 0; row < 50; row++) {
+		if (!HasPalette(0))
+			return false;
+		ContentOffset = 896;
+		for (int row = 1; row < 50; row++) {
 			if (HasPalette(row))
 				ContentOffset += 48;
 		}
@@ -8920,14 +8922,17 @@ public class RECOIL
 		return DecodeSt(unpacked, 0, content, contentOffset + 1, mode, 0);
 	}
 
-	bool DecodeCpt(string filename, byte[] content, int contentLength)
+	bool DecodeCptFul(byte[] content, int contentOffset, int contentLength, HblPalette palette)
 	{
-		if (contentLength < 40 || content[32] != 0 || content[33] > 2)
+		if (contentLength < contentOffset + 40 || content[contentOffset + 32] != 0)
 			return false;
-		int bitplanes = 4 >> content[33];
+		int mode = content[contentOffset + 33];
+		if (mode > 2)
+			return false;
+		int bitplanes = 4 >> mode;
 		byte[32000] unpacked;
 		byte[16000] isFilled = 0;
-		int contentOffset = 34;
+		contentOffset += 34;
 
 		// RLE
 		for (;;) {
@@ -8961,6 +8966,17 @@ public class RECOIL
 			}
 		}
 
+		if (palette == null)
+			return DecodeSt(unpacked, 0, content, 0, mode, 0);
+		SetSize(320, 200, RECOILResolution.St1x1);
+		DecodeScaledBitplanes(unpacked, 0, 320, 200, 4, false, palette);
+		return true;
+	}
+
+	bool DecodeCpt(string filename, byte[] content, int contentLength)
+	{
+		if (contentLength < 40)
+			return false;
 		if (content[33] == 0) {
 			byte[3248] hbl;
 			int hblLength = ReadCompanionFile(filename, "HBL", "hbl", hbl, hbl.Length);
@@ -8968,14 +8984,23 @@ public class RECOIL
 				HblPalette() palette;
 				palette.Content = hbl;
 				palette.ContentLength = hblLength;
-				if (palette.Init()) {
-					SetSize(320, 200, RECOILResolution.St1x1);
-					DecodeScaledBitplanes(unpacked, 0, 320, 200, 4, false, palette);
-					return true;
-				}
+				if (palette.Init())
+					return DecodeCptFul(content, 0, contentLength, palette);
 			}
 		}
-		return DecodeSt(unpacked, 0, content, 0, content[33], 0);
+		return DecodeCptFul(content, 0, contentLength, null);
+	}
+
+	bool DecodeFul(byte[] content, int contentLength)
+	{
+		if (contentLength < 896 + 608 + 40)
+			return false;
+		HblPalette() palette;
+		palette.Content = content;
+		palette.ContentLength = contentLength;
+		return palette.Init()
+			&& content[palette.ContentOffset + 608 + 33] == 0
+			&& DecodeCptFul(content, palette.ContentOffset + 608, contentLength, palette);
 	}
 
 	void SetDefaultStPalette(int bitplanes)
@@ -15280,6 +15305,7 @@ public class RECOIL
 		case PackExt("FP2"):
 		case PackExt("FPT"):
 		case PackExt("FTC"):
+		case PackExt("FUL"):
 		case PackExt("FUN"):
 		case PackExt("FWA"):
 		case PackExt("G"):
@@ -15800,6 +15826,8 @@ public class RECOIL
 			return contentLength == 10004 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2712]);
 		case PackExt("FTC"):
 			return DecodeFtc(content, contentLength);
+		case PackExt("FUL"):
+			return DecodeFul(content, contentLength);
 		case PackExt("FUN"):
 			return DecodeC64Fun(content, contentLength)
 				|| DecodeFalconFun(content, contentLength);

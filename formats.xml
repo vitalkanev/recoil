@@ -225,7 +225,7 @@
 		<format name="Public Painter" width="640" maxHeight="800" colors="2"><ext>CMP</ext></format>
 		<format name="Picworks" width="640" height="400" colors="2"><ext>CP3</ext></format>
 		<format name="Canvas (compressed)"><ext>CPT</ext></format>
-		<format name="Canvas (raster)">
+		<format name="Canvas (raster)" width="320" height="200" colors="512">
 			<ext>CPT</ext>
 			<companionExt>HBL</companionExt>
 		</format>
@@ -240,6 +240,7 @@
 		<format name="EZ-Art Professional" width="320" height="200" colors="16"><ext>EZA</ext></format>
 		<format name="8x16 font" colors="2"><ext>FNT</ext></format>
 		<format name="GDOS font" colors="2"><ext>FNT</ext></format>
+		<format name="Canvas (raster)" width="320" height="200" colors="512"><ext>FUL</ext></format>
 		<format name="DeskPic"><ext>GFB</ext></format>
 		<format name="Dali (compressed)" width="640" height="400" colors="2"><ext>HPK</ext></format>
 		<format name="HighresMedium" width="640" height="200" frames="2"><ext>HRM</ext></format>
