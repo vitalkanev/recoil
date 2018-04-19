@@ -225,6 +225,10 @@
 		<format name="Public Painter" width="640" maxHeight="800" colors="2"><ext>CMP</ext></format>
 		<format name="Picworks" width="640" height="400" colors="2"><ext>CP3</ext></format>
 		<format name="Canvas (compressed)"><ext>CPT</ext></format>
+		<format name="Canvas (raster)">
+			<ext>CPT</ext>
+			<companionExt>HBL</companionExt>
+		</format>
 		<format name="Calamus Raster Graphic" colors="2"><ext>CRG</ext></format>
 		<format name="PaintShop" width="640" height="800" colors="2"><ext>DA4</ext></format>
 		<format name="Doodle" width="640" height="400" colors="2"><ext>DOO</ext></format>

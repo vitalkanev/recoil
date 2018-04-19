@@ -479,6 +479,34 @@ class RastPalette : MultiPalette
 	}
 }
 
+class HblPalette : MultiPalette
+{
+	bool HasPalette(int row)
+		return Content[row << 1] != 0xff || Content[row << 1 | 1] != 0xff;
+
+	bool Init()
+	{
+		ContentOffset = 848;
+		for (int row = 0; row < 50; row++) {
+			if (HasPalette(row))
+				ContentOffset += 48;
+		}
+		return ContentOffset <= ContentLength;
+	}
+
+	override void SetLinePalette(RECOIL recoil, int y)
+	{
+		if ((y & 3) == 0 && HasPalette(y >> 2)) {
+			ContentOffset -= 48;
+			for (int c = 0; c < 16; c++) {
+				int offset = ContentOffset + c * 3;
+				int rgb = (Content[offset] << 16 | Content[offset + 1] << 8 | Content[offset + 2]) & 0x070707;
+				recoil.SetStVdiColor(c, rgb << 5 | rgb << 2 | (rgb >> 1 & 0x030303), 4);
+			}
+		}
+	}
+}
+
 class CtblPalette : MultiPalette
 {
 	int Colors;
@@ -8415,29 +8443,32 @@ public class RECOIL
 		return rgb;
 	}
 
+	void SetStVdiColor(int i, int rgb, int bitplanes)
+	{
+		switch (i) {
+		case   1: i = (1 << bitplanes) - 1; break;
+		case   2: i = 1; break;
+		case   3: i = 2; break;
+		case   5: i = 6; break;
+		case   6: i = 3; break;
+		case   7: i = 5; break;
+		case   8: i = 7; break;
+		case   9: i = 8; break;
+		case  10: i = 9; break;
+		case  11: i = 10; break;
+		case  13: i = 14; break;
+		case  14: i = 11; break;
+		case  15: i = 13; break;
+		case 255: i = 15; break;
+		default:  break;
+		}
+		ContentPalette[i] = rgb;
+	}
+
 	void SetStVdiPalette(byte[] content, int contentOffset, int colors, int bitplanes)
 	{
-		for (int i = 0; i < colors; i++) {
-			int j;
-			switch (i) {
-			case   1: j = (1 << bitplanes) - 1; break;
-			case   2: j = 1; break;
-			case   3: j = 2; break;
-			case   5: j = 6; break;
-			case   6: j = 3; break;
-			case   7: j = 5; break;
-			case   8: j = 7; break;
-			case   9: j = 8; break;
-			case  10: j = 9; break;
-			case  11: j = 10; break;
-			case  13: j = 14; break;
-			case  14: j = 11; break;
-			case  15: j = 13; break;
-			case 255: j = 15; break;
-			default:  j = i; break;
-			}
-			ContentPalette[j] = GetStVdiColor(content, contentOffset + i * 6);
-		}
+		for (int i = 0; i < colors; i++)
+			SetStVdiColor(i, GetStVdiColor(content, contentOffset + i * 6), bitplanes);
 	}
 
 	static int GetStLowColor(byte[] bitmap, int bitmapOffset, int x)
@@ -8889,7 +8920,7 @@ public class RECOIL
 		return DecodeSt(unpacked, 0, content, contentOffset + 1, mode, 0);
 	}
 
-	bool DecodeCpt(byte[] content, int contentLength)
+	bool DecodeCpt(string filename, byte[] content, int contentLength)
 	{
 		if (contentLength < 40 || content[32] != 0 || content[33] > 2)
 			return false;
@@ -8930,6 +8961,20 @@ public class RECOIL
 			}
 		}
 
+		if (content[33] == 0) {
+			byte[3248] hbl;
+			int hblLength = ReadCompanionFile(filename, "HBL", "hbl", hbl, hbl.Length);
+			if (hblLength >= 896) {
+				HblPalette() palette;
+				palette.Content = hbl;
+				palette.ContentLength = hblLength;
+				if (palette.Init()) {
+					SetSize(320, 200, RECOILResolution.St1x1);
+					DecodeScaledBitplanes(unpacked, 0, 320, 200, 4, false, palette);
+					return true;
+				}
+			}
+		}
 		return DecodeSt(unpacked, 0, content, 0, content[33], 0);
 	}
 
@@ -15669,7 +15714,7 @@ public class RECOIL
 		case PackExt("CPR"):
 			return DecodeCpr(content, contentLength);
 		case PackExt("CPT"):
-			return DecodeCpt(content, contentLength);
+			return DecodeCpt(filename, content, contentLength);
 		case PackExt("CRG"):
 			return DecodeCrg(content, contentLength);
 		case PackExt("CUT"):
