@@ -500,10 +500,11 @@ class HblPalette : MultiPalette
 	{
 		if ((y & 3) == 0 && HasPalette(y >> 2)) {
 			ContentOffset -= 48;
-			for (int c = 0; c < 16; c++) {
+			int bitplanes = recoil.Width == 320 || y == 0 ? 4 : 2;
+			for (int c = 0; c < 1 << bitplanes; c++) {
 				int offset = ContentOffset + c * 3;
 				int rgb = (Content[offset] << 16 | Content[offset + 1] << 8 | Content[offset + 2]) & 0x070707;
-				recoil.SetStVdiColor(c, rgb << 5 | rgb << 2 | (rgb >> 1 & 0x030303), 4);
+				recoil.SetStVdiColor(c, rgb << 5 | rgb << 2 | (rgb >> 1 & 0x030303), bitplanes);
 			}
 		}
 	}
@@ -8968,8 +8969,11 @@ public class RECOIL
 
 		if (palette == null)
 			return DecodeSt(unpacked, 0, content, 0, mode, 0);
-		SetSize(320, 200, RECOILResolution.St1x1);
-		DecodeScaledBitplanes(unpacked, 0, 320, 200, 4, false, palette);
+		if (mode == 0)
+			SetSize(320, 200, RECOILResolution.St1x1);
+		else
+			SetSize(640, 400, RECOILResolution.St1x2);
+		DecodeScaledBitplanes(unpacked, 0, 320 << mode, 200, bitplanes, false, palette);
 		return true;
 	}
 
@@ -8977,10 +8981,10 @@ public class RECOIL
 	{
 		if (contentLength < 40)
 			return false;
-		if (content[33] == 0) {
-			byte[3248] hbl;
+		if (content[33] <= 1) {
+			byte[3248 + 1] hbl;
 			int hblLength = ReadCompanionFile(filename, "HBL", "hbl", hbl, hbl.Length);
-			if (hblLength >= 896) {
+			if (hblLength >= 896 && hblLength <= 3248) {
 				HblPalette() palette;
 				palette.Content = hbl;
 				palette.ContentLength = hblLength;
@@ -8999,7 +9003,7 @@ public class RECOIL
 		palette.Content = content;
 		palette.ContentLength = contentLength;
 		return palette.Init()
-			&& content[palette.ContentOffset + 608 + 33] == 0
+			&& content[palette.ContentOffset + 608 + 33] <= 1
 			&& DecodeCptFul(content, palette.ContentOffset + 608, contentLength, palette);
 	}
 
