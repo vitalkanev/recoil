@@ -2028,6 +2028,63 @@ class G9bStream : BitStream
 	}
 }
 
+class MigStream : BitStream
+{
+	const int MaxUnpackedLength = 108800;
+
+	int Unpack(byte[] unpacked)
+	{
+		ContentOffset = 11 + 4;
+		for (int unpackedOffset = 0; unpackedOffset < MaxUnpackedLength; ) {
+			int c = ReadBit();
+			if (c < 0)
+				return -1;
+			int b = ReadByte();
+			if (b < 0)
+				return -1;
+			if (c == 0)
+				unpacked[unpackedOffset++] = b;
+			else {
+				if (b >= 128) {
+					c = ReadBits(4);
+					if (c < 0)
+						return -1;
+					b += c - 1 << 7;
+				}
+				int distance = b + 1;
+				if (unpackedOffset - distance < 0)
+					return -1;
+				c = -1;
+				do {
+					b = ReadBit();
+					if (b < 0)
+						return -1;
+					c++;
+				} while (b != 0);
+				int length = ReadBits(c);
+				if (length < 0)
+					return -1;
+				if (c >= 16) {
+					ContentOffset += 4; // skip unpackedBlockLength, packedBlockLength
+					if (ContentOffset >= ContentLength)
+						return unpackedOffset;
+					Bits = 0; // reset bit buffer
+				}
+				else {
+					length += (1 << c) + 1;
+					if (unpackedOffset + length > MaxUnpackedLength)
+						return -1;
+					do {
+						unpacked[unpackedOffset] = unpacked[unpackedOffset - distance];
+						unpackedOffset++;
+					} while (--length > 0);
+				}
+			}
+		}
+		return -1;
+	}
+}
+
 class Ice21Stream
 {
 	byte[] Content;
@@ -3216,7 +3273,7 @@ abstract class GtiaRenderer
 				PlayerShiftRegister[i] = (PlayerShiftRegister[i] << 1).LowByte;
 				PlayerSizeCounter[i] = PlayerSize[i];
 			}
-			
+
 			if (--MissileSizeCounter[i] == 0) {
 				int mask = 1 << (i << 1);
 				MissileShiftRegister = (MissileShiftRegister & ~(mask * 3)) | ((MissileShiftRegister & mask) << 1);
@@ -5836,13 +5893,13 @@ public class RECOIL
 		}
 	}
 
-	void DecodeSc2Sc4(byte[] content, RECOILResolution resolution)
+	void DecodeSc2Sc4(byte[] content, int contentOffset, RECOILResolution resolution)
 	{
 		SetSize(256, 192, resolution);
 		for (int y = 0; y < 192; y++) {
-			int fontOffset = 7 + ((y &0xc0) << 5) + (y & 7);
+			int fontOffset = contentOffset + ((y &0xc0) << 5) + (y & 7);
 			for (int x = 0; x < 256; x++) {
-				int b = fontOffset + (content[0x1807 + ((y & ~7) << 2) + (x >> 3)] << 3);
+				int b = fontOffset + (content[contentOffset + 0x1800 + ((y & ~7) << 2) + (x >> 3)] << 3);
 				int c = content[0x2000 + b];
 				Pixels[(y << 8) + x] = ContentPalette[(content[b] >> (~x & 7) & 1) == 0 ? c & 0xf : c >> 4];
 			}
@@ -5914,15 +5971,27 @@ public class RECOIL
 			return false;
 		if (IsMsxPalette(content, 0x1b87)) {
 			SetMsxPalette(content, 0x1b87, 16);
-			DecodeSc2Sc4(content, RECOILResolution.Msx21x1);
+			DecodeSc2Sc4(content, 7, RECOILResolution.Msx21x1);
 		}
 		else {
 			SetMsx1Palette();
-			DecodeSc2Sc4(content, RECOILResolution.Msx11x1);
+			DecodeSc2Sc4(content, 7, RECOILResolution.Msx11x1);
 		}
 		if (contentLength == 16391)
 			DecodeMsxSprites(content, 2, 0x1b07, 0x3807);
 		return true;
+	}
+
+	void DecodeSc3Screen(byte[] content, int contentOffset, bool isLong)
+	{
+		SetSize(256, 192, RECOILResolution.Msx14x4);
+		for (int y = 0; y < 192; y++) {
+			for (int x = 0; x < 256; x++) {
+				int c = isLong ? content[0x807 + ((y & ~7) << 2) + (x >> 3)] : (y & 0xe0) + (x >> 3);
+				c = content[contentOffset + (c << 3) + (y >> 2 & 7)] >> (~x & 4) & 0xf;
+				Pixels[(y << 8) + x] = ContentPalette[c];
+			}
+		}
 	}
 
 	bool DecodeSc3(byte[] content, int contentLength)
@@ -5933,14 +6002,7 @@ public class RECOIL
 			SetMsxPalette(content, 0x2027, 16);
 		else
 			SetMsx1Palette();
-		SetSize(256, 192, RECOILResolution.Msx14x4);
-		for (int y = 0; y < 192; y++) {
-			for (int x = 0; x < 256; x++) {
-				int c = contentLength >= 0xb07 ? content[0x807 + ((y & ~7) << 2) + (x >> 3)] : (y & 0xe0) + (x >> 3);
-				c = content[7 + (c << 3) + (y >> 2 & 7)] >> (~x & 4) & 0xf;
-				Pixels[(y << 8) + x] = ContentPalette[c];
-			}
-		}
+		DecodeSc3Screen(content, 7, contentLength >= 0xb07);
 		if (contentLength == 16391)
 			DecodeMsxSprites(content, 3, 0x1b07, 0x3807);
 		return true;
@@ -5951,7 +6013,7 @@ public class RECOIL
 		if (contentLength < 16391 || content[0] != 0xfe || GetMsxHeader(content) < 0x3fff)
 			return false;
 		SetMsxPalette(content, 0x1b87, 16);
-		DecodeSc2Sc4(content, RECOILResolution.Msx21x1);
+		DecodeSc2Sc4(content, 7, RECOILResolution.Msx21x1);
 		DecodeMsxSprites(content, 4, 0x1e07, 0x3807);
 		return true;
 	}
@@ -6541,6 +6603,131 @@ public class RECOIL
 		default:
 			return false;
 		}
+	}
+
+	bool DecodeMig(byte[] content, int contentLength)
+	{
+		if (contentLength < 16
+		 || !IsStringAt(content, 0, "MSXMIG")
+		 || Get32LittleEndian(content, 6) != contentLength - 6)
+			return false;
+		byte[MigStream.MaxUnpackedLength] unpacked;
+		MigStream() s;
+		s.Content = content;
+		s.ContentLength = contentLength;
+		int unpackedLength = s.Unpack(unpacked);
+
+		int colors = 0;
+		byte[256] registers = 0;
+		for (int unpackedOffset = 0; unpackedOffset < unpackedLength; ) {
+			switch (unpacked[unpackedOffset]) {
+			case 0: // registers
+				if (unpackedOffset + 1 >= unpackedLength)
+					return false;
+				int c = unpacked[unpackedOffset + 1];
+				if (unpackedOffset + 2 + c * 3 > unpackedLength)
+					return false;
+				for (int i = 0; i < c; i++) {
+					int offset = unpackedOffset + 2 + i * 3;
+					int r = unpacked[offset];
+					int m = unpacked[offset + 2];
+					registers[r] = (registers[r] & ~m) | (unpacked[offset + 1] & m);
+				}
+				unpackedOffset += 2 + c * 3;
+				break;
+
+			case 1: // palette
+				if (unpackedOffset + 2 >= unpackedLength
+				 || unpacked[unpackedOffset + 1] != 0)
+					return false;
+				colors = unpacked[unpackedOffset + 2];
+				if (unpackedOffset + 3 + (colors << 1) > unpackedLength)
+					return false;
+				SetMsxPalette(unpacked, unpackedOffset + 3, colors);
+				unpackedOffset += 3 + (colors << 1);
+				break;
+
+			case 2: // bitmap
+				if (unpackedOffset + 7 >= unpackedLength
+				 || unpacked[unpackedOffset + 1] != 0 || unpacked[unpackedOffset + 2] != 0 || unpacked[unpackedOffset + 3] != 0
+				 || unpacked[unpackedOffset + 4] != 0 || unpacked[unpackedOffset + 6] != 0)
+					return false;
+				int length = unpacked[unpackedOffset + 5];
+				unpackedOffset += 7;
+				if (unpackedOffset + (length << 8) + 1 != unpackedLength) // TODO: interlace
+					return false;
+				switch (length) {
+				case 0x38:
+					if ((registers[0] & 0x0e) != 2 || (registers[1] & 0x18) != 0 || colors < 16)
+						return false;
+					// screen 2
+					DecodeSc2Sc4(unpacked, unpackedOffset, RECOILResolution.Msx21x1);
+					return true;
+				case 0x06:
+					if ((registers[0] & 0x0e) != 0 || (registers[1] & 0x18) != 8 || colors < 16)
+						return false;
+					// screen 3
+					DecodeSc3Screen(unpacked, unpackedOffset, false);
+					return true;
+				case 0x6a:
+					if ((registers[1] & 0x18) != 0)
+						return false;
+					switch (registers[0] & 0x0e) {
+					case 6:
+						// screen 5
+						if (colors < 16)
+							return false;
+						SetSize(256, 212, RECOILResolution.Msx21x1);
+						DecodeNibbles(unpacked, unpackedOffset, 128);
+						return true;
+					case 8:
+						// screen 6
+						if (colors < 4)
+							return false;
+						SetSize(512, 424, RECOILResolution.Msx21x2);
+						DecodeMsx6(unpacked, unpackedOffset);
+						return true;
+					default:
+						break;
+					}
+					break;
+				case 0xd4:
+					if ((registers[1] & 0x18) != 0)
+						return false;
+					if ((registers[0x19] & 8) != 0) {
+						// screen 10, screen 12
+						bool usePalette = (registers[0x19] & 0x10) != 0;
+						if (usePalette && colors < 16)
+							return false;
+						SetSize(256, 212, RECOILResolution.Msx2Plus1x1);
+						DecodeMsxYjkScreen(unpacked, unpackedOffset, usePalette);
+						return true;
+					}
+					else if ((registers[0] & 0x0e) == 0x0a) {
+						// screen 7
+						if (colors < 16)
+							return false;
+						SetSize(512, 212 * 2, RECOILResolution.Msx21x2);
+						DecodeNibbles(unpacked, unpackedOffset, 256);
+						return true;
+					}
+					else if ((registers[0] & 0x0e) == 0x0e) {
+						// screen 8
+						SetSc8Palette();
+						SetSize(256, 212, RECOILResolution.Msx21x1);
+						DecodeBytes(unpacked, unpackedOffset);
+						return true;
+					}
+					break;
+				default:
+					break;
+				}
+				return false;
+			default:
+				return false;
+			}
+		}
+		return false;
 	}
 
 	// Apple II formats.
@@ -15436,6 +15623,7 @@ public class RECOIL
 		case PackExt("MG8"):
 		case PackExt("MGP"):
 		case PackExt("MIC"):
+		case PackExt("MIG"):
 		case PackExt("MIL"):
 		case PackExt("MIS"):
 		case PackExt("MLE"):
@@ -16064,6 +16252,8 @@ public class RECOIL
 			return DecodeMgp(content, contentLength);
 		case PackExt("MIC"):
 			return DecodeMic(content, contentLength);
+		case PackExt("MIG"):
+			return DecodeMig(content, contentLength);
 		case PackExt("MIL"):
 			return contentLength == 10022 && DecodeC64Multicolor(320, content, 0x7e6, 0x16, 0x3fe, 0);
 		case PackExt("MIS"):
