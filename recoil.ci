@@ -6018,10 +6018,64 @@ public class RECOIL
 		return true;
 	}
 
-	void DecodeMsx5(byte[] content)
+	void DecodeMsxScreen(byte[] content, int contentOffset, byte[] interlace, int height, int mode, int interlaceMask)
 	{
-		SetSize(256, 212, RECOILResolution.Msx21x1);
-		DecodeNibbles(content, 7, 128);
+		if (interlaceMask != 0) {
+			SetSize(512, height << 1, mode >= 10 ? RECOILResolution.Msx2Plus2x1 :
+				mode >> 1 == 3 ? RECOILResolution.Msx21x1 :
+				RECOILResolution.Msx22x1);
+			Frames = 2;
+		}
+		else if (mode >> 1 == 3)
+			SetSize(512, height << 1, RECOILResolution.Msx21x2);
+		else
+			SetSize(256, height, mode >= 10 ? RECOILResolution.Msx2Plus1x1 : RECOILResolution.Msx21x1);
+
+		for (int y = 0; y < Height; y++) {
+			byte[] screen = (y & interlaceMask) == 0 ? content : interlace;
+			int screenOffset = (y & interlaceMask) == 0 || content != interlace ? contentOffset : contentOffset + (mode <= 6 ? 0x6a07 : 0xd407);
+			for (int x = 0; x < Width; x++) {
+				int rgb = 0;
+				switch (mode) {
+				case 5:
+					rgb = ContentPalette[GetNibble(screen, screenOffset + (y >> interlaceMask << 7), x >> interlaceMask)];
+					break;
+				case 6:
+					rgb = ContentPalette[screen[screenOffset + (y >> 1 << 7) + (x >> 2)] >> ((~x & 3) << 1) & 3];
+					break;
+				case 7:
+					rgb = ContentPalette[GetNibble(screen, screenOffset + (y >> 1 << 8), x)];
+					break;
+				case 8:
+					rgb = ContentPalette[screen[screenOffset + (y >> interlaceMask << 8) + (x >> interlaceMask)]];
+					break;
+				case 10:
+					rgb = DecodeMsxYjk(screen, screenOffset + (y >> interlaceMask << 8), x >> interlaceMask, true);
+					break;
+				case 12:
+					rgb = DecodeMsxYjk(screen, screenOffset + (y >> interlaceMask << 8), x >> interlaceMask, false);
+					break;
+				}
+				Pixels[y * Width + x] = rgb;
+			}
+		}
+	}
+
+	bool DecodeMsxSc(string filename, byte[] content, int contentOffset, string upperExt, string lowerExt, int height, int mode)
+	{
+		if (filename != null) {
+			byte[54279] interlace;
+			int interlaceLength = 7 + (height << (mode <= 6 ? 7 : 8));
+			if (ReadCompanionFile(filename, upperExt, lowerExt, interlace, interlaceLength) == interlaceLength
+			 && interlace[0] == 0xfe
+			 && GetMsxHeader(interlace) >= interlaceLength - 8) {
+				DecodeMsxScreen(content, contentOffset, interlace, height, mode, 1);
+				return true;
+			}
+		}
+
+		DecodeMsxScreen(content, contentOffset, null, height, mode, 0);
+		return false;
 	}
 
 	bool DecodeSc5(string filename, byte[] content, int contentLength)
@@ -6029,22 +6083,9 @@ public class RECOIL
 		if (contentLength < 30375 || content[0] != 0xfe || GetMsxHeader(content) < 0x769f)
 			return false;
 		SetMsxPalette(content, 0x7687, 16);
-		byte[27143] interlace;
-		if (ReadCompanionFile(filename, "S15", "s15", interlace, 27143) != 27143
-		 || interlace[0] != 0xfe
-		 || GetMsxHeader(interlace) < 0x69ff) {
-			DecodeMsx5(content);
-			if (contentLength == 32775)
-				DecodeMsxSprites(content, 5, 0x7607, 0x7807);
-			return true;
-		}
-		SetSize(512, 424, RECOILResolution.Msx22x1);
-		Frames = 2;
-		for (int y = 0; y < 424; y++) {
-			int lineOffset = 7 + (y >> 1 << 7);
-			for (int x = 0; x < 512; x++)
-				Pixels[(y << 9) + x] = ContentPalette[GetNibble((y & 1) == 0 ? content : interlace, lineOffset, x >> 1)];
-		}
+		if (!DecodeMsxSc(filename, content, 7, "S15", "s15", 212, 5)
+		 && contentLength == 32775)
+			DecodeMsxSprites(content, 5, 0x7607, 0x7807);
 		return true;
 	}
 
@@ -6059,7 +6100,8 @@ public class RECOIL
 		if (contentLength < 27143 || content[0] != 0xfe || GetMsxHeader(content) < 0x69ff)
 			return false;
 		SetMsxCompanionPalette(filename, "PL5", "pl5");
-		DecodeMsx5(content);
+		SetSize(256, 212, RECOILResolution.Msx21x1);
+		DecodeNibbles(content, 7, 128);
 		return true;
 	}
 
@@ -6080,24 +6122,9 @@ public class RECOIL
 		if (contentLength < 30351 || content[0] != 0xfe || GetMsxHeader(content) < 0x769f)
 			return false;
 		SetMsxPalette(content, 0x7687, 4);
-		byte[27143] interlace;
-		if (ReadCompanionFile(filename, "S16", "s16", interlace, 27143) != 27143
-		 || interlace[0] != 0xfe
-		 || GetMsxHeader(interlace) < 0x69ff) {
-			SetSize(512, 424, RECOILResolution.Msx21x2);
-			DecodeMsx6(content, 7);
-			if (contentLength == 32775)
-				DecodeMsxSprites(content, 6, 0x7607, 0x7807);
-			return true;
-		}
-		SetSize(512, 424, RECOILResolution.Msx21x1);
-		Frames = 2;
-		for (int y = 0; y < 424; y++) {
-			for (int x = 0; x < 512; x++) {
-				int b = ((y & 1) == 0 ? content : interlace)[7 + (y >> 1 << 7) + (x >> 2)];
-				Pixels[(y << 9) + x] = ContentPalette[b >> ((~x & 3) << 1) & 3];
-			}
-		}
+		if (!DecodeMsxSc(filename, content, 7, "S16", "s16", 212, 6)
+		 && contentLength == 32775)
+			DecodeMsxSprites(content, 6, 0x7607, 0x7807);
 		return true;
 	}
 
@@ -6166,12 +6193,6 @@ public class RECOIL
 		}
 	}
 
-	void DecodeMsx7(byte[] content)
-	{
-		SetSize(512, 212 * 2, RECOILResolution.Msx21x2);
-		DecodeNibbles(content, 7, 256);
-	}
-
 	bool DecodeSc7(string filename, byte[] content, int contentLength)
 	{
 		if (contentLength < 54279 || content[0] != 0xfe || GetMsxHeader(content) < 0xd3ff)
@@ -6180,20 +6201,9 @@ public class RECOIL
 			SetMsxPalette(content, 0xfa87, 16);
 		else
 			SetMsxPalette(Msx2DefaultPalette, 0, 16);
-		byte[54279] interlace;
-		if (ReadCompanionFile(filename, "S17", "s17", interlace, 54279) != 54279
-		 || interlace[0] != 0xfe
-		 || GetMsxHeader(interlace) < 0xd3ff) {
-			DecodeMsx7(content);
-			if (contentLength == 64167)
-				DecodeMsxSprites(content, 7, 0xfa07, 0xf007);
-			return true;
-		}
-		SetSize(512, 424, RECOILResolution.Msx21x1);
-		Frames = 2;
-		for (int y = 0; y < 424; y++)
-			for (int x = 0; x < 512; x++)
-				Pixels[(y << 9) + x] = ContentPalette[GetNibble((y & 1) == 0 ? content : interlace, 7 + (y >> 1 << 8), x)];
+		if (!DecodeMsxSc(filename, content, 7, "S17", "s17", 212, 7)
+		 && contentLength == 64167)
+			DecodeMsxSprites(content, 7, 0xfa07, 0xf007);
 		return true;
 	}
 
@@ -6215,7 +6225,8 @@ public class RECOIL
 		if (content == null)
 			return false;
 		SetMsxCompanionPalette(filename, "PL7", "pl7");
-		DecodeMsx7(content);
+		SetSize(512, 212 * 2, RECOILResolution.Msx21x2);
+		DecodeNibbles(content, 7, 256);
 		return true;
 	}
 
@@ -6260,25 +6271,8 @@ public class RECOIL
 		if (content == null)
 			return false;
 		SetSc8Palette();
-		if (filename != null) {
-			byte[54279] interlace;
-			if (ReadCompanionFile(filename, "S18", "s18", interlace, 54279) == 54279
-			 && interlace[0] == 0xfe
-			 && GetMsxHeader(interlace) >= 0xd3ff) {
-				SetSize(512, 424, RECOILResolution.Msx22x1);
-				Frames = 2;
-				for (int y = 0; y < 424; y++) {
-					for (int x = 0; x < 512; x++) {
-						int c = ((y & 1) == 0 ? content : interlace)[7 + (y >> 1 << 8) + (x >> 1)];
-						Pixels[(y << 9) + x] = ContentPalette[c];
-					}
-				}
-				return true;
-			}
-		}
-		SetSize(256, 212, RECOILResolution.Msx21x1);
-		DecodeBytes(content, 7);
-		if (contentLength == 64167) {
+		if (!DecodeMsxSc(filename, content, 7, "S18", "s18", 212, 8)
+		 && contentLength == 64167) {
 			const byte[32] spritePalette = {
 				0x00, 0,
 				0x02, 0,
@@ -6406,26 +6400,11 @@ public class RECOIL
 
 	void DecodeSccSca(string filename, byte[] content, int contentLength, int height, bool usePalette)
 	{
-		byte[54279] interlace;
-		if (ReadCompanionFile(filename, usePalette ? "S1A" : "S1C", usePalette ? "s1a" : "s1c", interlace, (height << 8) + 7) == (height << 8) + 7
-		 && interlace[0] == 0xfe
-		 && GetMsxHeader(interlace) >= (height << 8) - 1) {
-			SetSize(512, height << 1, RECOILResolution.Msx2Plus2x1);
-			Frames = 2;
-			for (int y = 0; y < height << 1; y++) {
-				for (int x = 0; x < 512; x++) {
-					Pixels[(y << 9) + x] = DecodeMsxYjk((y & 1) == 0 ? content : interlace,
-						7 + (y >> 1 << 8), x >> 1, usePalette);
-				}
-			}
-		}
-		else {
-			SetSize(256, height, RECOILResolution.Msx2Plus1x1);
-			DecodeMsxYjkScreen(content, 7, usePalette);
-			if (contentLength == 64167 && content[0] == 0xfe) {
-				SetMsxPalette(content, 0xfa87, 16); // wasn't set for SCC
-				DecodeMsxSprites(content, 12, 0xfa07, 0xf007);
-			}
+		if (!DecodeMsxSc(filename, content, 7, usePalette ? "S1A" : "S1C", usePalette ? "s1a" : "s1c", height, usePalette ? 10 : 12)
+		 && contentLength == 64167
+		 && content[0] == 0xfe) {
+			SetMsxPalette(content, 0xfa87, 16); // wasn't set for SCC
+			DecodeMsxSprites(content, 12, 0xfa07, 0xf007);
 		}
 	}
 
@@ -6605,6 +6584,9 @@ public class RECOIL
 		}
 	}
 
+	static int GetMigMode(int reg0, int reg1, int reg19, int length)
+		return (reg0 & 0x0e) | (reg1 & 0x18) << 1 | (reg19 & 0x18) << 3 | length << 8;
+
 	bool DecodeMig(byte[] content, int contentLength)
 	{
 		if (contentLength < 16
@@ -6654,75 +6636,76 @@ public class RECOIL
 					return false;
 				int length = unpacked[unpackedOffset + 5];
 				unpackedOffset += 7;
-				if (unpackedOffset + (length << 8) + 1 != unpackedLength) // TODO: interlace
-					return false;
-				switch (length) {
-				case 0x38:
-					if ((registers[0] & 0x0e) != 2 || (registers[1] & 0x18) != 0 || colors < 16)
+				int interlaceMask;
+				switch (registers[9] & 0x0c) {
+				case 0x00:
+					if (unpackedOffset + (length << 8) + 1 != unpackedLength)
 						return false;
-					// screen 2
-					DecodeSc2Sc4(unpacked, unpackedOffset, RECOILResolution.Msx21x1);
-					return true;
-				case 0x06:
-					if ((registers[0] & 0x0e) != 0 || (registers[1] & 0x18) != 8 || colors < 16)
-						return false;
-					// screen 3
-					DecodeSc3Screen(unpacked, unpackedOffset, false);
-					return true;
-				case 0x6a:
-					if ((registers[1] & 0x18) != 0)
-						return false;
-					switch (registers[0] & 0x0e) {
-					case 6:
-						// screen 5
-						if (colors < 16)
-							return false;
-						SetSize(256, 212, RECOILResolution.Msx21x1);
-						DecodeNibbles(unpacked, unpackedOffset, 128);
-						return true;
-					case 8:
-						// screen 6
-						if (colors < 4)
-							return false;
-						SetSize(512, 424, RECOILResolution.Msx21x2);
-						DecodeMsx6(unpacked, unpackedOffset);
-						return true;
-					default:
-						break;
-					}
+					interlaceMask = 0;
 					break;
-				case 0xd4:
-					if ((registers[1] & 0x18) != 0)
+				case 0x0c:
+					if (unpackedOffset + (length << 9) + 7 + 1 != unpackedLength
+					 || unpacked[unpackedOffset + (length << 8)] != 2
+					 || unpacked[unpackedOffset + (length << 8) + 1] != 0
+					 || unpacked[unpackedOffset + (length << 8) + 4] != 0 || unpacked[unpackedOffset + (length << 8) + 5] != length || unpacked[unpackedOffset + (length << 8) + 6] != 0)
 						return false;
-					if ((registers[0x19] & 8) != 0) {
-						// screen 10, screen 12
-						bool usePalette = (registers[0x19] & 0x10) != 0;
-						if (usePalette && colors < 16)
-							return false;
-						SetSize(256, 212, RECOILResolution.Msx2Plus1x1);
-						DecodeMsxYjkScreen(unpacked, unpackedOffset, usePalette);
-						return true;
-					}
-					else if ((registers[0] & 0x0e) == 0x0a) {
-						// screen 7
-						if (colors < 16)
-							return false;
-						SetSize(512, 212 * 2, RECOILResolution.Msx21x2);
-						DecodeNibbles(unpacked, unpackedOffset, 256);
-						return true;
-					}
-					else if ((registers[0] & 0x0e) == 0x0e) {
-						// screen 8
-						SetSc8Palette();
-						SetSize(256, 212, RECOILResolution.Msx21x1);
-						DecodeBytes(unpacked, unpackedOffset);
-						return true;
-					}
+					interlaceMask = 1;
 					break;
 				default:
-					break;
+					return false;
 				}
-				return false;
+				int mode;
+				switch (GetMigMode(registers[0], registers[1], registers[0x19], length)) {
+				case GetMigMode(0x02, 0x00, 0x00, 0x38):
+					// screen 2
+					if (colors < 16 || interlaceMask != 0)
+						return false;
+					DecodeSc2Sc4(unpacked, unpackedOffset, RECOILResolution.Msx21x1);
+					return true;
+				case GetMigMode(0x00, 0x08, 0x00, 0x06):
+					// screen 3
+					if (colors < 16 || interlaceMask != 0)
+						return false;
+					DecodeSc3Screen(unpacked, unpackedOffset, false);
+					return true;
+				case GetMigMode(0x06, 0x00, 0x00, 0x6a):
+					// screen 5
+					if (colors < 16)
+						return false;
+					mode = 5;
+					break;
+				case GetMigMode(0x08, 0x00, 0x00, 0x6a):
+					// screen 6
+					if (colors < 4)
+						return false;
+					mode = 6;
+					break;
+				case GetMigMode(0x0a, 0x00, 0x00, 0xd4):
+					// screen 7
+					if (colors < 16)
+						return false;
+					mode = 7;
+					break;
+				case GetMigMode(0x0e, 0x00, 0x00, 0xd4):
+					// screen 8
+					SetSc8Palette();
+					mode = 8;
+					break;
+				case GetMigMode(0x0e, 0x00, 0x18, 0xd4):
+					// screen 10
+					if (colors < 16)
+						return false;
+					mode = 10;
+					break;
+				case GetMigMode(0x0e, 0x00, 0x08, 0xd4):
+					// screen 12
+					mode = 12;
+					break;
+				default:
+					return false;
+				}
+				DecodeMsxScreen(unpacked, unpackedOffset, unpacked, 212, mode, interlaceMask);
+				return true;
 			default:
 				return false;
 			}

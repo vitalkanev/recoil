@@ -491,7 +491,7 @@
 		<format name="I Paint" colors="16"><ext>IP</ext></format>
 	</platform>
 	<platform name="MSX" href="http://en.wikipedia.org/wiki/MSX">
-		<format name="MIG"><ext>MIG</ext></format>
+		<format name="MIG" maxWidth="512" maxHeight="424" maxFrames="2"><ext>MIG</ext></format>
 		<format name="Screen 2" width="256" height="192" colors="15">
 			<ext>SC2</ext>
 			<ext>GRP</ext>
