@@ -441,6 +441,7 @@
 		<format name="Hires-Bitmap" width="320" height="200" colors="2">
 			<ext>HBM</ext>
 			<ext>HIR</ext>
+			<ext>HPI</ext>
 			<ext name="Gigapaint">GIH</ext>
 			<ext name="Fun Graphics Machine">FGS</ext>
 		</format>

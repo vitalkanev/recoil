@@ -7631,7 +7631,7 @@ public class RECOIL
 	bool DecodeC64Hir(byte[] content, int contentLength)
 	{
 		switch (contentLength) {
-		case 8002: // FGS, GIH, HBM, HIR
+		case 8002: // FGS, GIH, HBM, HIR, HPI
 		case 8194: // GCD, MON
 			break;
 		default:
@@ -15516,6 +15516,7 @@ public class RECOIL
 		case PackExt("HIP"):
 		case PackExt("HIR"):
 		case PackExt("HBM"):
+		case PackExt("HPI"):
 		case PackExt("GIH"):
 		case PackExt("FGS"):
 		case PackExt("MON"):
@@ -16076,6 +16077,7 @@ public class RECOIL
 				|| DecodeC64Hir(content, contentLength)
 				|| DecodeHrs(content, contentLength);
 		case PackExt("HBM"):
+		case PackExt("HPI"):
 		case PackExt("GIH"):
 		case PackExt("FGS"):
 		case PackExt("MON"):
