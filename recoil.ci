@@ -7944,27 +7944,30 @@ public class RECOIL
 		return ApplyBlend();
 	}
 
+	bool DecodeIfli(byte[] content, int bitmap1Offset, int bitmap2Offset, int videoMatrix1Offset, int videoMatrix2Offset, int colorOffset, int background)
+	{
+		SetSize(320 - FliBugCharacters * 8, 200, RECOILResolution.C641x1);
+		DecodeC64MulticolorFrame(content, bitmap1Offset + FliBugCharacters * 8, videoMatrix1Offset + FliBugCharacters, colorOffset + FliBugCharacters, background, 0);
+		LeftSkip = -1;
+		DecodeC64MulticolorFrame(content, bitmap2Offset + FliBugCharacters * 8, videoMatrix2Offset + FliBugCharacters, colorOffset + FliBugCharacters, background, 296 * 200);
+		return ApplyBlend();
+	}
+
+	bool DecodePp(byte[] content, int contentLength)
+		return contentLength == 33602
+			&& DecodeIfli(content, 0x2402, 0x6402, 0x402, 0x4402, 2, content[0x4381]);
+
 	bool DecodeGun(byte[] content, int contentLength)
 	{
 		if (contentLength != 33602 && contentLength != 33603)
 			return false;
 		//if (!IsStringAt(content, 0x3ea, "GUNPAINT (JZ)   "))
 		//	return false;
-		SetSize(320 - FliBugCharacters * 8, 200, RECOILResolution.C641x1);
-		DecodeC64MulticolorFrame(content, 0x2002 + FliBugCharacters * 8, 2 + FliBugCharacters, 0x4002 + FliBugCharacters, GunPaintBackground, 0);
-		LeftSkip = -1;
-		DecodeC64MulticolorFrame(content, 0x6402 + FliBugCharacters * 8, 0x4402 + FliBugCharacters, 0x4002 + FliBugCharacters, GunPaintBackground, 296 * 200);
-		return ApplyBlend();
+		return DecodeIfli(content, 0x2002, 0x6402, 2, 0x4402, 0x4002, GunPaintBackground);
 	}
 
 	bool DecodeFunUnpacked(byte[] content)
-	{
-		SetSize(320 - FliBugCharacters * 8, 200, RECOILResolution.C641x1);
-		DecodeC64MulticolorFrame(content, 0x2012 + FliBugCharacters * 8, 0x12 + FliBugCharacters, 0x4012 + FliBugCharacters, FunPaintBackground, 0);
-		LeftSkip = -1;
-		DecodeC64MulticolorFrame(content, 0x63fa + FliBugCharacters * 8, 0x43fa + FliBugCharacters, 0x4012 + FliBugCharacters, FunPaintBackground, 296 * 200);
-		return ApplyBlend();
-	}
+		return DecodeIfli(content, 0x2012, 0x63fa, 0x12, 0x43fa, 0x4012, FunPaintBackground);
 
 	bool DecodeC64Fun(byte[] content, int contentLength)
 	{
@@ -15659,6 +15662,7 @@ public class RECOIL
 		case PackExt("PMD"):
 		case PackExt("PMG"):
 		case PackExt("PNT"):
+		case PackExt("PP"):
 		case PackExt("PPH"):
 		case PackExt("PPP"):
 		case PackExt("PA3"):
@@ -16337,6 +16341,8 @@ public class RECOIL
 		case PackExt("PNT"):
 			return DecodePnt(content, contentLength)
 				|| DecodeMac(content, contentLength);
+		case PackExt("PP"):
+			return DecodePp(content, contentLength);
 		case PackExt("PPH"):
 			return DecodePph(filename, content, contentLength);
 		case PackExt("PPP"):
