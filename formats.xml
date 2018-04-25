@@ -420,10 +420,13 @@
 		</format>
 		<format name="ECI Graphic Editor" width="296" height="200" frames="2"><ext>ECI</ext></format>
 		<format name="ECI Graphic Editor (compressed)" width="296" height="200" frames="2"><ext>ECP</ext></format>
+		<format name="Face Painter" width="160" height="200" colors="16">
+			<ext>FCP</ext>
+			<ext>FPT</ext>
+		</format>
 		<format name="FLI Designer" width="148" height="200" colors="16"><ext>FD2</ext></format>
 		<format width="148" height="200" frames="2"><ext>FFLI</ext></format>
 		<format name="FLI" width="148" height="200" colors="16"><ext>FLI</ext></format>
-		<format name="Face Painter" width="160" height="200" colors="16"><ext>FPT</ext></format>
 		<format name="Funpaint" width="296" height="200" frames="2">
 			<ext>FUN</ext>
 			<ext>FP2</ext>

@@ -15470,6 +15470,8 @@ public class RECOIL
 		case PackExt("ESM"):
 		case PackExt("EZA"):
 		case PackExt("F80"):
+		case PackExt("FCP"):
+		case PackExt("FPT"):
 		case PackExt("FD2"):
 		case PackExt("FFLI"):
 		case PackExt("FGE"):
@@ -15477,7 +15479,6 @@ public class RECOIL
 		case PackExt("FN2"):
 		case PackExt("FNT"):
 		case PackExt("FP2"):
-		case PackExt("FPT"):
 		case PackExt("FTC"):
 		case PackExt("FUL"):
 		case PackExt("FUN"):
@@ -15978,6 +15979,9 @@ public class RECOIL
 			return DecodeEza(content, contentLength);
 		case PackExt("F80"):
 			return DecodeF80(content, contentLength);
+		case PackExt("FCP"):
+		case PackExt("FPT"):
+			return contentLength == 10004 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2712]);
 		case PackExt("FD2"):
 			return DecodeFli(content, contentLength);
 		case PackExt("FFLI"):
@@ -15998,8 +16002,6 @@ public class RECOIL
 				|| DecodeImage72Fnt(content, contentLength);
 		case PackExt("FP2"):
 			return DecodeC64Fun(content, contentLength);
-		case PackExt("FPT"):
-			return contentLength == 10004 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2712]);
 		case PackExt("FTC"):
 			return DecodeFtc(content, contentLength);
 		case PackExt("FUL"):
