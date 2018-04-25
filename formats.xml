@@ -473,6 +473,7 @@
 		<format name="Blazing Paddles" width="160" height="200" colors="16"><ext>PI</ext></format>
 		<format name="Paint Magic" width="160" height="200" colors="16"><ext>PMG</ext></format>
 		<format name="Pixel Perfect" width="296" height="200" frames="2"><ext>PP</ext></format>
+		<format name="Pixel Perfect (compressed)" width="296" height="200" frames="2"><ext>PPP</ext></format>
 		<format name="Rainbow Painter" width="160" height="200" colors="16"><ext>RP</ext></format>
 		<format name="Run Paint" width="160" height="200" colors="16"><ext>RPM</ext></format>
 		<format name="Saracen Paint" width="160" height="200" colors="16"><ext>SAR</ext></format>

@@ -897,10 +897,12 @@ class GoDotStream : RleStream
 
 class CmpStream : RleStream
 {
+	int Escape;
+
 	override bool ReadCommand()
 	{
 		int b = ReadByte();
-		if (b == Content[0]) {
+		if (b == Escape) {
 			b = ReadByte();
 			if (b < 0)
 				return false;
@@ -7953,9 +7955,26 @@ public class RECOIL
 		return ApplyBlend();
 	}
 
+	bool DecodePpUnpacked(byte[] content)
+		return DecodeIfli(content, 0x2402, 0x6402, 0x402, 0x4402, 2, content[0x4381]);
+
 	bool DecodePp(byte[] content, int contentLength)
-		return contentLength == 33602
-			&& DecodeIfli(content, 0x2402, 0x6402, 0x402, 0x4402, 2, content[0x4381]);
+	{
+		if (contentLength < 8)
+			return false;
+		if (content[2] == 0x10 && content[3] == 0x10 && content[4] == 0x10) {
+			byte[33602] unpacked;
+			CmpStream() rle;
+			rle.Content = content;
+			rle.ContentOffset = 6;
+			rle.ContentLength = contentLength;
+			rle.Escape = content[5];
+			return rle.Unpack(unpacked, 2, 1, 33602)
+				&& rle.ReadRle() < 0
+				&& DecodePpUnpacked(unpacked);
+		}
+		return contentLength == 33602 && DecodePpUnpacked(content);
+	}
 
 	bool DecodeGun(byte[] content, int contentLength)
 	{
@@ -8266,6 +8285,7 @@ public class RECOIL
 		rle.Content = content;
 		rle.ContentOffset = 2;
 		rle.ContentLength = contentLength;
+		rle.Escape = content[0];
 		return DecodeRleBlackAndWhite(rle, 0xffffff);
 	}
 
@@ -8848,7 +8868,7 @@ public class RECOIL
 		return contentLength == 63054 && content[0] == 'K' && content[1] == 'D'
 			&& DecodeStLowWithStride(content, 34, 230, content, 2, 448, 274);
 
-	bool DecodePpp(byte[] content, int contentLength)
+	bool DecodeStPpp(byte[] content, int contentLength)
 	{
 		// TODO: compression
 		return contentLength == 32079
@@ -15629,6 +15649,7 @@ public class RECOIL
 		case PackExt("GRF"):
 		case PackExt("P4I"):
 		case PackExt("P64"):
+		case PackExt("PA3"):
 		case PackExt("PAC"):
 		case PackExt("PBX"):
 		case PackExt("PC1"):
@@ -15665,7 +15686,6 @@ public class RECOIL
 		case PackExt("PP"):
 		case PackExt("PPH"):
 		case PackExt("PPP"):
-		case PackExt("PA3"):
 		case PackExt("PSC"):
 		case PackExt("Q4"):
 		case PackExt("RAG"):
@@ -16279,6 +16299,8 @@ public class RECOIL
 			return DecodeP4i(content, contentLength);
 		case PackExt("P64"):
 			return contentLength == 10050 && DecodeC64Multicolor(320, content, 0x802, 0x402, 2, content[0x801]);
+		case PackExt("PA3"):
+			return DecodeStPpp(content, contentLength);
 		case PackExt("PAC"):
 			return DecodePac(content, contentLength);
 		case PackExt("PBX"):
@@ -16346,8 +16368,8 @@ public class RECOIL
 		case PackExt("PPH"):
 			return DecodePph(filename, content, contentLength);
 		case PackExt("PPP"):
-		case PackExt("PA3"):
-			return DecodePpp(content, contentLength);
+			return DecodeStPpp(content, contentLength)
+				|| DecodePp(content, contentLength);
 		case PackExt("PSC"):
 			return DecodePsc(content, contentLength);
 		case PackExt("Q4"):
