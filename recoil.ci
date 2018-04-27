@@ -465,6 +465,15 @@ abstract class MultiPalette : BitStream
 	}
 }
 
+class ArtPalette : MultiPalette
+{
+	override void SetLinePalette(RECOIL recoil, int y)
+	{
+		if ((y & 1) == 0)
+			recoil.SetStPalette(Content, 0x8000 + (y << 4), 16);
+	}
+}
+
 class RastPalette : MultiPalette
 {
 	override void SetLinePalette(RECOIL recoil, int y)
@@ -8840,6 +8849,17 @@ public class RECOIL
 		}
 	}
 
+	bool DecodePaletteMaster(byte[] content, int contentLength)
+	{
+		if (contentLength != 36864 || content[0x8c80] != 0xff || content[0x8c81] != 0xff)
+			return false;
+		SetSize(320, 200, RECOILResolution.St1x1);
+		ArtPalette() palette;
+		palette.Content = content;
+		DecodeScaledBitplanes(content, 0, 320, 200, 4, false, palette);
+		return true;
+	}
+
 	bool DecodeCel(byte[] content, int contentLength)
 	{
 		if (contentLength < 128 || content[0] != 0xff || content[1] != 0xff
@@ -15852,11 +15872,12 @@ public class RECOIL
 		case PackExt("APP"):
 			return DecodeApp(content, contentLength);
 		case PackExt("ART"):
-			return DecodeIph(content, contentLength)
-				|| DecodeArtDirector(content, contentLength)
-				|| DecodeGfaArtist(content, contentLength)
-				|| DecodeAtari8Artist(content, contentLength)
-				|| DecodeAsciiArtEditor(content, contentLength);
+			return DecodeIph(content, contentLength) // contentLength == 9009
+				|| DecodeArtDirector(content, contentLength) // contentLength == 32512
+				|| DecodeGfaArtist(content, contentLength) // contentLength == 32032
+				|| DecodePaletteMaster(content, contentLength) // contentLength == 36864
+				|| DecodeAtari8Artist(content, contentLength) // contentLength == 3206
+				|| DecodeAsciiArtEditor(content, contentLength); // ends with 0x9b
 		case PackExt("ATR"):
 			return DecodeAtr(content, contentLength);
 		case PackExt("B&W"):

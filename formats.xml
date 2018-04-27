@@ -210,6 +210,7 @@
 	<platform name="Atari ST/STE" href="http://en.wikipedia.org/wiki/Atari_ST">
 		<format name="Art Director" width="320" height="200" colors="16"><ext>ART</ext></format>
 		<format name="GFA Artist" width="320" height="200" colors="16"><ext>ART</ext></format>
+		<format name="Palette Master" width="320" height="200" colors="512"><ext>ART</ext></format>
 		<format name="DEGAS Elite block" colors="16"><ext>BL1</ext></format>
 		<format name="DEGAS Elite block" colors="4"><ext>BL2</ext></format>
 		<format name="DEGAS Elite block" colors="2"><ext>BL3</ext></format>
