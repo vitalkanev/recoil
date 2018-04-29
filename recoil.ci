@@ -7946,6 +7946,33 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeFbi(byte[] content, int contentLength)
+	{
+		byte[17216] unpacked;
+		int unpackedOffset = unpacked.Length;
+		for (int contentOffset = contentLength; contentOffset > 18; ) {
+			int count = 1;
+			int b = content[--contentOffset];
+			if (b == content[2]) {
+				if (contentOffset <= 19)
+					return false;
+				count = content[--contentOffset];
+				if (count == 0)
+					count = 256;
+				b = content[--contentOffset];
+			}
+			if (unpackedOffset < count)
+				return false;
+			do
+				unpacked[--unpackedOffset] = b;
+			while (--count > 0);
+		}
+		if (unpackedOffset != 0)
+			return false;
+		DecodeC64Multicolor(320 - FliBugCharacters * 8, unpacked, 0x2400 + FliBugCharacters * 8, 0x400 + FliBugCharacters, FliBugCharacters, 0);
+		return true;
+	}
+
 	bool DecodeFfli(byte[] content, int contentLength)
 	{
 		if (contentLength != 26115 || content[2] != 'f')
@@ -15570,6 +15597,7 @@ public class RECOIL
 		case PackExt("ESM"):
 		case PackExt("EZA"):
 		case PackExt("F80"):
+		case PackExt("FBI"):
 		case PackExt("FCP"):
 		case PackExt("FPT"):
 		case PackExt("FD2"):
@@ -16082,6 +16110,8 @@ public class RECOIL
 			return DecodeEza(content, contentLength);
 		case PackExt("F80"):
 			return DecodeF80(content, contentLength);
+		case PackExt("FBI"):
+			return DecodeFbi(content, contentLength);
 		case PackExt("FCP"):
 		case PackExt("FPT"):
 			return contentLength == 10004 && DecodeC64Multicolor(320, content, 2, 0x1f42, 0x232a, content[0x2712]);

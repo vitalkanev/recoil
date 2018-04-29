@@ -425,6 +425,7 @@
 		</format>
 		<format name="ECI Graphic Editor" width="296" height="200" frames="2"><ext>ECI</ext></format>
 		<format name="ECI Graphic Editor (compressed)" width="296" height="200" frames="2"><ext>ECP</ext></format>
+		<format name="Flip" width="148" height="200" colors="16"><ext>FBI</ext></format>
 		<format name="Face Painter" width="160" height="200" colors="16">
 			<ext>FCP</ext>
 			<ext>FPT</ext>
