@@ -8262,6 +8262,49 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeFpr(byte[] content, int contentLength)
+	{
+		if (contentLength != 18370)
+			return false;
+		SetSize(320, 200, RECOILResolution.C642x1);
+		for (int y = 0; y < 200; y++) {
+			for (int x = 0; x < 320; x++) {
+				int offset = (y >> 3) * 40 + (x >> 3);
+				int c = x < 24 ? 0xff : content[0x882 + offset + ((y & 7) << 10)];
+				switch (content[0x2882 + (offset << 3) + (y & 7)] >> (~x & 6) & 3) {
+				case 0:
+					c = 0;
+					break;
+				case 1:
+					c >>= 4;
+					break;
+				case 3:
+					c = x < 24 ? content[0x382 + y] >> 4 : content[0x482 + offset];
+					break;
+				default: // case 2
+					break;
+				}
+				if (x < 24) {
+					switch (content[2 + (((y + 1 & 2) != 0 ? 5 : 0) + y / 42 << 6) + (y >> 1) % 21 * 3 + (x >> 3)] >> (~x & 6) & 3) {
+					case 1:
+						c = content[0x282 + y];
+						break;
+					case 2:
+						c = content[0x44a];
+						break;
+					case 3:
+						c = content[0x44b];
+						break;
+					default:
+						break;
+					}
+				}
+				Pixels[y * 320 + x] = C64Palette[c & 0xf];
+			}
+		}
+		return true;
+	}
+
 	// Atari ST formats.
 
 	bool DecodeDoo(byte[] content, int contentLength)
@@ -15536,6 +15579,7 @@ public class RECOIL
 		case PackExt("FN2"):
 		case PackExt("FNT"):
 		case PackExt("FP2"):
+		case PackExt("FPR"):
 		case PackExt("FTC"):
 		case PackExt("FUL"):
 		case PackExt("FUN"):
@@ -16061,6 +16105,8 @@ public class RECOIL
 				|| DecodeImage72Fnt(content, contentLength);
 		case PackExt("FP2"):
 			return DecodeC64Fun(content, contentLength);
+		case PackExt("FPR"):
+			return DecodeFpr(content, contentLength);
 		case PackExt("FTC"):
 			return DecodeFtc(content, contentLength);
 		case PackExt("FUL"):

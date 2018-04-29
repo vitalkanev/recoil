@@ -436,6 +436,7 @@
 			<ext>FUN</ext>
 			<ext>FP2</ext>
 		</format>
+		<format name="FLI Profi" width="160" height="200" colors="16"><ext>FPR</ext></format>
 		<format name="SEUCK font" colors="2"><ext>G</ext></format>
 		<format width="320" height="200" colors="2">
 			<ext name="Gigacad">GCD</ext>
