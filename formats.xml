@@ -169,6 +169,10 @@
 		<format name="Magic Painter" width="160" height="96"><ext fake="true">MGP</ext></format>
 		<format name="Micro Illustrator / Graphics 15" width="160" maxHeight="240" colors="4"><ext>MIC</ext></format>
 		<format name="AtariGraphics" width="160" height="192" colors="4"><ext fake="true">MIC</ext></format>
+		<format name="Graph2Font" width="160" height="240" colors="128">
+			<ext>MIC</ext>
+			<companionExt>COL</companionExt>
+		</format>
 		<format name="AtariTools-800 missile" width="2" height="240" colors="2"><ext>MIS</ext></format>
 		<format name="Daisy-Dot font" colors="2"><ext>NLQ</ext></format>
 		<format name="PowerGraphics" maxWidth="336" height="240" colors="256"><ext>PGR</ext></format>

@@ -12006,7 +12006,7 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
-	bool DecodeMic(byte[] content, int contentLength)
+	bool DecodeMic(string filename, byte[] content, int contentLength)
 	{
 		if (contentLength == 15872) {
 			// AtariGraphics file format.
@@ -12046,6 +12046,20 @@ public class RECOIL
 			return false;
 		SetSize(320, height, RECOILResolution.Xe2x1);
 		byte[320 * 240] frame;
+		if (height == 240) {
+			byte[1280 + 1] col;
+			switch (ReadCompanionFile(filename, "COL", "col", col, col.Length)) {
+			case 1024:
+			case 1280:
+				for (int y = 0; y < 240; y++) {
+					SetBakPF012(col, y, 256);
+					DecodeAtari8Gr15(content, y * 40, 40, frame, y * 320, 320, 1);
+				}
+				return ApplyAtari8Palette(frame);
+			default:
+				break;
+			}
+		}
 		DecodeAtari8Gr15(content, 0, 40, frame, 0, 320, height);
 		return ApplyAtari8Palette(frame);
 	}
@@ -12114,7 +12128,7 @@ public class RECOIL
 			break;
 		}
 
-		return DecodeMic(unpacked, 7684);
+		return DecodeMic(null, unpacked, 7684);
 	}
 
 	bool DecodeCpi(byte[] content, int contentLength)
@@ -12156,7 +12170,7 @@ public class RECOIL
 
 		// Some images with .PIC extension are MIC.
 		if (contentLength >= 7681 && contentLength <= 7685)
-			return DecodeMic(content, contentLength);
+			return DecodeMic(null, content, contentLength);
 
 		// Some images with .PIC extension are DOO, PaintPro ST or SC8.
 		// Graphic Arts Department uses .PIC too.
@@ -16283,7 +16297,7 @@ public class RECOIL
 		case PackExt("MGP"):
 			return DecodeMgp(content, contentLength);
 		case PackExt("MIC"):
-			return DecodeMic(content, contentLength);
+			return DecodeMic(filename, content, contentLength);
 		case PackExt("MIG"):
 			return DecodeMig(content, contentLength);
 		case PackExt("MIL"):
