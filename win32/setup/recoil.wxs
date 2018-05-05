@@ -13,9 +13,13 @@
 	<?elseif $(sys.BUILDARCH) = x64?>
 		<?define UPGRADE_GUID=2FF8D81E-4C6A-4A2A-B5EF-2021E6620CDF?>
 		<?define PROGRAM_FILES_FOLDER=ProgramFiles64Folder?>
-		<?define MUTEXCONDS=(($recoilwin.ext=3 OR ($recoilwin.ext=-1 AND ?recoilwin.ext=3)) AND ($xnview_recoil.ext=3 OR ($xnview_recoil.ext=-1 AND ?xnview_recoil.ext=3) OR $imagine.ext=3 OR ($imagine.ext=-1 AND ?imagine.ext=3)));
+		<?define MUTEXCONDS=(($recoilwin.ext=3 OR ($recoilwin.ext=-1 AND ?recoilwin.ext=3)) AND ($xnview_recoil.ext=3 OR ($xnview_recoil.ext=-1 AND ?xnview_recoil.ext=3)));
+(($recoilwin.ext=3 OR ($recoilwin.ext=-1 AND ?recoilwin.ext=3)) AND ($xnviewmp64.ext=3 OR ($xnviewmp64.ext=-1 AND ?xnviewmp64.ext=3) OR $imagine.ext=3 OR ($imagine.ext=-1 AND ?imagine.ext=3)));
 (($recoilwin.ext=3 OR ($recoilwin.ext=-1 AND ?recoilwin.ext=3)) AND ($imagine64.ext=3 OR ($imagine64.ext=-1 AND ?imagine64.ext=3)));
-(($xnview_recoil.ext=3 OR ($xnview_recoil.ext=-1 AND ?xnview_recoil.ext=3)) AND ($imagine.ext=3 OR ($imagine.ext=-1 AND ?imagine.ext=3) OR $imagine64.ext=3 OR ($imagine64.ext=-1 AND ?imagine64.ext=3)));
+(($xnview_recoil.ext=3 OR ($xnview_recoil.ext=-1 AND ?xnview_recoil.ext=3)) AND ($xnviewmp64.ext=3 OR ($xnviewmp64.ext=-1 AND ?xnviewmp64.ext=3)));
+(($xnview_recoil.ext=3 OR ($xnview_recoil.ext=-1 AND ?xnview_recoil.ext=3)) AND ($imagine.ext=3 OR ($imagine.ext=-1 AND ?imagine.ext=3)));
+(($xnview_recoil.ext=3 OR ($xnview_recoil.ext=-1 AND ?xnview_recoil.ext=3)) AND ($imagine64.ext=3 OR ($imagine64.ext=-1 AND ?imagine64.ext=3)));
+(($xnviewmp64.ext=3 OR ($xnviewmp64.ext=-1 AND ?xnviewmp64.ext=3)) AND ($imagine.ext=3 OR ($imagine.ext=-1 AND ?imagine.ext=3) OR $imagine64.ext=3 OR ($imagine64.ext=-1 AND ?imagine64.ext=3)));
 (($imagine.ext=3 OR ($imagine.ext=-1 AND ?imagine.ext=3)) AND ($imagine64.ext=3 OR ($imagine64.ext=-1 AND ?imagine64.ext=3)))?>
 	<?endif?>
 
@@ -170,6 +174,17 @@
 			</RegistrySearch>
 		</Property>
 
+		<?if $(sys.BUILDARCH) = x64?>
+			<Property Id="XNVIEWMP64.DIR">
+				<RegistrySearch Id="xnviewmp.installdir" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\XnViewMP_is1" Name="InstallLocation" Type="directory" Win64="yes" />
+			</Property>
+			<Property Id="XNVIEWMP64.EXE">
+				<RegistrySearch Id="xnviewmp.exe" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\XnViewMP_is1" Name="InstallLocation" Type="directory" Win64="yes">
+					<FileSearch Name="xnviewmp.exe" />
+				</RegistrySearch>
+			</Property>
+		<?endif?>
+
 		<Property Id="IMCODERS.DIR">
 			<RegistrySearch Id="imcoders.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="CoderModulesPath" Type="directory" Win64="no" />
 		</Property>
@@ -220,7 +235,7 @@
 			<Directory Id="$(var.PROGRAM_FILES_FOLDER)">
 				<Directory Id="RECOIL.DIR" Name="RECOIL">
 					<Component Id="recoilwin.exe" Win64="no">
-						<File Name="recoilwin.exe" Source="i686\recoilwin.exe" Checksum="yes" KeyPath="yes" />
+						<File Source="i686\recoilwin.exe" Checksum="yes" KeyPath="yes" />
 					</Component>
 					<Component Id="recoilwin.ext">
 						<RegistryValue Root="HKCR" Key="recoil.file" Name="recoilwin" Type="integer" Value="1" KeyPath="yes" />
@@ -247,7 +262,7 @@
 					</Component>
 
 					<Component Id="recoil2png.exe" Win64="no">
-						<File Name="recoil2png.exe" Source="i686\recoil2png.exe" Checksum="yes" KeyPath="yes" />
+						<File Source="i686\recoil2png.exe" Checksum="yes" KeyPath="yes" />
 					</Component>
 					<Component Id="path" Guid="496125A6-884C-4A43-B075-268A248EF3E5">
 						<Environment Id="path" Action="set" Name="Path" Part="last" Permanent="no" System="yes" Value="[RECOIL.DIR]" />
@@ -255,7 +270,7 @@
 					</Component>
 
 					<Component Id="thumbrecoil.dll" Win64="no">
-						<File Name="thumbrecoil.dll" Source="i686\thumbrecoil.dll" Checksum="yes" KeyPath="yes">
+						<File Source="i686\thumbrecoil.dll" Checksum="yes" KeyPath="yes">
 							<Class Id="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Context="InprocServer32" Description="RECOIL Thumbnail Handler" ThreadingModel="both" />
 						</File>
 						<RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Approved" Name="{3C450D81-B6BD-4D8C-923C-FC659ABB27D3}" Value="RECOIL Thumbnail Handler" Type="string" />
@@ -311,7 +326,7 @@
 				<Directory Id="XNVIEW.DIR" Name="XnView">
 					<Directory Id="XNVIEWPLUG.DIR" Name="PlugIns">
 						<Component Id="Xrecoil.usr" Win64="no">
-							<File Name="Xrecoil.usr" Source="i686\Xrecoil.usr" Checksum="yes" KeyPath="yes" />
+							<File Source="i686\Xrecoil.usr" Checksum="yes" KeyPath="yes" />
 						</Component>
 					</Directory>
 					<Component Id="xnview_recoil.ext">
@@ -328,9 +343,31 @@
 					</Component>
 				</Directory>
 
+				<?if $(sys.BUILDARCH) = x64?>
+					<Directory Id="XNVIEWMP64.DIR" Name="XnViewMP">
+						<Directory Id="XNVIEWMP64PLUG.DIR" Name="plugins">
+							<Component Id="XrecoilMP64.usr" Win64="yes">
+								<File Name="Xrecoil64.usr" Source="x86_64\Xrecoil.usr" Checksum="yes" KeyPath="yes" />
+							</Component>
+						</Directory>
+						<Component Id="xnviewmp64.ext">
+							<RegistryValue Root="HKCR" Key="recoil.file" Name="XnViewMP64.Image" Type="integer" Value="1" KeyPath="yes" />
+							<ProgId Id="XnViewMP.Image">
+								<Extension Id="$(var.FIRST_EXT)">
+									<!-- Verb needs to be defined only once per ProgId -->
+									<Verb Id="open" TargetProperty="XNVIEWMP64.EXE" Argument='"%1"' />
+								</Extension>
+								<?foreach EXT in $(var.OTHER_EXTS)?>
+									<Extension Id="$(var.EXT)" />
+								<?endforeach?>
+							</ProgId>
+						</Component>
+					</Directory>
+				<?endif?>
+
 				<Directory Id="IMCODERS.DIR" Name="ImageMagick-RECOIL"><!-- fake Name -->
 					<Component Id="IM_MOD_RL_recoil_.dll" Win64="no">
-						<File Name="IM_MOD_RL_recoil_.dll" Source="i686\IM_MOD_RL_recoil_.dll" Checksum="yes" KeyPath="yes" />
+						<File Source="i686\IM_MOD_RL_recoil_.dll" Checksum="yes" KeyPath="yes" />
 						<?foreach EXT in $(var.RECOIL_EXTS)?>
 							<?if $(var.EXT) != "b&w" and $(var.EXT) != "ch$" ?><!-- TODO: don't skip -->
 								<util:XmlConfig Id="coder.xml_$(var.EXT)_Element_create" On="install" Action="create" Node="element" ElementPath="/codermap" Name="coder" File="[CODER.XML]" />
@@ -344,7 +381,7 @@
 				<?if $(sys.BUILDARCH) = x64?>
 					<Directory Id="IMCODERS64.DIR" Name="ImageMagick64-RECOIL"><!-- fake Name -->
 						<Component Id="IM_MOD_RL_recoil_64.dll" Win64="yes">
-							<File Id="IM_MOD_RL_recoil_64.dll" Name="IM_MOD_RL_recoil_.dll" Source="x86_64\IM_MOD_RL_recoil_.dll" Checksum="yes" KeyPath="yes" />
+							<File Id="IM_MOD_RL_recoil_64.dll" Source="x86_64\IM_MOD_RL_recoil_.dll" Checksum="yes" KeyPath="yes" />
 							<?foreach EXT in $(var.RECOIL_EXTS)?>
 								<?if $(var.EXT) != "b&w" and $(var.EXT) != "ch$" ?><!-- TODO: don't skip -->
 									<util:XmlConfig Id="coder64.xml_$(var.EXT)_Element_create" On="install" Action="create" Node="element" ElementPath="/codermap" Name="coder" File="[CODER64.XML]" />
@@ -360,7 +397,7 @@
 				<Directory Id="IMAGINE.DIR" Name="Imagine">
 					<Directory Id="IMAGINEPLUG.DIR" Name="Plugin">
 						<Component Id="RECOIL.plg" Win64="no">
-							<File Name="RECOIL.plg" Source="i686\RECOIL.plg" Checksum="yes" KeyPath="yes" />
+							<File Source="i686\RECOIL.plg" Checksum="yes" KeyPath="yes" />
 						</Component>
 					</Directory>
 					<Component Id="imagine.ext">
@@ -378,7 +415,7 @@
 					<?if $(sys.BUILDARCH) = x64?>
 						<Directory Id="IMAGINEPLUG64.DIR" Name="Plugin">
 							<Component Id="RECOIL.plg64" Win64="yes">
-								<File Name="RECOIL.plg64" Source="x86_64\RECOIL.plg64" Checksum="yes" KeyPath="yes" />
+								<File Source="x86_64\RECOIL.plg64" Checksum="yes" KeyPath="yes" />
 							</Component>
 						</Directory>
 						<Component Id="imagine64.ext">
@@ -399,7 +436,7 @@
 				<Directory Id="PAINTDOTNET.DIR" Name="Paint.NET">
 					<Directory Id="PAINTDOTNETFILETYPES.DIR" Name="FileTypes">
 						<Component Id="RecoilPaintDotNet.dll">
-							<File Name="RecoilPaintDotNet.dll" Source="paint.net\RecoilPaintDotNet.dll" Checksum="yes" KeyPath="yes" />
+							<File Source="paint.net\RecoilPaintDotNet.dll" Checksum="yes" KeyPath="yes" />
 						</Component>
 					</Directory>
 				</Directory>
@@ -447,6 +484,17 @@
 				<ComponentRef Id="xnview_recoil.ext" />
 			</Feature>
 		</Feature>
+
+		<?if $(sys.BUILDARCH) = x64?>
+			<Feature Id="xnviewmp64" Title="XnViewMP 64-bit plugin" Level="9" ConfigurableDirectory="XNVIEWMP64PLUG.DIR" Description="Plugin for XnViewMP." AllowAdvertise="no">
+				<Condition Level="1">XNVIEWMP64.DIR</Condition>
+				<ComponentRef Id="XrecoilMP64.usr" />
+				<Feature Id="xnviewmp64.ext" Title="Associate file types" Level="0" Description="$(var.DOUBLECLICK) XnViewMP." AllowAdvertise="no">
+					<Condition Level="9">XNVIEWMP64.EXE</Condition>
+					<ComponentRef Id="xnviewmp64.ext" />
+				</Feature>
+			</Feature>
+		<?endif?>
 
 		<Feature Id="imagemagick32" Title="ImageMagick 6 32-bit coder" Level="0" ConfigurableDirectory="IMCODERS.DIR" Description="Image coder for 32-bit ImageMagick (version 6 only)." AllowAdvertise="no">
 			<Condition Level="1">IMCODERS.DIR AND CODER.XML</Condition>

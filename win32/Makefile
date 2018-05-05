@@ -27,7 +27,7 @@ DO = @echo $@ && mkdir -p $(@D) &&
 endif
 
 WIN32_BIN = i686/recoil2png.exe i686/IM_MOD_RL_recoil_.dll i686/Xrecoil.usr i686/recoilwin.exe i686/thumbrecoil.dll i686/RECOIL.plg paint.net/RecoilPaintDotNet.dll
-WIN64_BIN = $(WIN32_BIN) x86_64/IM_MOD_RL_recoil_.dll x86_64/thumbrecoil.dll x86_64/RECOIL.plg64
+WIN64_BIN = $(WIN32_BIN) x86_64/IM_MOD_RL_recoil_.dll x86_64/Xrecoil.usr x86_64/thumbrecoil.dll x86_64/RECOIL.plg64
 
 all: $(WIN32_BIN)
 
