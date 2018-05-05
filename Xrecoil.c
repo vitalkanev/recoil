@@ -142,7 +142,7 @@ DLL_EXPORT BOOL API gfpLoadPictureGetInfo(
 	*bits_per_pixel = 24;
 	*bytes_per_line = *width * 3;
 	*has_colormap = FALSE;
-	strncpy(label, RECOIL_GetPlatform(recoil), label_max_size);
+	strlcpy(label, RECOIL_GetPlatform(recoil), label_max_size);
 
 	return TRUE;
 }
