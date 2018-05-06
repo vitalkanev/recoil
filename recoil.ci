@@ -3352,6 +3352,12 @@ abstract class GtiaRenderer
 	byte[] Content;
 	int PlayfieldColumns;
 
+	virtual int GetHiresColor(int c)
+	{
+		Content = Content; // HACK around cito 0 bug to match vtbl signature
+		return (c & 0xf0) + (Colors[5] & 0xe);
+	}
+
 	/// Fetches playfield data at the given location.
 	/// Returns playfield byte, plus bit 8 for character code bit 7 ("inverse").
 	abstract int GetPlayfieldByte(int y, int column);
@@ -3407,8 +3413,8 @@ abstract class GtiaRenderer
 			case 0:
 				if (anticMode != AnticMode.HiRes)
 					break;
-				frame[frameOffset] = (playfield & 2) == 0 ? c : (c & 0xf0) + (Colors[5] & 0xe);
-				frame[frameOffset + 1] = (playfield & 1) == 0 ? c : (c & 0xf0) + (Colors[5] & 0xe);
+				frame[frameOffset] = (playfield & 2) == 0 ? c : GetHiresColor(c);
+				frame[frameOffset + 1] = (playfield & 1) == 0 ? c : GetHiresColor(c);
 				continue; // pixels already written
 			case 2: // GTIA 10
 				break;
@@ -3479,9 +3485,19 @@ class G2fRenderer : GtiaRenderer
 {
 	int FontOffset;
 	int Inverse2Offset;
+	int VbxeOffset;
+
+	override int GetHiresColor(int c)
+		return VbxeOffset >= 0 ? Colors[5] : (c & 0xf0) + (Colors[5] & 0xe);
 
 	override int GetPlayfieldByte(int y, int column)
 	{
+		if (VbxeOffset >= 0) {
+			int colorOffset = VbxeOffset + 3 + ((24 - (PlayfieldColumns >> 1) + column) * 240 + y / Content[VbxeOffset + 2]) * 12 + 2;
+			Colors[4] = Content[colorOffset];
+			Colors[5] = Content[colorOffset + 2];
+			Colors[6] = Content[colorOffset + 4];
+		}
 		int charOffset = (y >> 3) * PlayfieldColumns + column;
 		int ch = Content[3 + charOffset];
 		int inverse = Inverse2Offset >= 0 && (y & 4) != 0 ? Content[Inverse2Offset + charOffset] : ch;
@@ -15214,6 +15230,7 @@ public class RECOIL
 		if (contentLength < fontNumberOffset + (modeOffset + 30))
 			return false;
 		bool charMode;
+		int vbxeOffset = fontNumberOffset + (modeOffset + 256 + 1 + 5 * 256);
 		int inverse2Offset = -1;
 		switch (content[fontNumberOffset + (30 + 33 * 256 + 2 * 240 * 290 + 1)] & 0x7f) {
 		case 1: // GED+
@@ -15231,19 +15248,39 @@ public class RECOIL
 			break;
 		case 0x42: // DLI+
 			charMode = true;
-			inverse2Offset = fontNumberOffset + (modeOffset + 256 + 1 + 5 * 256 + 3 + 240 * 48 * 12 + 1);
+			inverse2Offset = vbxeOffset + (3 + 48 * 240 * 12 + 1);
 			if (contentLength < inverse2Offset + 30 * columns)
 				return false;
 			break;
 		default: // TODO: PGR
 			return false;
 		}
+
+		if (contentLength < vbxeOffset + (3 + 48 * 240 * 12))
+			vbxeOffset = -1;
+		else {
+			switch (content[vbxeOffset]) {
+			case 0:
+				vbxeOffset = -1;
+				break;
+			case 1:
+				if (content[vbxeOffset + 1] != 8 // TODO: different color map widths
+				 || content[vbxeOffset + 2] == 0)
+					return false;
+				// TODO: report VBXE
+				break;
+			default:
+				return false;
+			}
+		}
+
 		byte[336 * 240] frame;
 		RECOILResolution resolution = RECOILResolution.Xe4x1;
 		G2fRenderer() gtia;
 		gtia.Content = content;
 		gtia.PlayfieldColumns = columns;
 		gtia.Inverse2Offset = inverse2Offset;
+		gtia.VbxeOffset = vbxeOffset;
 		for (int y = 0; y < 240; y++) {
 			int row = y >> 3;
 			gtia.FontOffset = fontsOffset + ((content[fontNumberOffset + row] & 0x7f) << 10);
@@ -15307,7 +15344,7 @@ public class RECOIL
 			return false;
 		if (IsStringAt(content, 0, "G2FZLIB")) {
 			const int maxUnpackedLength = 3 + 30 * 48 + 30 * 1024 + 30 + 33 * 256 + 2 * 240 * 290 + 256 + 240 * 24
-				+ 256 + 1 + 5 * 256 + 3 + 240 * 48 * 12 + 1 + 30 * 48;
+				+ 256 + 1 + 5 * 256 + 3 + 48 * 240 * 12 + 1 + 30 * 48;
 			byte[] unpacked = new byte[maxUnpackedLength];
 			InflateStream() stream;
 			stream.Content = content;
