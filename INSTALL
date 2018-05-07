@@ -6,17 +6,10 @@ Required tools
 --------------
 
 RECOIL is written in the Ć programming language.
-Official releases include translation of RECOIL to C, so you only need a C compiler and Make utility.
-For other cases (Git, Paint.NET, HTML 5, Android, UWP) you'll need cito (http://cito.sourceforge.net).
-
-
-Required libraries
-------------------
-
-For Linux and Windows builds you will need development files for libpng >=1.2.5 and zlib >=1.2.3.
-In some systems they are installed by default or included in software repositories.
-For other systems, including Windows, you will need to build and install these libraries from sources.
-See http://www.libpng.org/pub/png/libpng.html for downloads and build instructions.
+Official releases include translation of RECOIL to C,
+so you only need a C compiler and Make utility.
+In other cases (Git, Paint.NET, HTML 5, Android, UWP)
+you'll need cito (http://cito.sourceforge.net).
 
 
 Getting officially released source code
@@ -46,6 +39,8 @@ This will fetch the latest code to a new directory called recoil-code.
 Building recoil2png, GNOME thumbnailer and ImageMagick coder on Unix-like systems
 ---------------------------------------------------------------------------------
 
+Install development files for libpng.
+
 From your shell prompt navigate to the directory which contains recoil.ci.
 
 Review the contents of Makefile and run:
@@ -68,7 +63,7 @@ After you restart your system, Nautilus windows should display thumbnails
 of retro computer images.
 
 Installation of the ImageMagick coder requires that you have complete source
-distribution of ImageMagick. Current version of the ImageMagick coder has been
+distribution of ImageMagick.  Current version of the ImageMagick coder has been
 tested with version 6.7.4-0 of ImageMagick.
 
 Run make specifying path to the sources:
@@ -88,23 +83,27 @@ You can also install all components at the same time, for example:
 Using recoil2png
 ----------------
 
-Run the program from command line to see the syntax.
+Run recoil2png without arguments to learn the syntax.
 Unless you specify the -o/--output option, the output filename will be
 constructed from the input filename with the extension changed to png.
 
 
-Building recoil2png, XnView/ImageMagick/Imagine/Windows Explorer plugins and RECOILWin on Windows
--------------------------------------------------------------------------------------------------
+Building recoil2png, XnView/XnView MP/ImageMagick/Imagine/Windows Explorer
+plugins and RECOILWin on Windows
+--------------------------------------------------------------------------
 
-In Cygwin setup (https://www.cygwin.com/) select bash, coreutils, dos2unix, git, libxslt, make, tar,
+In Cygwin setup (https://www.cygwin.com/) select
+bash, coreutils, dos2unix, git, libxslt, make, tar,
 mingw64-{i686,x86_64}-{gcc-core,gcc-g++,headers,libpng,runtime,zlib}.
 
-Unfortunately mingw64-libpng is DLL-only, so get libpng source (http://libpng.org/pub/png/libpng.html) and compile it yourself:
+Unfortunately mingw64-libpng is DLL-only, so get libpng source
+(http://libpng.org/pub/png/libpng.html) and compile it yourself:
 
     bash ./configure --host=i686-w64-mingw32 && make && mv .libs/libpng16.a /usr/i686-w64-mingw32/sys-root/mingw/lib/
     bash ./configure --host=x86_64-w64-mingw32 && make && mv .libs/libpng16.a /usr/x86_64-w64-mingw32/sys-root/mingw/lib/
 
-Install ImageMagick (http://www.imagemagick.org/) and edit its directories in RECOIL's win32/Makefile.
+Install ImageMagick (http://www.imagemagick.org/) and edit its directories
+in RECOIL's win32/Makefile.
 
 To build RECOIL, from the command prompt navigate to the win32 directory and run:
 
@@ -136,17 +135,19 @@ From the command prompt navigate to the www directory and run:
 Building Android application
 ----------------------------
 
-Install Android Studio (https://developer.android.com/studio/index.html) or the command-line SDK.
+Install Android Studio (https://developer.android.com/studio/index.html)
+or the command-line SDK.
 
 Make sure cito and ImageMagick 7 (http://imagemagick.org/) are on your PATH.
 
 Build the project as any other Android project.
 
 
-Building the Quick Look plugin on macOS
----------------------------------------
+Building recoil2png and Quick Look / XnView MP plugins on macOS
+---------------------------------------------------------------
 
 Install Xcode Command Line Tools.
+For recoil2png, install libpng with homebrew.
 
 From the command prompt navigate to the osx directory and run:
 
@@ -156,7 +157,7 @@ From the command prompt navigate to the osx directory and run:
 Building Windows 10 application
 -------------------------------
 
-Install Visual Studio 2015 and ImageMagick 7.
+Install Visual Studio 2017 and ImageMagick 7.
 
 Make sure cito and magick are on your PATH.
 

@@ -23,7 +23,7 @@
 	<p>RECOIL is already included in the "Formats" <a href="http://www.irfanview.com/">IrfanView</a> plugin.</p>
 
 	<h2>Plugins for Windows viewers</h2>
-	<p>The <tt>*.msi</tt> installer detects <a href="http://www.xnview.com">XnView</a>,
+	<p>The <tt>*.msi</tt> installer detects <a href="http://www.xnview.com">XnView [MP]</a>,
 	<a href="http://www.nyam.pe.kr/">Imagine</a> and <a href="http://www.getpaint.net/">Paint.NET</a>
 	and installs the corresponding RECOIL plugins.</p>
 
@@ -40,6 +40,14 @@
 	</ol>
 	<img src="qlrecoil.png" alt="Quick Look" />
 
+	<h2>macOS XnView MP plugin</h2>
+	<p>Install as follows:</p>
+	<ol>
+		<li>Install <a href="https://www.xnview.com/en/xnviewmp/">XnView MP</a> first.</li>
+		<li>Open <tt>recoil-<version />-macos.dmg</tt>.</li>
+		<li>Drag <tt>Xrecoil.usr</tt> to <tt>XnViewMP</tt>.</li>
+	</ol>
+
 	<h2>Linux GNOME thumbnails</h2>
 	<p>Install <tt>recoil-2png</tt> first, then <tt>recoil-thumbnailer</tt>.</p>
 	<img src="nautilus.png" alt="Nautilus" />
@@ -54,6 +62,7 @@
 	<h2>recoil2png</h2>
 	<p>This is a portable command-line converter to PNG files.
 	Available in <tt>*.msi</tt>, <tt>*.zip</tt>, <tt>*.deb</tt>, <tt>*.rpm</tt>, <tt>*.tar.gz</tt>.</p>
+	<p>To install on macOS, open <tt>recoil-<version />-macos.dmg</tt> then drag <tt>recoil2png</tt> to <tt>bin</tt>.</p>
 	<p>When you run it just with input filenames, it writes the corresponding PNGs
 	with the same names and locations and the extensions changed to <tt>png</tt>.
 	To see what options are available, run the program without arguments.</p>
