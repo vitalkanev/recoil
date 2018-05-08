@@ -3494,9 +3494,9 @@ class G2fRenderer : GtiaRenderer
 	{
 		if (VbxeOffset >= 0) {
 			int colorOffset = VbxeOffset + 3 + ((24 - (PlayfieldColumns >> 1) + column) * 240 + y / Content[VbxeOffset + 2]) * 12 + 2;
-			Colors[4] = Content[colorOffset];
-			Colors[5] = Content[colorOffset + 2];
-			Colors[6] = Content[colorOffset + 4];
+			Colors[4] = Content[colorOffset]; // PF0
+			Colors[5] = Content[colorOffset + 2]; // PF1
+			Colors[6] = Content[colorOffset + 4]; // PF2
 		}
 		int charOffset = (y >> 3) * PlayfieldColumns + column;
 		int ch = Content[3 + charOffset];
@@ -14978,16 +14978,18 @@ public class RECOIL
 		}
 		gtia.Content = content;
 		int dmaCtl = content[0x306];
+		int playfieldCycles;
 		switch (dmaCtl & 0xf3) {
 		case 0x31:
-			gtia.PlayfieldColumns = 32;
+			playfieldCycles = 64;
 			break;
 		case 0x32:
-			gtia.PlayfieldColumns = 40;
+			playfieldCycles = 80;
 			break;
 		default:
 			return false;
 		}
+		gtia.PlayfieldColumns = playfieldCycles >> 1;
 
 		int dlOffset = 0x10;
 		int rasterOffset = content[6] + (content[7] << 8) - 0x8200;
@@ -14998,6 +15000,7 @@ public class RECOIL
 		byte[336 * 240] frame;
 		RECOILResolution resolution = RECOILResolution.Xe4x1;
 		for (int y = 0; y < 240; y++) {
+			int hpos = -7;
 			int dlOp = content[dlOffset++];
 			switch (dlOp) {
 			case 0x00:
@@ -15005,10 +15008,11 @@ public class RECOIL
 			case 0x0f:
 				break;
 			case 0x41:
-				dlOffset--;
+				dlOffset--; // FIXME: DMA once
 				break;
 			case 0x4e:
 			case 0x4f:
+				hpos += 2 * 2; // DL LMS DMA
 				gtia.ScreenOffset = content[dlOffset] + (content[dlOffset + 1] << 8) - 0x8200;
 				dlOffset += 2;
 				break;
@@ -15037,37 +15041,57 @@ public class RECOIL
 			 && (gtia.ScreenOffset < 0x600 || gtia.ScreenOffset + 40 > contentLength))
 				return false;
 			gtia.StartLine(0x2c);
-			if ((dmaCtl & 4) != 0)
-				gtia.MissileGraphics = content[0x108 + y];
-			if ((dmaCtl & 8) != 0) {
-				for (int i = 0; i < 4; i++)
-					gtia.PlayerGraphics[i] = content[0x208 + (i << 8) + y];
+			if ((dmaCtl & 0xc) != 0) {
+				hpos += 2; // missile DMA
+				if ((dmaCtl & 4) != 0)
+					gtia.MissileGraphics = content[0x108 + y];
+				if ((dmaCtl & 8) != 0) {
+					hpos += 4 * 2; // player DMA
+					for (int i = 0; i < 4; i++)
+						gtia.PlayerGraphics[i] = content[0x208 + (i << 8) + y];
+				}
 			}
 
-			for (;;) {
-				// TODO: pixel-exact
+			for (int cpuCycles = 1;;) {
 				if (rasterOffset >= contentLength)
 					return false;
 				int rasterOp = content[rasterOffset++];
 				if ((rasterOp & 0x20) != 0) {
 					if (rasterOffset >= contentLength)
 						return false;
+					cpuCycles += 2; // LDA #
 					a = content[rasterOffset++];
 				}
 				int addr = rasterOp & 0x1f;
 				if (addr <= 0x1b) {
+					int untilHpos = hpos;
+					for (;;) {
+						untilHpos += 2;
+						const int c = 122;
+						if ((untilHpos & 2) == 0
+							? anticMode != AnticMode.Blank && untilHpos >= c - playfieldCycles && untilHpos < c + playfieldCycles // screen DMA
+							: untilHpos >= c - 70 && untilHpos < c && (untilHpos & 4) == 0) { // memory refresh
+							// DMA cycle
+						}
+						else if (--cpuCycles == 0)
+							break;
+					}
+					gtia.DrawSpan(y, hpos >= 0x2c ? hpos : 0x2c, untilHpos < 0xd4 ? untilHpos : 0xd4, anticMode, frame, 336);
+					hpos = untilHpos;
 					gtia.Poke(addr, a);
 					if (rasterOp >= 0x80)
 						break;
+					cpuCycles = 4; // STA $D0xx
 				}
 				else {
 					int nops = (rasterOp >> 6 & 3) | (rasterOp & 3) << 2;
 					if (nops == 0)
 						break;
+					cpuCycles += nops << 1; // :nops NOP
 				}
 			}
 
-			gtia.DrawSpan(y, 0x2c, 0xd4, anticMode, frame, 336);
+			gtia.DrawSpan(y, hpos >= 0x2c ? hpos : 0x2c, 0xd4, anticMode, frame, 336);
 			if (anticMode != AnticMode.Blank)
 				gtia.ScreenOffset += gtia.PlayfieldColumns;
 		}
