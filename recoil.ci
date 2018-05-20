@@ -104,6 +104,7 @@ enum RECOILResolution
 	Pc881x2,
 	Pc981x1,
 	PlayStation1x1,
+	Psion31x1,
 	SamCoupe1x1,
 	X68K1x1,
 	Spectrum1x1,
@@ -3941,6 +3942,8 @@ public class RECOIL
 			return "NEC PC-98";
 		case RECOILResolution.PlayStation1x1:
 			return "PlayStation";
+		case RECOILResolution.Psion31x1:
+			return "Psion Series 3";
 		case RECOILResolution.SamCoupe1x1:
 			return "SAM Coupe";
 		case RECOILResolution.X68K1x1:
@@ -4407,6 +4410,36 @@ public class RECOIL
 		rle.ContentOffset = 3;
 		rle.ContentLength = contentLength;
 		return DecodeRleBlackAndWhite(rle, 0xffffff);
+	}
+
+	// Psion Series 3 formats.
+
+	bool DecodePsion3Pic(byte[] content, int contentLength)
+	{
+		if (contentLength < 22
+		 || content[0] != 'P' || content[1] != 'I' || content[2] != 'C'
+		 || content[3] != 0xdc || content[4] != '0' || content[5] != '0'
+		 || (content[6] == 0 && content[7] == 0))
+			return false;
+		int width = content[10] | content[11] << 8;
+		int height = content[12] | content[13] << 8;
+		int bitmapLength = content[14] | content[15] << 8;
+		int stride = width + 15 >> 4 << 1;
+		if (bitmapLength != height * stride)
+			return false;
+		int bitmapOffset = 20 + RECOIL.Get32LittleEndian(content, 16);
+		if (bitmapOffset < 20 || contentLength < bitmapOffset + bitmapLength)
+			return false;
+		if (!SetSize(width, height, RECOILResolution.Psion31x1))
+			return false;
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				// low bit first
+				Pixels[y * width + x] = (content[bitmapOffset + (x >> 3)] >> (x & 7) & 1) == 0 ? 0xffffff : 0;
+			}
+			bitmapOffset += stride;
+		}
+		return true;
 	}
 
 	// TRS-80 formats.
@@ -12238,7 +12271,8 @@ public class RECOIL
 
 	bool DecodePic(byte[] content, int contentLength)
 	{
-		if (DecodeX68KPic(content, contentLength))
+		if (DecodePsion3Pic(content, contentLength)
+		 || DecodeX68KPic(content, contentLength))
 			return true;
 
 		byte[7680] unpacked;
@@ -16312,6 +16346,7 @@ public class RECOIL
 			return contentLength > 1024 && DecodeAtari8Ice(content, contentLength, true, content[0]);
 		case PackExt("ICN"):
 			return DecodeStIcn(content, contentLength)
+				|| DecodePsion3Pic(content, contentLength)
 				|| DecodeAtari8Ice(content, contentLength, false, 17);
 		case PackExt("IFF"):
 		case PackExt("ACBM"):

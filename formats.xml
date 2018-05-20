@@ -630,6 +630,12 @@
 	<platform name="PlayStation" href="https://en.wikipedia.org/wiki/PlayStation_(console)">
 		<format name="TIM" colors="32768"><ext>TIM</ext></format>
 	</platform>
+	<platform name="Psion Series 3" href="https://en.wikipedia.org/wiki/Psion_Series_3">
+		<format colors="2">
+			<ext>PIC</ext>
+			<ext>ICN</ext>
+		</format>
+	</platform>
 	<platform name="SAM Coupe" href="http://en.wikipedia.org/wiki/SAM_Coupé">
 		<format name="Mode 4" width="256" height="192" colors="16">
 			<ext>SCS4</ext>
