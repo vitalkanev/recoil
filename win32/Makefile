@@ -12,7 +12,7 @@ CSC = C:/Windows/Microsoft.NET/Framework/v4.0.30319/csc.exe -nologo -o+ -out:$@
 RM = rm -f
 UNIX2DOS = unix2dos <$< >$@
 GIT = git
-TAR = tar
+TAR = /usr/bin/tar
 SEVENZIP = 7z a -mx=9 -bd -bso0
 CANDLE = candle -ext WixUtilExtension -nologo -o $@
 LIGHT = light -ext WixUtilExtension -nologo -o $@ -spdb
