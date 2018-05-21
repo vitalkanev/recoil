@@ -1,4 +1,5 @@
 PREFIX = /usr/local
+XNVIEW = /opt/XnView
 MAGICK_VERSION     := $(shell MagickCore-config --version 2>/dev/null)
 ifdef MAGICK_VERSION
 MAGICK_CFLAGS      := $(shell MagickCore-config --cflags --cppflags) -fPIC
@@ -45,7 +46,7 @@ benchmark: benchmark.c recoil-stdio.c recoil-stdio.h recoil.c recoil.h
 	$(CC) $(CFLAGS) benchmark.c recoil-stdio.c recoil.c -o $@
 
 clean:
-	rm -f recoil2png imagemagick/recoil.so imagemagick/coder.xml.new formats.h recoil-mime.xml benchmark
+	rm -f recoil2png imagemagick/recoil.so imagemagick/coder.xml.new formats.h recoil-mime.xml benchmark Xrecoil.usr
 
 install: install-thumbnailer $(if $(CAN_INSTALL_MAGICK),install-magick)
 
@@ -107,6 +108,16 @@ uninstall-gnome2-thumbnailer: uninstall-mime uninstall-recoil2png gnome2-thumbna
 		gconftool-2 -u $$p/command $$p/enable; \
 	done
 
+Xrecoil.usr: Xrecoil.c formats.h recoil-stdio.c recoil-stdio.h recoil.c recoil.h
+	$(CC) $(CFLAGS) Xrecoil.c recoil-stdio.c recoil.c -shared -fPIC -o $@
+
+install-xnview: Xrecoil.usr
+	mkdir -p $(XNVIEW)/Plugins
+	$(INSTALL_PROGRAM) Xrecoil.usr $(XNVIEW)/Plugins/Xrecoil.usr
+
+uninstall-xnview:
+	rm -f /opt/XnView/Plugins/Xrecoil.usr
+
 deb:
 	debuild -b -us -uc
 
@@ -121,6 +132,8 @@ cmp-examples: recoil2png
 		./recoil2png -o "../png/$${p#../examples/}.png" "$$p" && cmp "../ref/$${p#../examples/}.png" "../png/$${p#../examples/}.png"; \
 	done
 
-.PHONY: all clean install uninstall install-recoil2png uninstall-recoil2png $(if $(CAN_INSTALL_MAGICK),install-magick uninstall-magick) install-mime uninstall-mime install-thumbnailer uninstall-thumbnailer install-gnome2-thumbnailer uninstall-gnome2-thumbnailer deb missing-examples cmp-examples
+.PHONY: all clean install uninstall install-recoil2png uninstall-recoil2png $(if $(CAN_INSTALL_MAGICK),install-magick uninstall-magick) \
+	install-mime uninstall-mime install-thumbnailer uninstall-thumbnailer install-gnome2-thumbnailer uninstall-gnome2-thumbnailer \
+	install-xnview uninstall-xnview deb missing-examples cmp-examples
 
 .DELETE_ON_ERROR:

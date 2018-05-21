@@ -36,8 +36,9 @@ To do this using a command-line Git client:
 This will fetch the latest code to a new directory called recoil-code.
 
 
-Building recoil2png, GNOME thumbnailer and ImageMagick coder on Unix-like systems
----------------------------------------------------------------------------------
+Building recoil2png, GNOME thumbnailer, XnView MP
+and ImageMagick plugins on Unix-like systems
+-------------------------------------------------
 
 Install development files for libpng.
 
@@ -50,6 +51,10 @@ Review the contents of Makefile and run:
 To install recoil2png under PREFIX, run:
 
     make install-recoil2png
+
+To install the XnViewMP plugin, run:
+
+    make install-xnview
 
 To install the GNOME 3 thumbnailer and recoil2png, run:
 

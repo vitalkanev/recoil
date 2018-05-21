@@ -118,12 +118,12 @@ dist: srcdist ../../recoil-$(VERSION)-win32.zip setup x64-setup
 deb64:
 	scp ../../recoil-$(VERSION).tar.gz vm:.
 	ssh vm 'rm -rf recoil-$(VERSION) && tar xf recoil-$(VERSION).tar.gz && make -C recoil-$(VERSION) deb'
-	scp vm:recoil-2png_$(VERSION)-1_amd64.deb vm:recoil-thumbnailer_$(VERSION)-1_all.deb ../../
+	scp vm:recoil-2png_$(VERSION)-1_amd64.deb vm:recoil-xnview_$(VERSION)-1_amd64.deb vm:recoil-thumbnailer_$(VERSION)-1_all.deb ../../
 
 deb32:
 	scp ../../recoil-$(VERSION).tar.gz vm:.
 	ssh vm 'rm -rf recoil-$(VERSION) && tar xf recoil-$(VERSION).tar.gz && make -C recoil-$(VERSION) deb'
-	scp vm:recoil-2png_$(VERSION)-1_i386.deb ../../
+	scp vm:recoil-2png_$(VERSION)-1_i386.deb vm:recoil-xnview_$(VERSION)-1_i386.deb ../../
 
 rpm64:
 	scp ../../recoil-$(VERSION).tar.gz vm:.
