@@ -15012,18 +15012,16 @@ public class RECOIL
 		}
 		gtia.Content = content;
 		int dmaCtl = content[0x306];
-		int playfieldCycles;
 		switch (dmaCtl & 0xf3) {
 		case 0x31:
-			playfieldCycles = 64;
+			gtia.PlayfieldColumns = 32;
 			break;
 		case 0x32:
-			playfieldCycles = 80;
+			gtia.PlayfieldColumns = 40;
 			break;
 		default:
 			return false;
 		}
-		gtia.PlayfieldColumns = playfieldCycles >> 1;
 
 		int dlOffset = 0x10;
 		int rasterOffset = content[6] + (content[7] << 8) - 0x8200;
@@ -15034,7 +15032,7 @@ public class RECOIL
 		byte[336 * 240] frame;
 		RECOILResolution resolution = RECOILResolution.Xe4x1;
 		for (int y = 0; y < 240; y++) {
-			int hpos = -7;
+			int hpos = -11;
 			int dlOp = content[dlOffset++];
 			switch (dlOp) {
 			case 0x00:
@@ -15101,10 +15099,10 @@ public class RECOIL
 					int untilHpos = hpos;
 					for (;;) {
 						untilHpos += 2;
-						const int c = 122;
-						if ((untilHpos & 2) == 0
-							? anticMode != AnticMode.Blank && untilHpos >= c - playfieldCycles && untilHpos < c + playfieldCycles // screen DMA
-							: untilHpos >= c - 70 && untilHpos < c && (untilHpos & 4) == 0) { // memory refresh
+						int x = untilHpos - 118 >> 1;
+						if ((x & 1) != 0
+							? anticMode != AnticMode.Blank && x >= -gtia.PlayfieldColumns && x < gtia.PlayfieldColumns // screen DMA
+							: x >= -36 && x < 0 && (x & 2) != 0) { // memory refresh
 							// DMA cycle
 						}
 						else if (--cpuCycles == 0)
