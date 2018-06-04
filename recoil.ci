@@ -16121,7 +16121,7 @@ public class RECOIL
 		case PackExt("CH8"):
 			return DecodeCh8(content, contentLength);
 		case PackExt("CHE"):
-			return contentLength == 20482 && DecodeC64Multicolor(320, content, 2, 0x4202, 0x4802, 0);
+			return contentLength == 20482 && DecodeC64Multicolor(320, content, 2, 0x4202, 0x4802, content[0x4fff]);
 		case PackExt("CHR"):
 			return DecodeChr(content, contentLength);
 		case PackExt("CHS"):
