@@ -1,4 +1,4 @@
-VERSION = 4.2.0
+VERSION = 4.3.0
 
 QLRECOIL = bin/RECOIL.qlgenerator/Contents/MacOS/qlrecoil 
 PLIST = bin/RECOIL.qlgenerator/Contents/Info.plist

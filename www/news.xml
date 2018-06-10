@@ -1,4 +1,28 @@
 ﻿<div>
+	<release project="RECOIL" version="4.3.0" date="2018-06-10">
+		<ul title="New ports">
+			<li>Plugin for XnView MP (Windows, macOS, Linux) - requires XnView MP 0.91 or newer</li>
+			<li>macOS binary of recoil2png</li>
+		</ul>
+		<ul title="New formats">
+			<li>Amstrad CPC: SymbOS graphic (SGX)</li>
+			<li>Atari 8-bit: Graph2Font (MIC+COL)</li>
+			<li>Atari ST: Canvas (CPT+HBL, FUL), Palette Master (ART)</li>
+			<li>C64: Pixel Perfect (PP, PPP), FLI Profi (FPR), Flip (FBI)</li>
+			<li>MSX: GFX9k (G9B), MIG</li>
+			<li>NEC PC-98: PI</li>
+			<li>PC: Handy Scanner 2000 POSTERING (HS2)</li>
+			<li>Psion Series 3: PIC/ICN</li>
+		</ul>
+		<ul title="Improved formats">
+			<li>Atari 8-bit: added VBXE color map (G2F), raster changes (PGR)</li>
+			<li>Atari ST: fixed Art Director colors (ART)</li>
+			<li>C64: fixed background color (CHE)</li>
+			<li>MSX: improved colors (SC2, SC3, SC8), fixed odd width (GL6, GL7)</li>
+			<li>Alias extensions: DHGR, HPL, FCP</li>
+		</ul>
+	</release>
+
 	<release project="RECOIL" version="4.2.1" date="2018-03-02">
 		<p>Windows 10 only release, because 4.2.0 failed a Windows store certification.</p>
 		<p>New Atari 8-bit formats: F80, FN2.</p>
