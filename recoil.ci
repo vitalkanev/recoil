@@ -11185,6 +11185,78 @@ public class RECOIL
 		}
 	}
 
+	static int GetHameByte(byte[] content, int contentOffset, int x)
+		return GetStLowColor(content, contentOffset, x << 1) << 4 | GetStLowColor(content, contentOffset, (x << 1) + 1);
+
+	static bool IsHame(byte[] content, int contentOffset)
+	{
+		for (int i = 0; i < 7; i++) {
+			const byte[7] magic = { 0xa2, 0xf5, 0x84, 0xdc, 0x6d, 0xb0, 0x7f };
+			if (GetHameByte(content, contentOffset, i) != magic[i])
+				return false;
+		}
+		switch (GetHameByte(content, contentOffset, 7)) {
+		case 0x14: // REG
+		case 0x18: // HAME
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	void DecodeHame(byte[] content, int width)
+	{
+		int[512] palette = 0;
+		int[2] paletteLength = 0;
+		bool hame = false;
+		for (int y = 0; y < Height; y++) {
+			int lineOffset = y * width;
+			int paletteOffset = Resolution == RECOILResolution.Amiga2x1 && (y & 1) != 0 ? 256 : 0;
+			if (IsHame(content, lineOffset)) {
+				paletteOffset += paletteLength[paletteOffset >> 8];
+				for (int c = 0; c < 64; c++) {
+					int offset = 8 + c * 3;
+					palette[paletteOffset + c] = GetHameByte(content, lineOffset, offset) << 16
+						| GetHameByte(content, lineOffset, offset + 1) << 8
+						| GetHameByte(content, lineOffset, offset + 2);
+				}
+				paletteLength[paletteOffset >> 8] = paletteLength[paletteOffset >> 8] + 64 & 0xff;
+				hame = GetHameByte(content, lineOffset, 7) == 0x18;
+				for (int x = 0; x < Width; x++)
+					Pixels[y * Width + x] = 0; // blank the special line
+			}
+			else {
+				int paletteBank = 0;
+				int rgb = 0;
+				for (int x = 0; x < width; x++) {
+					int c = GetHameByte(content, lineOffset, x);
+					if (hame) {
+						switch (c >> 6) {
+						case 0:
+							if (c < 60)
+								rgb = palette[paletteOffset + paletteBank + c];
+							else
+								paletteBank = c - 60 << 6;
+							break;
+						case 1: // blue
+							rgb = (c & 0x3f) << 2 | (rgb & 0xffff00);
+							break;
+						case 2: // red
+							rgb = (c & 0x3f) << 18 | (rgb & 0x00ffff);
+							break;
+						default: // green
+							rgb = (c & 0x3f) << 10 | (rgb & 0xff00ff);
+							break;
+						}
+					}
+					else
+						rgb = palette[paletteOffset + c];
+					SetScaledPixel(x, y, rgb);
+				}
+			}
+		}
+	}
+
 	bool DecodeIffUnpacked(byte[] unpacked, int width, int height, RECOILResolution resolution, int bitplanes, int colors, int camg, MultiPalette multiPalette)
 	{
 		if (!SetScaledSize(width, height, resolution)) {
@@ -11201,6 +11273,17 @@ public class RECOIL
 			if ((camg & 0x800) != 0 || (bitplanes == 6 && colors == 16)) {
 				// Amiga Hold-And-Modify
 				DecodeHam(unpacked, width, height, bitplanes, multiPalette);
+			}
+			else if (width >= 400
+				&& (resolution == RECOILResolution.Amiga1x2 || resolution == RECOILResolution.Amiga1x1)
+				&& bitplanes == 4
+				&& multiPalette == null
+				&& IsHame(unpacked, 0)) {
+				if (resolution == RECOILResolution.Amiga1x2)
+					SetSize(width >> 1, height, RECOILResolution.Amiga1x1);
+				else
+					SetSize(width, height, RECOILResolution.Amiga2x1);
+				DecodeHame(unpacked, width >> 1);
 			}
 			else {
 				// palette
