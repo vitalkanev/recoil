@@ -11185,10 +11185,22 @@ public class RECOIL
 		}
 	}
 
-	static int GetHameByte(byte[] content, int contentOffset, int x)
-		return GetStLowColor(content, contentOffset, x << 1) << 4 | GetStLowColor(content, contentOffset, (x << 1) + 1);
+	int GetHameNibble(byte[] content, int contentOffset, int x)
+	{
+		int c = GetStLowColor(content, contentOffset, x);
+		// We could simply return c here, because the palette is set up
+		// for the RGBI values in order, but to precisely emulate the way
+		// the original hardware worked, lookup the color and convert it to RGBI.
+		int rgb = ContentPalette[c];
+		// Digital R, G, B are the highest bits of the components.
+		// I is the lowest bit of the 4-bit Blue component.
+		return rgb >> 20 & 8 | rgb >> 13 & 4 | rgb >> 6 & 2 | rgb >> 4 & 1;
+	}
 
-	static bool IsHame(byte[] content, int contentOffset)
+	int GetHameByte(byte[] content, int contentOffset, int x)
+		return GetHameNibble(content, contentOffset, x << 1) << 4 | GetHameNibble(content, contentOffset, (x << 1) + 1);
+
+	bool IsHame(byte[] content, int contentOffset)
 	{
 		for (int i = 0; i < 7; i++) {
 			const byte[7] magic = { 0xa2, 0xf5, 0x84, 0xdc, 0x6d, 0xb0, 0x7f };
