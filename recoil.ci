@@ -164,6 +164,19 @@ class Stream
 		return Content[ContentOffset++];
 	}
 
+	/// Advances the stream until after the first byte with the given value.
+	/// Returns `false` on EOF.
+	bool SkipUntilByte(int expected)
+	{
+		for (;;) {
+			int b = ReadByte();
+			if (b < 0)
+				return false;
+			if (b == expected)
+				return true;
+		}
+	}
+
 	/// Reads `count` bytes to `dest` starting at `destOffset`.
 	/// Returns `true` on success, `false` if not enough data.
 	bool ReadBytes(byte[] dest, int destOffset, int count)
@@ -382,17 +395,6 @@ class BitStream : Stream
 
 class X68KPicStream : BitStream
 {
-	bool SkipUntilByte(int expected)
-	{
-		for (;;) {
-			int b = ReadByte();
-			if (b < 0)
-				return false;
-			if (b == expected)
-				return true;
-		}
-	}
-
 	int ReadLength()
 	{
 		for (int bits = 1; bits < 21; bits++) {
@@ -7146,30 +7148,27 @@ public class RECOIL
 	{
 		if (contentLength < 18 || content[0] != 'P' || content[1] != 'i')
 			return false;
-		int contentOffset = 2;
-		do {
-			if (contentOffset + (1 + 10 + 4) >= contentLength)
-				return false;
-		} while (content[contentOffset++] != 0x1a);
-		if (content[contentOffset++] != 0)
+		PiStream() s;
+		s.Content = content;
+		s.ContentOffset = 2;
+		s.ContentLength = contentLength;
+		if (!s.SkipUntilByte(0x1a) || !s.SkipUntilByte(0))
+			return false;
+		int contentOffset = s.ContentOffset;
+		if (contentOffset + 14 > contentLength)
 			return false;
 		int depth = content[contentOffset + 3];
-		int compressedOffset = contentOffset + 14 + (3 << depth);
+		s.ContentOffset = contentOffset + 14 + (3 << depth);
 		if (content[contentOffset] != 0 // TODO: default palette
 		 || (depth != 4 && depth != 8)
 		 || content[contentOffset + 8] != 0 // TODO: skip
-		 || content[contentOffset + 9] != 0
-		 || compressedOffset >= contentLength)
+		 || content[contentOffset + 9] != 0)
 			return false;
 		int width = content[contentOffset + 10] << 8 | content[contentOffset + 11];
 		int height = content[contentOffset + 12] << 8 | content[contentOffset + 13];
 		if (!SetSize(width, height, RECOILResolution.Pc981x1))
 			return false;
 		DecodeR8G8B8Colors(content, contentOffset + 14, 1 << depth, ContentPalette);
-		PiStream() s;
-		s.Content = content;
-		s.ContentOffset = compressedOffset;
-		s.ContentLength = contentLength;
 		return s.Unpack(this, depth);
 	}
 
@@ -11194,7 +11193,7 @@ public class RECOIL
 		int rgb = ContentPalette[c];
 		// Digital R, G, B are the highest bits of the components.
 		// I is the lowest bit of the 4-bit Blue component.
-		return rgb >> 20 & 8 | rgb >> 13 & 4 | rgb >> 6 & 2 | rgb >> 4 & 1;
+		return (rgb >> 20 & 8) | (rgb >> 13 & 4) | (rgb >> 6 & 2) | (rgb >> 4 & 1);
 	}
 
 	int GetHameByte(byte[] content, int contentOffset, int x)
