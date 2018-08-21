@@ -1,7 +1,7 @@
 /*
  * thumbrecoil.cpp - Windows thumbnail provider for RECOIL
  *
- * Copyright (C) 2011-2017  Piotr Fusik
+ * Copyright (C) 2011-2018  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -54,7 +54,6 @@ DECLARE_INTERFACE_(IThumbnailProvider, IUnknown)
 #include "formats.h"
 
 static const char extensions[][6] = { THUMBRECOIL_EXTS };
-#define N_EXTS (int) (sizeof(extensions) / sizeof(extensions[0]))
 
 static HINSTANCE g_hDll;
 static LONG g_cRef = 0;
@@ -341,7 +340,7 @@ public:
 		else
 			DllRelease();
 		return S_OK;
-	};
+	}
 };
 
 STDAPI_(BOOL) DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
@@ -391,8 +390,8 @@ STDAPI __declspec(dllexport) DllRegisterServer(void)
 	if (!ok)
 		return E_FAIL;
 
-	for (int i = 0; i < N_EXTS; i++) {
-		if (!MyRegCreateKey(HKEY_CLASSES_ROOT, extensions[i], &hk1))
+	for (LPCSTR ext : extensions) {
+		if (!MyRegCreateKey(HKEY_CLASSES_ROOT, ext, &hk1))
 			return E_FAIL;
 		ok = RegisterCLSID(hk1, "ShellEx\\{bb2e617c-0920-11d1-9a0b-00c04fc2d6c1}") // IPersistFile+IExtractImage
 #if THUMBRECOIL_VISTA
@@ -420,15 +419,15 @@ STDAPI __declspec(dllexport) DllUnregisterServer(void)
 		RegDeleteValue(hk1, CLSID_RECOILThumbProvider_str);
 		RegCloseKey(hk1);
 	}
-	for (int i = 0; i < N_EXTS; i++) {
-		if (RegOpenKeyEx(HKEY_CLASSES_ROOT, extensions[i], 0, DELETE, &hk1) == ERROR_SUCCESS) {
+	for (LPCSTR ext : extensions) {
+		if (RegOpenKeyEx(HKEY_CLASSES_ROOT, ext, 0, DELETE, &hk1) == ERROR_SUCCESS) {
 			RegDeleteKey(hk1, "ShellEx\\{bb2e617c-0920-11d1-9a0b-00c04fc2d6c1}"); // IPersistFile+IExtractImage
 #if THUMBRECOIL_VISTA
 			RegDeleteKey(hk1, "ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}"); // IInitializeWithStream+IThumbnailProvider
 #endif
 			RegCloseKey(hk1);
 		}
-		RegDeleteKey(HKEY_CLASSES_ROOT, extensions[i]);
+		RegDeleteKey(HKEY_CLASSES_ROOT, ext);
 	}
 	RegDeleteKey(HKEY_CLASSES_ROOT, "CLSID\\" CLSID_RECOILThumbProvider_str "\\InProcServer32");
 	RegDeleteKey(HKEY_CLASSES_ROOT, "CLSID\\" CLSID_RECOILThumbProvider_str);
