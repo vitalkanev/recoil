@@ -1,7 +1,7 @@
 /*
  * AndroidSupport.java - RECOIL for Android
  *
- * Copyright (C) 2016-2017  Piotr Fusik
+ * Copyright (C) 2016-2018  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -113,7 +113,7 @@ class Android19Support extends Android12Support
 	String getSdCard(Context context)
 	{
 		File[] dirs = context.getExternalFilesDirs(null);
-		if (dirs.length > 1) {
+		if (dirs.length > 1 && dirs[1] != null) {
 			String path = dirs[1].getPath();
 			if (path.endsWith(EXTERNAL_DIR))
 				return path.substring(0, path.length() - EXTERNAL_DIR.length());
