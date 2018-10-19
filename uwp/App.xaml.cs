@@ -1,7 +1,7 @@
 ﻿/*
  * App.xaml.cs - Universal Windows application
  *
- * Copyright (C) 2014-2017  Piotr Fusik
+ * Copyright (C) 2014-2018  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -21,10 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+using System.Linq;
 using Windows.ApplicationModel.Activation;
 using Windows.Storage;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
 
 namespace RECOIL
 {
@@ -35,35 +35,25 @@ namespace RECOIL
 			InitializeComponent();
 		}
 
-		static Frame Launch(bool activate)
+		static void Launch()
 		{
-			Frame frame = Window.Current.Content as Frame;
-			if (frame == null) {
-				frame = new Frame();
-				Window.Current.Content = frame;
-			}
-
-			if (activate) {
-				if (frame.Content == null)
-					frame.Navigate(typeof(MainPage));
-				Window.Current.Activate();
-			}
-			return frame;
+			if (Window.Current.Content == null)
+				Window.Current.Content = new MainPage();
+			Window.Current.Activate();
 		}
 
 		protected override void OnLaunched(LaunchActivatedEventArgs e)
 		{
-			Launch(!e.PrelaunchActivated);
+			Launch();
 		}
 
 		protected override async void OnFileActivated(FileActivatedEventArgs args)
 		{
-			MainPage page = Launch(true).Content as MainPage;
-			if (page != null) {
-				StorageFile file = args.Files[0] as StorageFile;
-				await page.ShowFile(file);
-				await page.SetNeighboring(args.NeighboringFilesQuery, file);
-			}
+			base.OnFileActivated(args);
+			Launch();
+			MainPage page = Window.Current.Content as MainPage;
+			if (page != null)
+				await page.ShowFiles(args.Files.OfType<StorageFile>().ToList());
 		}
 	}
 }

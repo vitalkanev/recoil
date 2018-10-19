@@ -3,6 +3,7 @@
 	<xsl:template match="/formats">
 		<xsl:text>// Generated automatically from formats.xml and FilePicker.cs.xsl. Do not edit.
 
+using System.Collections.Generic;
 using Windows.Foundation;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -11,7 +12,7 @@ namespace RECOIL
 {
 	static class FilePicker
 	{
-		public static IAsyncOperation&lt;StorageFile&gt; PickFile()
+		public static IAsyncOperation&lt;IReadOnlyList&lt;StorageFile&gt;&gt; PickFiles()
 		{
 			return new FileOpenPicker {
 				FileTypeFilter = { </xsl:text>
@@ -23,7 +24,7 @@ namespace RECOIL
 					<xsl:text>"</xsl:text>
 				</xsl:for-each>
 			<xsl:text> }
-				}.PickSingleFileAsync();
+				}.PickMultipleFilesAsync();
 		}
 	}
 }

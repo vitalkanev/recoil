@@ -1,7 +1,7 @@
 ﻿/*
  * MainPage.xaml.cs - Universal Windows application
  *
- * Copyright (C) 2014-2017  Piotr Fusik
+ * Copyright (C) 2014-2018  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -35,7 +35,6 @@ using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Imaging;
-using Windows.UI.Xaml.Navigation;
 
 namespace RECOIL
 {
@@ -47,6 +46,7 @@ namespace RECOIL
 		public MainPage()
 		{
 			InitializeComponent();
+			DataTransferManager.GetForCurrentView().DataRequested += OnDataRequested;
 		}
 
 		const string Disclaimer = "\nAre you opening a vintage computer image? " +
@@ -54,9 +54,6 @@ namespace RECOIL
 
 		public async Task ShowFile(StorageFile file)
 		{
-			if (file == null)
-				return;
-
 			// read
 			byte[] content;
 			try {
@@ -113,28 +110,27 @@ namespace RECOIL
 			NextButton.IsEnabled = index + 1 < Files.Count;
 		}
 
-		public async Task SetNeighboring(StorageFileQueryResult neighboring, StorageFile file)
+		public async Task ShowFiles(IReadOnlyList<StorageFile> files)
 		{
-			Visibility buttonVisibility;
-			if (neighboring != null) {
-				Files = await neighboring.GetFilesAsync();
-				uint index = await neighboring.FindStartIndexAsync(file);
-				SetIndex(index <= int.MaxValue ? (int) index : 0);
-				buttonVisibility = Visibility.Visible;
+			if (files.Count > 0) {
+				await ShowFile(files[0]);
+				if (files.Count > 1) {
+					Files = files;
+					SetIndex(0);
+					PreviousButton.Visibility = Visibility.Visible;
+					NextButton.Visibility = Visibility.Visible;
+				}
+				else {
+					Files = null;
+					PreviousButton.Visibility = Visibility.Collapsed;
+					NextButton.Visibility = Visibility.Collapsed;
+				}
 			}
-			else {
-				Files = null;
-				buttonVisibility = Visibility.Collapsed;
-			}
-			PreviousButton.Visibility = buttonVisibility;
-			NextButton.Visibility = buttonVisibility;
 		}
 
 		async void OpenFile(object sender, RoutedEventArgs e)
 		{
-			StorageFile file = await FilePicker.PickFile();
-			await ShowFile(file);
-			await SetNeighboring(null, null);
+			ShowFiles(await FilePicker.PickFiles());
 		}
 
 		async void OpenPrevious(object sender, RoutedEventArgs e)
@@ -209,16 +205,6 @@ namespace RECOIL
 			package.Properties.Title = FileName.Text;
 			await PutBitmap(package);
 			deferral.Complete();
-		}
-
-		protected override void OnNavigatedTo(NavigationEventArgs e)
-		{
-			DataTransferManager.GetForCurrentView().DataRequested += OnDataRequested;
-		}
-
-		protected override void OnNavigatedFrom(NavigationEventArgs e)
-		{
-			DataTransferManager.GetForCurrentView().DataRequested -= OnDataRequested;
 		}
 
 		void Share(object sender, RoutedEventArgs e)
