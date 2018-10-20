@@ -1571,7 +1571,7 @@ class RgbStream : RleStream
 // TNY and PCS use identical control bytes.
 abstract class TnyPcsStream : RleStream
 {
-	override bool ReadCommand()
+	bool ReadTnyCommand()
 	{
 		int b = ReadByte();
 		if (b < 0)
@@ -1601,6 +1601,9 @@ class TnyStream : TnyPcsStream
 	int ValueOffset;
 	int ValueLength;
 
+	override bool ReadCommand()
+		return ReadTnyCommand();
+
 	override int ReadValue()
 	{
 		if (ValueOffset + 1 >= ValueLength)
@@ -1613,7 +1616,16 @@ class TnyStream : TnyPcsStream
 
 class PcsStream : TnyPcsStream
 {
+	int CommandCount;
 	bool Palette;
+
+	override bool ReadCommand()
+	{
+		if (CommandCount <= 0)
+			return false;
+		CommandCount--;
+		return ReadTnyCommand();
+	}
 
 	override int ReadValue()
 	{
@@ -1629,20 +1641,39 @@ class PcsStream : TnyPcsStream
 		return value;
 	}
 
+	bool StartBlock()
+	{
+		if (ContentOffset >= ContentLength - 1)
+			return false;
+		CommandCount = Content[ContentOffset] << 8 | Content[ContentOffset + 1];
+		ContentOffset += 2;
+		return true;
+	}
+
+	bool EndBlock()
+	{
+		// skip garbage
+		while (RepeatCount > 0 || CommandCount > 0) {
+			if (ReadRle() < 0)
+				return false;
+		}
+		return true;
+	}
+
 	const int UnpackedLength = 32000 + 9616 * 2;
 
 	bool UnpackPcs(byte[] unpacked)
 	{
 		// bitmap
-		ContentOffset += 2;
 		Palette = false;
+		StartBlock();
 		if (!Unpack(unpacked, 0, 1, 32000)
-		 || RepeatCount != 0)
+		 || !EndBlock())
 			return false;
 
 		// palettes
-		ContentOffset += 2;
 		Palette = true;
+		StartBlock();
 		for (int unpackedOffset = 32000; unpackedOffset < UnpackedLength; unpackedOffset += 2) {
 			int b = ReadRle();
 			if (b < 0)
@@ -1650,8 +1681,7 @@ class PcsStream : TnyPcsStream
 			unpacked[unpackedOffset] = b >> 8;
 			unpacked[unpackedOffset + 1] = b.LowByte;
 		}
-		// don't check RepeatCount: "PhotoChrome files with a few extra entries have been found"
-		return true;
+		return EndBlock();
 	}
 }
 
@@ -9958,7 +9988,6 @@ public class RECOIL
 			return true; // single screen
 
 		// alternating screens
-		rle.RepeatCount = 0; // ignore possible overrun from first picture palettes
 		byte[PcsStream.UnpackedLength] unpacked2;
 		if (!rle.UnpackPcs(unpacked2))
 			return false;
