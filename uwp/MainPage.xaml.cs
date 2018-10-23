@@ -130,7 +130,7 @@ namespace RECOIL
 
 		async void OpenFile(object sender, RoutedEventArgs e)
 		{
-			ShowFiles(await FilePicker.PickFiles());
+			await ShowFiles(await FilePicker.PickFiles());
 		}
 
 		async void OpenPrevious(object sender, RoutedEventArgs e)
