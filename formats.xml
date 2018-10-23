@@ -1,6 +1,10 @@
 ﻿<formats version="4.3.0">
 	<platform name="Amiga" href="http://en.wikipedia.org/wiki/Amiga">
 		<format name="Amiga Continuous Bitmap"><ext>ACBM</ext></format>
+		<format hardware="DCTV" name="DCTV">
+			<ext>DCT</ext>
+			<ext>DCTV</ext>
+		</format>
 		<format name="TVPaint" colors="16777216"><ext>DEEP</ext></format>
 		<format name="Hold-And-Modify 6" colors="4096"><ext>HAM6</ext></format>
 		<format name="Hold-And-Modify 8" colors="16777216"><ext>HAM8</ext></format>

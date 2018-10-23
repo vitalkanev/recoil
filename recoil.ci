@@ -1666,14 +1666,15 @@ class PcsStream : TnyPcsStream
 	{
 		// bitmap
 		Palette = false;
-		StartBlock();
-		if (!Unpack(unpacked, 0, 1, 32000)
+		if (!StartBlock()
+		 || !Unpack(unpacked, 0, 1, 32000)
 		 || !EndBlock())
 			return false;
 
 		// palettes
 		Palette = true;
-		StartBlock();
+		if (!StartBlock())
+			return false;
 		for (int unpackedOffset = 32000; unpackedOffset < UnpackedLength; unpackedOffset += 2) {
 			int b = ReadRle();
 			if (b < 0)
@@ -4328,17 +4329,23 @@ public class RECOIL
 		return rgb;
 	}
 
+	static int GetBitplanesPixel(byte[] content, int contentOffset, int x, int bitplanes)
+	{
+		contentOffset += (x >> 3 & ~1) * bitplanes + (x >> 3 & 1);
+		int bit = ~x & 7;
+		int c = 0;
+		for (int bitplane = bitplanes; --bitplane >= 0; )
+			c = c << 1 | (content[contentOffset + (bitplane << 1)] >> bit & 1);
+		return c;
+	}
+
 	/// Decodes Atari ST/Falcon interleaved bitplanes.
 	/// Each 16 pixels are encoded in N consecutive 16-bit words.
 	void DecodeBitplanes(byte[] content, int contentOffset, int contentStride, int bitplanes, int pixelsOffset, int width, int height)
 	{
 		while (--height >= 0) {
 			for (int x = 0; x < width; x++) {
-				int offset = contentOffset + (x >> 3 & ~1) * bitplanes + (x >> 3 & 1);
-				int bit = ~x & 7;
-				int c = 0;
-				for (int bitplane = bitplanes; --bitplane >= 0; )
-					c = c << 1 | content[offset + (bitplane << 1)] >> bit & 1;
+				int c = GetBitplanesPixel(content, contentOffset, x, bitplanes);
 				Pixels[pixelsOffset + x] = ContentPalette[c];
 			}
 			contentOffset += contentStride;
@@ -4357,11 +4364,7 @@ public class RECOIL
 					ContentPalette[32 + c] = ContentPalette[c] >> 1 & 0x7f7f7f;
 			}
 			for (int x = 0; x < width; x++) {
-				int offset = contentOffset + (x >> 3 & ~1) * bitplanes + (x >> 3 & 1);
-				int bit = ~x & 7;
-				int c = 0;
-				for (int bitplane = bitplanes; --bitplane >= 0; )
-					c = c << 1 | content[offset + (bitplane << 1)] >> bit & 1;
+				int c = GetBitplanesPixel(content, contentOffset, x, bitplanes);
 				SetScaledPixel(x, y, ContentPalette[c]);
 			}
 			contentOffset += contentStride;
@@ -8824,15 +8827,8 @@ public class RECOIL
 			SetStVdiColor(i, GetStVdiColor(content, contentOffset + i * 6), bitplanes);
 	}
 
-	static int GetStLowColor(byte[] bitmap, int bitmapOffset, int x)
-	{
-		bitmapOffset += (x >> 1 & ~7) + (x >> 3 & 1);
-		int bit = ~x & 7;
-		return (bitmap[bitmapOffset] >> bit & 1)
-			| (bitmap[bitmapOffset + 2] >> bit & 1) << 1
-			| (bitmap[bitmapOffset + 4] >> bit & 1) << 2
-			| (bitmap[bitmapOffset + 6] >> bit & 1) << 3;
-	}
+	static int GetStLowPixel(byte[] content, int contentOffset, int x)
+		return GetBitplanesPixel(content, contentOffset, x, 4);
 
 	bool DecodeStLowWithStride(byte[] bitmap, int bitmapOffset, int bitmapStride, byte[] palette, int paletteOffset, int width, int height)
 	{
@@ -9052,9 +9048,9 @@ public class RECOIL
 		SetSize(320, 200, RECOILResolution.Ste1x1);
 		Frames = 3;
 		for (int i = 0; i < 320 * 200; i++) {
-			int rgb = GetStLowColor(content, 34, i) << 16
-				| GetStLowColor(content, 32068, i) << 8
-				| GetStLowColor(content, 64102, i);
+			int rgb = GetStLowPixel(content, 34, i) << 16
+				| GetStLowPixel(content, 32068, i) << 8
+				| GetStLowPixel(content, 64102, i);
 			Pixels[i] = rgb * 0x11;
 		}
 		return true;
@@ -9696,7 +9692,7 @@ public class RECOIL
 		int pixelsOffset = 0;
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < 320; x++) {
-				int c = GetStLowColor(content, bitmapOffset, pixelsOffset);
+				int c = GetStLowPixel(content, bitmapOffset, pixelsOffset);
 				// http://www.atari-forum.com/wiki/index.php?title=ST_Picture_Formats
 				int x1 = c * 10 + 1 - (c & 1) * 6;
 				if (x >= x1 + 160)
@@ -10045,7 +10041,7 @@ public class RECOIL
 	{
 		for (int y = 0; y < 200; y++) {
 			for (int x = 0; x < 320; x++) {
-				int c = GetStLowColor(content, bitmapOffset + y * 160, x);
+				int c = GetStLowPixel(content, bitmapOffset + y * 160, x);
 				if (x >= (c > 7 ? 88 : 76) + c * 10 - (c & 1) * 6)
 					c += 16;
 				Pixels[pixelsOffset + x] = GetStColor(content, paletteOffset + (y << 6) + (c << 1));
@@ -10144,7 +10140,7 @@ public class RECOIL
 					changeColor++;
 				}
 
-				Pixels[pixelsOffset + x] = palette[GetStLowColor(content, bitmapOffset, x)];
+				Pixels[pixelsOffset + x] = palette[GetStLowPixel(content, bitmapOffset, x)];
 			}
 			bitmapOffset += Width >> 1;
 			pixelsOffset += Width;
@@ -10937,7 +10933,7 @@ public class RECOIL
 				int offset = contentOffset + y * bytesPerLine + (x >> 3);
 				int c = 0;
 				for (int bitplane = bitplanes; --bitplane >= 0; )
-					c = c << 1 | content[offset + bitplane * height * bytesPerLine] >> bit & 1;
+					c = c << 1 | (content[offset + bitplane * height * bytesPerLine] >> bit & 1);
 				Pixels[y * width + x] = palette[c];
 			}
 		}
@@ -11175,19 +11171,14 @@ public class RECOIL
 
 	void DecodeHam(byte[] unpacked, int width, int height, int bitplanes, MultiPalette multiPalette)
 	{
-		int bytesPerBitplane = width + 15 >> 4 << 1;
+		int bytesPerLine = (width + 15 >> 4 << 1) * bitplanes;
 		int holdBits = bitplanes > 6 ? 6 : 4;
 		for (int y = 0; y < height; y++) {
 			if (multiPalette != null)
 				multiPalette.SetLinePalette(this, y);
 			int rgb = ContentPalette[0];
 			for (int x = 0; x < width; x++) {
-				int offset = (y * bytesPerBitplane + (x >> 3 & ~1)) * bitplanes + (x >> 3 & 1);
-				int bit = ~x & 7;
-				int c = 0;
-				for (int bitplane = bitplanes; --bitplane >= 0; )
-					c = c << 1 | unpacked[offset + (bitplane << 1)] >> bit & 1;
-
+				int c = GetBitplanesPixel(unpacked, y * bytesPerLine, x, bitplanes);
 				switch (c >> holdBits) {
 				case 0:
 					rgb = ContentPalette[c];
@@ -11215,7 +11206,7 @@ public class RECOIL
 
 	int GetHameNibble(byte[] content, int contentOffset, int x)
 	{
-		int c = GetStLowColor(content, contentOffset, x);
+		int c = GetStLowPixel(content, contentOffset, x);
 		// We could simply return c here, because the palette is set up
 		// for the RGBI values in order, but to precisely emulate the way
 		// the original hardware worked, lookup the color and convert it to RGBI.
@@ -11297,6 +11288,98 @@ public class RECOIL
 		}
 	}
 
+	int GetDctvValue(byte[] content, int contentOffset, int x, int bitplanes)
+	{
+		int c = GetBitplanesPixel(content, contentOffset, x, bitplanes);
+		int rgb = ContentPalette[c];
+		// The value is 0I0R0B0G.
+		// Digital R, G, B are the highest bits of the components.
+		// I is the lowest bit of the 4-bit Blue component.
+		return (rgb << 2 & 0x40) | (rgb >> 19 & 0x10) | (rgb >> 5 & 4) | (rgb >> 15 & 1);
+	}
+
+	bool IsDctv(byte[] content, int contentOffset, int bitplanes)
+	{
+		if (GetDctvValue(content, contentOffset, 0, bitplanes) >> 6 != 0)
+			return false;
+		int r = 0x7d;
+		for (int x = 1; x < 256; x++) {
+			if (GetDctvValue(content, contentOffset, x, bitplanes) >> 6 == (r & 1))
+				return false;
+			if ((r & 1) != 0)
+				r ^= 0xc3 << 1;
+			r >>= 1;
+		}
+		return true;
+	}
+
+	static int ClampByte(int x)
+		return x <= 0 ? 0 : x >= 255 ? 255 : x;
+
+	bool DecodeDctv(byte[] content, int width, int height, RECOILResolution resolution, int bitplanes)
+	{
+		if (!IsDctv(content, 0, bitplanes))
+			return false;
+		int interlace;
+		int bytesPerLine = (width + 15 >> 4 << 1) * bitplanes;
+		if (resolution == RECOILResolution.Amiga1x2) {
+			interlace = 0;
+			height--;
+		}
+		else {
+			if (!IsDctv(content, bytesPerLine, bitplanes))
+				return false;
+			interlace = 1;
+			height -= 2;
+		}
+		SetScaledSize(width, height, resolution);
+
+		int contentOffset = bytesPerLine << interlace;
+		int[MaxWidth] chroma;
+		for (int y = 0; y < height; y++) {
+			int odd = y >> interlace & 1;
+			int rgb = 0;
+			int o = 0;
+			int p = 0;
+			for (int x = 0; x < width; x++) {
+				if ((x & 1) == odd) {
+					int n = x + 1 < width ?
+						GetDctvValue(content, contentOffset, x, bitplanes) << 1
+						| GetDctvValue(content, contentOffset, x + 1, bitplanes)
+						: 0;
+
+					int i = o + n >> 1;
+					i = i <= 64 ? 0 : i >= 224 ? 255 : (i - 64) * 8 / 5;
+
+					int u = n + p - (o << 1);
+					if (u < 0)
+						u += 3;
+					u >>= 2;
+					if ((x + 1 & 2) == 0)
+						u = -u;
+					int chromaOffset = (x & ~1) | (y & interlace);
+					int v = y >= 2 ? chroma[chromaOffset] : 0;
+					chroma[chromaOffset] = u;
+					if (odd == 0) {
+						u = v;
+						v = chroma[chromaOffset];
+					}
+
+					p = o;
+					o = n;
+
+					int r = i + v * 4655 / 2560;
+					int b = i + u * 8286 / 2560;
+					int g = i - (v * 2372 + u * 1616) / 2560;
+					rgb = ClampByte(r) << 16 | ClampByte(g) << 8 | ClampByte(b);
+				}
+				SetScaledPixel(x, y, rgb);
+			}
+			contentOffset += bytesPerLine;
+		}
+		return true;
+	}
+
 	bool DecodeIffUnpacked(byte[] unpacked, int width, int height, RECOILResolution resolution, int bitplanes, int colors, int camg, MultiPalette multiPalette)
 	{
 		if (!SetScaledSize(width, height, resolution)) {
@@ -11324,6 +11407,12 @@ public class RECOIL
 				else
 					SetSize(width, height, RECOILResolution.Amiga2x1);
 				DecodeHame(unpacked, width >> 1);
+			}
+			else if (width >= 256 && height >= 3
+				&& (resolution == RECOILResolution.Amiga1x2 || resolution == RECOILResolution.Amiga1x1)
+				&& multiPalette == null
+				&& DecodeDctv(unpacked, width, height, resolution, bitplanes)) {
+				// DCTV complete
 			}
 			else {
 				// palette
@@ -15887,6 +15976,8 @@ public class RECOIL
 		case PackExt("IFF"):
 		case PackExt("ACBM"):
 		case PackExt("BEAM"):
+		case PackExt("DCT"):
+		case PackExt("DCTV"):
 		case PackExt("DEEP"):
 		case PackExt("DR"):
 		case PackExt("HAM6"):
@@ -16472,6 +16563,8 @@ public class RECOIL
 		case PackExt("IFF"):
 		case PackExt("ACBM"):
 		case PackExt("BEAM"):
+		case PackExt("DCT"):
+		case PackExt("DCTV"):
 		case PackExt("DEEP"):
 		case PackExt("DR"):
 		case PackExt("HAM6"):
