@@ -9447,6 +9447,15 @@ public class RECOIL
 			return true;
 		}
 
+		int xRatio = content[8] << 8 | content[9];
+		int yRatio = content[10] << 8 | content[11];
+		if (bitplanes <= 2 && width <= 640 && height <= 200 && yRatio * 2 > xRatio * 3)
+			SetSize(width, height << 1, RECOILResolution.St1x2);
+		else if (bitplanes <= 8 && width <= 320 && height <= 480 && xRatio * 2 > yRatio * 3)
+			SetSize(width << 1, height, RECOILResolution.Tt2x1);
+		else if (!SetSizeStOrFalcon(width, height, bitplanes, true))
+			return false;
+
 		switch (bitplanes) {
 		case 1:
 		case 2:
@@ -9487,14 +9496,6 @@ public class RECOIL
 		default:
 			return false;
 		}
-		int xRatio = content[8] << 8 | content[9];
-		int yRatio = content[10] << 8 | content[11];
-		if (bitplanes <= 2 && width <= 640 && height <= 200 && yRatio * 2 > xRatio * 3)
-			SetSize(width, height << 1, RECOILResolution.St1x2);
-		else if (bitplanes <= 8 && width <= 320 && height <= 480 && xRatio * 2 > yRatio * 3)
-			SetSize(width << 1, height, RECOILResolution.Tt2x1);
-		else if (!SetSizeStOrFalcon(width, height, bitplanes, true))
-			return false;
 
 		ImgStream() rle;
 		rle.Content = content;
