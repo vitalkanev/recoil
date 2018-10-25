@@ -1660,7 +1660,7 @@ class PcsStream : TnyPcsStream
 		return true;
 	}
 
-	const int UnpackedLength = 32000 + 9616 * 2;
+	const int UnpackedLength = 32000 + (199 * 3 + 1) * 32;
 
 	bool UnpackPcs(byte[] unpacked)
 	{
