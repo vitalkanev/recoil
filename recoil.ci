@@ -11358,7 +11358,7 @@ public class RECOIL
 					if ((x + 1 & 2) == 0)
 						u = -u;
 					int chromaOffset = (x & ~1) | (y & interlace);
-					int v = y >= 2 ? chroma[chromaOffset] : 0;
+					int v = y > interlace ? chroma[chromaOffset] : 0;
 					chroma[chromaOffset] = u;
 					if (odd == 0) {
 						u = v;
