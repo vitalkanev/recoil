@@ -8754,21 +8754,20 @@ public class RECOIL
 		int gb = content[contentOffset + 1];
 		int rgb;
 		switch (Resolution) {
-		case RECOILResolution.Ste1x1:
-		case RECOILResolution.Ste1x2:
-		case RECOILResolution.Tt1x1:
-			// STE 4096 colors
-			// xxxxrRRR gGGGbBBB -> 0000RRRr0000GGGg0000BBBb
-			rgb = (r & 7) << 17 | (r & 8) << 13
-				| (gb & 0x70) << 5 | (gb & 0x87) << 1 | (gb & 8) >> 3;
-			return rgb << 4 | rgb;
-		default:
+		case RECOILResolution.St1x1:
+		case RECOILResolution.St1x2:
 			// ST 512 colors
 			// xxxx0RRR 0GGG0BBB -> 00000RRR00000GGG00000BBB
 			rgb = (r & 7) << 16
 				| (gb & 0x70) << 4
 				| (gb & 7);
 			return rgb << 5 | rgb << 2 | (rgb >> 1 & 0x030303);
+		default:
+			// STE 4096 colors
+			// xxxxrRRR gGGGbBBB -> 0000RRRr0000GGGg0000BBBb
+			rgb = (r & 7) << 17 | (r & 8) << 13
+				| (gb & 0x70) << 5 | (gb & 0x87) << 1 | (gb & 8) >> 3;
+			return rgb << 4 | rgb;
 		}
 	}
 
