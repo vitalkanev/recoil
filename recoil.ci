@@ -479,12 +479,15 @@ class ArtPalette : MultiPalette
 
 class RastPalette : MultiPalette
 {
+	int Colors;
+
 	override void SetLinePalette(RECOIL recoil, int y)
 	{
+		int paletteLength = (1 + Colors) << 1;
 		// not sorted by Y!
-		for (int offset = ContentOffset; offset <= ContentLength - 34; offset += 34) {
+		for (int offset = ContentOffset; offset <= ContentLength - paletteLength; offset += paletteLength) {
 			if (y == (Content[offset] << 8 | Content[offset + 1])) {
-				recoil.SetStPalette(Content, offset + 2, 16);
+				recoil.SetStPalette(Content, offset + 2, Colors);
 				break;
 			}
 		}
@@ -4093,12 +4096,12 @@ public class RECOIL
 		case 2:
 			if (!squarePixels && width == 640 && height == 200) {
 				height <<= 1;
-				resolution = RECOILResolution.St1x2;
+				resolution = RECOILResolution.Ste1x2;
 			}
 			break;
 		case 4:
 			if (width <= 320 && height <= 200)
-				resolution = RECOILResolution.St1x1;
+				resolution = RECOILResolution.Ste1x1;
 			break;
 		case 8:
 			if (!squarePixels && width == 320 && height == 480) {
@@ -8956,6 +8959,7 @@ public class RECOIL
 					palette.Content = rst;
 					palette.ContentOffset = 0;
 					palette.ContentLength = 6800;
+					palette.Colors = 16;
 					DecodeScaledBitplanes(content, 128, 320, 200, 4, false, palette);
 					return true;
 				}
@@ -11168,6 +11172,22 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeRast(byte[] content, int contentOffset, int contentLength, byte[] unpacked, int width, int height, int bitplanes)
+	{
+		if (!SetSizeStOrFalcon(width, height, bitplanes, false)) {
+			delete unpacked;
+			return false;
+		}
+		RastPalette() rast;
+		rast.Content = content;
+		rast.ContentOffset = contentOffset + 8;
+		rast.ContentLength = contentLength;
+		rast.Colors = 1 << bitplanes;
+		DecodeScaledBitplanes(unpacked, 0, width, height, bitplanes, false, rast);
+		delete unpacked;
+		return true;
+	}
+
 	void DecodeHam(byte[] unpacked, int width, int height, int bitplanes, MultiPalette multiPalette)
 	{
 		int bytesPerLine = (width + 15 >> 4 << 1) * bitplanes;
@@ -11633,25 +11653,17 @@ public class RECOIL
 					if (!rle.UnpackBitplaneLines(unpacked, width, height, bitplanes, compression == 1, hasMask))
 						return false;
 				}
-				RastPalette() rast;
-				if (chunkEndOffset < contentLength - 8) {
+
+				if (bitplanes <= 8 && chunkEndOffset < contentLength - 8) {
 					int nextChunkOffset = chunkEndOffset + 1 & ~1;
-					if (IsStringAt(content, nextChunkOffset, "RAST")) {
-						rast.Content = content;
-						rast.ContentOffset = nextChunkOffset + 8;
-						rast.ContentLength = contentLength;
-						multiPalette = rast;
-						resolution = RECOILResolution.Ste1x1;
-					}
-					else if (IsStringAt(content, chunkEndOffset, "RAST")) {
+					if (IsStringAt(content, nextChunkOffset, "RAST"))
+						return DecodeRast(content, nextChunkOffset, contentLength, unpacked, width, height, bitplanes);
+					if (IsStringAt(content, chunkEndOffset, "RAST")) {
 						// unaligned chunk, not conforming to the IFF format
-						rast.Content = content;
-						rast.ContentOffset = chunkEndOffset + 8;
-						rast.ContentLength = contentLength;
-						multiPalette = rast;
-						resolution = RECOILResolution.Ste1x1;
+						return DecodeRast(content, chunkEndOffset, contentLength, unpacked, width, height, bitplanes);
 					}
 				}
+
 				return DecodeIffUnpacked(unpacked, width, height, resolution, bitplanes, colors, camg, multiPalette);
 			}
 			else if (IsStringAt(content, contentOffset, "ABIT")) {
