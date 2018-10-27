@@ -66,6 +66,11 @@ function recoil2canvas(mainFilename)
 
 	if (canvas.webkitRequestFullScreen || canvas.mozRequestFullScreen)
 		document.getElementById("fullScreenButton").style.display = "";
+
+	var pngLink = document.getElementById("pngLink");
+	pngLink.href = canvas.toDataURL("image/png");
+	pngLink.download = mainFilename + ".png";
+	pngLink.style.display = "";
 }
 
 function populateFiles(contents, mainFilenames)

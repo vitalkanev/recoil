@@ -37,6 +37,9 @@
 			<canvas id="canvas" width="1" height="1"> </canvas>
 			<div id="status"> </div>
 		</div>
-		<input type="button" id="fullScreenButton" value="Fullscreen" onclick="fullScreen()" style="display: none" />
+		<p>
+			<input type="button" id="fullScreenButton" value="Fullscreen" onclick="fullScreen()" style="display: none" />
+			<a id="pngLink" href="#" target="_blank" style="display: none">Save as PNG</a>
+		</p>
 	</body>
 </html>
