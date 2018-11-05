@@ -5519,17 +5519,26 @@ public class RECOIL
 		}
 	}
 
-	void DecodeTimexHires(byte[] content)
+	void DecodeTimexHires(byte[] content, int contentOffset, int pixelsOffset)
 	{
-		SetSize(512, 384, RECOILResolution.Timex1x2);
-		int inkColor = GetZxColor(content[12288] >> 3);
+		int inkColor = GetZxColor(content[contentOffset + 0x3000] >> 3);
 		for (int y = 0; y < 192; y++) {
 			for (int x = 0; x < 512; x++) {
-				int c = content[(x & 8) * 768 + ((y & 0xc0) << 5) + ((y & 7) << 8) + ((y & 0x38) << 2) + (x >> 4)] >> (~x & 7) & 1;
-				int offset = (y << 10) + x;
+				int c = content[contentOffset + (x & 8) * 768 + ((y & 0xc0) << 5) + ((y & 7) << 8) + ((y & 0x38) << 2) + (x >> 4)] >> (~x & 7) & 1;
+				int offset = pixelsOffset + (y << 10) + x;
 				Pixels[offset + 512] = Pixels[offset] = c == 0 ? inkColor ^ 0xffffff : inkColor;
 			}
 		}
+	}
+
+	bool DecodeHrg(byte[] content, int contentLength)
+	{
+		if (contentLength != 24578)
+			return false;
+		SetSize(512, 384, RECOILResolution.Timex1x2);
+		DecodeTimexHires(content, 0, 0);
+		DecodeTimexHires(content, 0x3001, 384 * 512);
+		return ApplyBlend();
 	}
 
 	bool DecodeScr(string filename, byte[] content, int contentLength)
@@ -5555,7 +5564,8 @@ public class RECOIL
 			DecodeZx(content, 0, 0x1800, ZxAttributesTimex, 0);
 			return true;
 		case 12289:
-			DecodeTimexHires(content);
+			SetSize(512, 384, RECOILResolution.Timex1x2);
+			DecodeTimexHires(content, 0, 0);
 			return true;
 		case 12352: // untested, based on https://web.archive.org/web/20140315185332/http://www.zxshed.co.uk/sinclairfaq/index.php5?title=ULAplus
 			SetUlaPlus(content, 0x3000);
@@ -15975,6 +15985,7 @@ public class RECOIL
 		case PackExt("HR"):
 		case PackExt("HR2"):
 		case PackExt("HCI"):
+		case PackExt("HRG"):
 		case PackExt("HRM"):
 		case PackExt("HRS"):
 		case PackExt("HS2"):
@@ -16553,6 +16564,8 @@ public class RECOIL
 		case PackExt("HR2"):
 		case PackExt("HCI"):
 			return DecodeHr2(content, contentLength);
+		case PackExt("HRG"):
+			return DecodeHrg(content, contentLength);
 		case PackExt("HRM"):
 			return DecodeHrm(content, contentLength);
 		case PackExt("HRS"):

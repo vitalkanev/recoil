@@ -654,6 +654,7 @@
 		<format colors="65536"><ext>PIC</ext></format>
 	</platform>
 	<platform name="Timex 2048" href="https://en.wikipedia.org/wiki/Timex_Computer_2048">
+		<format name="Hi-res Gigascreen" width="512" height="192" colors="4" frames="2"><ext>HRG</ext></format>
 		<format name="Hi-color" width="256" height="192" colors="15"><ext>SCR</ext></format>
 		<format name="Hi-res" width="512" height="192" colors="2"><ext>SCR</ext></format>
 	</platform>
