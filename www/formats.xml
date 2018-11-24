@@ -1,4 +1,4 @@
-﻿<page>
+﻿<page title="Formats">
 	<p>RECOIL understands <formats-count /> file formats, including:</p>
 	<formats-index />
 	<p>Formats are listed below by origin computer family and filename extension.

@@ -1,6 +1,5 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://www.w3.org/1999/xhtml" version="1.0">
 	<xsl:output method="xml" omit-xml-declaration="yes" />
-	<xsl:param name="title" />
 	<xsl:variable name="formats" select="document('../formats.xml')/formats" />
 	<xsl:variable name="version" select="$formats/@version" />
 
@@ -10,9 +9,9 @@
 				<meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8" />
 				<title>
 					<xsl:text>RECOIL</xsl:text>
-					<xsl:if test="$title != 'Home'">
+					<xsl:if test="@title != 'Home'">
 						<xsl:text> - </xsl:text>
-						<xsl:value-of select="$title" />
+						<xsl:value-of select="@title" />
 					</xsl:if>
 				</title>
 				<style type="text/css">
@@ -52,7 +51,7 @@
 		<xsl:param name="page" />
 		<li>
 			<xsl:choose>
-				<xsl:when test="$page = $title">
+				<xsl:when test="$page = /page/@title">
 					<xsl:attribute name="class">tab_selected</xsl:attribute>
 					<xsl:value-of select="$page" />
 				</xsl:when>
