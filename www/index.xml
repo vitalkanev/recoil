@@ -12,18 +12,18 @@
 	<img src="android.png" alt="Android application" />
 
 	<h2>Windows Explorer thumbnails</h2>
-	<p>Use a <tt>*.msi</tt> installer that matches your desktop Windows version (32-bit or 64-bit).</p>
+	<p>Use a <code>*.msi</code> installer that matches your desktop Windows version (32-bit or 64-bit).</p>
 	<img src="thumbrecoil.png" alt="Windows Explorer" />
 
 	<h2>Viewer for desktop Windows</h2>
-	<p>Get RECOILWin from a <tt>*.msi</tt> installer or the <tt>*.zip</tt> archive.</p>
+	<p>Get RECOILWin from a <code>*.msi</code> installer or the <code>*.zip</code> archive.</p>
 	<img src="recoilwin.png" alt="RECOILWin" />
 
 	<h2>IrfanView plugin</h2>
 	<p>RECOIL is already included in the "Formats" <a href="http://www.irfanview.com/">IrfanView</a> plugin.</p>
 
 	<h2>Plugins for Windows viewers</h2>
-	<p>The <tt>*.msi</tt> installer detects <a href="http://www.xnview.com">XnView [MP]</a>,
+	<p>The <code>*.msi</code> installer detects <a href="http://www.xnview.com">XnView [MP]</a>,
 	<a href="http://www.nyam.pe.kr/">Imagine</a> and <a href="http://www.getpaint.net/">Paint.NET</a>
 	and installs the corresponding RECOIL plugins.</p>
 
@@ -34,9 +34,9 @@
 	<h2>macOS Quick Look</h2>
 	<p>Install as follows:</p>
 	<ol>
-		<li>Open <tt>recoil-<version />-macos.dmg</tt>.</li>
-		<li>Drag <tt>RECOIL.qlgenerator</tt> to <tt>QuickLook</tt>.</li>
-		<li>Re-log or run <tt>qlmanage -r</tt>.</li>
+		<li>Open <code>recoil-<version />-macos.dmg</code>.</li>
+		<li>Drag <code>RECOIL.qlgenerator</code> to <code>QuickLook</code>.</li>
+		<li>Re-log or run <code>qlmanage -r</code>.</li>
 	</ol>
 	<img src="qlrecoil.png" alt="Quick Look" />
 
@@ -44,12 +44,12 @@
 	<p>Install as follows:</p>
 	<ol>
 		<li>Install <a href="https://www.xnview.com/en/xnviewmp/">XnView MP</a> first.</li>
-		<li>Open <tt>recoil-<version />-macos.dmg</tt>.</li>
-		<li>Drag <tt>Xrecoil.usr</tt> to <tt>XnViewMP</tt>.</li>
+		<li>Open <code>recoil-<version />-macos.dmg</code>.</li>
+		<li>Drag <code>Xrecoil.usr</code> to <code>XnViewMP</code>.</li>
 	</ol>
 
 	<h2>Linux GNOME thumbnails</h2>
-	<p>Install <tt>recoil-2png</tt> first, then <tt>recoil-thumbnailer</tt>.</p>
+	<p>Install <code>recoil-2png</code> first, then <code>recoil-thumbnailer</code>.</p>
 	<img src="nautilus.png" alt="Nautilus" />
 
 	<h2>HTML 5 based viewer</h2>
@@ -57,14 +57,14 @@
 
 	<h2>ImageMagick (de)coder</h2>
 	<p><a href="http://www.imagemagick.org/">ImageMagick</a> is a multi-platform suite to manipulate bitmaps.</p>
-	<p>RECOIL includes a plugin for version 6 of ImageMagick. On Windows use <tt>*.msi</tt>, on Linux install from source code.</p>
+	<p>RECOIL includes a plugin for version 6 of ImageMagick. On Windows use <code>*.msi</code>, on Linux install from source code.</p>
 
 	<h2>recoil2png</h2>
 	<p>This is a portable command-line converter to PNG files.
-	Available in <tt>*.msi</tt>, <tt>*.zip</tt>, <tt>*.deb</tt>, <tt>*.rpm</tt>, <tt>*.tar.gz</tt>.</p>
-	<p>To install on macOS, open <tt>recoil-<version />-macos.dmg</tt> then drag <tt>recoil2png</tt> to <tt>bin</tt>.</p>
+	Available in <code>*.msi</code>, <code>*.zip</code>, <code>*.deb</code>, <code>*.rpm</code>, <code>*.tar.gz</code>.</p>
+	<p>To install on macOS, open <code>recoil-<version />-macos.dmg</code> then drag <code>recoil2png</code> to <code>bin</code>.</p>
 	<p>When you run it just with input filenames, it writes the corresponding PNGs
-	with the same names and locations and the extensions changed to <tt>png</tt>.
+	with the same names and locations and the extensions changed to <code>png</code>.
 	To see what options are available, run the program without arguments.</p>
 
 	<h2>For software developers</h2>

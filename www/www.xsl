@@ -1,8 +1,6 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://www.w3.org/1999/xhtml" version="1.0">
 	<xsl:output method="xml"
-		omit-xml-declaration="yes"
-		doctype-public="-//W3C//DTD XHTML 1.1//EN" 
-		doctype-system="http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd" />
+		omit-xml-declaration="yes" />
 	<xsl:param name="title" />
 	<xsl:variable name="version" select="document('../formats.xml')/formats/@version" />
 
@@ -258,7 +256,7 @@
 		</input>
 	</xsl:template>
 
-	<xsl:template match="a[@href]|br|canvas|div|h2|img|input|li|ol|p|select|script|tt|ul">
+	<xsl:template match="a[@href]|br|canvas|code|div|h2|img|input|li|ol|p|select|script|ul">
 		<xsl:element name="{name()}">
 			<xsl:copy-of select="@*" />
 			<xsl:apply-templates />
