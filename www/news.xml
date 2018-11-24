@@ -1,4 +1,4 @@
-﻿<div>
+﻿<page>
 	<release project="RECOIL" version="4.3.0" date="2018-06-10">
 		<ul title="New ports">
 			<li>Plugin for XnView MP (Windows, macOS, Linux) - requires XnView MP 0.91 or newer</li>
@@ -313,4 +313,4 @@
 	<release project="FAIL" version="1.0.0" date="2009-08-25">
 		<p>Initial release.</p>
 	</release>
-</div>
+</page>

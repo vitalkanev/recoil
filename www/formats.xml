@@ -1,4 +1,4 @@
-﻿<div>
+﻿<page>
 	<p>RECOIL understands <formats-count /> file formats, including:</p>
 	<formats-index />
 	<p>Formats are listed below by origin computer family and filename extension.
@@ -20,4 +20,4 @@
 	This is the collection of my test files, so they are often interesting
 	because of the underlying encoding, rather than the visual effect.</p>
 	<formats-table />
-</div>
+</page>

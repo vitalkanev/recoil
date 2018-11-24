@@ -1,11 +1,10 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://www.w3.org/1999/xhtml" version="1.0">
-	<xsl:output method="xml"
-		omit-xml-declaration="yes" />
+	<xsl:output method="xml" omit-xml-declaration="yes" />
 	<xsl:param name="title" />
 	<xsl:variable name="formats" select="document('../formats.xml')/formats" />
 	<xsl:variable name="version" select="$formats/@version" />
 
-	<xsl:template match="/">
+	<xsl:template match="/page">
 		<html xml:lang="en">
 			<head>
 				<meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8" />
@@ -29,7 +28,7 @@
 					th, td { border: solid #888 1px; padding-left: 1ex; padding-right: 1ex; }
 					th { background-color: #ddd; }
 				</style>
-				<xsl:apply-templates select="html/script" />
+				<xsl:apply-templates select="script" />
 			</head>
 			<body>
 				<h1>RECOIL - Retro Computer Image Library</h1>
@@ -42,7 +41,7 @@
 					<xsl:call-template name="menu"><xsl:with-param name="page">Contact</xsl:with-param></xsl:call-template>
 				</ul>
 				<div class="content">
-					<xsl:apply-templates />
+					<xsl:apply-templates select="*[not(self::script)]" />
 				</div>
 				<p><a href="https://sourceforge.net/p/recoil/" rel="nofollow"><img alt="Download RECOIL" src="https://sourceforge.net/sflogo.php?type=13&amp;group_id=258474" /></a></p>
 			</body>
@@ -220,10 +219,6 @@
 		</dl>
 	</xsl:template>
 
-	<xsl:template match="html">
-		<xsl:apply-templates select="body/*" />
-	</xsl:template>
-
 	<xsl:template match="ul[@title]">
 		<p><xsl:value-of select="@title" />:</p>
 		<ul>
@@ -245,7 +240,7 @@
 		</input>
 	</xsl:template>
 
-	<xsl:template match="a[@href]|br|canvas|code|div|h2|img|input|li|ol|p|select|script|ul">
+	<xsl:template match="a[@href]|br|canvas|code|div|h2|img|input|li|ol|p|script|select|ul">
 		<xsl:element name="{name()}">
 			<xsl:copy-of select="@*" />
 			<xsl:apply-templates />

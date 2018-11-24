@@ -1,4 +1,4 @@
-﻿<div>
+﻿<page>
 	<authors>
 		<author name="Piotr Fusik" email="fox@scene.pl">Idea, programming.</author>
 		<author name="Mariusz Rozwadowski" rip="true">Formats research, testing.</author>
@@ -19,4 +19,4 @@
 	This list is for users and developers.
 	Once you subscribe, you can post comments, ideas and questions about RECOIL.</p>
 	<p>You may submit bugs <a href="http://sourceforge.net/p/recoil/bugs/">here</a>.</p>
-</div>
+</page>
