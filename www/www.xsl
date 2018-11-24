@@ -2,7 +2,8 @@
 	<xsl:output method="xml"
 		omit-xml-declaration="yes" />
 	<xsl:param name="title" />
-	<xsl:variable name="version" select="document('../formats.xml')/formats/@version" />
+	<xsl:variable name="formats" select="document('../formats.xml')/formats" />
+	<xsl:variable name="version" select="$formats/@version" />
 
 	<xsl:template match="/">
 		<html xml:lang="en">
@@ -90,10 +91,13 @@
 		<xsl:apply-templates />
 	</xsl:template>
 
-	<xsl:template match="formats">
-		<p>RECOIL understands <xsl:value-of select="count(platform/format)" /> file formats, including:</p>
+	<xsl:template match="formats-count">
+		<xsl:value-of select="count($formats/platform/format)" />
+	</xsl:template>
+
+	<xsl:template match="formats-index">
 		<ul>
-			<xsl:for-each select="platform">
+			<xsl:for-each select="$formats/platform">
 				<li>
 					<a href="#{translate(@name, ' +/', '-p-')}">
 						<xsl:value-of select="count(format)" />
@@ -105,24 +109,9 @@
 				</li>
 			</xsl:for-each>
 		</ul>
-		<p>Formats are listed below by origin computer family and filename extension.
-		Alternative extensions are comma-separated.</p>
-		<p>Some pictures are composed of multiple files - they must share their filename
-		and only differ by their extensions.
-		Such formats are listed here with the plus sign combining the extensions.
-		Some ports of RECOIL don't support multi-file pictures.</p>
-		<p>Some graphics programs didn't enforce any filename extension.
-		I have chosen an arbitrary one for these formats.</p>
-		<p>"2 frames" means the picture is composed of two quickly alternating frames so that
-		a human perceives more colors (for example black alternated with gray looks like dark gray).
-		On Atari 8-bit and Commodore 64 this technique is commonly (but incorrectly)
-		referred to as "interlace". On ZX Spectrum it is called "gigascreen".
-		Likewise, "3 frames" means three different alternating pictures and more flickering.
-		RECOIL displays such pictures by averaging frames into a static image.</p>
-		<p>You can find some sample files in
-		<a href="http://recoil.sourceforge.net/examples.zip">examples.zip</a>.
-		This is the collection of my test files, so they are often interesting
-		because of the underlying encoding, rather than the visual effect.</p>
+	</xsl:template>
+
+	<xsl:template match="formats-table">
 		<table>
 			<tr>
 				<th>Platform</th>
@@ -132,7 +121,7 @@
 				<th>Depth</th>
 				<th>Frames</th>
 			</tr>
-			<xsl:for-each select="platform/format">
+			<xsl:for-each select="$formats/platform/format">
 				<tr>
 					<xsl:if test="not(preceding-sibling::format)">
 						<xsl:attribute name="id">

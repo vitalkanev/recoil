@@ -3,8 +3,8 @@ all: index.html formats.html html5recoil.html news.html contact.html privacy.htm
 index.html: www.xsl index.xml ../formats.xml
 	xsltproc --stringparam title Home www.xsl index.xml | xmllint --schema /etc/xml/xhtml5.xsd --nonet -o $@ -
 
-formats.html: www.xsl ../formats.xml
-	xsltproc --stringparam title Formats www.xsl ../formats.xml | xmllint --schema /etc/xml/xhtml5.xsd --nonet -o $@ -
+formats.html: www.xsl formats.xml ../formats.xml
+	xsltproc --stringparam title Formats www.xsl formats.xml | xmllint --schema /etc/xml/xhtml5.xsd --nonet -o $@ -
 
 news.html: www.xsl news.xml ../formats.xml
 	xsltproc --stringparam title News www.xsl news.xml | xmllint --schema /etc/xml/xhtml5.xsd --nonet -o $@ -
