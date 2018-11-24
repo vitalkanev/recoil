@@ -8864,7 +8864,9 @@ public class RECOIL
 
 	bool DecodeSrt(byte[] content, int contentLength)
 	{
-		if (contentLength != 32038)
+		if (contentLength != 32038
+		 || !IsStringAt(content, 0x7d00, "JHSy")
+		 || content[0x7d04] != 0 || content[0x7d05] != 1)
 			return false;
 		DecodeStMedium(content, 0, content, 32006, 640, 200, 0);
 		return true;
