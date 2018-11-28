@@ -24,7 +24,7 @@
 
 	<h2>Plugins for Windows viewers</h2>
 	<p>The <code>*.msi</code> installer detects <a href="http://www.xnview.com">XnView [MP]</a>,
-	<a href="http://www.nyam.pe.kr/">Imagine</a> and <a href="http://www.getpaint.net/">Paint.NET</a>
+	<a href="http://www.nyam.pe.kr/dev/imagine/">Imagine</a> and <a href="http://www.getpaint.net/">Paint.NET</a>
 	and installs the corresponding RECOIL plugins.</p>
 
 	<h2>Windows 10 application</h2>
