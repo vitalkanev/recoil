@@ -1,7 +1,7 @@
 /*
  * GalleryAdapter.java - RECOIL for Android
  *
- * Copyright (C) 2013-2016  Piotr Fusik
+ * Copyright (C) 2013-2018  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -63,7 +63,7 @@ class GalleryAdapter extends BaseAdapter
 
 		// Display
 		Bitmap bitmap = Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888);
-		AndroidSupport.getInstance().setHasAlpha(bitmap, false);
+		bitmap.setHasAlpha(false);
 		ImageView imageView = convertView instanceof ImageView ? (ImageView) convertView : new ImageView(viewer);
 		imageView.setLayoutParams(new Gallery.LayoutParams(Gallery.LayoutParams.FILL_PARENT, Gallery.LayoutParams.FILL_PARENT));
 		imageView.setImageBitmap(bitmap);

@@ -1,7 +1,7 @@
 /*
  * FileUtil.java - RECOIL for Android
  *
- * Copyright (C) 2013-2017  Piotr Fusik
+ * Copyright (C) 2013-2018  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -26,6 +26,7 @@ package net.sf.recoil;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.view.MenuItem;
@@ -58,14 +59,26 @@ abstract class FileUtil
 		return Uri.fromFile(Environment.getExternalStorageDirectory());
 	}
 
+	private static String getSdCardPath(Context context)
+	{
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+			File[] dirs = context.getExternalFilesDirs(null);
+			if (dirs.length > 1 && dirs[1] != null) {
+				String path = dirs[1].getPath();
+				String externalDir = "/Android/data/net.sf.recoil/files";
+				if (path.endsWith(externalDir))
+					return path.substring(0, path.length() - externalDir.length());
+			}
+		}
+		return "/storage/sdcard1";
+	}
+
 	static Uri getSdCard(Context context)
 	{
-		String path = AndroidSupport.getInstance().getSdCard(context);
-		if (path != null) {
-			File file = new File(path);
-			if (file.isDirectory())
-				return Uri.fromFile(file);
-		}
+		String path = getSdCardPath(context);
+		File file = new File(path);
+		if (file.isDirectory())
+			return Uri.fromFile(file);
 		return null;
 	}
 
@@ -163,7 +176,7 @@ abstract class FileUtil
 	static Set<String> getUserFavorites(Context context)
 	{
 		// as per reference, must not modify the set instance returned by getStringSet
-		return AndroidSupport.getInstance().getStringSet(PreferenceManager.getDefaultSharedPreferences(context), "favorites", Collections.EMPTY_SET);
+		return PreferenceManager.getDefaultSharedPreferences(context).getStringSet("favorites", Collections.EMPTY_SET);
 	}
 
 	static void setFavoriteIcon(MenuItem item, boolean checked)
@@ -178,8 +191,8 @@ abstract class FileUtil
 		if (!added)
 			favorites.remove(s);
 		SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-		AndroidSupport.getInstance().putStringSet(editor, "favorites", favorites);
-		editor.commit();
+		editor.putStringSet("favorites", favorites);
+		editor.apply();
 		return added;
 	}
 }

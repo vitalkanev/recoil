@@ -85,6 +85,10 @@ android {
             }
         }
     }
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 28
+    }
     applicationVariants.all { variant ->
         variant.registerResGeneratingTask generateIcon, ICON_DIR
         variant.registerJavaGeneratingTask cito, CITO_JAVA_DIR

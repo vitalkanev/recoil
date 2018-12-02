@@ -1,7 +1,7 @@
 /*
  * FileSelector.java - RECOIL for Android
  *
- * Copyright (C) 2013-2017  Piotr Fusik
+ * Copyright (C) 2013-2018  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -23,10 +23,13 @@
 
 package net.sf.recoil;
 
+import android.Manifest;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.Menu;
@@ -74,19 +77,8 @@ public class FileSelector extends ListActivity
 		}
 	}
 
-	@Override
-	public void onCreate(Bundle savedInstanceState)
+	private void list()
 	{
-		super.onCreate(savedInstanceState);
-		ListView listView = getListView();
-		listView.setTextFilterEnabled(true);
-		uri = getIntent().getData();
-		if (uri == null)
-			uri = FileUtil.getInternalStorage();
-
-		AndroidSupport.getInstance().setDisplayHomeAsUpEnabled(this);
-		setTitle(getString(R.string.selector_title, FileUtil.getDisplayName(uri)));
-
 		ArrayList<String> files;
 		TreeSet<String> directories = new TreeSet<String>(FileUtil.getComparator());
 		int emptyViewId;
@@ -98,12 +90,43 @@ public class FileSelector extends ListActivity
 			files = new ArrayList<String>();
 			directories.clear();
 			emptyViewId = R.layout.access_denied;
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+				String permission = Manifest.permission.READ_EXTERNAL_STORAGE;
+				if (checkSelfPermission(permission) == PackageManager.PERMISSION_DENIED)
+					requestPermissions(new String[] { permission }, 1);
+			}
 		}
 		View emptyView = getLayoutInflater().inflate(emptyViewId, null);
+		ListView listView = getListView();
 		((ViewGroup) listView.getParent()).addView(emptyView);
 		listView.setEmptyView(emptyView);
 		directoryCount = directories.size();
 		setListAdapter(new FileAdapter(directories, files));
+	}
+
+	@Override
+	public void onCreate(Bundle savedInstanceState)
+	{
+		super.onCreate(savedInstanceState);
+		getListView().setTextFilterEnabled(true);
+		uri = getIntent().getData();
+		if (uri == null)
+			uri = FileUtil.getInternalStorage();
+		getActionBar().setDisplayHomeAsUpEnabled(true);
+		setTitle(getString(R.string.selector_title, FileUtil.getDisplayName(uri)));
+		list();
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
+	{
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+		if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+			View accessDenied = getListView().getEmptyView();
+			if (accessDenied != null)
+				((ViewGroup) accessDenied.getParent()).removeView(accessDenied);
+			list();
+		}
 	}
 
 	@Override
