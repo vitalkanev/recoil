@@ -3,7 +3,7 @@ Maintainer: Piotr Fusik <fox@scene.pl>
 Section: graphics
 Priority: optional
 Standards-Version: 3.9.3
-Build-Depends: debhelper (>= 7), gcc, libpng12-dev, xsltproc
+Build-Depends: debhelper (>= 7), gcc, libpng-dev, xsltproc
 
 Package: recoil-2png
 Architecture: any
