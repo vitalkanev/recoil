@@ -78,7 +78,7 @@ public class FavoriteSelector extends ListActivity
 			adapter.add(new FavoriteUri(getString(R.string.external_directory), uri));
 
 		Set<String> userFavoritesSet = FileUtil.getUserFavorites(this);
-		String[] userFavorites = userFavoritesSet.toArray(new String[userFavoritesSet.size()]);
+		String[] userFavorites = userFavoritesSet.toArray(new String[0]);
 		Arrays.sort(userFavorites);
 		for (String s : userFavorites) {
 			uri = Uri.parse(s);

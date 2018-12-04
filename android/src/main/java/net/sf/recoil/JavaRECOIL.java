@@ -1,7 +1,7 @@
 /*
  * JavaRECOIL.java - RECOIL for Android
  *
- * Copyright (C) 2015-2016  Piotr Fusik
+ * Copyright (C) 2015-2018  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -37,20 +37,16 @@ abstract class JavaRECOIL extends RECOIL
 
 	abstract InputStream openFile(String filename) throws IOException;
 
-	int readFileOrThrow(String filename, byte[] content, int contentLength) throws IOException
+	private int readFileOrThrow(String filename, byte[] content, int contentLength) throws IOException
 	{
-		InputStream is = openFile(filename);
 		int got = 0;
-		try {
+		try (InputStream is = openFile(filename)) {
 			while (got < contentLength) {
 				int i = is.read(content, got, contentLength - got);
 				if (i <= 0)
 					break;
 				got += i;
 			}
-		}
-		finally {
-			is.close();
 		}
 		return got;
 	}
@@ -137,7 +133,7 @@ class StreamRECOIL extends JavaRECOIL
 	}
 
 	@Override
-	InputStream openFile(String filename) throws IOException
+	InputStream openFile(String filename)
 	{
 		return stream;
 	}

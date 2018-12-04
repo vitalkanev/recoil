@@ -119,8 +119,7 @@ abstract class FileUtil
 	{
 		zipPath = getZipPath(zipPath);
 		int zipPathLen = zipPath.length();
-		ZipFile zip = new ZipFile(zipFile);
-		try {
+		try (ZipFile zip = new ZipFile(zipFile)) {
 			Enumeration<? extends ZipEntry> entries = zip.entries();
 			while (entries.hasMoreElements()) {
 				ZipEntry entry = entries.nextElement();
@@ -140,9 +139,6 @@ abstract class FileUtil
 					}
 				}
 			}
-		}
-		finally {
-			zip.close();
 		}
 	}
 

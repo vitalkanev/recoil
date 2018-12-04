@@ -65,7 +65,7 @@ class GalleryAdapter extends BaseAdapter
 		Bitmap bitmap = Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888);
 		bitmap.setHasAlpha(false);
 		ImageView imageView = convertView instanceof ImageView ? (ImageView) convertView : new ImageView(viewer);
-		imageView.setLayoutParams(new Gallery.LayoutParams(Gallery.LayoutParams.FILL_PARENT, Gallery.LayoutParams.FILL_PARENT));
+		imageView.setLayoutParams(new Gallery.LayoutParams(Gallery.LayoutParams.MATCH_PARENT, Gallery.LayoutParams.MATCH_PARENT));
 		imageView.setImageBitmap(bitmap);
 		return imageView;
 	}
