@@ -32,7 +32,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Gallery;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.TreeSet;

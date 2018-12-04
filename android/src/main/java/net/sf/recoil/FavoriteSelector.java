@@ -1,7 +1,7 @@
 /*
  * FavoriteSelector.java - RECOIL for Android
  *
- * Copyright (C) 2015-2017  Piotr Fusik
+ * Copyright (C) 2015-2018  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -30,8 +30,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
 
