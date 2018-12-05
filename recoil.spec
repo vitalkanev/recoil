@@ -1,5 +1,5 @@
 Name: recoil
-Version: 4.3.0
+Version: 4.3.1
 Release: 1
 Summary: Viewer of retro computer image files
 License: GPLv2+
@@ -38,6 +38,8 @@ Commodore 16, Commodore 64, Commodore 128, Macintosh 128K, MSX, NEC PC-88,
 NEC PC-98, Oric, Psion Series 3, SAM Coupe, Sharp X68000, Timex 2048, TRS-80,
 TRS-80 Color Computer, ZX81 and ZX Spectrum computers.
 
+%global debug_package %{nil}
+
 %prep
 %setup -q
 
@@ -68,6 +70,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/update-mime-database %{_datadir}/mime &> /dev/null || :
 
 %changelog
+* Tue Dec 5 2018 Piotr Fusik <fox@scene.pl>
+- 4.3.1-1
+
 * Sun Jun 10 2018 Piotr Fusik <fox@scene.pl>
 - 4.3.0-1
 

@@ -1,4 +1,14 @@
 ﻿<page title="News">
+	<release project="RECOIL" version="4.3.1" date="2018-12-05">
+		<ul>
+			<li>New formats: HAME, DCTV, HRG</li>
+			<li>Improved formats: PI, SPX, PCS, PI4, IFF (RAST chunk), IMG (STTT/HyperPaint), SRT</li>
+			<li>Android: fixed crash on start on some devices; file picker asks for permission (previously granted on install)</li>
+			<li>Windows 10: open multiple files</li>
+			<li>HTML5: save as PNG</li>
+		</ul>
+	</release>
+
 	<release project="RECOIL" version="4.3.0" date="2018-06-10">
 		<ul title="New ports">
 			<li>Plugin for XnView MP (Windows, macOS, Linux) - requires XnView MP 0.91 or newer</li>
