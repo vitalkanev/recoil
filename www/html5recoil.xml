@@ -1,7 +1,7 @@
 <page title="HTML5">
-	<script type="text/javascript" src="recoil.js"> </script>
-	<script type="text/javascript" src="html5recoil.js"> </script>
-	<script type="text/javascript">
+	<script src="recoil.js"> </script>
+	<script src="html5recoil.js"> </script>
+	<script>
 	function dragHelper(e)
 	{
 		e.stopPropagation();
