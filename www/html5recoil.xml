@@ -2,18 +2,6 @@
 	<script src="recoil.js"> </script>
 	<script src="html5recoil.js"> </script>
 	<script>
-	function dragHelper(e)
-	{
-		e.stopPropagation();
-		e.preventDefault();
-	}
-
-	function onDrop(e)
-	{
-		dragHelper(e);
-		openFiles(e.dataTransfer.files);
-	}
-
 	function fullScreen()
 	{
 		var canvas = document.getElementById("canvas");
@@ -27,15 +15,12 @@
 	Decoding takes place in your browser, nothing is sent over the network.</p>
 
 	<p>
-		Select file:
+		Select file(s):
 		<input type="file" multiple="multiple" onchange="openFiles(this.files)" />
 		<select id="fileSelect" onchange="recoil2canvas(this.value)" style="display: none"> </select>
 	</p>
-	<div style="border: solid #800080 1px; padding-top: 2em; padding-bottom: 2em;" ondragenter="dragHelper(event)" ondragover="dragHelper(event)" ondrop="onDrop(event)">
-		... or drag&amp;drop a file here!<br />
-		<canvas id="canvas" width="1" height="1"> </canvas>
-		<div id="status"> </div>
-	</div>
+	<canvas id="canvas" width="1" height="1"> </canvas>
+	<div id="status"> </div>
 	<p>
 		<input type="button" id="fullScreenButton" value="Fullscreen" onclick="fullScreen()" style="display: none" />
 		<a id="pngLink" href="#" target="_blank" style="display: none">Save as PNG</a>
