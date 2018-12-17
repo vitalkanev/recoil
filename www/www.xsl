@@ -14,7 +14,7 @@
 						<xsl:value-of select="@title" />
 					</xsl:if>
 				</title>
-				<style type="text/css">
+				<style>
 					html { background-color: #eee; color: #000; font-family: Georgia,"Times New Roman",Times,serif; }
 					h1, h2 { color: #808; }
 					a { color: #00c; }
