@@ -1,0 +1,26 @@
+﻿<page title="Windows">
+	<h2>Windows</h2>
+	<p>On Windows 10/8/7/Vista/XP download
+	<download prefix="recoil-" suffix="-win64.msi" /> (for 64-bit Windows)
+	or <download prefix="recoil-" suffix="-win32.msi" /> (for 32-bit Windows).
+	This includes:</p>
+	<ul>
+		<li>Windows Explorer thumbnails</li>
+		<li>plugin for <a href="http://www.xnview.com">XnView [MP]</a></li>
+		<li>plugin for <a href="http://www.nyam.pe.kr/dev/imagine/">Imagine</a></li>
+		<li>plugin for <a href="http://www.getpaint.net/">Paint.NET</a></li>
+		<li>RECOILWin - a standalone viewer</li>
+		<li>recoil2png - a command-line converter</li>
+	</ul>
+	<img src="thumbrecoil.png" alt="Windows Explorer" />
+	<span> </span>
+	<img src="recoilwin.png" alt="RECOILWin" />
+
+	<h2>IrfanView plugin</h2>
+	<p>RECOIL is already included in the "Formats" <a href="http://www.irfanview.com/">IrfanView</a> plugin.</p>
+
+	<h2>Windows 10 application</h2>
+	<p>A native Windows 10 application (also for phones and tablets) is available in
+	<a href="http://www.microsoft.com/store/p/recoil/9nblggh4132z">Windows Store</a>.</p>
+	<img src="win10.png" alt="Windows 10 application" />
+</page>

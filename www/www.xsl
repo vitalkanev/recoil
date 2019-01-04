@@ -1,12 +1,13 @@
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://www.w3.org/1999/xhtml" version="1.0">
-	<xsl:output method="xml" omit-xml-declaration="yes" />
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+	<xsl:output method="html" indent="no" />
 	<xsl:variable name="formats" select="document('../formats.xml')/formats" />
 	<xsl:variable name="version" select="$formats/@version" />
 
 	<xsl:template match="/page">
-		<html xml:lang="en">
+		<xsl:text disable-output-escaping="yes">&lt;!DOCTYPE html&gt;
+</xsl:text>
+		<html lang="en">
 			<head>
-				<meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8" />
 				<title>
 					<xsl:text>RECOIL</xsl:text>
 					<xsl:if test="@title != 'Home'">
@@ -15,34 +16,50 @@
 					</xsl:if>
 				</title>
 				<style>
-					html { background-color: #eee; color: #000; font-family: Georgia,"Times New Roman",Times,serif; }
-					h1, h2 { color: #808; }
+					html { background-color: #eee; color: #000; font-family: Segoe UI,Helvetica,Arial,sans-serif; padding: 0em 3em; }
+					h1, h2 { color: #006374; }
+					h1 { font-family: Georgia,"Times New Roman",Times,serif; }
 					a { color: #00c; }
-					.tabs { border-bottom: solid #888 1px; margin: 0px; padding: 10px 0px; }
-					.tabs li { background-color: #ddd; border: solid #888 1px; display: inline; margin-right: -1px; padding: 10px; }
-					.tabs li.tab_selected { background-color: #fff; border-bottom-color: #fff; padding: 10px 20px; }
-					.tabs li a { padding: 10px; text-decoration: none; }
-					.content { background-color: #fff; border: solid #888 1px; border-top-style: none; padding: 10px; }
-					table { border-collapse: collapse; }
-					th, td { border: solid #888 1px; padding-left: 1ex; padding-right: 1ex; }
+					nav ul { border-bottom: solid #aaa 1px; margin: 0px; padding: 0.5em 0em; }
+					nav li { display: inline; }
+					nav li.tab_selected { background-color: #fff; border: solid #aaa 1px; border-bottom-color: #fff; padding: 0.5em; }
+					nav li a { padding: 0.5em; text-decoration: none; }
+					main { background-color: #fff; border: solid #aaa 1px; border-top-style: none; padding: 1em 3em 3em 3em; }
+					table.formats { border-collapse: collapse; }
+					table.formats th, table.formats td { border: solid #888 1px; padding-left: 1em; padding-right: 1em; }
 					th { background-color: #ddd; }
+					.author { color: #006374; padding-right: 1em; text-align: right; }
+					.rip { border: solid #000 1px; padding-left: 2px; padding-right: 2px; color: #000; }
 				</style>
 				<xsl:apply-templates select="script" />
 			</head>
 			<body>
-				<h1>RECOIL - Retro Computer Image Library</h1>
-				<ul class="tabs">
-					<xsl:call-template name="menu"><xsl:with-param name="page">Home</xsl:with-param></xsl:call-template>
-					<xsl:call-template name="menu"><xsl:with-param name="page">Formats</xsl:with-param></xsl:call-template>
-					<xsl:call-template name="menu"><xsl:with-param name="page">Download</xsl:with-param></xsl:call-template>
-					<xsl:call-template name="menu"><xsl:with-param name="page">HTML5</xsl:with-param></xsl:call-template>
-					<xsl:call-template name="menu"><xsl:with-param name="page">News</xsl:with-param></xsl:call-template>
-					<xsl:call-template name="menu"><xsl:with-param name="page">Contact</xsl:with-param></xsl:call-template>
-				</ul>
-				<div class="content">
+				<header>
+					<h1>RECOIL - Retro Computer Image Library</h1>
+				</header>
+				<nav>
+					<ul>
+						<xsl:call-template name="menu"><xsl:with-param name="page">Home</xsl:with-param></xsl:call-template>
+						<xsl:call-template name="menu"><xsl:with-param name="page">Formats</xsl:with-param></xsl:call-template>
+						<xsl:call-template name="menu"><xsl:with-param name="page">Android</xsl:with-param></xsl:call-template>
+						<xsl:call-template name="menu"><xsl:with-param name="page">Windows</xsl:with-param></xsl:call-template>
+						<xsl:call-template name="menu"><xsl:with-param name="page">macOS</xsl:with-param></xsl:call-template>
+						<xsl:call-template name="menu"><xsl:with-param name="page">Linux</xsl:with-param></xsl:call-template>
+						<xsl:call-template name="menu"><xsl:with-param name="page">Web</xsl:with-param></xsl:call-template>
+						<xsl:call-template name="menu"><xsl:with-param name="page">News</xsl:with-param></xsl:call-template>
+						<xsl:call-template name="menu"><xsl:with-param name="page">Contact</xsl:with-param></xsl:call-template>
+					</ul>
+				</nav>
+				<main>
 					<xsl:apply-templates select="*[not(self::script)]" />
-				</div>
-				<p><a href="https://sourceforge.net/p/recoil/" rel="nofollow"><img alt="Download RECOIL" src="https://sourceforge.net/sflogo.php?type=13&amp;group_id=258474" /></a></p>
+				</main>
+				<footer>
+					<p>
+						<a href="https://sourceforge.net/p/recoil/" rel="nofollow">
+							<img alt="Download RECOIL" src="https://sourceforge.net/sflogo.php?type=13&amp;group_id=258474" />
+						</a>
+					</p>
+				</footer>
 			</body>
 		</html>
 	</xsl:template>
@@ -57,12 +74,6 @@
 				</xsl:when>
 				<xsl:when test="$page = 'Home'">
 					<a href="/">Home</a>
-				</xsl:when>
-				<xsl:when test="$page = 'Download'">
-					<a href="http://sourceforge.net/projects/recoil/files/recoil/{$version}/">Download</a>
-				</xsl:when>
-				<xsl:when test="$page = 'HTML5'">
-					<a href="html5recoil.html">HTML5</a>
 				</xsl:when>
 				<xsl:otherwise>
 					<a href="{translate($page, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')}.html">
@@ -110,7 +121,7 @@
 	</xsl:template>
 
 	<xsl:template match="formats-table">
-		<table>
+		<table class="formats">
 			<tr>
 				<th>Platform</th>
 				<th>Extension</th>
@@ -201,21 +212,41 @@
 		</table>
 	</xsl:template>
 
+	<xsl:template match="download">
+		<xsl:variable name="file" select="concat(@prefix, $version, @suffix)" />
+		<a href="https://sourceforge.net/projects/recoil/files/recoil/{$version}/{$file}/download"><xsl:value-of select="$file" /></a>
+	</xsl:template>
+
+	<xsl:template match="recoil2png">
+		<p>When you run <code>recoil2png</code> with just the input filenames, it writes the corresponding PNGs
+		with the same names and locations and the extensions changed to <code>png</code>.</p>
+		<p>To see what options are available, run the program without arguments.</p>
+	</xsl:template>
+
 	<xsl:template match="authors">
 		<h2>Authors</h2>
-		<dl>
+		<table>
 			<xsl:for-each select="author">
-				<dt>
-					<span>
-						<xsl:if test="@rip">
-							<xsl:attribute name="style">border: solid #000 1px;</xsl:attribute>
-						</xsl:if>
-						<xsl:value-of select="@name" />
-					</span>
-				</dt>
-				<dd><xsl:apply-templates /></dd>
+				<tr>
+					<td class="author">
+						<xsl:choose>
+							<xsl:when test="@rip">
+								<span class="rip"><xsl:value-of select="@name" /></span>
+							</xsl:when>
+							<xsl:when test="@href">
+								<a href="{@href}"><xsl:value-of select="@name" /></a>
+							</xsl:when>
+							<xsl:otherwise>
+								<xsl:value-of select="@name" />
+							</xsl:otherwise>
+						</xsl:choose>
+					</td>
+					<td>
+						<xsl:apply-templates />
+					</td>
+				</tr>
 			</xsl:for-each>
-		</dl>
+		</table>
 	</xsl:template>
 
 	<xsl:template match="ul[@title]">
@@ -239,7 +270,7 @@
 		</input>
 	</xsl:template>
 
-	<xsl:template match="a[@href]|br|canvas|code|div|h2|img|input|li|ol|p|script|select|ul">
+	<xsl:template match="a[@href]|br|canvas|code|div|h2|img|input|li|ol|p|script|select|span|ul">
 		<xsl:element name="{name()}">
 			<xsl:copy-of select="@*" />
 			<xsl:apply-templates />

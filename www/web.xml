@@ -1,4 +1,4 @@
-<page title="HTML5">
+<page title="Web">
 	<script src="recoil.js"> </script>
 	<script src="html5recoil.js"> </script>
 	<script>
@@ -11,9 +11,9 @@
 			canvas.mozRequestFullScreen();
 	}
 	</script>
-	<p>This page decodes pictures in formats native to retro computers.
-	Decoding takes place in your browser, nothing is sent over the network.</p>
 
+	<p>This page displays pictures in file formats native to retro computers.
+	Decoding takes place in your browser, nothing is sent over the network.</p>
 	<p>
 		Select file(s):
 		<input type="file" multiple="multiple" onchange="openFiles(this.files)" />

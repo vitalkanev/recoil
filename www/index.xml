@@ -1,80 +1,18 @@
 ﻿<page title="Home">
-	<p>RECOIL is a viewer of pictures in native formats of vintage computers:
+	<img src="Amiga-Ferrari.png" alt="Amiga" style="float: right; margin-left: 3em;" />
+
+	<p>RECOIL is a viewer of pictures in <a href="formats.html">native formats</a> of 20th century computers:
 	Amiga, Amstrad CPC, Apple II, Atari 8-bit, Atari Portfolio, Atari ST, Atari TT, Atari Falcon,
 	BBC Micro, Commodore 16, Commodore 64, Commodore 128, Macintosh 128K, MSX, NEC PC-88, NEC PC-98,
 	Oric, Psion Series 3, SAM Coupé, Sharp X68000, Timex 2048, TRS-80, TRS-80 Color Computer, ZX81 and ZX Spectrum.</p>
 
-	<p>RECOIL is available on Android, Windows, macOS, Linux and HTML 5 browsers.</p>
-
-	<h2>Android application</h2>
-	<p>The Android application is available in <a href="https://play.google.com/store/apps/details?id=net.sf.recoil">Google Play</a>.
-	It includes a file picker that lets you browse directories on your device as well as ZIP archives.</p>
-	<img src="android.png" alt="Android application" />
-
-	<h2>Windows Explorer thumbnails</h2>
-	<p>Use a <code>*.msi</code> installer that matches your desktop Windows version (32-bit or 64-bit).</p>
-	<img src="thumbrecoil.png" alt="Windows Explorer" />
-
-	<h2>Viewer for desktop Windows</h2>
-	<p>Get RECOILWin from a <code>*.msi</code> installer or the <code>*.zip</code> archive.</p>
-	<img src="recoilwin.png" alt="RECOILWin" />
-
-	<h2>IrfanView plugin</h2>
-	<p>RECOIL is already included in the "Formats" <a href="http://www.irfanview.com/">IrfanView</a> plugin.</p>
-
-	<h2>Plugins for Windows viewers</h2>
-	<p>The <code>*.msi</code> installer detects <a href="http://www.xnview.com">XnView [MP]</a>,
-	<a href="http://www.nyam.pe.kr/dev/imagine/">Imagine</a> and <a href="http://www.getpaint.net/">Paint.NET</a>
-	and installs the corresponding RECOIL plugins.</p>
-
-	<h2>Windows 10 application</h2>
-	<p>A native Windows 10 application (also for phones and tablets) is available in <a href="http://www.microsoft.com/store/p/recoil/9nblggh4132z">Windows Store</a>.</p>
-	<img src="win10.png" alt="Windows 10 application" />
-
-	<h2>macOS Quick Look</h2>
-	<p>Install as follows:</p>
-	<ol>
-		<li>Open <code>recoil-<version />-macos.dmg</code>.</li>
-		<li>Drag <code>RECOIL.qlgenerator</code> to <code>QuickLook</code>.</li>
-		<li>Re-log or run <code>qlmanage -r</code>.</li>
-	</ol>
-	<img src="qlrecoil.png" alt="Quick Look" />
-
-	<h2>macOS XnView MP plugin</h2>
-	<p>Install as follows:</p>
-	<ol>
-		<li>Install <a href="https://www.xnview.com/en/xnviewmp/">XnView MP</a> first.</li>
-		<li>Open <code>recoil-<version />-macos.dmg</code>.</li>
-		<li>Drag <code>Xrecoil.usr</code> to <code>XnViewMP</code>.</li>
-	</ol>
-
-	<h2>Linux GNOME thumbnails</h2>
-	<p>Install <code>recoil-2png</code> first, then <code>recoil-thumbnailer</code>.</p>
-	<img src="nautilus.png" alt="Nautilus" />
-
-	<h2>HTML 5 based viewer</h2>
-	<p><a href="html5recoil.html">Run</a> right inside your browser.</p>
-
-	<h2>ImageMagick (de)coder</h2>
-	<p><a href="http://www.imagemagick.org/">ImageMagick</a> is a multi-platform suite to manipulate bitmaps.</p>
-	<p>RECOIL includes a plugin for version 6 of ImageMagick. On Windows use <code>*.msi</code>, on Linux install from source code.</p>
-
-	<h2>recoil2png</h2>
-	<p>This is a portable command-line converter to PNG files.
-	Available in <code>*.msi</code>, <code>*.zip</code>, <code>*.deb</code>, <code>*.rpm</code>, <code>*.tar.gz</code>.</p>
-	<p>To install on macOS, open <code>recoil-<version />-macos.dmg</code> then drag <code>recoil2png</code> to <code>bin</code>.</p>
-	<p>When you run it just with input filenames, it writes the corresponding PNGs
-	with the same names and locations and the extensions changed to <code>png</code>.
-	To see what options are available, run the program without arguments.</p>
-
-	<h2>For software developers</h2>
-	<p>RECOIL is based on a development library, which you can easily embed in your program.
-	It's not only a fully portable C library - it's better than that.
-	Since RECOIL is written in <a href="http://cito.sourceforge.net/">Ć</a>,
-	it is also available as pure Java, C#, JavaScript, ActionScript, Perl and <a href="http://dlang.org/">D</a>.</p>
-	<p>There are also <a href="https://github.com/gasman/pyrecoil">Python bindings</a>.</p>
+	<p>RECOIL is available on <a href="android.html">Android</a>,
+	<a href="windows.html">Windows</a>, <a href="macos.html">macOS</a>,
+	<a href="linux.html">Linux</a> and <a href="web.html">modern web browsers</a>.</p>
 
 	<h2>License</h2>
 	<p>RECOIL is free software, you can redistribute it and/or modify it under the terms
 	of the <a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt">GNU General Public License</a>.</p>
+
+	<div style="clear: right" />
 </page>

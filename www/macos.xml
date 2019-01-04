@@ -1,0 +1,25 @@
+﻿<page title="macOS">
+	<h2>macOS</h2>
+	<p>Download <download prefix="recoil-" suffix="-macos.dmg" />.</p>
+
+	<h2>XnView MP plugin</h2>
+	<p>Install as follows:</p>
+	<ol>
+		<li>Install <a href="https://www.xnview.com/en/xnviewmp/">XnView MP</a> first.</li>
+		<li>Open <code>recoil-<version />-macos.dmg</code>.</li>
+		<li>Drag <code>Xrecoil.usr</code> to <code>XnViewMP</code>.</li>
+	</ol>
+
+	<h2>Quick Look plugin</h2>
+	<p>Install as follows:</p>
+	<ol>
+		<li>Open <code>recoil-<version />-macos.dmg</code>.</li>
+		<li>Drag <code>RECOIL.qlgenerator</code> to <code>QuickLook</code>.</li>
+		<li>Log out and in, or run <code>qlmanage -r</code>.</li>
+	</ol>
+	<img src="qlrecoil.png" alt="Quick Look" />
+
+	<h2>Command-line converter</h2>
+	<p>To install, open <code>recoil-<version />-macos.dmg</code> then drag <code>recoil2png</code> to <code>bin</code>.</p>
+	<recoil2png />
+</page>

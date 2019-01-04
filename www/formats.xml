@@ -1,20 +1,22 @@
 ﻿<page title="Formats">
 	<p>RECOIL understands <formats-count /> file formats, including:</p>
 	<formats-index />
-	<p>Formats are listed below by origin computer family and filename extension.
-	Alternative extensions are comma-separated.</p>
+	<p>The formats are listed below, ordered by the origin computer family
+	and the filename extension. Alternative extensions are comma-separated.</p>
 	<p>Some pictures are composed of multiple files - they must share their filename
 	and only differ by their extensions.
 	Such formats are listed here with the plus sign combining the extensions.
-	Some ports of RECOIL don't support multi-file pictures.</p>
-	<p>Some graphics programs didn't enforce any filename extension.
+	Some ports of RECOIL do not support multi-file pictures.</p>
+	<p>Some graphics programs weren't enforcing any filename extension.
 	I have chosen an arbitrary one for these formats.</p>
-	<p>"2 frames" means the picture is composed of two quickly alternating frames so that
-	a human perceives more colors (for example black alternated with gray looks like dark gray).
+	<p>"2 frames" means the picture is composed of two quickly alternating frames
+	so that a human eye perceives more colors
+	(for example black alternated with light gray looks like dark gray).
 	On Atari 8-bit and Commodore 64 this technique is commonly (but incorrectly)
-	referred to as "interlace". On ZX Spectrum it is called "gigascreen".
-	Likewise, "3 frames" means three different alternating pictures and more flickering.
-	RECOIL displays such pictures by averaging frames into a static image.</p>
+	referred to as the "interlace". On ZX Spectrum it is called "gigascreen".
+	Likewise, "3 frames" means three different alternating pictures
+	at the cost of increased flickering.
+	RECOIL displays such pictures by averaging all frames into a static image.</p>
 	<p>You can find some sample files in
 	<a href="http://recoil.sourceforge.net/examples.zip">examples.zip</a>.
 	This is the collection of my test files, so they are often interesting

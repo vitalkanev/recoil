@@ -1,6 +1,6 @@
 ﻿<page title="Contact">
 	<authors>
-		<author name="Piotr Fusik" email="fox@scene.pl">Idea, programming.</author>
+		<author name="Piotr Fusik" email="fox@scene.pl" href="http://fusik.info/piotr/">Idea, programming.</author>
 		<author name="Mariusz Rozwadowski" rip="true">Formats research, testing.</author>
 		<author name="Adrian Matoga" email="epi@atari8.info">Programming.</author>
 		<author name="Lonny Pursell" href="http://gfabasic.net">Atari ST/Falcon formats research.</author>
@@ -19,4 +19,13 @@
 	This list is for users and developers.
 	Once you subscribe, you can post comments, ideas and questions about RECOIL.</p>
 	<p>You may submit bugs <a href="http://sourceforge.net/p/recoil/bugs/">here</a>.</p>
+
+	<h2>For software developers</h2>
+	<p>Download the latest source release: <download prefix="recoil-" suffix=".tar.gz" />
+	or <a href="https://sourceforge.net/p/recoil/code/ci/master/tree/">browse Git repository</a>.</p>
+	<p>RECOIL is based on a development library, which you can easily embed in your program.
+	It's not only a fully portable C library - it's better than that.
+	Since RECOIL is written in <a href="http://cito.sourceforge.net/">Ć</a>,
+	it is also available as pure Java, C#, JavaScript, ActionScript, Perl and <a href="http://dlang.org/">D</a>.</p>
+	<p>There are also <a href="https://github.com/gasman/pyrecoil">Python bindings</a>.</p>
 </page>

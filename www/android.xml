@@ -1,0 +1,7 @@
+﻿<page title="Android">
+	<h2>Android application</h2>
+	<p>It is recommended to install RECOIL for Android from <a href="https://play.google.com/store/apps/details?id=net.sf.recoil">Google Play</a>.
+	Alternatively, you can download <download prefix="recoil-" suffix="-android.apk" /> and install it manually.</p>
+	<p>The application includes a file picker that lets you browse directories on your device as well as ZIP archives.</p>
+	<img src="android.png" alt="Android application" />
+</page>
