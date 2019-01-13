@@ -1,4 +1,4 @@
-<page title="Web">
+﻿<page title="Web">
 	<script src="recoil.js"> </script>
 	<script src="html5recoil.js"> </script>
 	<script>

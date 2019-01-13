@@ -55,7 +55,7 @@
 				</main>
 				<footer>
 					<p>
-						<a href="https://sourceforge.net/p/recoil/" rel="nofollow">
+						<a href="https://sourceforge.net/p/recoil/">
 							<img alt="Download RECOIL" src="https://sourceforge.net/sflogo.php?type=13&amp;group_id=258474" />
 						</a>
 					</p>
