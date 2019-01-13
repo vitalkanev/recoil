@@ -1,7 +1,7 @@
 ﻿/*
  * RecoilPaintDotNet.cs - Paint.NET file type plugin
  *
- * Copyright (C) 2013-2018  Piotr Fusik
+ * Copyright (C) 2013-2019  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -34,7 +34,7 @@ using Recoil;
 //[assembly: AssemblyDescription("Decodes images in native formats of vintage computers")]
 [assembly: AssemblyCompany("Piotr Fusik")]
 [assembly: AssemblyProduct("RECOIL")]
-[assembly: AssemblyCopyright("Copyright © 2013-2018")]
+[assembly: AssemblyCopyright("Copyright © 2013-2019")]
 [assembly: AssemblyVersion(RECOIL.Version + ".0")]
 [assembly: AssemblyFileVersion(RECOIL.Version + ".0")]
 

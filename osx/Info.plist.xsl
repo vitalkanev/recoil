@@ -1,4 +1,4 @@
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+﻿<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
 	<xsl:output method="xml" indent="yes" doctype-public="-//Apple//DTD PLIST 1.0//EN" doctype-system="http://www.apple.com/DTDs/PropertyList-1.0.dtd" />
 	<xsl:template match="/formats">
 		<xsl:comment>Generated automatically from formats.xml and Info.plist.xsl. Do not edit.</xsl:comment>
@@ -53,7 +53,7 @@
 				<key>CFPlugInUnloadFunction</key>
 				<string></string>
 				<key>NSHumanReadableCopyright</key>
-				<string>Copyright © 2014-2018 Piotr Fusik, Adrian Matoga, Petri Pyy. All rights reserved.</string>
+				<string>Copyright © 2014-2019 Piotr Fusik, Adrian Matoga, Petri Pyy. All rights reserved.</string>
 				<key>QLNeedsToBeRunInMainThread</key>
 				<false/>
 				<key>QLPreviewHeight</key>
