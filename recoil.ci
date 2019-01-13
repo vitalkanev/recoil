@@ -1,6 +1,6 @@
 // recoil.ci - RECOIL core
 //
-// Copyright (C) 2009-2018  Piotr Fusik and Adrian Matoga
+// Copyright (C) 2009-2019  Piotr Fusik and Adrian Matoga
 //
 // This file is part of RECOIL (Retro Computer Image Library),
 // see http://recoil.sourceforge.net
@@ -3843,7 +3843,7 @@ public class RECOIL
 	public const string Version = VersionMajor + "." + VersionMinor + "." + VersionMicro;
 
 	/// Years RECOIL was created in.
-	public const string Years = "2009-2018";
+	public const string Years = "2009-2019";
 
 	/// Short credits for RECOIL.
 	public const string Credits = "Retro Computer Image Library (C) 2009-2018 Piotr Fusik and Adrian Matoga\n";
@@ -15229,7 +15229,7 @@ public class RECOIL
 			gtia.Colors[4] = content[1606 + y] & 0xfe;
 			hpos = gtia.DrawSpan(y, hpos, hpos + 24, AnticMode.FourColor, frame, 320);
 			gtia.Colors[5] = content[1806 + y] & 0xfe;
-			hpos = gtia.DrawSpan(y, hpos, 0xd0, AnticMode.FourColor, frame, 320);
+			gtia.DrawSpan(y, hpos, 0xd0, AnticMode.FourColor, frame, 320);
 		}
 		return ApplyAtari8Palette(frame);
 	}
