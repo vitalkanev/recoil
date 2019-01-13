@@ -16228,7 +16228,7 @@ public class RECOIL
 		}
 	}
 
-	/// Decodes Atari picture file to an RGB bitmap.
+	/// Decodes a picture file to an RGB bitmap.
 	/// Returns `true` on success.
 	public bool Decode(
 		/// Name of the file to decode. Only the extension is processed, for format recognition.
