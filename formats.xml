@@ -83,12 +83,12 @@
 		<format name="AtariTools-800 graphic"><ext>AGP</ext></format>
 		<format name="Graph" width="160" height="192" colors="5"><ext>ALL</ext></format>
 		<format width="80" height="192" colors="256" frames="2">
-			<ext>AP3</ext>
+			<ext name="Apac3 Linker-Viewer">AP3</ext>
 			<ext>APV</ext>
 			<ext name="Digi Paint">DGI</ext>
 			<ext name="Digi Paint">DGP</ext>
 			<ext name="EscalPaint">ESC</ext>
-			<ext>ILC</ext>
+			<ext name="APACVIEW">ILC</ext>
 			<ext name="Pryzm Artist">PZM</ext>
 		</format>
 		<format width="80" height="96" colors="256">
@@ -96,7 +96,7 @@
 			<ext name="Plama 256">PLM</ext>
 		</format>
 		<format name="Atari Player Editor" colors="4"><ext>APL</ext></format>
-		<format width="80" height="192" colors="256" frames="2"><ext>APP</ext></format>
+		<format name="Apac3 Linker-Viewer (SFDN compressed)" width="80" height="192" colors="256" frames="2"><ext>APP</ext></format>
 		<format name="Ascii-Art Editor" maxWidth="64" maxHeight="24" unit="characters" colors="2">
 			<!-- I only see up to 40x21 in the editor, but the sample file SIANO.ART is bigger --><ext>ART</ext>
 		</format>
@@ -141,14 +141,17 @@
 		<format name="Hard Color Map" width="128" height="192" colors="9"><ext>HCM</ext></format>
 		<format name="Hard Interlace Picture" width="160" height="200" grayscale="30" frames="2"><ext>HIP</ext></format>
 		<format name="Grass' Slideshow" width="160" height="192" colors="4"><ext>HPM</ext></format>
+		<format name="Hard Interlace Picture (SFDN compressed)" width="160" height="200" grayscale="30" frames="2"><ext>HPS</ext></format>
 		<format width="256" height="239" colors="3" frames="2"><ext>HR</ext></format>
 		<format name="Interlace Character Editor font" frames="2"><ext>ICE</ext></format>
 		<format name="ICE CIN" width="160" height="192" colors="80" frames="2"><ext>ICN</ext></format>
 		<format name="Interlace Graphics Editor" width="128" height="96" colors="16" frames="2"><ext>IGE</ext></format>
 		<format name="Interlace Logo Designer" width="128" height="128" colors="7" frames="2"><ext>ILD</ext></format>
+		<format name="APACVIEW (SFDN compressed)" width="80" height="192" colors="256" frames="2"><ext>ILS</ext></format>
 		<format name="ICE MIN" width="160" height="192" colors="80" frames="2"><ext>IMN</ext></format>
 		<format name="ING 15" width="160" height="200" colors="7" frames="2"><ext>ING</ext></format>
-		<format width="160" height="200" colors="7" frames="2"><ext>INP</ext></format>
+		<format name="InterPainter" width="160" height="200" colors="7" frames="2"><ext>INP</ext></format>
+		<format name="InterPainter (SFDN compressed)" width="160" height="200" colors="7" frames="2"><ext>INS</ext></format>
 		<format name="INT95a" maxWidth="160" maxHeight="239" colors="16" frames="2"><ext>INT</ext></format>
 		<format name="ICE PCIN+" width="160" height="192" colors="45" frames="2"><ext>IP2</ext></format>
 		<format name="ICE PCIN" width="160" height="192" colors="35" frames="2"><ext>IPC</ext></format>
@@ -186,6 +189,7 @@
 		<format name="Graphic Arts Department" width="160" height="96" colors="128"><ext>PIC</ext></format>
 		<format name="Koala MicroIllustrator" width="160" height="192" colors="4"><ext>PIC</ext></format>
 		<format name="AtariTools-800 player" width="8" height="240" colors="2"><ext>PLA</ext></format>
+		<format name="Plama 256 (SFDN compressed)" width="80" height="96" colors="256"><ext>PLS</ext></format>
 		<format name="PMG Designer by Henryk Karpowicz"><ext>PMD</ext></format>
 		<format name="Vidig Paint" width="80" height="192" colors="16"><ext>RAP</ext></format>
 		<format name="XL-Paint MAX" width="160" height="192" colors="16" frames="2"><ext>RAW</ext></format>

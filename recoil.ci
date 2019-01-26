@@ -2001,6 +2001,44 @@ class Tre1Stream : RleStream
 	}
 }
 
+class SfdnStream : BitStream
+{
+	bool Unpack(byte[] unpacked, int unpackedLength)
+	{
+		if (ContentLength < 22 + (unpackedLength >> 1) // two or more compressed bits per uncompressed nibble
+		 || !RECOIL.IsStringAt(Content, 0, "S101")
+		 || (Content[4] | Content[5] << 8) != unpackedLength)
+			return false;
+		ContentOffset = 22;
+		int current = ReadBits(4);
+		int hi = -1;
+		for (int unpackedOffset = 0;;) {
+			if (hi < 0)
+				hi = current;
+			else {
+				unpacked[unpackedOffset++] = hi << 4 | current;
+				if (unpackedOffset >= unpackedLength)
+					return true;
+				hi = -1;
+			}
+			int code;
+			int bit;
+			for (code = 0; ; code += 2) {
+				bit = ReadBit();
+				if (bit == 0)
+					break;
+				if (bit < 0 || code >= 14)
+					return false;
+			}
+			bit = ReadBit();
+			if (bit < 0)
+				return false;
+			code += bit;
+			current = current - Content[6 + code] & 0xf;
+		}
+	}
+}
+
 class G9bStream : BitStream
 {
 	const int BlockEnd = -2;
@@ -13049,47 +13087,6 @@ public class RECOIL
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
-	bool DecodeApp(byte[] content, int contentLength)
-	{
-		if (contentLength < 22 + 15872 / 2 // two or more compressed bits per uncompressed nibble
-		 || !IsStringAt(content, 0, "S101")
-		 || content[4] != 0 || content[5] != 0x3e)
-			return false;
-		byte[15872] unpacked;
-		int unpackedOffset = 0;
-		BitStream() bitStream;
-		bitStream.Content = content;
-		bitStream.ContentOffset = 22;
-		bitStream.ContentLength = contentLength;
-		int current = bitStream.ReadBits(4);
-		int hi = -1;
-		for (;;) {
-			if (hi < 0)
-				hi = current;
-			else {
-				unpacked[unpackedOffset++] = hi << 4 | current;
-				if (unpackedOffset >= 15872)
-					break;
-				hi = -1;
-			}
-			int code;
-			int bit;
-			for (code = 0; ; code += 2) {
-				bit = bitStream.ReadBit();
-				if (bit == 0)
-					break;
-				if (bit < 0 || code >= 14)
-					return false;
-			}
-			bit = bitStream.ReadBit();
-			if (bit < 0)
-				return false;
-			code += bit;
-			current = current - content[6 + code] & 0xf;
-		}
-		return DecodeAp3(unpacked, 15872);
-	}
-
 	bool DecodeHip(byte[] content, int contentLength)
 	{
 		if (contentLength < 80)
@@ -13129,6 +13126,56 @@ public class RECOIL
 			DecodeAtari8Gr10(content, height * 40, frame2, 0, 320, height);
 		}
 		return ApplyAtari8PaletteBlend(frame1, frame2);
+	}
+
+	bool DecodeIns(byte[] content, int contentLength)
+	{
+		byte[16004] unpacked;
+		SfdnStream() s;
+		s.Content = content;
+		s.ContentLength = contentLength;
+		return s.Unpack(unpacked, unpacked.Length)
+			&& DecodeInp(unpacked, unpacked.Length);
+	}
+
+	bool DecodePls(byte[] content, int contentLength)
+	{
+		byte[7680] unpacked;
+		SfdnStream() s;
+		s.Content = content;
+		s.ContentLength = contentLength;
+		return s.Unpack(unpacked, unpacked.Length)
+			&& DecodeApc(unpacked, unpacked.Length);
+	}
+
+	bool DecodeIls(byte[] content, int contentLength)
+	{
+		byte[15360] unpacked;
+		SfdnStream() s;
+		s.Content = content;
+		s.ContentLength = contentLength;
+		return s.Unpack(unpacked, unpacked.Length)
+			&& DecodeAp3(unpacked, unpacked.Length);
+	}
+
+	bool DecodeApp(byte[] content, int contentLength)
+	{
+		byte[15872] unpacked;
+		SfdnStream() s;
+		s.Content = content;
+		s.ContentLength = contentLength;
+		return s.Unpack(unpacked, unpacked.Length)
+			&& DecodeAp3(unpacked, unpacked.Length);
+	}
+
+	bool DecodeHps(byte[] content, int contentLength)
+	{
+		byte[16009] unpacked;
+		SfdnStream() s;
+		s.Content = content;
+		s.ContentLength = contentLength;
+		return s.Unpack(unpacked, unpacked.Length)
+			&& DecodeHip(unpacked, unpacked.Length);
 	}
 
 	bool DecodeTip(byte[] content, int contentLength)
@@ -15842,6 +15889,7 @@ public class RECOIL
 		case PackExt("ILC"):
 		case PackExt("PZM"):
 		case PackExt("APC"):
+		case PackExt("PLM"):
 		case PackExt("APL"):
 		case PackExt("APP"):
 		case PackExt("ART"):
@@ -15984,6 +16032,7 @@ public class RECOIL
 		case PackExt("HLR"):
 		case PackExt("HPC"):
 		case PackExt("HPM"):
+		case PackExt("HPS"):
 		case PackExt("HR"):
 		case PackExt("HR2"):
 		case PackExt("HCI"):
@@ -16018,6 +16067,7 @@ public class RECOIL
 		case PackExt("IHE"):
 		case PackExt("IIM"):
 		case PackExt("ILD"):
+		case PackExt("ILS"):
 		case PackExt("IMG"):
 		case PackExt("TIMG"):
 		case PackExt("XIMG"):
@@ -16025,6 +16075,7 @@ public class RECOIL
 		case PackExt("INFO"):
 		case PackExt("ING"):
 		case PackExt("INP"):
+		case PackExt("INS"):
 		case PackExt("INT"):
 		case PackExt("IP2"):
 		case PackExt("IPC"):
@@ -16117,7 +16168,7 @@ public class RECOIL
 		case PackExt("PIX"):
 		case PackExt("PL4"):
 		case PackExt("PLA"):
-		case PackExt("PLM"):
+		case PackExt("PLS"):
 		case PackExt("PMD"):
 		case PackExt("PMG"):
 		case PackExt("PNT"):
@@ -16284,6 +16335,7 @@ public class RECOIL
 		case PackExt("PZM"):
 			return DecodeAp3(content, contentLength);
 		case PackExt("APC"):
+		case PackExt("PLM"):
 			return DecodeApc(content, contentLength);
 		case PackExt("APL"):
 			return DecodeApl(content, contentLength);
@@ -16560,6 +16612,8 @@ public class RECOIL
 			return DecodeIph(content, contentLength);
 		case PackExt("HPM"):
 			return DecodeHpm(content, contentLength);
+		case PackExt("HPS"):
+			return DecodeHps(content, contentLength);
 		case PackExt("HR"):
 			return DecodeTrsHr(content, contentLength)
 				|| DecodeAtari8Hr(content, contentLength);
@@ -16614,6 +16668,8 @@ public class RECOIL
 			return DecodeIim(content, contentLength);
 		case PackExt("ILD"):
 			return DecodeIld(content, contentLength);
+		case PackExt("ILS"):
+			return DecodeIls(content, contentLength);
 		case PackExt("IMG"):
 			return DecodeStImg(content, contentLength)
 				|| DecodeZxImg(content, contentLength);
@@ -16627,6 +16683,8 @@ public class RECOIL
 		case PackExt("ING"):
 		case PackExt("INP"):
 			return DecodeInp(content, contentLength);
+		case PackExt("INS"):
+			return DecodeIns(content, contentLength);
 		case PackExt("INT"):
 			return DecodeInt(content, contentLength)
 				|| DecodeInp(content, contentLength);
@@ -16802,8 +16860,8 @@ public class RECOIL
 			return DecodePl4(content, contentLength);
 		case PackExt("PLA"):
 			return DecodePla(content, contentLength);
-		case PackExt("PLM"):
-			return DecodeApc(content, contentLength);
+		case PackExt("PLS"):
+			return DecodePls(content, contentLength);
 		case PackExt("PMD"):
 			return DecodePmd(content, contentLength);
 		case PackExt("PMG"):
