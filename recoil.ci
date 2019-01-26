@@ -13128,6 +13128,16 @@ public class RECOIL
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
+	bool DecodeG9s(byte[] content, int contentLength)
+	{
+		byte[7680] unpacked;
+		SfdnStream() s;
+		s.Content = content;
+		s.ContentLength = contentLength;
+		return s.Unpack(unpacked, unpacked.Length)
+			&& DecodeGr9(unpacked, unpacked.Length);
+	}
+
 	bool DecodeIns(byte[] content, int contentLength)
 	{
 		byte[16004] unpacked;
@@ -15994,6 +16004,8 @@ public class RECOIL
 		case PackExt("G11"):
 		case PackExt("G2F"):
 		case PackExt("G9B"):
+		case PackExt("G9S"):
+		case PackExt("SFD"):
 		case PackExt("GED"):
 		case PackExt("GFB"):
 		case PackExt("GG"):
@@ -16540,6 +16552,9 @@ public class RECOIL
 			return DecodeG2f(content, contentLength);
 		case PackExt("G9B"):
 			return DecodeG9b(content, contentLength);
+		case PackExt("G9S"):
+		case PackExt("SFD"):
+			return DecodeG9s(content, contentLength);
 		case PackExt("GED"):
 			return DecodeGed(content, contentLength);
 		case PackExt("GFB"):

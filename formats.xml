@@ -126,6 +126,10 @@
 		<format name="Graphics 10" width="80" maxHeight="240" colors="9"><ext>G10</ext></format>
 		<format name="Graphics 11" width="80" maxHeight="240" colors="16"><ext>G11</ext></format>
 		<format name="Graph2Font" maxWidth="336" height="240" colors="256"><ext>G2F</ext></format>
+		<format name="Graphics 9 (SFDN compressed)" width="80" maxHeight="240" grayscale="16">
+			<ext>G9S</ext>
+			<ext>SFD</ext>
+		</format>
 		<format name="GED" width="160" height="200" colors="128"><ext>GED</ext></format>
 		<format name="Gephard Hires Graphics" maxWidth="320" maxHeight="200" colors="2"><ext>GHG</ext></format>
 		<format name="Mad Studio" width="20" height="24" unit="characters" colors="4"><ext>GR1</ext></format>
