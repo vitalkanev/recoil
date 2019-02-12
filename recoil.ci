@@ -12121,9 +12121,16 @@ public class RECOIL
 	{
 		if (!SetAtari8RawSize(content, contentLength, RECOILResolution.Xe1x1))
 			return false;
-		GtiaColors[6] = 0x00;
-		GtiaColors[5] = 0x0e;
 		int contentOffset = GetAtari8ExecutableOffset(content, contentLength);
+		if (contentLength == 7682) {
+			// Atari Graphics Studio
+			GtiaColors[6] = (content[7681] & 0xf0) | (content[7680] & 0x0e);
+			GtiaColors[5] = content[7681] & 0x0e;
+		}
+		else {
+			GtiaColors[6] = 0x00;
+			GtiaColors[5] = 0x0e;
+		}
 		byte[320 * 240] frame;
 		DecodeAtari8Gr8(content, contentOffset, frame, 0, Height);
 		return ApplyAtari8Palette(frame);
