@@ -12367,6 +12367,19 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeGr10p(byte[] content, int contentLength)
+	{
+		if (contentLength != 2409)
+			return false;
+		SetSize(320, 240, RECOILResolution.Xe4x4);
+		LeftSkip = 2;
+		SetGtiaColors(content, 2400);
+		byte[320 * 240] frame;
+		for (int offset = 0; offset < 1280; offset += 320)
+			DecodeAtari8Gr10(content, 0, frame, offset, 1280, 60);
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodeG09(byte[] content, int contentLength)
 	{
 		switch (contentLength) {
@@ -16030,6 +16043,7 @@ public class RECOIL
 		case PackExt("GLS"):
 		case PackExt("GOD"):
 		case PackExt("GR1"):
+		case PackExt("GR10P"):
 		case PackExt("GR2"):
 		case PackExt("GR3"):
 		case PackExt("GR7"):
@@ -16592,6 +16606,8 @@ public class RECOIL
 			return DecodeGod(content, contentLength);
 		case PackExt("GR1"):
 			return DecodeGr1(content, contentLength, 0);
+		case PackExt("GR10P"):
+			return DecodeGr10p(content, contentLength);
 		case PackExt("GR2"):
 			return DecodeGr1(content, contentLength, 1);
 		case PackExt("GR3"):

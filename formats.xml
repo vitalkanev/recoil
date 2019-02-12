@@ -133,6 +133,7 @@
 		<format name="GED" width="160" height="200" colors="128"><ext>GED</ext></format>
 		<format name="Gephard Hires Graphics" maxWidth="320" maxHeight="200" colors="2"><ext>GHG</ext></format>
 		<format name="Mad Studio" width="20" height="24" unit="characters" colors="4"><ext>GR1</ext></format>
+		<format name="Graphics 10+" width="80" maxHeight="60" colors="9"><ext>GR10P</ext></format>
 		<format name="Mad Studio" width="20" height="12" unit="characters" colors="4"><ext>GR2</ext></format>
 		<format name="Mad Studio" width="40" height="24" colors="4"><ext>GR3</ext></format>
 		<format name="Graphics 7" width="160" maxHeight="120" colors="4"><ext>GR7</ext></format>
