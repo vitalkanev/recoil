@@ -92,6 +92,7 @@ enum RECOILResolution
 	C641x1,
 	C642x1,
 	C1281x1,
+	Electronika1x1,
 	Msx11x1,
 	Msx14x4,
 	Msx21x1,
@@ -3996,6 +3997,8 @@ public class RECOIL
 			return "Commodore 64";
 		case RECOILResolution.C1281x1:
 			return "Commodore 128";
+		case RECOILResolution.Electronika1x1:
+			return "Electronika BK";
 		case RECOILResolution.Msx11x1:
 		case RECOILResolution.Msx14x4:
 			return "MSX";
@@ -12570,37 +12573,6 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
-	bool DecodePic(byte[] content, int contentLength)
-	{
-		if (DecodePsion3Pic(content, contentLength)
-		 || DecodeX68KPic(content, contentLength))
-			return true;
-
-		byte[7680] unpacked;
-		if (XeKoalaStream.UnpackWrapped(content, contentLength, unpacked, 7680)) {
-			SetSize(320, 192, RECOILResolution.Xe2x1);
-			SetPF0123Bak(content, 13);
-			byte[320 * 192] frame;
-			DecodeAtari8Gr15(unpacked, 0, 40, frame, 0, 320, 192);
-			return ApplyAtari8Palette(frame);
-		}
-
-		// Some images with .PIC extension are GR8.
-		if (contentLength == 7680)
-			return DecodeGr8(content, contentLength);
-
-		// Some images with .PIC extension are MIC.
-		if (contentLength >= 7681 && contentLength <= 7685)
-			return DecodeMic(null, content, contentLength);
-
-		// Some images with .PIC extension are DOO, PaintPro ST or SC8.
-		// Graphic Arts Department uses .PIC too.
-		return DecodeDoo(content, contentLength)
-			|| DecodeStPi(content, contentLength)
-			|| DecodeSc8(null, content, contentLength)
-			|| DecodeGad(content, contentLength);
-	}
-
 	bool DecodeWnd(byte[] content, int contentLength)
 	{
 		if (contentLength != 3072)
@@ -15894,6 +15866,61 @@ public class RECOIL
 			}
 		}
 		return true;
+	}
+
+	// Electronika BK formats.
+
+	bool DecodeElectronika(byte[] content)
+	{
+		SetSize(256, 256, RECOILResolution.Electronika1x1);
+		for (int i = 0; i < 256 * 256; i++) {
+			const int[4] palette = {
+				0x000000,
+				0x0000ff,
+				0x00ff00,
+				0xff0000
+			};
+			Pixels[i] = palette[content[i >> 2] >> ((i & 3) << 1) & 3];
+		}
+		return true;
+	}
+
+	// Various platform formats.
+
+	bool DecodePic(byte[] content, int contentLength)
+	{
+		if (DecodePsion3Pic(content, contentLength)
+		 || DecodeX68KPic(content, contentLength))
+			return true;
+
+		byte[7680] unpacked;
+		if (XeKoalaStream.UnpackWrapped(content, contentLength, unpacked, 7680)) {
+			SetSize(320, 192, RECOILResolution.Xe2x1);
+			SetPF0123Bak(content, 13);
+			byte[320 * 192] frame;
+			DecodeAtari8Gr15(unpacked, 0, 40, frame, 0, 320, 192);
+			return ApplyAtari8Palette(frame);
+		}
+
+		switch (contentLength) {
+		case 4325:
+			return DecodeGad(content, contentLength);
+		case 7680:
+			return DecodeGr8(content, contentLength);
+		case 7681:
+		case 7682:
+		case 7683:
+		case 7684:
+		case 7685:
+			return DecodeMic(null, content, contentLength);
+		case 16384:
+			return DecodeElectronika(content);
+		case 32000:
+			return DecodeDoo(content, contentLength);
+		default:
+			return DecodeStPi(content, contentLength)
+				|| DecodeSc8(null, content, contentLength);
+		}
 	}
 
 	static int PackExt(string ext)
