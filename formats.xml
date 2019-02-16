@@ -81,6 +81,7 @@
 		<format name="Anime 4ever" width="80" height="256" grayscale="16"><ext>A4R</ext></format>
 		<format name="AtariTools-800 font" colors="4"><ext>ACS</ext></format>
 		<format name="AtariTools-800 graphic"><ext>AGP</ext></format>
+		<format name="Atari Graphics Studio"><ext>AGS</ext></format>
 		<format name="Graph" width="160" height="192" colors="5"><ext>ALL</ext></format>
 		<format width="80" height="192" colors="256" frames="2">
 			<ext name="Apac3 Linker-Viewer">AP3</ext>

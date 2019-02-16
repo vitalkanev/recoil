@@ -12284,12 +12284,15 @@ public class RECOIL
 
 	bool DecodeGr9x4(byte[] content, int contentOffset, int width, int height)
 	{
-		byte[320 * 240] frame;
-		SetSize(width, height, RECOILResolution.Xe4x4);
+		if (!SetSize(width, height, RECOILResolution.Xe4x4))
+			return false;
+		byte[] frame = new byte[width * height];
 		GtiaColors[8] = 0x00;
 		for (int y = 0; y < 4; y++)
 			DecodeAtari8Gr9(content, contentOffset, width >> 3, frame, y * width, width << 2, width, height >> 2);
-		return ApplyAtari8Palette(frame);
+		ApplyAtari8Palette(frame);
+		delete frame;
+		return true;
 	}
 
 	bool DecodeGr9p(byte[] content, int contentLength)
@@ -12817,18 +12820,22 @@ public class RECOIL
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
-	bool DecodeMcpp(byte[] content, int contentLength)
+	bool DecodeMcppVariable(byte[] content, int bitmapOffset, int colorsOffset, int width, int height)
 	{
-		if (contentLength != 8008)
+		if (!SetSize(width, height, RECOILResolution.Xe2x2))
 			return false;
-		SetSize(320, 200, RECOILResolution.Xe2x2);
-		byte[320 * 200] frame;
-		SetPF012Bak(content, 8000);
-		DecodeAtari8Gr15(content, 0, 40, frame, 0, 640, 100);
-		SetPF012Bak(content, 8004);
-		DecodeAtari8Gr15(content, 4000, 40, frame, 320, 640, 100);
-		return ApplyAtari8Palette(frame);
+		byte[] frame = new byte[width * height];
+		SetPF012Bak(content, colorsOffset);
+		DecodeAtari8Gr15(content, bitmapOffset, width >> 3, frame, 0, width << 1, height >> 1);
+		SetPF012Bak(content, colorsOffset + 4);
+		DecodeAtari8Gr15(content, bitmapOffset + (width * height >> 4), width >> 3, frame, width, width << 1, height >> 1);
+		ApplyAtari8Palette(frame);
+		delete frame;
+		return true;
 	}
+
+	bool DecodeMcpp(byte[] content, int contentLength)
+		return contentLength == 8008 && DecodeMcppVariable(content, 0, 8000, 320, 200);
 
 	bool DecodeIld(byte[] content, int contentLength)
 	{
@@ -13292,6 +13299,24 @@ public class RECOIL
 		rle.RepeatCount = 0;
 		return rle.Unpack(unpacked, 15360, 1, 16384)
 			&& DecodeCin(unpacked, 16384);
+	}
+
+	bool DecodeAgs(byte[] content, int contentLength)
+	{
+		if (contentLength < 17 || content[0] != 'A' || content[1] != 'G' || content[2] != 'S')
+			return false;
+		int width = content[4];
+		int height = content[5] | content[6] << 8;
+		if (contentLength != 16 + (width * height << 1))
+			return false;
+		switch (content[3]) {
+		case 0x0b:
+			return DecodeMcppVariable(content, 16, 7, width << 3, height << 1);
+		case 0x13:
+			return DecodeGr9x4(content, 16, width << 3, height << 2);
+		default:
+			return false;
+		}
 	}
 
 	bool UnpackRip(byte[] content, int contentOffset, int contentLength, byte[] unpacked, int unpackedLength)
@@ -15912,6 +15937,7 @@ public class RECOIL
 		case PackExt("ACS"):
 		case PackExt("AFL"):
 		case PackExt("AGP"):
+		case PackExt("AGS"):
 		case PackExt("ALL"):
 		case PackExt("AMI"):
 		case PackExt("AP2"):
@@ -16358,6 +16384,8 @@ public class RECOIL
 			return DecodeAfl(content, contentLength);
 		case PackExt("AGP"):
 			return DecodeAgp(content, contentLength);
+		case PackExt("AGS"):
+			return DecodeAgs(content, contentLength);
 		case PackExt("ALL"):
 			return DecodeAll(content, contentLength);
 		case PackExt("AMI"):
