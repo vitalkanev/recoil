@@ -16145,6 +16145,7 @@ public class RECOIL
 		case PackExt("DCTV"):
 		case PackExt("DEEP"):
 		case PackExt("DR"):
+		case PackExt("HAM"):
 		case PackExt("HAM6"):
 		case PackExt("HAM8"):
 		case PackExt("LBM"):
@@ -16749,6 +16750,7 @@ public class RECOIL
 		case PackExt("DCTV"):
 		case PackExt("DEEP"):
 		case PackExt("DR"):
+		case PackExt("HAM"):
 		case PackExt("HAM6"):
 		case PackExt("HAM8"):
 		case PackExt("LBM"):
