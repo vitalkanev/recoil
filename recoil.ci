@@ -16382,7 +16382,8 @@ public class RECOIL
 	{
 		switch (GetPackedExt(filename)) {
 		case PackExt("256"):
-			return Decode256(content, contentLength);
+			return DecodeIff(content, contentLength, RECOILResolution.Amiga1x1)
+				|| Decode256(content, contentLength);
 		case PackExt("3"):
 			return Decode3(content, contentLength);
 		case PackExt("4BT"):
