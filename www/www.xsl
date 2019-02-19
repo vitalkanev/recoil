@@ -20,13 +20,13 @@
 					h1, h2 { color: #006374; }
 					h1 { font-family: Georgia,"Times New Roman",Times,serif; }
 					a { color: #00c; }
-					nav ul { border-bottom: solid #aaa 1px; margin: 0px; padding: 0.5em 0em; }
+					nav ul { border-bottom: solid #ccc 1px; margin: 0px; padding: 0.5em 0em; }
 					nav li { display: inline; }
-					nav li.tab_selected { background-color: #fff; border: solid #aaa 1px; border-bottom-color: #fff; padding: 0.5em; }
+					nav li.tab_selected { background-color: #fff; border: solid #ccc 1px; border-bottom-color: #fff; padding: 0.5em; }
 					nav li a { padding: 0.5em; text-decoration: none; }
-					main { background-color: #fff; border: solid #aaa 1px; border-top-style: none; padding: 1em 3em 3em 3em; }
+					main { background-color: #fff; border: solid #ccc 1px; border-top-style: none; padding: 1em 3em 3em 3em; }
 					table.formats { border-collapse: collapse; }
-					table.formats th, table.formats td { border: solid #888 1px; padding-left: 1em; padding-right: 1em; }
+					table.formats th, table.formats td { border: solid #aaa 1px; padding-left: 1em; padding-right: 1em; }
 					th { background-color: #ddd; }
 					.author { color: #006374; padding-right: 1em; text-align: right; }
 					.rip { border: solid #000 1px; padding-left: 2px; padding-right: 2px; color: #000; }
