@@ -12127,7 +12127,7 @@ public class RECOIL
 		int contentOffset = GetAtari8ExecutableOffset(content, contentLength);
 		if (contentLength == 7682) {
 			// Atari Graphics Studio
-			GtiaColors[6] = (content[7681] & 0xf0) | (content[7680] & 0x0e);
+			GtiaColors[6] = content[7680] & 0x0e;
 			GtiaColors[5] = content[7681] & 0x0e;
 		}
 		else {
