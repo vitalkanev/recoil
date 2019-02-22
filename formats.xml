@@ -99,6 +99,7 @@
 			<ext name="Pryzm Artist">PZM</ext>
 		</format>
 		<format width="80" height="96" colors="256">
+			<ext name="Any Point, Any Color">APA</ext>
 			<ext name="Any Point, Any Color">APC</ext>
 			<ext name="Plama 256">PLM</ext>
 		</format>

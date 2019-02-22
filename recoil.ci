@@ -15975,6 +15975,7 @@ public class RECOIL
 		case PackExt("ESC"):
 		case PackExt("ILC"):
 		case PackExt("PZM"):
+		case PackExt("APA"):
 		case PackExt("APC"):
 		case PackExt("PLM"):
 		case PackExt("APL"):
@@ -16429,6 +16430,7 @@ public class RECOIL
 		case PackExt("ILC"):
 		case PackExt("PZM"):
 			return DecodeAp3(content, contentLength);
+		case PackExt("APA"):
 		case PackExt("APC"):
 		case PackExt("PLM"):
 			return DecodeApc(content, contentLength);
