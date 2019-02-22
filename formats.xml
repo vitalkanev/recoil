@@ -105,6 +105,7 @@
 		</format>
 		<format name="Atari Player Editor" colors="4"><ext>APL</ext></format>
 		<format name="Apac3 Linker-Viewer (SFDN compressed)" width="80" height="192" colors="256" frames="2"><ext>APP</ext></format>
+		<format name="Any Point, Any Color (SFDN compressed)" width="80" height="96" colors="256"><ext>APS</ext></format>
 		<format name="Ascii-Art Editor" maxWidth="64" maxHeight="24" unit="characters" colors="2">
 			<!-- I only see up to 40x21 in the editor, but the sample file SIANO.ART is bigger --><ext>ART</ext>
 		</format>

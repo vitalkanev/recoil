@@ -13161,6 +13161,16 @@ public class RECOIL
 			&& DecodeApc(unpacked, unpacked.Length);
 	}
 
+	bool DecodeAps(byte[] content, int contentLength)
+	{
+		byte[7720] unpacked;
+		SfdnStream() s;
+		s.Content = content;
+		s.ContentLength = contentLength;
+		return s.Unpack(unpacked, unpacked.Length)
+			&& DecodeApc(unpacked, unpacked.Length);
+	}
+
 	bool DecodeIls(byte[] content, int contentLength)
 	{
 		byte[15360] unpacked;
@@ -15980,6 +15990,7 @@ public class RECOIL
 		case PackExt("PLM"):
 		case PackExt("APL"):
 		case PackExt("APP"):
+		case PackExt("APS"):
 		case PackExt("ART"):
 		case PackExt("ATR"):
 		case PackExt("B&W"):
@@ -16438,6 +16449,8 @@ public class RECOIL
 			return DecodeApl(content, contentLength);
 		case PackExt("APP"):
 			return DecodeApp(content, contentLength);
+		case PackExt("APS"):
+			return DecodeAps(content, contentLength);
 		case PackExt("ART"):
 			return DecodeIph(content, contentLength) // contentLength == 9009
 				|| DecodeArtDirector(content, contentLength) // contentLength == 32512
