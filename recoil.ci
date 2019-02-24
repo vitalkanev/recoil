@@ -109,6 +109,7 @@ enum RECOILResolution
 	SamCoupe1x1,
 	X68K1x1,
 	Spectrum1x1,
+	Spectrum4x4,
 	Timex1x1,
 	Timex1x2,
 	Trs1x1,
@@ -4026,6 +4027,7 @@ public class RECOIL
 		case RECOILResolution.X68K1x1:
 			return "Sharp X68000";
 		case RECOILResolution.Spectrum1x1:
+		case RECOILResolution.Spectrum4x4:
 			return "ZX Spectrum";
 		case RECOILResolution.Timex1x1:
 		case RECOILResolution.Timex1x2:
@@ -4062,6 +4064,7 @@ public class RECOIL
 			return Width >> 1;
 		case RECOILResolution.Amiga4x1:
 		case RECOILResolution.Msx14x4:
+		case RECOILResolution.Spectrum4x4:
 		case RECOILResolution.Xe4x1:
 		case RECOILResolution.Xe4x2:
 		case RECOILResolution.Xe4x4:
@@ -4094,6 +4097,7 @@ public class RECOIL
 			return Height >> 1;
 		case RECOILResolution.Amiga1x4:
 		case RECOILResolution.Msx14x4:
+		case RECOILResolution.Spectrum4x4:
 		case RECOILResolution.Xe4x4:
 			return Height >> 2;
 		case RECOILResolution.Xe8x8:
@@ -5699,6 +5703,25 @@ public class RECOIL
 		SetZx(RECOILResolution.Spectrum1x1);
 		DecodeZx(content, ZxBitmapHlr, 0x5c, ZxAttributes8x8, 0);
 		DecodeZx(content, ZxBitmapHlr, 0x35c, ZxAttributes8x8, 256 * 192);
+		return ApplyBlend();
+	}
+
+	bool DecodeStl(byte[] content, int contentLength)
+	{
+		if (contentLength != 3072)
+			return false;
+		SetSize(256, 192, RECOILResolution.Spectrum4x4);
+		for (int f = 0; f < 2; f++) {
+			for (int y = 0; y < 192; y++) {
+				for (int x = 0; x < 256; x++) {
+					int b = content[(y & ~3) << 4 | (x >> 2 & ~3) | f << 1 | (x >> 3 & 1)];
+					int rgb = GetZxColor((x & 4) == 0 ? b >> 3 : b);
+					if ((b & 0x40) == 0)
+						rgb &= 0xcdcdcd;
+					Pixels[f * 192 + y << 8 | x] = rgb;
+				}
+			}
+		}
 		return ApplyBlend();
 	}
 
@@ -16346,6 +16369,7 @@ public class RECOIL
 		case PackExt("SRI"):
 		case PackExt("SRT"):
 		case PackExt("SSB"):
+		case PackExt("STL"):
 		case PackExt("STP"):
 		case PackExt("SXG"):
 		case PackExt("SXS"):
@@ -17123,6 +17147,8 @@ public class RECOIL
 			return DecodeSrt(content, contentLength);
 		case PackExt("SSB"):
 			return DecodeSsb(content, contentLength);
+		case PackExt("STL"):
+			return DecodeStl(content, contentLength);
 		case PackExt("STP"):
 			return DecodeGl6(null, content, contentLength);
 		case PackExt("SXG"):
