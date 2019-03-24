@@ -12396,6 +12396,7 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+#if FIVE_CHAR_EXT
 	bool DecodeGr10p(byte[] content, int contentLength)
 	{
 		if (contentLength != 2409)
@@ -12408,6 +12409,7 @@ public class RECOIL
 			DecodeAtari8Gr10(content, 0, frame, offset, 1280, 60);
 		return ApplyAtari8Palette(frame);
 	}
+#endif
 
 	bool DecodeG09(byte[] content, int contentLength)
 	{
@@ -16131,7 +16133,9 @@ public class RECOIL
 		case PackExt("GLS"):
 		case PackExt("GOD"):
 		case PackExt("GR1"):
+#if FIVE_CHAR_EXT
 		case PackExt("GR10P"):
+#endif
 		case PackExt("GR2"):
 		case PackExt("GR3"):
 		case PackExt("GR7"):
@@ -16702,8 +16706,10 @@ public class RECOIL
 			return DecodeGod(content, contentLength);
 		case PackExt("GR1"):
 			return DecodeGr1(content, contentLength, 0);
+#if FIVE_CHAR_EXT
 		case PackExt("GR10P"):
 			return DecodeGr10p(content, contentLength);
+#endif
 		case PackExt("GR2"):
 			return DecodeGr1(content, contentLength, 1);
 		case PackExt("GR3"):
