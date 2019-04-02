@@ -6421,7 +6421,7 @@ public class RECOIL
 			return false;
 		int width = content[0] | content[1] << 8;
 		int height = content[2] | content[3] << 8;
-		if (contentLength != 4 + (width * height + 1 >> 1)
+		if (contentLength < 4 + (width * height + 1 >> 1)
 		 || !SetScaledSize(width, height, resolution))
 			return false;
 		SetMsxCompanionPalette(filename, upperExt, lowerExt);
