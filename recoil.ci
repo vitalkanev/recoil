@@ -6065,6 +6065,14 @@ public class RECOIL
 		}
 	}
 
+	void SetMsx2Palette(byte[] content, int contentOffset, int contentLength)
+	{
+		if (contentLength >= contentOffset + 32)
+			SetMsxPalette(content, contentOffset, 16);
+		else
+			SetMsxPalette(Msx2DefaultPalette, 0, 16);
+	}
+
 	void DecodeSc2Sc4(byte[] content, int contentOffset, RECOILResolution resolution)
 	{
 		SetSize(256, 192, resolution);
@@ -6252,9 +6260,9 @@ public class RECOIL
 
 	bool DecodeSc5(string filename, byte[] content, int contentLength)
 	{
-		if (contentLength < 30375 || content[0] != 0xfe || GetMsxHeader(content) < 0x769f)
+		if (contentLength < 27143 || content[0] != 0xfe || GetMsxHeader(content) < 0x69ff)
 			return false;
-		SetMsxPalette(content, 0x7687, 16);
+		SetMsx2Palette(content, 0x7687, contentLength);
 		if (!DecodeMsxSc(filename, content, 7, "S15", "s15", 212, 5)
 		 && contentLength == 32775)
 			DecodeMsxSprites(content, 5, 0x7607, 0x7807);
@@ -6369,10 +6377,7 @@ public class RECOIL
 	{
 		if (contentLength < 54279 || content[0] != 0xfe || GetMsxHeader(content) < 0xd3ff)
 			return false;
-		if (contentLength >= 64167)
-			SetMsxPalette(content, 0xfa87, 16);
-		else
-			SetMsxPalette(Msx2DefaultPalette, 0, 16);
+		SetMsx2Palette(content, 0xfa87, contentLength);
 		if (!DecodeMsxSc(filename, content, 7, "S17", "s17", 212, 7)
 		 && contentLength == 64167)
 			DecodeMsxSprites(content, 7, 0xfa07, 0xf007);
