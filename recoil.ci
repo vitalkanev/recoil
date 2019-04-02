@@ -6297,11 +6297,22 @@ public class RECOIL
 		return true;
 	}
 
+	void SetMsx6DefaultPalette()
+	{
+		ContentPalette[0] = 0x000000;
+		ContentPalette[1] = 0x249224; // from index 12
+		ContentPalette[2] = 0x24db24;
+		ContentPalette[3] = 0x6dff6d;
+	}
+
 	bool DecodeSc6(string filename, byte[] content, int contentLength)
 	{
-		if (contentLength < 30351 || content[0] != 0xfe || GetMsxHeader(content) < 0x769f)
+		if (contentLength < 27143 || content[0] != 0xfe || GetMsxHeader(content) < 0x69ff)
 			return false;
-		SetMsxPalette(content, 0x7687, 4);
+		if (contentLength >= 30351)
+			SetMsxPalette(content, 0x7687, 4);
+		else
+			SetMsx6DefaultPalette();
 		if (!DecodeMsxSc(filename, content, 7, "S16", "s16", 212, 6)
 		 && contentLength == 32775)
 			DecodeMsxSprites(content, 6, 0x7607, 0x7807);
@@ -6313,12 +6324,8 @@ public class RECOIL
 		byte[8] palette;
 		if (ReadCompanionFile(filename, "PL6", "pl6", palette, 8) == 8)
 			SetMsxPalette(palette, 0, 4);
-		else {
-			ContentPalette[0] = 0x000000;
-			ContentPalette[1] = 0x249224; // from index 12
-			ContentPalette[2] = 0x24db24;
-			ContentPalette[3] = 0x6dff6d;
-		}
+		else
+			SetMsx6DefaultPalette();
 	}
 
 	bool DecodeSr6(string filename, byte[] content, int contentLength)
