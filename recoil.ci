@@ -7458,6 +7458,10 @@ public class RECOIL
 					width >>= 1;
 				resolution = RECOILResolution.Msx2Plus1x1;
 				break;
+			case 0x60:
+				width = bytesPerLine << 2;
+				resolution = RECOILResolution.Msx21x2;
+				break;
 			default:
 				return false;
 			}
@@ -7495,6 +7499,9 @@ public class RECOIL
 			break;
 		case 0x44:
 			DecodeMsxYjkScreen(unpacked, 0, false);
+			break;
+		case 0x60:
+			DecodeMsx6(unpacked, 0);
 			break;
 		default:
 			if (colors == 16)
