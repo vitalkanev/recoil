@@ -6198,6 +6198,18 @@ public class RECOIL
 		return true;
 	}
 
+	int GetMsx128Height(byte[] content, int contentLength)
+	{
+		if (contentLength < 135 || content[0] != 0xfe)
+			return -1;
+		int header = GetMsxHeader(content);
+		if (header < 127 || contentLength < 7 + header)
+			return -1;
+		if (header >= 0x69ff)
+			return 212;
+		return (header + 1) >> 7;
+	}
+
 	void DecodeMsxScreen(byte[] content, int contentOffset, byte[] interlace, int height, int mode, int interlaceMask)
 	{
 		if (interlaceMask != 0) {
@@ -6260,10 +6272,11 @@ public class RECOIL
 
 	bool DecodeSc5(string filename, byte[] content, int contentLength)
 	{
-		if (contentLength < 27143 || content[0] != 0xfe || GetMsxHeader(content) < 0x69ff)
+		int height = GetMsx128Height(content, contentLength);
+		if (height <= 0)
 			return false;
 		SetMsx2Palette(content, 0x7687, contentLength);
-		if (!DecodeMsxSc(filename, content, 7, "S15", "s15", 212, 5)
+		if (!DecodeMsxSc(filename, content, 7, "S15", "s15", height, 5)
 		 && contentLength == 32775)
 			DecodeMsxSprites(content, 5, 0x7607, 0x7807);
 		return true;
@@ -6277,10 +6290,11 @@ public class RECOIL
 
 	bool DecodeSr5(string filename, byte[] content, int contentLength)
 	{
-		if (contentLength < 27143 || content[0] != 0xfe || GetMsxHeader(content) < 0x69ff)
+		int height = GetMsx128Height(content, contentLength);
+		if (height <= 0)
 			return false;
 		SetMsxCompanionPalette(filename, "PL5", "pl5");
-		SetSize(256, 212, RECOILResolution.Msx21x1);
+		SetSize(256, height, RECOILResolution.Msx21x1);
 		DecodeNibbles(content, 7, 128);
 		return true;
 	}
@@ -6308,13 +6322,14 @@ public class RECOIL
 
 	bool DecodeSc6(string filename, byte[] content, int contentLength)
 	{
-		if (contentLength < 27143 || content[0] != 0xfe || GetMsxHeader(content) < 0x69ff)
+		int height = GetMsx128Height(content, contentLength);
+		if (height <= 0)
 			return false;
 		if (contentLength >= 30351)
 			SetMsxPalette(content, 0x7687, 4);
 		else
 			SetMsx6DefaultPalette();
-		if (!DecodeMsxSc(filename, content, 7, "S16", "s16", 212, 6)
+		if (!DecodeMsxSc(filename, content, 7, "S16", "s16", height, 6)
 		 && contentLength == 32775)
 			DecodeMsxSprites(content, 6, 0x7607, 0x7807);
 		return true;
@@ -6331,9 +6346,10 @@ public class RECOIL
 
 	bool DecodeSr6(string filename, byte[] content, int contentLength)
 	{
-		if (contentLength < 27143 || content[0] != 0xfe || GetMsxHeader(content) < 0x69ff)
+		int height = GetMsx128Height(content, contentLength);
+		if (height <= 0)
 			return false;
-		SetSize(512, 424, RECOILResolution.Msx21x2);
+		SetSize(512, height << 1, RECOILResolution.Msx21x2);
 		SetMsx6Palette(filename);
 		return DecodeMsx6(content, 7);
 	}

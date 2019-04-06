@@ -561,16 +561,16 @@
 		</format>
 		<format name="Dynamic Publisher screen" width="512" height="704" colors="2"><ext>PCT</ext></format>
 		<format name="Screen 4" width="256" height="192" colors="16"><ext>SC4</ext></format>
-		<format name="Screen 5" width="256" height="212" colors="16">
+		<format name="Screen 5" width="256" maxHeight="212" colors="16">
 			<ext>SC5</ext>
 			<ext>GE5</ext>
 		</format>
-		<format name="Screen 5 interlaced" width="256" height="424" colors="16" frames="2">
+		<format name="Screen 5 interlaced" width="256" maxHeight="424" colors="16" frames="2">
 			<ext>SC5</ext>
 			<companionExt>S15</companionExt>
 		</format>
-		<format name="Screen 6" width="512" height="212" colors="4"><ext>SC6</ext></format>
-		<format name="Screen 6 interlaced" width="512" height="424" colors="4" frames="2">
+		<format name="Screen 6" width="512" maxHeight="212" colors="4"><ext>SC6</ext></format>
+		<format name="Screen 6 interlaced" width="512" maxHeight="424" colors="4" frames="2">
 			<ext>SC6</ext>
 			<companionExt>S16</companionExt>
 		</format>
@@ -591,11 +591,11 @@
 			<ext>SC8</ext>
 			<companionExt>S18</companionExt>
 		</format>
-		<format name="Graph Saurus" width="256" height="212" colors="16">
+		<format name="Graph Saurus" width="256" maxHeight="212" colors="16">
 			<ext>SR5</ext>
 			<companionExt>PL5</companionExt>
 		</format>
-		<format name="Graph Saurus" width="512" height="212" colors="4">
+		<format name="Graph Saurus" width="512" maxHeight="212" colors="4">
 			<ext>SR6</ext>
 			<companionExt>PL6</companionExt>
 		</format>
