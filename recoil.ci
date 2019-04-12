@@ -6612,7 +6612,7 @@ public class RECOIL
 	bool DecodeScc(string filename, byte[] content, int contentLength)
 	{
 		int height;
-		if (contentLength == 49159 && content[0] == 0xfe && GetMsxHeader(content) == 0xbfff)
+		if (contentLength >= 49159 && content[0] == 0xfe && GetMsxHeader(content) == 0xbfff)
 			height = 192;
 		else {
 			byte[54279] unpacked = 0;
