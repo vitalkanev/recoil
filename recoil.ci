@@ -4166,6 +4166,7 @@ public class RECOIL
 		case RECOILResolution.Amiga2x1:
 		case RECOILResolution.Falcon2x1:
 		case RECOILResolution.Msx22x1:
+		case RECOILResolution.Msx2Plus2x1:
 			width <<= 1;
 			break;
 		case RECOILResolution.Amiga4x1:
@@ -4198,6 +4199,7 @@ public class RECOIL
 		case RECOILResolution.Tt2x1:
 		case RECOILResolution.Falcon2x1:
 		case RECOILResolution.Msx22x1:
+		case RECOILResolution.Msx2Plus2x1:
 			offset += x << 1;
 			Pixels[offset + 1] = Pixels[offset] = rgb;
 			break;
@@ -6597,9 +6599,10 @@ public class RECOIL
 
 	void DecodeMsxYjkScreen(byte[] content, int contentOffset, bool usePalette)
 	{
+		int width = GetOriginalWidth();
 		for (int y = 0; y < Height; y++)
-			for (int x = 0; x < Width; x++)
-				Pixels[y * Width + x] = DecodeMsxYjk(content, contentOffset + y * Width, x, usePalette);
+			for (int x = 0; x < width; x++)
+				SetScaledPixel(x, y, DecodeMsxYjk(content, contentOffset + y * width, x, usePalette));
 	}
 
 	void DecodeSccSca(string filename, byte[] content, int contentLength, int height, bool usePalette)
@@ -7476,6 +7479,12 @@ public class RECOIL
 			case 0x50:
 				resolution = RECOILResolution.Msx22x1;
 				break;
+			case 0x20:
+			case 0x40:
+				if (colors == 16)
+					width >>= 1;
+				resolution = RECOILResolution.Msx2Plus2x1;
+				break;
 			case 0x24:
 			case 0x44:
 				if (colors == 16)
@@ -7522,9 +7531,11 @@ public class RECOIL
 		}
 		SetMagPalette(content, headerOffset + 32, colors);
 		switch (msxMode) {
+		case 0x20:
 		case 0x24:
 			DecodeMsxYjkScreen(unpacked, 0, true);
 			break;
+		case 0x40:
 		case 0x44:
 			DecodeMsxYjkScreen(unpacked, 0, false);
 			break;
