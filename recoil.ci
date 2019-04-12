@@ -7465,7 +7465,7 @@ public class RECOIL
 			resolution = (content[headerOffset + 3] & 1) == 0 ? RECOILResolution.Pc981x1 : RECOILResolution.Pc881x2;
 			break;
 		case 0x03:
-			msxMode = content[headerOffset + 2];
+			msxMode = content[headerOffset + 2] & 0xfc; // mask out horizontal alignment
 			switch (msxMode) {
 			case 0x00:
 			case 0x14:
