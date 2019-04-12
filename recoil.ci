@@ -4213,6 +4213,7 @@ public class RECOIL
 		case RECOILResolution.Amiga1x2:
 		case RECOILResolution.St1x2:
 		case RECOILResolution.Ste1x2:
+		case RECOILResolution.Pc881x2:
 		case RECOILResolution.Msx21x2:
 		case RECOILResolution.Trs1x2:
 			offset = (offset << 1) + x;
@@ -4346,13 +4347,11 @@ public class RECOIL
 
 	void DecodeNibbles(byte[] content, int contentOffset, int contentStride)
 	{
-		int doubleHeight = Resolution == RECOILResolution.Msx21x2 || Resolution == RECOILResolution.Pc881x2 ? 1 : 0;
-		for (int y = 0; y < Height; ) {
-			for (int x = 0; x < Width; x++)
-				Pixels[y * Width + x] = ContentPalette[GetNibble(content, contentOffset, x)];
-			if ((++y & doubleHeight) == 0)
-				contentOffset += contentStride;
-		}
+		int width = GetOriginalWidth();
+		int height = GetOriginalHeight();
+		for (int y = 0; y < height; y++)
+			for (int x = 0; x < width; x++)
+				SetScaledPixel(x, y, ContentPalette[GetNibble(content, contentOffset + y * contentStride, x)]);
 	}
 
 	static int GetB5G5R5Color(int c)
@@ -7474,6 +7473,7 @@ public class RECOIL
 				resolution = RECOILResolution.Msx21x2;
 				break;
 			case 0x10:
+			case 0x50:
 				resolution = RECOILResolution.Msx22x1;
 				break;
 			case 0x24:
