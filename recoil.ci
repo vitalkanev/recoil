@@ -7146,9 +7146,9 @@ public class RECOIL
 		stream.ContentOffset = 3;
 		stream.ContentLength = contentLength;
 		if (!stream.SkipUntilByte(0x1a)
-		 || !stream.SkipUntilByte(0)
-		 || stream.ReadBits(16) != 0)
+		 || !stream.SkipUntilByte(0))
 			return false;
+		int platform = stream.ReadBits(16);
 		int depth = stream.ReadBits(16);
 		switch (depth) {
 		case 4:
@@ -7161,8 +7161,19 @@ public class RECOIL
 		}
 		int width = stream.ReadBits(16);
 		int height = stream.ReadBits(16);
-		if (!SetSize(width, height, RECOILResolution.X68K1x1))
+		switch (platform) {
+		case 0:
+			if (!SetSize(width, height, RECOILResolution.X68K1x1))
+				return false;
+			break;
+		case 2: // FM Towns
+			if (!SetSize(width, height, RECOILResolution.Pc1x1))
+				return false;
+			stream.ContentOffset += 6;
+			break;
+		default:
 			return false;
+		}
 		int color;
 		if (depth <= 8) {
 			for (int c = 0; c < 1 << depth; c++) {
