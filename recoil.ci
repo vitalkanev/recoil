@@ -102,6 +102,7 @@ enum RECOILResolution
 	Msx2Plus2x1,
 	Oric1x1,
 	Pc1x1,
+	Pc881x1,
 	Pc881x2,
 	Pc981x1,
 	PlayStation1x1,
@@ -4009,6 +4010,7 @@ public class RECOIL
 			return "Oric";
 		case RECOILResolution.Pc1x1:
 			return "PC";
+		case RECOILResolution.Pc881x1:
 		case RECOILResolution.Pc881x2:
 			return "NEC PC-88";
 		case RECOILResolution.Pc981x1:
@@ -4363,6 +4365,14 @@ public class RECOIL
 	{
 		// 0RRRRRGG GGGBBBBB
 		c = (c & 0x7c00) << 9 | (c & 0x3e0) << 6 | (c & 0x1f) << 3;
+		// RRRRR000 GGGGG000 BBBBB000
+		return c | (c >> 5 & 0x070707);
+	}
+
+	static int GetG6R5B5Color(int c)
+	{
+		// GGGGGGRR RRRBBBBB
+		c = (c & 0x3e0) << 14 | (c & 0xfc00) | (c & 0x1f) << 3;
 		// RRRRR000 GGGGG000 BBBBB000
 		return c | (c >> 5 & 0x070707);
 	}
@@ -7166,6 +7176,11 @@ public class RECOIL
 			if (!SetSize(width, height, RECOILResolution.X68K1x1))
 				return false;
 			break;
+		case 0x11:
+		case 0x21:
+			if (depth != 16 || !SetSize(width, height, RECOILResolution.Pc881x1))
+				return false;
+			break;
 		case 2: // FM Towns
 			if (!SetSize(width, height, RECOILResolution.Pc1x1))
 				return false;
@@ -7215,9 +7230,13 @@ public class RECOIL
 					color = stream.ReadBits(depth);
 					if (color < 0)
 						return false;
-					if (depth == 15)
-						color <<= 1;
-					color = GetX68KColor(color);
+					if ((platform & 0xf) == 1)
+						color = GetG6R5B5Color(color);
+					else {
+						if (depth == 15)
+							color <<= 1;
+						color = GetX68KColor(color);
+					}
 					colors.Add(color);
 					break;
 				case 1:
