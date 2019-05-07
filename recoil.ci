@@ -7522,7 +7522,7 @@ public class RECOIL
 		case 0x68:
 			resolution = RECOILResolution.X68K1x1;
 			break;
-		case 0x88: // untested
+		case 0x88:
 			resolution = RECOILResolution.Pc881x2;
 			break;
 		case 0x99: // untested
