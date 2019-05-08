@@ -7147,63 +7147,12 @@ public class RECOIL
 		}
 	}
 
-	bool DecodeX68KPic(byte[] content, int contentLength)
+	bool DecodeX68KPicScreen(X68KPicStream stream, int pixelsLength, int platform, int depth)
 	{
-		if (contentLength < 14 || content[0] != 'P' || content[1] != 'I' || content[2] != 'C')
-			return false;
-		X68KPicStream() stream;
-		stream.Content = content;
-		stream.ContentOffset = 3;
-		stream.ContentLength = contentLength;
-		if (!stream.SkipUntilByte(0x1a)
-		 || !stream.SkipUntilByte(0))
-			return false;
-		int platform = stream.ReadBits(16);
-		int depth = stream.ReadBits(16);
-		switch (depth) {
-		case 4:
-		case 8:
-		case 15:
-		case 16:
-			break;
-		default:
-			return false;
-		}
-		int width = stream.ReadBits(16);
-		int height = stream.ReadBits(16);
-		switch (platform) {
-		case 0:
-			if (!SetSize(width, height, RECOILResolution.X68K1x1))
-				return false;
-			break;
-		case 0x11:
-		case 0x21:
-			if (depth != 16 || !SetSize(width, height, RECOILResolution.Pc881x1))
-				return false;
-			break;
-		case 2: // FM Towns
-			if (!SetSize(width, height, RECOILResolution.Pc1x1))
-				return false;
-			stream.ContentOffset += 6;
-			break;
-		default:
-			return false;
-		}
-		int color;
-		if (depth <= 8) {
-			for (int c = 0; c < 1 << depth; c++) {
-				color = stream.ReadBits(16);
-				if (color < 0)
-					return false;
-				ContentPalette[c] = GetX68KColor(color);
-			}
-		}
-
-		int pixelsLength = width * height;
 		for (int pixelsOffset = 0; pixelsOffset < pixelsLength; pixelsOffset++)
 			Pixels[pixelsOffset] = -1;
 		RecentInts() colors;
-		color = 0;
+		int color = 0;
 		for (int pixelsOffset = -1; ;) {
 			int length = stream.ReadLength();
 			if (length < 0)
@@ -7230,12 +7179,17 @@ public class RECOIL
 					color = stream.ReadBits(depth);
 					if (color < 0)
 						return false;
-					if ((platform & 0xf) == 1)
-						color = GetG6R5B5Color(color);
-					else {
+					switch (platform) {
+					case 0:
 						if (depth == 15)
 							color <<= 1;
 						color = GetX68KColor(color);
+						break;
+					case 0x11:
+						color = GetG6R5B5Color(color);
+						break;
+					default:
+						break;
 					}
 					colors.Add(color);
 					break;
@@ -7264,6 +7218,74 @@ public class RECOIL
 				return false;
 			}
 		}
+	}
+
+	bool DecodeX68KPic(byte[] content, int contentLength)
+	{
+		if (contentLength < 14 || content[0] != 'P' || content[1] != 'I' || content[2] != 'C')
+			return false;
+		X68KPicStream() stream;
+		stream.Content = content;
+		stream.ContentOffset = 3;
+		stream.ContentLength = contentLength;
+		if (!stream.SkipUntilByte(0x1a)
+		 || !stream.SkipUntilByte(0))
+			return false;
+		int platform = stream.ReadBits(16);
+		int depth = stream.ReadBits(16);
+		int width = stream.ReadBits(16);
+		int height = stream.ReadBits(16);
+		int pixelsLength = width * height;
+		switch (platform) {
+		case 0:
+			if (!SetSize(width, height, RECOILResolution.X68K1x1))
+				return false;
+			break;
+		case 0x11:
+			return depth == 16
+				&& SetSize(width, height, RECOILResolution.Pc881x1)
+				&& DecodeX68KPicScreen(stream, pixelsLength, 0x11, 16);
+		case 0x21:
+			height <<= 1;
+			if (depth != 16 || (width & 1) != 0
+			 || !SetSize(width, height, RECOILResolution.Pc881x1)
+			 || !DecodeX68KPicScreen(stream, pixelsLength, 0x21, 16))
+				return false;
+			for (int y = height - 1; y >= 0; y--) {
+				for (int x = width - 1; x >= 0; x--) {
+					int color = Pixels[y * (width >> 1) + (x >> 1)];
+					if ((x & 1) != 0)
+						color >>= 8;
+					Pixels[y * width + x] = GetG3R3B2Color(color & 0xff);
+				}
+			}
+			return true;
+		case 2: // FM Towns
+			if (!SetSize(width, height, RECOILResolution.Pc1x1))
+				return false;
+			stream.ContentOffset += 6;
+			break;
+		default:
+			return false;
+		}
+
+		switch (depth) {
+		case 4:
+		case 8:
+			for (int c = 0; c < 1 << depth; c++) {
+				int color = stream.ReadBits(16);
+				if (color < 0)
+					return false;
+				ContentPalette[c] = GetX68KColor(color);
+			}
+			break;
+		case 15:
+		case 16:
+			break;
+		default:
+			return false;
+		}
+		return DecodeX68KPicScreen(stream, pixelsLength, 0, depth);
 	}
 
 	// NEC PC-98 formats.
