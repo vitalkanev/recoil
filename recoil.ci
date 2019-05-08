@@ -7247,17 +7247,14 @@ public class RECOIL
 				&& DecodeX68KPicScreen(stream, pixelsLength, 0x11, 16);
 		case 0x21:
 			height <<= 1;
-			if (depth != 16 || (width & 1) != 0
+			if (depth != 16
 			 || !SetSize(width, height, RECOILResolution.Pc881x1)
 			 || !DecodeX68KPicScreen(stream, pixelsLength, 0x21, 16))
 				return false;
-			for (int y = height - 1; y >= 0; y--) {
-				for (int x = width - 1; x >= 0; x--) {
-					int color = Pixels[y * (width >> 1) + (x >> 1)];
-					if ((x & 1) != 0)
-						color >>= 8;
-					Pixels[y * width + x] = GetG3R3B2Color(color & 0xff);
-				}
+			for (int offset = pixelsLength - 1; offset >= 0; offset--) {
+				int color = Pixels[offset];
+				Pixels[(offset << 1) + 1] = GetG3R3B2Color(color >> 8);
+				Pixels[offset << 1] = GetG3R3B2Color(color & 0xff);
 			}
 			return true;
 		case 2: // FM Towns
