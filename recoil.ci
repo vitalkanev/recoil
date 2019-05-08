@@ -4373,8 +4373,8 @@ public class RECOIL
 	{
 		// GGGGGGRR RRRBBBBB
 		c = (c & 0x3e0) << 14 | (c & 0xfc00) | (c & 0x1f) << 3;
-		// RRRRR000 GGGGG000 BBBBB000
-		return c | (c >> 5 & 0x070707);
+		// RRRRR000 GGGGGG00 BBBBB000
+		return c | (c >> 5 & 0x070007) | (c >> 6 & 0x000300);
 	}
 
 	static int GetFalconTrueColor(byte[] content, int contentOffset)
