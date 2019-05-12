@@ -7262,6 +7262,11 @@ public class RECOIL
 				return false;
 			stream.ContentOffset += 6;
 			break;
+		case 0x1f:
+			if (!SetSize(width, height, RECOILResolution.X68K1x1))
+				return false;
+			stream.ContentOffset += 6;
+			break;
 		default:
 			return false;
 		}
