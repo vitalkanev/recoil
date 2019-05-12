@@ -7512,6 +7512,7 @@ public class RECOIL
 		int msxMode = 0;
 		switch (content[headerOffset + 1]) {
 		case 0x00:
+		case 0x88:
 			resolution = (content[headerOffset + 3] & 1) == 0 ? RECOILResolution.Pc981x1 : RECOILResolution.Pc881x2;
 			break;
 		case 0x03:
@@ -7560,15 +7561,12 @@ public class RECOIL
 		case 0x68:
 			resolution = RECOILResolution.X68K1x1;
 			break;
-		case 0x88:
-			resolution = RECOILResolution.Pc881x2;
-			break;
 		case 0x99: // untested
 			resolution = RECOILResolution.Macintosh1x1;
 			break;
 		// case 0xff: Hellon - untested
 		default: // try to decode anyway
-			resolution = RECOILResolution.Msx21x1; // arbitrary
+			resolution = (content[headerOffset + 3] & 1) == 0 ? RECOILResolution.Msx21x1 : RECOILResolution.Msx21x2; // arbitrary
 			break;
 		}
 		if (!SetScaledSize(width, height, resolution))
