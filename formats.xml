@@ -532,6 +532,9 @@
 	<platform name="Electronika BK" href="https://en.wikipedia.org/wiki/Electronika_BK">
 		<format width="256" height="256" colors="4"><ext>PIC</ext></format>
 	</platform>
+	<platform name="FM Towns" href="https://en.wikipedia.org/wiki/FM_Towns">
+		<format><ext>PIC</ext></format>
+	</platform>
 	<platform name="MSX" href="http://en.wikipedia.org/wiki/MSX">
 		<format name="MIG" maxWidth="512" maxHeight="424" maxFrames="2"><ext>MIG</ext></format>
 		<format name="Screen 2" width="256" height="192" colors="15">
@@ -637,6 +640,9 @@
 	</platform>
 	<platform name="NEC PC-88" href="https://en.wikipedia.org/wiki/PC-8800_Series">
 		<format name="Maki-chan Graphics" colors="8"><ext>MAG</ext></format>
+	</platform>
+	<platform name="NEC PC-88 VA" href="https://en.wikipedia.org/wiki/PC-8800_Series">
+		<format maxWidth="640" maxHeight="400"><ext>PIC</ext></format>
 	</platform>
 	<platform name="NEC PC-98" href="https://en.wikipedia.org/wiki/PC-9800_series">
 		<format name="Maki-chan Graphics" colors="256">

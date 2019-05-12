@@ -93,6 +93,7 @@ enum RECOILResolution
 	C642x1,
 	C1281x1,
 	Electronika1x1,
+	FmTowns1x1,
 	Msx11x1,
 	Msx14x4,
 	Msx21x1,
@@ -102,8 +103,8 @@ enum RECOILResolution
 	Msx2Plus2x1,
 	Oric1x1,
 	Pc1x1,
-	Pc881x1,
 	Pc881x2,
+	Pc88Va1x1,
 	Pc981x1,
 	PlayStation1x1,
 	Psion31x1,
@@ -3996,6 +3997,8 @@ public class RECOIL
 			return "Commodore 128";
 		case RECOILResolution.Electronika1x1:
 			return "Electronika BK";
+		case RECOILResolution.FmTowns1x1:
+			return "FM Towns";
 		case RECOILResolution.Msx11x1:
 		case RECOILResolution.Msx14x4:
 			return "MSX";
@@ -4010,9 +4013,10 @@ public class RECOIL
 			return "Oric";
 		case RECOILResolution.Pc1x1:
 			return "PC";
-		case RECOILResolution.Pc881x1:
 		case RECOILResolution.Pc881x2:
 			return "NEC PC-88";
+		case RECOILResolution.Pc88Va1x1:
+			return "NEC PC-88 VA";
 		case RECOILResolution.Pc981x1:
 			return "NEC PC-98";
 		case RECOILResolution.PlayStation1x1:
@@ -7243,12 +7247,11 @@ public class RECOIL
 			break;
 		case 0x11:
 			return depth == 16
-				&& SetSize(width, height, RECOILResolution.Pc881x1)
+				&& SetSize(width, height, RECOILResolution.Pc88Va1x1)
 				&& DecodeX68KPicScreen(stream, pixelsLength, 0x11, 16);
 		case 0x21:
-			height <<= 1;
 			if (depth != 16
-			 || !SetSize(width, height, RECOILResolution.Pc881x1)
+			 || !SetSize(width, height << 1, RECOILResolution.Pc88Va1x1)
 			 || !DecodeX68KPicScreen(stream, pixelsLength, 0x21, 16))
 				return false;
 			for (int offset = pixelsLength - 1; offset >= 0; offset--) {
@@ -7257,8 +7260,8 @@ public class RECOIL
 				Pixels[offset << 1] = GetG3R3B2Color(color & 0xff);
 			}
 			return true;
-		case 2: // FM Towns
-			if (!SetSize(width, height, RECOILResolution.Pc1x1))
+		case 2:
+			if (!SetSize(width, height, RECOILResolution.FmTowns1x1))
 				return false;
 			stream.ContentOffset += 6;
 			break;
