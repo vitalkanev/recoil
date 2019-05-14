@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="app_name">RECOIL</string>
-	<string name="app_description">RECOIL is a viewer of pictures in native formats of Amiga, Amstrad CPC, Apple II, Atari 8-bit, Atari Portfolio, Atari ST/TT/Falcon, BBC Micro, Commodore 16, Commodore 64, Commodore 128, Electronika BK, FM Towns, Macintosh 128K, MSX, NEC PC-88, NEC PC-98, Oric, Psion Series 3, SAM Coupé, Sharp X68000, Timex 2048, TRS-80, TRS-80 Color Computer, ZX81 and ZX Spectrum computers. RECOIL supports over 400 file formats.</string>
+	<string name="app_description">RECOIL is a viewer of pictures in native formats of Amiga, Amstrad CPC, Apple II, Atari 8-bit, Atari Portfolio, Atari ST/TT/Falcon, BBC Micro, Commodore 16, Commodore 64, Commodore 128, Electronika BK, FM Towns, Macintosh 128K, MSX, NEC PC-80/88/98, Oric, Psion Series 3, SAM Coupé, Sharp X68000, Timex 2048, TRS-80, TRS-80 Color Computer, ZX81 and ZX Spectrum computers. RECOIL supports over 400 file formats.</string>
 	<string name="internal_directory">Device storage</string>
 	<string name="external_directory">SD memory card</string>
 	<string name="view_in_recoil">View in RECOIL</string>

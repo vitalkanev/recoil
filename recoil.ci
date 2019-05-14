@@ -103,6 +103,7 @@ enum RECOILResolution
 	Msx2Plus2x1,
 	Oric1x1,
 	Pc1x1,
+	Pc801x2,
 	Pc881x2,
 	Pc88Va1x1,
 	Pc981x1,
@@ -4013,6 +4014,8 @@ public class RECOIL
 			return "Oric";
 		case RECOILResolution.Pc1x1:
 			return "PC";
+		case RECOILResolution.Pc801x2:
+			return "NEC PC-80";
 		case RECOILResolution.Pc881x2:
 			return "NEC PC-88";
 		case RECOILResolution.Pc88Va1x1:
@@ -4091,6 +4094,7 @@ public class RECOIL
 		case RECOILResolution.Ste1x2:
 		case RECOILResolution.Bbc1x2:
 		case RECOILResolution.Msx21x2:
+		case RECOILResolution.Pc801x2:
 		case RECOILResolution.Pc881x2:
 		case RECOILResolution.Timex1x2:
 		case RECOILResolution.Trs1x2:
@@ -4180,6 +4184,7 @@ public class RECOIL
 		case RECOILResolution.St1x2:
 		case RECOILResolution.Ste1x2:
 		case RECOILResolution.Msx21x2:
+		case RECOILResolution.Pc801x2:
 		case RECOILResolution.Pc881x2:
 			height <<= 1;
 			break;
@@ -4216,6 +4221,7 @@ public class RECOIL
 		case RECOILResolution.Amiga1x2:
 		case RECOILResolution.St1x2:
 		case RECOILResolution.Ste1x2:
+		case RECOILResolution.Pc801x2:
 		case RECOILResolution.Pc881x2:
 		case RECOILResolution.Msx21x2:
 		case RECOILResolution.Trs1x2:
@@ -7521,7 +7527,7 @@ public class RECOIL
 		switch (content[headerOffset + 1]) {
 		case 0x00:
 		case 0x88:
-			resolution = (content[headerOffset + 3] & 1) == 0 ? RECOILResolution.Pc981x1 : RECOILResolution.Pc881x2;
+			resolution = (content[headerOffset + 3] & 1) == 0 ? RECOILResolution.Pc88Va1x1 : RECOILResolution.Pc881x2;
 			break;
 		case 0x03:
 			msxMode = content[headerOffset + 2] & 0xfc; // mask out horizontal alignment
@@ -7562,12 +7568,15 @@ public class RECOIL
 				return false;
 			}
 			break;
-		case 0x62: // untested
-		case 0x70: // untested
+		case 0x62: // untested PC-98XA
+		case 0x70: // untested PC-9821
 			resolution = RECOILResolution.Pc981x1;
 			break;
 		case 0x68:
 			resolution = RECOILResolution.X68K1x1;
+			break;
+		case 0x80:
+			resolution = RECOILResolution.Pc801x2;
 			break;
 		case 0x99: // untested
 			resolution = RECOILResolution.Macintosh1x1;
