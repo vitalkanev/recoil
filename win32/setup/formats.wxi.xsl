@@ -18,7 +18,7 @@
 			</xsl:processing-instruction>
 			<xsl:processing-instruction name="define">
 				<xsl:text>OTHER_EXTS=</xsl:text>
-					<xsl:for-each select="platform/format/ext[not(. = following::ext)]">
+					<xsl:for-each select="platform/format/ext[not(. = following::ext) and . != 'ATR']">
 						<xsl:sort />
 						<xsl:if test="position() != 1">
 							<xsl:if test="position() != 2">;</xsl:if>

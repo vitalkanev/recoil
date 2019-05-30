@@ -45,7 +45,9 @@
 							<uap:FileTypeAssociation Name="recoil">
 								<uap:Logo>Assets\FileLogo.png</uap:Logo>
 								<uap:SupportedFileTypes>
-									<xsl:for-each select="platform/format/ext[not(. = following::ext) and . != 'MSP' and . != 'SCR']"><!-- the '.msp' and '.scr' file type associations are reserved for system use -->
+									<!-- MSP and SCR file type associations are reserved for system use. -->
+									<!-- ATR is likely an Atari 8-bit disk image and not a ZX Spectrum picture. RECOIL only supports the latter. -->
+									<xsl:for-each select="platform/format/ext[not(. = following::ext) and . != 'MSP' and . != 'SCR' and . != 'ATR']">
 										<xsl:sort />
 										<uap:FileType>.<xsl:value-of select="translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')" /></uap:FileType>
 									</xsl:for-each>

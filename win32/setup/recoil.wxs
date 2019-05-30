@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 	<?include formats.wxi?>
-	<?define RECOIL_EXTS=$(var.FIRST_EXT);$(var.OTHER_EXTS)?>
+	<?define RECOIL_EXTS=$(var.FIRST_EXT);atr;$(var.OTHER_EXTS)?>
 	<?define DOUBLECLICK=Double-click Atari image file in Windows Explorer to display it in ?>
 
 	<?define UPGRADE_GUID32=19995735-0DC9-4C92-848E-AEFF0407139C?>
