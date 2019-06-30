@@ -7363,6 +7363,32 @@ public class RECOIL
 		return true;
 	}
 
+	static int PackPiPlatform(string s)
+		return s[0] | s[1] << 8 | s[2] << 16 | s[3] << 24;
+
+	static RECOILResolution GetPiPlatform(byte[] content, int contentOffset, bool highPixel)
+	{
+		switch (Get32LittleEndian(content, contentOffset)) {
+		case PackPiPlatform("TOWN"):
+			return RECOILResolution.FmTowns1x1;
+		case PackPiPlatform("PC80"):
+			return RECOILResolution.Pc801x2;
+		case PackPiPlatform("PC88"):
+			return RECOILResolution.Pc881x2;
+		case PackPiPlatform("PCVA"):
+			return highPixel ? RECOILResolution.Pc881x2 : RECOILResolution.Pc88Va1x1;
+		case PackPiPlatform("MSX1"):
+		case PackPiPlatform("MSX2"):
+		case PackPiPlatform("MSXP"):
+		case PackPiPlatform("MSXR"):
+			return highPixel ? RECOILResolution.Msx21x2 : RECOILResolution.Msx21x1;
+		case PackPiPlatform("X68K"):
+			return RECOILResolution.X68K1x1;
+		default:
+			return highPixel ? RECOILResolution.Pc881x2 : RECOILResolution.Pc981x1;
+		}
+	}
+
 	bool DecodePi(byte[] content, int contentLength)
 	{
 		if (contentLength < 18 || content[0] != 'P' || content[1] != 'i')
@@ -7385,7 +7411,8 @@ public class RECOIL
 			return false;
 		int width = content[contentOffset + 10] << 8 | content[contentOffset + 11];
 		int height = content[contentOffset + 12] << 8 | content[contentOffset + 13];
-		if (!SetScaledSize(width, height, depth == 4 && content[contentOffset + 1] == 2 && content[contentOffset + 2] == 1 ? RECOILResolution.Pc881x2 : RECOILResolution.Pc981x1))
+		RECOILResolution resolution = GetPiPlatform(content, contentOffset + 4, content[contentOffset + 1] == 2 && content[contentOffset + 2] == 1);
+		if (!SetScaledSize(width, height, resolution))
 			return false;
 		if (s.Unpack(width, height, depth)) {
 			DecodeR8G8B8Colors(content, contentOffset + 14, 1 << depth, ContentPalette);
@@ -7411,7 +7438,7 @@ public class RECOIL
 		 || content[40] != 0 || content[41] != 0 || content[42] != 0 || content[43] != 0
 		 || content[44] != 2 || content[45] != 0x80 || content[46] != 1 || content[47] != 0x90)
 			return false;
-		SetSize(640, 400, RECOILResolution.Pc981x1);
+		SetSize(640, 400, GetPiPlatform(content, 8, false));
 		SetMagPalette(content, 48, 16);
 		int contentOffset = 1096;
 

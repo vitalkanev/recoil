@@ -533,6 +533,7 @@
 		<format width="256" height="256" colors="4"><ext>PIC</ext></format>
 	</platform>
 	<platform name="FM Towns" href="https://en.wikipedia.org/wiki/FM_Towns">
+		<format><ext>PI</ext></format>
 		<format><ext>PIC</ext></format>
 	</platform>
 	<platform name="MSX" href="http://en.wikipedia.org/wiki/MSX">
@@ -563,6 +564,8 @@
 			<ext>MAX</ext>
 		</format>
 		<format name="Dynamic Publisher screen" width="512" height="704" colors="2"><ext>PCT</ext></format>
+		<format><ext>PI</ext></format>
+		<format name="YPIC" maxWidth="256" maxHeight="212"><ext>PIC</ext></format>
 		<format name="Screen 4" width="256" height="192" colors="16"><ext>SC4</ext></format>
 		<format name="Screen 5" width="256" maxHeight="212" colors="16">
 			<ext>SC5</ext>
