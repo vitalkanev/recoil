@@ -1,7 +1,7 @@
 ﻿/*
  * MainPage.xaml.cs - Universal Windows application
  *
- * Copyright (C) 2014-2018  Piotr Fusik
+ * Copyright (C) 2014-2019  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -49,7 +49,7 @@ namespace RECOIL
 			DataTransferManager.GetForCurrentView().DataRequested += OnDataRequested;
 		}
 
-		const string Disclaimer = "\nAre you opening a vintage computer image? " +
+		const string Disclaimer = "\nAre you opening a graphics file originating from a 20th century computer? " +
 			"This app only supports such files.";
 
 		public async Task ShowFile(StorageFile file)
