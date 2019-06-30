@@ -7234,12 +7234,28 @@ public class RECOIL
 	{
 		if (contentLength < 14 || content[0] != 'P' || content[1] != 'I' || content[2] != 'C')
 			return false;
+		RECOILResolution resolution = IsStringAt(content, 3, "/MM/") ? RECOILResolution.Msx21x1 : RECOILResolution.X68K1x1;
 		X68KPicStream() stream;
 		stream.Content = content;
 		stream.ContentOffset = 3;
 		stream.ContentLength = contentLength;
-		if (!stream.SkipUntilByte(0x1a)
-		 || !stream.SkipUntilByte(0))
+		for (;;) {
+			int b = stream.ReadByte();
+			if (b < 0)
+				return false;
+			if (b == 0x1a)
+				break;
+			if (b == '/'
+			 && resolution == RECOILResolution.Msx21x1
+			 && stream.ContentOffset + 4 < contentLength
+			 && content[stream.ContentOffset] == 'M'
+			 && content[stream.ContentOffset + 1] == 'S') {
+				b = content[stream.ContentOffset + 2];
+				if (b >= 'A' && b <= 'C')
+					resolution = RECOILResolution.Msx2Plus1x1;
+			}
+		}
+		if (!stream.SkipUntilByte(0))
 			return false;
 		int platform = stream.ReadBits(16);
 		int depth = stream.ReadBits(16);
@@ -7248,7 +7264,7 @@ public class RECOIL
 		int pixelsLength = width * height;
 		switch (platform) {
 		case 0:
-			if (!SetSize(width, height, RECOILResolution.X68K1x1))
+			if (!SetSize(width, height, resolution))
 				return false;
 			break;
 		case 0x11:
