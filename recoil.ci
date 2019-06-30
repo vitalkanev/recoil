@@ -6223,11 +6223,12 @@ public class RECOIL
 		if (contentLength < 135 || content[0] != 0xfe)
 			return -1;
 		int header = GetMsxHeader(content);
-		if (header < 127 || contentLength < 7 + header)
+		if (header < 127)
 			return -1;
-		if (header >= 0x69ff)
-			return 212;
-		return (header + 1) >> 7;
+		int height = (header + 1) >> 7;
+		if (contentLength < 7 + (height << 7))
+			return -1;
+		return height < 212 ? height : 212;
 	}
 
 	void DecodeMsxScreen(byte[] content, int contentOffset, byte[] interlace, int height, int mode, int interlaceMask)
