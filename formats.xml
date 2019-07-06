@@ -1,4 +1,4 @@
-﻿<formats version="4.3.1">
+﻿<formats version="4.3.2">
 	<platform name="Amiga" href="http://en.wikipedia.org/wiki/Amiga">
 		<format name="Amiga Continuous Bitmap"><ext>ACBM</ext></format>
 		<format hardware="DCTV" name="DCTV">

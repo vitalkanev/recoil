@@ -1,4 +1,13 @@
 ﻿<page title="News">
+	<release project="RECOIL" version="4.3.2" date="2019-07-06">
+		<ul>
+			<li>New formats: APS, G9S/SFD, HPS, ILS, INS, PLS, GR9P, AGS, Electronika BK (PIC), STL.</li>
+			<li>Additional variants of the Japanese formats: SC5, SC6, SC7, GL5, GL7, MAG, PI, PIC, SCC+S1C, SR6.
+			Also new platforms: FM Towns, NEC PC-80 and NEC PC-88 VA.</li>
+			<li>Alias extensions: 256, HAM, APA.</li>
+		</ul>
+	</release>
+
 	<release project="RECOIL" version="4.3.1" date="2018-12-05">
 		<ul>
 			<li>New formats: HAME, DCTV, HRG</li>

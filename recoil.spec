@@ -1,5 +1,5 @@
 Name: recoil
-Version: 4.3.1
+Version: 4.3.2
 Release: 1
 Summary: Viewer of retro computer image files
 License: GPLv2+
@@ -12,9 +12,9 @@ BuildRoot: %{_tmppath}/%{name}-root
 %description
 Decoder of pictures in native formats of
 Amiga, Amstrad CPC, Apple II, Atari 8-bit/Portfolio/ST/TT/Falcon, BBC Micro,
-Commodore 16, Commodore 64, Commodore 128, Macintosh 128K, MSX, NEC PC-88,
-NEC PC-98, Oric, Psion Series 3, SAM Coupe, Sharp X68000, TRS-80,
-TRS-80 Color Computer, ZX81 and ZX Spectrum computers.
+Commodore 16/64/128, Electronika BK, FM Towns, Macintosh 128K, MSX,
+NEC PC-80/88/98, Oric, Psion Series 3, SAM Coupe, Sharp X68000, Timex 2048,
+TRS-80, TRS-80 Color Computer, ZX81 and ZX Spectrum computers.
 
 %package 2png
 Summary: Converter of retro computer image files
@@ -22,9 +22,9 @@ Summary: Converter of retro computer image files
 %description 2png
 Provides "recoil2png" command-line converter of pictures in native formats of
 Amiga, Amstrad CPC, Apple II, Atari 8-bit/Portfolio/ST/TT/Falcon, BBC Micro,
-Commodore 16, Commodore 64, Commodore 128, Macintosh 128K, MSX, NEC PC-88,
-NEC PC-98, Oric, Psion Series 3, SAM Coupe, Sharp X68000, Timex 2048, TRS-80,
-TRS-80 Color Computer, ZX81 and ZX Spectrum computers.
+Commodore 16/64/128, Electronika BK, FM Towns, Macintosh 128K, MSX,
+NEC PC-80/88/98, Oric, Psion Series 3, SAM Coupe, Sharp X68000, Timex 2048,
+TRS-80, TRS-80 Color Computer, ZX81 and ZX Spectrum computers.
 
 %package thumbnailer
 Summary: GNOME thumbnailer for retro computer image files
@@ -34,9 +34,9 @@ BuildArch: noarch
 %description thumbnailer
 GNOME thumbnailer for pictures in native formats of
 Amiga, Amstrad CPC, Apple II, Atari 8-bit/Portfolio/ST/TT/Falcon, BBC Micro,
-Commodore 16, Commodore 64, Commodore 128, Macintosh 128K, MSX, NEC PC-88,
-NEC PC-98, Oric, Psion Series 3, SAM Coupe, Sharp X68000, Timex 2048, TRS-80,
-TRS-80 Color Computer, ZX81 and ZX Spectrum computers.
+Commodore 16/64/128, Electronika BK, FM Towns, Macintosh 128K, MSX,
+NEC PC-80/88/98, Oric, Psion Series 3, SAM Coupe, Sharp X68000, Timex 2048,
+TRS-80, TRS-80 Color Computer, ZX81 and ZX Spectrum computers.
 
 %global debug_package %{nil}
 
@@ -70,7 +70,10 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/update-mime-database %{_datadir}/mime &> /dev/null || :
 
 %changelog
-* Tue Dec 5 2018 Piotr Fusik <fox@scene.pl>
+* Sat Jul 6 2019 Piotr Fusik <fox@scene.pl>
+- 4.3.2-1
+
+* Wed Dec 5 2018 Piotr Fusik <fox@scene.pl>
 - 4.3.1-1
 
 * Sun Jun 10 2018 Piotr Fusik <fox@scene.pl>
