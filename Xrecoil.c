@@ -1,7 +1,7 @@
 /*
  * Xrecoil.c - RECOIL plugin for XnView http://www.xnview.com
  *
- * Copyright (C) 2009-2018  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2019  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -150,11 +150,10 @@ DLL_EXPORT BOOL API gfpLoadPictureGetInfo(
 DLL_EXPORT BOOL API gfpLoadPictureGetLine(void *ptr, INT line, unsigned char *buffer)
 {
 	const RECOIL *recoil = (const RECOIL *) ptr;
-	int x;
 	int width = RECOIL_GetWidth(recoil);
 	const int *pixels = RECOIL_GetPixels(recoil) + line * width;
 
-	for (x = 0; x < width; x++) {
+	for (int x = 0; x < width; x++) {
 		int rgb = pixels[x];
 		buffer[x * 3] = (unsigned char) (rgb >> 16);
 		buffer[x * 3 + 1] = (unsigned char) (rgb >> 8);

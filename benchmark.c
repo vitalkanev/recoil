@@ -1,7 +1,7 @@
 /*
  * benchmark.c - RECOIL benchmark
  *
- * Copyright (C) 2013-2015  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2013-2019  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -29,61 +29,48 @@
 
 int main(int argc, char **argv)
 {
-	RECOIL *recoil;
-	int i;
 	if (argc < 2) {
 		fprintf(stderr, "benchmark: no input files\n");
 		return 1;
 	}
-	recoil = RECOILStdio_New();
-	for (i = 1; i < argc; i++) {
+	RECOIL *recoil = RECOILStdio_New();
+	for (int i = 1; i < argc; i++) {
 		const char *arg = argv[i];
-		FILE *fp;
-		static unsigned char content[RECOIL_MAX_CONTENT_LENGTH];
-		int content_len;
-		static unsigned char indexes[RECOIL_MAX_PIXELS_LENGTH];
-		int colors;
-		clock_t start_time;
-		clock_t decode_time;
-		clock_t colors_time;
-		clock_t palette_time;
-		clock_t decode2_time;
-		clock_t palette2_time;
-		clock_t colors2_time;
-
 		if (strcmp(arg, "--help") == 0) {
 			printf("Usage: benchmark FILE...\n");
 			return 0;
 		}
 
-		fp = fopen(arg, "rb");
+		FILE *fp = fopen(arg, "rb");
 		if (fp == NULL) {
 			fprintf(stderr, "benchmark: cannot open %s\n", arg);
 			return 1;
 		}
-		content_len = fread(content, 1, sizeof(content), fp);
+		static unsigned char content[RECOIL_MAX_CONTENT_LENGTH];
+		int content_len = fread(content, 1, sizeof(content), fp);
 		fclose(fp);
 
-		start_time = clock();
+		clock_t start_time = clock();
 		if (!RECOIL_Decode(recoil, arg, content, content_len)) {
 			fprintf(stderr, "benchmark: error decoding %s\n", arg);
 			return 1;
 		}
-		decode_time = clock();
-		colors = RECOIL_GetColors(recoil);
-		colors_time = clock();
+		clock_t decode_time = clock();
+		int colors = RECOIL_GetColors(recoil);
+		clock_t colors_time = clock();
+		static unsigned char indexes[RECOIL_MAX_PIXELS_LENGTH];
 		RECOIL_ToPalette(recoil, indexes);
-		palette_time = clock();
+		clock_t palette_time = clock();
 
 		RECOIL_Decode(recoil, arg, content, content_len);
-		decode2_time = clock();
+		clock_t decode2_time = clock();
 		RECOIL_ToPalette(recoil, indexes);
-		palette2_time = clock();
+		clock_t palette2_time = clock();
 		if (RECOIL_GetColors(recoil) != colors) {
 			fprintf(stderr, "benchmark: RECOIL_GetColors failed for %s\n", arg);
 			return 1;
 		}
-		colors2_time = clock();
+		clock_t colors2_time = clock();
 
 		printf("%3dx%3d %4d colors Decode=%2ld,%2ld GetColors=%2ld,%2ld ToPalette=%2ld,%2ld %s\n",
 			RECOIL_GetWidth(recoil), RECOIL_GetHeight(recoil), colors,

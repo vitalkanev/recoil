@@ -6,7 +6,7 @@ CFLAGS = -Wall -O2 -s
 CSOURCES = $(patsubst %/,-I%,$(sort $(dir $(filter %.h,$^)))) $(^:%.h=)
 LDFLAGS_DLL = -shared -Wl,--kill-at -Wl,-subsystem,windows
 CC = $(@D)-w64-mingw32-gcc -o $@ $(CFLAGS) $(CSOURCES)
-CXX = $(@D)-w64-mingw32-g++ -o $@ $(CFLAGS) $(CSOURCES)
+CXX = $(@D)-w64-mingw32-g++ -o $@ $(CFLAGS)
 WINDRES = $(@D)-w64-mingw32-windres -o $@
 CSC = C:/Windows/Microsoft.NET/Framework/v4.0.30319/csc.exe -nologo -o+ -out:$@
 RM = rm -f
@@ -47,7 +47,7 @@ i686/recoilwin-res.o x86_64/recoilwin-res.o: recoilwin/recoilwin.rc recoilwin/re
 	$(DO)$(WINDRES) -I.. $<
 
 i686/thumbrecoil.dll x86_64/thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../formats.h recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h
-	$(DO)$(CXX) $(LDFLAGS_DLL) -static -lgdi32 -lole32 -luuid
+	$(DO)$(CXX) $(LDFLAGS_DLL) -I. -I.. thumbrecoil/thumbrecoil.cpp -xc recoil-win32.c -xc ../recoil.c -static -lgdi32 -lole32 -luuid
 
 i686/RECOIL.plg x86_64/RECOIL.plg64: imagine/recoilimagine.c ../formats.h ../recoil.c ../recoil.h
 	$(DO)$(CC) $(LDFLAGS_DLL)
@@ -69,7 +69,7 @@ i686/by-platform.exe: by-platform.c recoil-win32.c recoil-win32.h ../recoil.c ..
 
 # http://www.cmcrossroads.com/article/rules-multiple-outputs-gnu-make
 %.c %.h: %.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../c64.fnt ../zx81.fnt
-	$(DO)$(CITO) -o $*.c -I .. $<
+	$(DO)$(CITO) -o $*.c -l c99 -I .. $<
 
 recoil.ico: ../recoil-512x512.png
 	$(DO)$(MAGICK) $< -resize 48x48 $@
