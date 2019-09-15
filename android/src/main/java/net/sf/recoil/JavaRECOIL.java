@@ -1,7 +1,7 @@
 /*
  * JavaRECOIL.java - RECOIL for Android
  *
- * Copyright (C) 2015-2018  Piotr Fusik
+ * Copyright (C) 2015-2019  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -52,7 +52,7 @@ abstract class JavaRECOIL extends RECOIL
 	}
 
 	@Override
-	int readFile(String filename, byte[] content, int contentLength)
+	protected int readFile(String filename, byte[] content, int contentLength)
 	{
 		try {
 			return readFileOrThrow(filename, content, contentLength);
@@ -139,7 +139,7 @@ class StreamRECOIL extends JavaRECOIL
 	}
 
 	@Override
-	int readFile(String filename, byte[] content, int contentLength)
+	protected int readFile(String filename, byte[] content, int contentLength)
 	{
 		return -1; // no companion files, sorry
 	}

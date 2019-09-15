@@ -1,7 +1,7 @@
 /*
  * recoil-win32.c - Win32 API subclass of RECOIL
  *
- * Copyright (C) 2015  Piotr Fusik
+ * Copyright (C) 2015-2019  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -25,23 +25,21 @@
 
 #include "recoil-win32.h"
 
-int SlurpFile(const char *filename, unsigned char *buffer, int len)
+int SlurpFile(const char *filename, uint8_t *buffer, int len)
 {
 	HANDLE fh = CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-	BOOL ok;
 	if (fh == INVALID_HANDLE_VALUE)
 		return -1;
-	ok = ReadFile(fh, buffer, len, (LPDWORD) &len, NULL);
+	BOOL ok = ReadFile(fh, buffer, len, (LPDWORD) &len, NULL);
 	CloseHandle(fh);
 	return ok ? len : -1;
 }
 
 typedef struct {
-	int (*readFile)(RECOIL *self, const char *filename, unsigned char *content, int contentLength);
-}
-RECOILVtbl;
+	int (*readFile)(const RECOIL *self, const char *filename, uint8_t *content, int contentLength);
+} RECOILVtbl;
 
-static int RECOILWin32_ReadFile(RECOIL *self, const char *filename, unsigned char *content, int contentLength)
+static int RECOILWin32_ReadFile(const RECOIL *self, const char *filename, uint8_t *content, int contentLength)
 {
 	return SlurpFile(filename, content, contentLength);
 }

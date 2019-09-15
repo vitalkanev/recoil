@@ -21,6 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -46,7 +47,7 @@ int main(int argc, char **argv)
 			fprintf(stderr, "benchmark: cannot open %s\n", arg);
 			return 1;
 		}
-		static unsigned char content[RECOIL_MAX_CONTENT_LENGTH];
+		static uint8_t content[RECOIL_MAX_CONTENT_LENGTH];
 		int content_len = fread(content, 1, sizeof(content), fp);
 		fclose(fp);
 
@@ -58,7 +59,7 @@ int main(int argc, char **argv)
 		clock_t decode_time = clock();
 		int colors = RECOIL_GetColors(recoil);
 		clock_t colors_time = clock();
-		static unsigned char indexes[RECOIL_MAX_PIXELS_LENGTH];
+		static uint8_t indexes[RECOIL_MAX_PIXELS_LENGTH];
 		RECOIL_ToPalette(recoil, indexes);
 		clock_t palette_time = clock();
 

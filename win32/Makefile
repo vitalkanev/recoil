@@ -69,7 +69,7 @@ i686/by-platform.exe: by-platform.c recoil-win32.c recoil-win32.h ../recoil.c ..
 
 # http://www.cmcrossroads.com/article/rules-multiple-outputs-gnu-make
 %.c %.h: %.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../c64.fnt ../zx81.fnt
-	$(DO)$(CITO) -o $*.c -l c99 -I .. $<
+	$(DO)$(CITO) -o $*.c -I .. $<
 
 recoil.ico: ../recoil-512x512.png
 	$(DO)$(MAGICK) $< -resize 48x48 $@

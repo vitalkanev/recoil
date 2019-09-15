@@ -1,7 +1,7 @@
 /*
  * recoil-stdio.c - stdio subclass of RECOIL
  *
- * Copyright (C) 2015  Piotr Fusik
+ * Copyright (C) 2015-2019  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -21,16 +21,16 @@
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <stdint.h>
 #include <stdio.h>
 
 #include "recoil-stdio.h"
 
 typedef struct {
-	int (*readFile)(RECOIL *self, const char *filename, unsigned char *content, int contentLength);
-}
-RECOILVtbl;
+	int (*readFile)(const RECOIL *self, const char *filename, uint8_t *content, int contentLength);
+} RECOILVtbl;
 
-static int RECOILStdio_ReadFile(RECOIL *self, const char *filename, unsigned char *content, int contentLength)
+static int RECOILStdio_ReadFile(const RECOIL *self, const char *filename, uint8_t *content, int contentLength)
 {
 	FILE *fp = fopen(filename, "rb");
 	if (fp == NULL)

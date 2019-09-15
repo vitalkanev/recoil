@@ -34,7 +34,7 @@ bin/recoil2png: ../recoil2png.c ../pngsave.c ../pngsave.h ../recoil-stdio.c ../r
 	mkdir -p $(@D) && $(CC) $(CFLAGS) -o $@ -I .. ../recoil2png.c ../pngsave.c ../recoil-stdio.c ../recoil.c /usr/local/lib/libpng.a -lz
 
 %.c %.h: %.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../c64.fnt ../zx81.fnt
-	cito -o $*.c -l c99 -I .. $<
+	cito -o $*.c -I .. $<
 
 clean:
 	rm -rf recoil-$(VERSION)-macos.dmg bin  ../formats.h

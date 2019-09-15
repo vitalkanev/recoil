@@ -22,6 +22,7 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -54,7 +55,7 @@ static int load_file(const char *filename, void *buffer, size_t buffer_len)
 
 static bool load_palette(RECOIL *recoil, const char *filename)
 {
-	unsigned char atari8_palette[768 + 1];
+	uint8_t atari8_palette[768 + 1];
 	switch (load_file(filename, atari8_palette, sizeof(atari8_palette))) {
 	case 768:
 		RECOIL_SetAtari8Palette(recoil, atari8_palette);
@@ -70,7 +71,7 @@ static bool load_palette(RECOIL *recoil, const char *filename)
 
 static bool process_file(RECOIL *recoil, const char *input_file, const char *output_file)
 {
-	static unsigned char content[RECOIL_MAX_CONTENT_LENGTH];
+	static uint8_t content[RECOIL_MAX_CONTENT_LENGTH];
 	int content_len = load_file(input_file, content, sizeof(content));
 	if (content_len < 0) {
 		/* error already printed */

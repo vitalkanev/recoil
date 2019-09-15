@@ -6,7 +6,7 @@ all: $(TARGETS)
 	xsltproc -o $@ www.xsl $< && java -jar C:/bin/vnu.jar $@
 
 recoil.js: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../c64.fnt ../zx81.fnt
-	cito -o $@ -l js-ta -I .. $<
+	cito -o $@ -I .. $<
 
 clean:
 	$(RM) $(TARGETS)

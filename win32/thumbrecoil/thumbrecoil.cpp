@@ -1,7 +1,7 @@
 /*
  * thumbrecoil.cpp - Windows thumbnail provider for RECOIL
  *
- * Copyright (C) 2011-2018  Piotr Fusik
+ * Copyright (C) 2011-2019  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -29,6 +29,7 @@
 #include <windows.h>
 #include <objidl.h>
 #include <shobjidl.h>
+#include <stdint.h>
 
 enum WTS_ALPHATYPE
 {
@@ -82,7 +83,7 @@ class CRECOILThumbProvider : IPersistFile, IExtractImage
 	RECOIL *m_pRecoil;
 	LPWSTR m_filename;
 	int m_contentLen;
-	unsigned char m_content[RECOIL_MAX_CONTENT_LENGTH];
+	uint8_t m_content[RECOIL_MAX_CONTENT_LENGTH];
 
 	HRESULT Decode(LPCWSTR pszFilename, HBITMAP *phBitmap)
 	{

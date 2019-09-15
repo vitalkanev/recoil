@@ -1,7 +1,7 @@
 /*
  * recoilwin.c - Windows API port of RECOIL
  *
- * Copyright (C) 2009-2017  Piotr Fusik
+ * Copyright (C) 2009-2019  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -23,6 +23,7 @@
 
 #include <windows.h>
 #include <commctrl.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -45,17 +46,17 @@ static HWND hStatus;
 
 static RECOIL *recoil;
 static char image_filename[MAX_PATH] = "";
-static BOOL image_loaded = FALSE;
+static bool image_loaded = false;
 
-static BOOL skip_files = TRUE;
-static BOOL fullscreen = FALSE;
+static bool skip_files = true;
+static bool fullscreen = false;
 static int zoom = 100;
 static int show_width;
 static int show_height;
 static int window_width;
 static int window_height;
-static BOOL show_path = FALSE;
-static BOOL status_bar = TRUE;
+static bool show_path = false;
+static bool status_bar = true;
 
 static struct {
 	BITMAPINFOHEADER bmiHeader;
@@ -90,12 +91,12 @@ static void ShowAbout(void)
 	MessageBoxIndirect(&mbp);
 }
 
-static void SetMenuEnabled(int id, BOOL enable)
+static void SetMenuEnabled(int id, bool enable)
 {
 	EnableMenuItem(hMenu, id, MF_BYCOMMAND | (enable ? MF_ENABLED : MF_GRAYED));
 }
 
-static void SetMenuCheck(int id, BOOL check)
+static void SetMenuCheck(int id, bool check)
 {
 	CheckMenuItem(hMenu, id, MF_BYCOMMAND | (check ? MF_CHECKED : MF_UNCHECKED));
 }
@@ -147,7 +148,7 @@ static int Fit(int dest_width, int dest_height)
 	}
 }
 
-static void ShowStatusBar(BOOL show)
+static void ShowStatusBar(bool show)
 {
 	SetWindowLong(hStatus, GWL_STYLE, show ? WS_VISIBLE | WS_CHILD : WS_CHILD);
 }
@@ -185,7 +186,7 @@ static void ResizeWindow(void)
 	}
 }
 
-static BOOL Repaint(BOOL fit_to_desktop)
+static bool Repaint(bool fit_to_desktop)
 {
 	if (image_loaded) {
 		if (fullscreen)
@@ -193,7 +194,6 @@ static BOOL Repaint(BOOL fit_to_desktop)
 		else {
 			int desktop_width = GetSystemMetrics(SM_CXFULLSCREEN);
 			int desktop_height = GetSystemMetrics(SM_CYFULLSCREEN);
-			RECT rect;
 			if (zoom < ZOOM_MIN)
 				zoom = ZOOM_MIN;
 			show_width = MulDiv(RECOIL_GetWidth(recoil), zoom, 100);
@@ -201,11 +201,12 @@ static BOOL Repaint(BOOL fit_to_desktop)
 			CalculateWindowSize();
 			if (window_width > desktop_width || window_height > desktop_height) {
 				if (!fit_to_desktop)
-					return FALSE;
+					return false;
 				zoom = Fit(desktop_width, desktop_height);
 				CalculateWindowSize();
 			}
 			ResizeWindow();
+			RECT rect;
 			GetClientRect(hWnd, &rect);
 			rect.bottom -= GetStatusBarHeight();
 			if (rect.bottom < show_height) {
@@ -216,7 +217,7 @@ static BOOL Repaint(BOOL fit_to_desktop)
 	}
 	InvalidateRect(hWnd, NULL, TRUE);
 	UpdateText();
-	return TRUE;
+	return true;
 }
 
 static void ToggleFullscreen(void)
@@ -226,17 +227,17 @@ static void ToggleFullscreen(void)
 		ShowStatusBar(status_bar);
 		SetWindowLong(hWnd, GWL_STYLE, WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX);
 		SetMenu(hWnd, hMenu);
-		fullscreen = FALSE;
+		fullscreen = false;
 	}
 	else {
 		ShowCursor(FALSE);
-		ShowStatusBar(FALSE);
+		ShowStatusBar(false);
 		SetWindowLong(hWnd, GWL_STYLE, WS_VISIBLE | WS_POPUP);
 		SetMenu(hWnd, NULL);
 		MoveWindow(hWnd, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), TRUE);
-		fullscreen = TRUE;
+		fullscreen = true;
 	}
-	Repaint(TRUE);
+	Repaint(true);
 }
 
 static void ZoomIn(void)
@@ -244,7 +245,7 @@ static void ZoomIn(void)
 	if (fullscreen)
 		return;
 	zoom += ZOOM_STEP;
-	Repaint(TRUE);
+	Repaint(true);
 }
 
 static void ZoomOut(void)
@@ -255,10 +256,10 @@ static void ZoomOut(void)
 		zoom -= zoom % ZOOM_STEP + ZOOM_STEP;
 		if (zoom < ZOOM_MIN) {
 			zoom = ZOOM_MIN;
-			Repaint(TRUE);
+			Repaint(true);
 			break;
 		}
-	} while (!Repaint(FALSE));
+	} while (!Repaint(false));
 }
 
 static void ZoomSet(int value)
@@ -266,28 +267,22 @@ static void ZoomSet(int value)
 	if (fullscreen)
 		return;
 	zoom = value;
-	Repaint(TRUE);
+	Repaint(true);
 }
 
-static BOOL OpenImage(BOOL show_error)
+static bool OpenImage(bool show_error)
 {
+	SetMenuEnabled(IDM_PREVFILE, true);
+	SetMenuEnabled(IDM_NEXTFILE, true);
+	SetMenuEnabled(IDM_FIRSTFILE, true);
+	SetMenuEnabled(IDM_LASTFILE, true);
+
 	static BYTE content[RECOIL_MAX_CONTENT_LENGTH];
-	int content_len;
-	int width;
-	int height;
-	const int *palette;
-	int colors;
-
-	SetMenuEnabled(IDM_PREVFILE, TRUE);
-	SetMenuEnabled(IDM_NEXTFILE, TRUE);
-	SetMenuEnabled(IDM_FIRSTFILE, TRUE);
-	SetMenuEnabled(IDM_LASTFILE, TRUE);
-
-	content_len = SlurpFile(image_filename, content, sizeof(content));
+	int content_len = SlurpFile(image_filename, content, sizeof(content));
 	if (content_len < 0) {
 		if (show_error)
 			ShowError("Cannot open file");
-		return FALSE;
+		return false;
 	}
 
 	image_loaded = RECOIL_Decode(recoil, image_filename, content, content_len);
@@ -301,19 +296,19 @@ static BOOL OpenImage(BOOL show_error)
 	SetMenuEnabled(IDM_ZOOM3, image_loaded);
 	SetMenuEnabled(IDM_ZOOM4, image_loaded);
 	if (!image_loaded) {
-		SetMenuEnabled(IDM_INVERT, FALSE);
+		SetMenuEnabled(IDM_INVERT, false);
 		SetWindowText(hWnd, APP_TITLE);
 		SetWindowText(hStatus, NULL);
 		if (show_error) {
-			Repaint(TRUE);
+			Repaint(true);
 			ShowError("Decoding error");
 		}
-		return FALSE;
+		return false;
 	}
-	width = RECOIL_GetWidth(recoil);
-	height = RECOIL_GetHeight(recoil);
-	palette = RECOIL_ToPalette(recoil, bitmap.pixels + RECOIL_MAX_PIXELS_LENGTH); /* an area we won't need later */
-	colors = RECOIL_GetColors(recoil);
+	int width = RECOIL_GetWidth(recoil);
+	int height = RECOIL_GetHeight(recoil);
+	const int *palette = RECOIL_ToPalette(recoil, bitmap.pixels + RECOIL_MAX_PIXELS_LENGTH); /* an area we won't need later */
+	int colors = RECOIL_GetColors(recoil);
 	SetMenuEnabled(IDM_INVERT, colors == 2);
 
 	bitmap.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -326,27 +321,24 @@ static BOOL OpenImage(BOOL show_error)
 	bitmap.bmiHeader.biYPelsPerMeter = 1000;
 	if (palette != NULL) {
 		int bytesPerLine = (width + 3) & ~3;
-		int y;
 		bitmap.bmiHeader.biSizeImage = sizeof(BITMAPINFOHEADER) + colors * sizeof(RGBQUAD) + height * bytesPerLine;
 		bitmap.bmiHeader.biClrUsed = colors;
 		bitmap.bmiHeader.biClrImportant = colors;
 		memcpy(bitmap.bmiColors, palette, colors * 4);
 		bitmap_pixels = (BYTE *) (bitmap.bmiColors + colors);
-		for (y = 0; y < height; y++)
+		for (int y = 0; y < height; y++)
 			memcpy(bitmap_pixels + (height - 1 - y) * bytesPerLine, bitmap.pixels + RECOIL_MAX_PIXELS_LENGTH + y * width, width);
 	}
 	else {
 		int bytesPerLine = (width * 3 + 3) & ~3;
 		const int *pixels = RECOIL_GetPixels(recoil);
-		int y;
 		bitmap.bmiHeader.biSizeImage = sizeof(BITMAPINFOHEADER) + height * bytesPerLine;
 		bitmap.bmiHeader.biClrUsed = 0;
 		bitmap.bmiHeader.biClrImportant = 0;
 		bitmap_pixels = (BYTE *) bitmap.bmiColors;
-		for (y = 0; y < height; y++) {
+		for (int y = 0; y < height; y++) {
 			BYTE *dest = bitmap_pixels + (height - 1 - y) * bytesPerLine;
-			int x;
-			for (x = 0; x < width; x++) {
+			for (int x = 0; x < width; x++) {
 				int rgb = *pixels++;
 				*dest++ = (BYTE) rgb;
 				*dest++ = (BYTE) (rgb >> 8);
@@ -355,8 +347,8 @@ static BOOL OpenImage(BOOL show_error)
 		}
 	}
 
-	Repaint(TRUE);
-	return TRUE;
+	Repaint(true);
+	return true;
 }
 
 static void SelectAndOpenImage(void)
@@ -387,28 +379,26 @@ static void SelectAndOpenImage(void)
 	if (fullscreen)
 		ShowCursor(TRUE);
 	if (GetOpenFileName(&ofn))
-		OpenImage(TRUE);
+		OpenImage(true);
 	if (fullscreen)
 		ShowCursor(FALSE);
 }
 
-static BOOL GetSiblingFile(char *filename, int dir)
+static bool GetSiblingFile(char *filename, int dir)
 {
-	int path_len;
-	char mask[MAX_PATH];
-	char best[MAX_PATH];
-	HANDLE fh;
-	WIN32_FIND_DATA wfd;
-	path_len = GetPathLength(filename);
+	int path_len = GetPathLength(filename);
 	if (path_len > MAX_PATH - 2)
-		return FALSE;
+		return false;
+	char mask[MAX_PATH];
 	memcpy(mask, filename, path_len);
 	mask[path_len] = '*';
 	mask[path_len + 1] = '\0';
+	char best[MAX_PATH];
 	best[0] = '\0';
-	fh = FindFirstFile(mask, &wfd);
+	WIN32_FIND_DATA wfd;
+	HANDLE fh = FindFirstFile(mask, &wfd);
 	if (fh == INVALID_HANDLE_VALUE)
-		return FALSE;
+		return false;
 	do {
 		if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0
 		 && wfd.nFileSizeHigh == 0 && wfd.nFileSizeLow <= RECOIL_MAX_CONTENT_LENGTH
@@ -419,11 +409,11 @@ static BOOL GetSiblingFile(char *filename, int dir)
 	} while (FindNextFile(fh, &wfd));
 	FindClose(fh);
 	if (best[0] == '\0')
-		return FALSE;
+		return false;
 	if (path_len + strlen(best) + 1 >= MAX_PATH)
-		return FALSE;
+		return false;
 	strcpy(filename + path_len, best);
-	return TRUE;
+	return true;
 }
 
 static void OpenSiblingImage(int dir)
@@ -432,19 +422,19 @@ static void OpenSiblingImage(int dir)
 		return;
 	while (GetSiblingFile(image_filename, dir)) {
 		if (skip_files) {
-			if (OpenImage(FALSE))
+			if (OpenImage(false))
 				return;
 			/* first->next, last->prev */
 			if ((dir & 1) == 0)
 				dir >>= 1;
 		}
 		else {
-			OpenImage(TRUE);
+			OpenImage(true);
 			return;
 		}
 	}
 	if (!image_loaded)
-		OpenImage(TRUE);
+		OpenImage(true);
 }
 
 static void SelectAndSaveImage(void)
@@ -483,28 +473,28 @@ static void SelectAndSaveImage(void)
 		ShowCursor(FALSE);
 }
 
-static BOOL OpenPalette(const char *filename)
+static bool OpenPalette(const char *filename)
 {
 	BYTE atari8_palette[768 + 1];
 	int atari8_palette_len = SlurpFile(filename, atari8_palette, sizeof(atari8_palette));
 	if (atari8_palette_len < 0) {
 		ShowError("Cannot open file");
-		return FALSE;
+		return false;
 	}
 	if (atari8_palette_len != 768) {
 		ShowError("Invalid file length - must be 768 bytes");
-		return FALSE;
+		return false;
 	}
 	RECOIL_SetAtari8Palette(recoil, atari8_palette);
-	return TRUE;
+	return true;
 }
 
-static void UseExternalPalette(BOOL act)
+static void UseExternalPalette(bool act)
 {
 	SetMenuEnabled(IDM_USEPALETTE, act);
 	SetMenuCheck(IDM_USEPALETTE, act);
 	if (image_loaded)
-		OpenImage(TRUE);
+		OpenImage(true);
 }
 
 static void SelectAndOpenPalette(void)
@@ -538,7 +528,7 @@ static void SelectAndOpenPalette(void)
 	if (fullscreen)
 		ShowCursor(TRUE);
 	if (GetOpenFileName(&ofn) && OpenPalette(act_filename))
-		UseExternalPalette(TRUE);
+		UseExternalPalette(true);
 	if (fullscreen)
 		ShowCursor(FALSE);
 }
@@ -549,16 +539,13 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 	case WM_PAINT:
 		{
 			PAINTSTRUCT ps;
-			HDC hdc;
-			hdc = BeginPaint(hWnd, &ps);
+			HDC hdc = BeginPaint(hWnd, &ps);
 			if (image_loaded) {
 				RECT rect;
-				int x;
-				int y;
 				GetClientRect(hWnd, &rect);
 				rect.bottom -= GetStatusBarHeight();
-				x = rect.right > show_width ? (rect.right - show_width) >> 1 : 0;
-				y = rect.bottom > show_height ? (rect.bottom - show_height) >> 1 : 0;
+				int x = rect.right > show_width ? (rect.right - show_width) >> 1 : 0;
+				int y = rect.bottom > show_height ? (rect.bottom - show_height) >> 1 : 0;
 				SetStretchBltMode(hdc, COLORONCOLOR);
 				StretchDIBits(hdc, x, y, show_width, show_height, 0, 0, RECOIL_GetWidth(recoil), RECOIL_GetHeight(recoil),
 					bitmap_pixels, (CONST BITMAPINFO *) &bitmap, DIB_RGB_COLORS, SRCCOPY);
@@ -610,7 +597,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			break;
 		case IDM_USEPALETTE:
 			RECOIL_SetAtari8Palette(recoil, NULL);
-			UseExternalPalette(FALSE);
+			UseExternalPalette(false);
 			break;
 		case IDM_EXIT:
 			PostQuitMessage(0);
@@ -652,7 +639,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 				RGBQUAD c0 = bitmap.bmiColors[0];
 				bitmap.bmiColors[0] = bitmap.bmiColors[1];
 				bitmap.bmiColors[1] = c0;
-				Repaint(TRUE);
+				Repaint(true);
 			}
 			break;
 		case IDM_SHOWPATH:
@@ -664,7 +651,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			status_bar = !status_bar;
 			SetMenuCheck(IDM_STATUSBAR, status_bar);
 			ShowStatusBar(status_bar);
-			Repaint(TRUE);
+			Repaint(true);
 			break;
 		case IDM_ABOUT:
 			ShowAbout();
@@ -681,7 +668,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			PCOPYDATASTRUCT pcds = (PCOPYDATASTRUCT) lParam;
 			if (pcds->dwData == 'O' && pcds->cbData <= sizeof(image_filename)) {
 				memcpy(image_filename, pcds->lpData, pcds->cbData);
-				OpenImage(TRUE);
+				OpenImage(true);
 			}
 		}
 		break;
@@ -691,7 +678,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			/* when dragging many files, get just the first filename */
 			DragQueryFile(hDrop, 0, image_filename, MAX_PATH);
 			DragFinish(hDrop);
-			OpenImage(TRUE);
+			OpenImage(true);
 		}
 		return 0;
 	default:
@@ -704,11 +691,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 {
 	char *pb;
 	char *pe;
-	static const INITCOMMONCONTROLSEX iccx = { sizeof(INITCOMMONCONTROLSEX), ICC_BAR_CLASSES };
-	WNDCLASS wc;
-	HACCEL hAccel;
-	MSG msg;
-
 	for (pb = lpCmdLine; *pb == ' ' || *pb == '\t'; pb++);
 	for (pe = pb; *pe != '\0'; pe++);
 	while (--pe > pb && (*pe == ' ' || *pe == '\t'));
@@ -743,7 +725,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 1;
 
 	hInst = hInstance;
+	static const INITCOMMONCONTROLSEX iccx = { sizeof(INITCOMMONCONTROLSEX), ICC_BAR_CLASSES };
 	InitCommonControlsEx(&iccx);
+	WNDCLASS wc;
 	wc.style = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
 	wc.lpfnWndProc = MainWndProc;
 	wc.cbClsExtra = 0;
@@ -769,17 +753,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		hWnd, NULL, hInstance, NULL
 	);
 
-	hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATORS));
-
+	HACCEL hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATORS));
 	DragAcceptFiles(hWnd, TRUE);
 
 	if (*pb != '\0') {
 		memcpy(image_filename, pb, pe + 1 - pb);
-		OpenImage(TRUE);
+		OpenImage(true);
 	}
 	else
 		SelectAndOpenImage();
 
+	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0)) {
 		if (!TranslateAccelerator(hWnd, hAccel, &msg)) {
 			TranslateMessage(&msg);
