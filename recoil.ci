@@ -444,21 +444,6 @@ class MppPaletteStream : BitStream
 
 abstract class MultiPalette : BitStream
 {
-	protected static int GetOcsColor(int r, int gb)
-	{
-		int rgb = (r & 0xf) << 16 | (gb & 0xf0) << 4 | (gb & 0xf); // 0x0R0G0B
-		return rgb * 0x11; // 0xRRGGBB
-	}
-
-	protected void SetOcsPalette(RECOIL! recoil, int contentOffset, int colors)
-	{
-		for (int c = 0; c < colors; c++) {
-			int r = Content[contentOffset++];
-			int gb = Content[contentOffset++];
-			recoil.ContentPalette[c] = GetOcsColor(r, gb);
-		}
-	}
-
 	internal abstract void SetLinePalette!(RECOIL! recoil, int y);
 }
 
@@ -525,7 +510,7 @@ class CtblPalette : MultiPalette
 
 	internal override void SetLinePalette!(RECOIL! recoil, int y)
 	{
-		SetOcsPalette(recoil, ContentOffset + (y * Colors << 1), Colors);
+		recoil.SetOcsPalette(Content, ContentOffset + (y * Colors << 1), Colors);
 	}
 }
 
@@ -533,7 +518,7 @@ class ShamLacePalette : MultiPalette
 {
 	internal override void SetLinePalette!(RECOIL! recoil, int y)
 	{
-		SetOcsPalette(recoil, ContentOffset + (y >> 1 << 5), 16);
+		recoil.SetOcsPalette(Content, ContentOffset + (y >> 1 << 5), 16);
 	}
 }
 
@@ -638,7 +623,7 @@ class PchgPalette : MultiPalette
 			int gb = UnpackByte();
 			if (gb < 0)
 				return; // error
-			recoil.ContentPalette[paletteOffset + (rr >> 4)] = GetOcsColor(rr, gb);
+			recoil.SetOcsColor(paletteOffset + (rr >> 4), rr, gb);
 		}
 	}
 
@@ -11052,6 +11037,55 @@ public class RECOIL
 
 	// Amiga formats.
 
+	internal void SetOcsColor!(int c, int r, int gb)
+	{
+		int rgb = (r & 0xf) << 16 | (gb & 0xf0) << 4 | (gb & 0xf); // 0x0R0G0B
+		ContentPalette[c] = rgb * 0x11; // 0xRRGGBB
+	}
+
+	internal void SetOcsPalette!(byte[] content, int contentOffset, int colors)
+	{
+		for (int c = 0; c < colors; c++) {
+			int r = content[contentOffset++];
+			int gb = content[contentOffset++];
+			SetOcsColor(c, r, gb);
+		}
+	}
+
+	bool DecodeAmigaPlanar!(byte[] content, int contentOffset, int width, int height, int bitplanes, int[] palette)
+	{
+		if (!SetSize(width, height, RECOILResolution.Amiga1x1))
+			return false;
+		int bytesPerLine = width + 15 >> 4 << 1;
+		int bitplaneLength = height * bytesPerLine;
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int c = GetBitplanePixel(content, contentOffset + y * bytesPerLine + (x >> 3), x, bitplanes, bitplaneLength);
+				Pixels[y * width + x] = palette[c];
+			}
+		}
+		return true;
+	}
+
+	bool DecodeAbk!(byte[] content, int contentLength)
+	{
+		if (contentLength < 6 + 10 + 2 + 64
+		 || !IsStringAt(content, 0, "AmSp")
+		 || content[10] != 0)
+			return false;
+		int bitplanes = content[11];
+		if (bitplanes == 0 || bitplanes > 5)
+			return false;
+		int width = content[6] << 8 | content[7];
+		int height = content[8] << 8 | content[9];
+		int bitplaneLength = width * height << 1;
+		int paletteOffset = 16 + (bitplanes * bitplaneLength);
+		if (paletteOffset + 64 > contentLength)
+			return false;
+		SetOcsPalette(content, paletteOffset, 32);
+		return DecodeAmigaPlanar(content, 16, width << 4, height, bitplanes, ContentPalette);
+	}
+
 	bool DecodeInfo!(byte[] content, int contentLength)
 	{
 		if (contentLength < 98 || content[0] != 0xe3 || content[1] != 0x10 || content[2] != 0 || content[3] != 1)
@@ -11088,17 +11122,8 @@ public class RECOIL
 		int bytesPerLine = width + 15 >> 4 << 1;
 		int bitplaneLength = height * bytesPerLine;
 		contentOffset += 0x14;
-		if (contentLength < contentOffset + bitplanes * bitplaneLength
-		 || !SetSize(width, height, RECOILResolution.Amiga1x1))
-			return false;
-
-		for (int y = 0; y < height; y++) {
-			for (int x = 0; x < width; x++) {
-				int c = GetBitplanePixel(content, contentOffset + y * bytesPerLine + (x >> 3), x, bitplanes, bitplaneLength);
-				Pixels[y * width + x] = palette[c];
-			}
-		}
-		return true;
+		return contentLength >= contentOffset + bitplanes * bitplaneLength
+			&& DecodeAmigaPlanar(content, contentOffset, width, height, bitplanes, palette);
 	}
 
 	static RECOILResolution GetAmigaAspectRatio(int xRatio, int yRatio, RECOILResolution resolution)
@@ -16061,6 +16086,7 @@ public class RECOIL
 		case PackExt("WIG"):
 		case PackExt("AAS"):
 		case PackExt("IPH"):
+		case PackExt("ABK"):
 		case PackExt("ACS"):
 		case PackExt("AFL"):
 		case PackExt("AGP"):
@@ -16512,6 +16538,8 @@ public class RECOIL
 		case PackExt("AAS"):
 		case PackExt("IPH"):
 			return DecodeIph(content, contentLength);
+		case PackExt("ABK"):
+			return DecodeAbk(content, contentLength);
 		case PackExt("ACS"):
 			return DecodeAcs(content, contentLength);
 		case PackExt("AFL"):

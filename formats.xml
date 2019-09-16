@@ -1,5 +1,6 @@
 ﻿<formats version="4.3.2">
 	<platform name="Amiga" href="http://en.wikipedia.org/wiki/Amiga">
+		<format name="AMOS Sprite"><ext>ABK</ext></format>
 		<format name="Amiga Continuous Bitmap"><ext>ACBM</ext></format>
 		<format hardware="DCTV" name="DCTV">
 			<ext>DCT</ext>
