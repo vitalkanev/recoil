@@ -11070,7 +11070,8 @@ public class RECOIL
 	bool DecodeAbk!(byte[] content, int contentLength)
 	{
 		if (contentLength < 6 + 10 + 2 + 64
-		 || !IsStringAt(content, 0, "AmSp")
+		 || content[0] != 'A' || content[1] != 'm'
+		 || ((content[2] != 'S' || content[3] != 'p') && (content[2] != 'I' || content[3] != 'c'))
 		 || content[10] != 0)
 			return false;
 		int bitplanes = content[11];
