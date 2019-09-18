@@ -11067,26 +11067,6 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodeAbk!(byte[] content, int contentLength)
-	{
-		if (contentLength < 6 + 10 + 2 + 64
-		 || content[0] != 'A' || content[1] != 'm'
-		 || ((content[2] != 'S' || content[3] != 'p') && (content[2] != 'I' || content[3] != 'c'))
-		 || content[10] != 0)
-			return false;
-		int bitplanes = content[11];
-		if (bitplanes == 0 || bitplanes > 5)
-			return false;
-		int width = content[6] << 8 | content[7];
-		int height = content[8] << 8 | content[9];
-		int bitplaneLength = width * height << 1;
-		int paletteOffset = 16 + (bitplanes * bitplaneLength);
-		if (paletteOffset + 64 > contentLength)
-			return false;
-		SetOcsPalette(content, paletteOffset, 32);
-		return DecodeAmigaPlanar(content, 16, width << 4, height, bitplanes, ContentPalette);
-	}
-
 	bool DecodeInfo!(byte[] content, int contentLength)
 	{
 		if (contentLength < 98 || content[0] != 0xe3 || content[1] != 0x10 || content[2] != 0 || content[3] != 1)
@@ -11125,6 +11105,100 @@ public class RECOIL
 		contentOffset += 0x14;
 		return contentLength >= contentOffset + bitplanes * bitplaneLength
 			&& DecodeAmigaPlanar(content, contentOffset, width, height, bitplanes, palette);
+	}
+
+	bool DecodeAbkSprite!(byte[] content, int contentLength)
+	{
+		if (content[10] != 0)
+			return false;
+		int bitplanes = content[11];
+		if (bitplanes == 0 || bitplanes > 5)
+			return false;
+		int width = content[6] << 8 | content[7];
+		int height = content[8] << 8 | content[9];
+		int bitplaneLength = width * height << 1;
+		int paletteOffset = 16 + (bitplanes * bitplaneLength);
+		if (paletteOffset + 64 > contentLength)
+			return false;
+		SetOcsPalette(content, paletteOffset, 32);
+		return DecodeAmigaPlanar(content, 16, width << 4, height, bitplanes, ContentPalette);
+	}
+
+	bool DecodeAbk!(byte[] content, int contentLength)
+	{
+		if (contentLength < 6 + 10 + 2 + 64
+		 || content[0] != 'A' || content[1] != 'm')
+			return false;
+		switch (content[2]) {
+		case 'S':
+			return content[3] == 'p' && DecodeAbkSprite(content, contentLength);
+		case 'I':
+			return content[3] == 'c' && DecodeAbkSprite(content, contentLength);
+		case 'B':
+			break;
+		default:
+			return false;
+		}
+
+		if (content[3] != 'k'
+		 || contentLength < 135
+		 || !IsStringAt(content, 12, "Pac.Pic")
+		 || content[0x6e] != 0x06
+		 || content[0x6f] != 0x07
+		 || content[0x70] != 0x19
+		 || content[0x71] != 0x63
+		 || content[0x7c] != 0)
+			return false;
+		int width = content[0x76] << 8 | content[0x77];
+		int lumps = content[0x78] << 8 | content[0x79];
+		int lumpLines = content[0x7a] << 8 | content[0x7b];
+		int height = lumps * lumpLines;
+		int bitplanes = content[0x7d];
+		if (bitplanes == 0 || bitplanes > 6
+		 || !SetSize(width << 3, height, RECOILResolution.Amiga1x1))
+			return false;
+		int rleOffset = 0x6e + Get32BigEndian(content, 0x7e);
+		if (rleOffset < 0 || rleOffset >= contentLength)
+			return false;
+		int pointsOffset = 0x6e + Get32BigEndian(content, 0x82);
+		if (pointsOffset < 0)
+			return false;
+		byte[]# unpacked = new byte[bitplanes * width * height];
+		int picOffset = 0x87 ;
+		byte pic = content[0x86];
+		int rleBits = content[rleOffset++] << 8 | 0x80;
+		int pointsBits = 0x80;
+		for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
+			for (int lump = 0; lump < lumps; lump++) {
+				for (int x = 0; x < width; x++) {
+					for (int y = 0; y < lumpLines; y++) {
+						rleBits <<= 1;
+						if ((rleBits & 0xff) == 0) {
+							pointsBits <<= 1;
+							if ((pointsBits & 0xff) == 0) {
+								if (pointsOffset >= contentLength)
+									return false;
+								pointsBits = content[pointsOffset++] << 1 | 1;
+							}
+							if ((pointsBits >> 8 & 1) != 0) {
+								if (rleOffset >= contentLength)
+									return false;
+								rleBits = content[rleOffset++] << 1 | 1;
+							}
+							else {
+								rleBits >>= 8;
+							}
+						}
+						if ((rleBits >> 8 & 1) != 0) {
+							pic = content[picOffset++];
+						}
+						unpacked[((bitplane * lumps + lump) * lumpLines + y) * width + x] = pic;
+					}
+				}
+			}
+		}
+		SetOcsPalette(content, 0x2e, 32);
+		return DecodeAmigaPlanar(unpacked, 0, width << 3, height, bitplanes, ContentPalette);
 	}
 
 	static RECOILResolution GetAmigaAspectRatio(int xRatio, int yRatio, RECOILResolution resolution)
