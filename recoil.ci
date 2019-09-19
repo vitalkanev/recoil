@@ -11154,7 +11154,8 @@ public class RECOIL
 		int lumpLines = content[0x7a] << 8 | content[0x7b];
 		int height = lumps * lumpLines;
 		int bitplanes = content[0x7d];
-		if (bitplanes == 0 || bitplanes > 6
+		// TODO: 6 bitplanes, (content[0x28] & 8) != 0 ? HAM : EHB
+		if (bitplanes == 0 || bitplanes > 5
 		 || !SetSize(width << 3, height, RECOILResolution.Amiga1x1))
 			return false;
 		int rleOffset = 0x6e + Get32BigEndian(content, 0x7e);
@@ -11164,10 +11165,10 @@ public class RECOIL
 		if (pointsOffset < 0)
 			return false;
 		byte[]# unpacked = new byte[bitplanes * width * height];
-		int picOffset = 0x87 ;
+		int picOffset = 0x87;
 		byte pic = content[0x86];
 		int rleBits = content[rleOffset++] << 8 | 0x80;
-		int pointsBits = 0x80;
+		int pointsBits = 0;
 		for (int bitplane = 0; bitplane < bitplanes; bitplane++) {
 			for (int lump = 0; lump < lumps; lump++) {
 				for (int x = 0; x < width; x++) {
