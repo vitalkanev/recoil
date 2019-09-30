@@ -660,6 +660,7 @@
 		</format>
 		<format colors="256"><ext>PI</ext></format>
 		<format name="XLD4" width="640" height="400" colors="16"><ext>Q4</ext></format>
+		<format name="Z's Staff Kid98" colors="16"><ext>ZIM</ext></format>
 	</platform>
 	<platform name="Oric" href="http://en.wikipedia.org/wiki/Oric">
 		<format name="6x8 font" colors="2"><ext>CHS</ext></format>

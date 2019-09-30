@@ -7243,6 +7243,93 @@ public class RECOIL
 
 	// NEC PC-98 formats.
 
+	static int UnpackZim(byte[] content, int contentOffset, int end, byte[] flags, byte[]! unpacked, int unpackedLength)
+	{
+		for (int unpackedOffset = 0; unpackedOffset < unpackedLength; unpackedOffset++)
+			unpacked[unpackedOffset] = contentOffset < end && (flags[unpackedOffset >> 3] >> (~unpackedOffset & 7) & 1) != 0 ? content[contentOffset++] : 0;
+		return contentOffset;
+	}
+
+	bool DecodeZim!(byte[] content, int contentLength)
+	{
+		if (contentLength < 700 || !IsStringAt(content, 0, "FORMAT-A"))
+			return false;
+		int contentOffset = 0x200 + ((content[0x1fa] | content[0x1fb] << 8) << 1);
+		if (contentOffset + 26 > contentLength
+		 || content[contentOffset] != 0 || content[contentOffset + 1] != 0
+		 || content[contentOffset + 2] != 0 || content[contentOffset + 3] != 0
+		 || content[contentOffset + 0x14] != 1 || content[contentOffset + 0x15] != 0) // TODO: uncompressed
+			return false;
+		int width = content[contentOffset + 4] + (content[contentOffset + 5] << 8) + 1;
+		int height = content[contentOffset + 6] + (content[contentOffset + 7] << 8) + 1;
+		if (!SetSize(width, height, RECOILResolution.Pc981x1))
+			return false;
+		contentOffset += 24;
+		if (content[contentOffset - 2] != 0 || content[contentOffset - 1] != 0) {
+			if (contentOffset + 66 > contentLength)
+				return false;
+			for (int c = 0; c < 16; c++) {
+				ContentPalette[c] = content[contentOffset + 1] << 16 | content[contentOffset + 2] << 8 | content[contentOffset];
+				contentOffset += 4;
+			}
+		}
+		else {
+			for (int c = 0; c < 16; c++)
+				ContentPalette[c] = GetZxColor(c);
+			ContentPalette[8] = 0xffffff;
+		}
+		int pixelsLength = width * height;
+		for (int pixelsOffset = 0; pixelsOffset < pixelsLength; pixelsOffset++)
+			Pixels[pixelsOffset] = ContentPalette[0];
+		byte[1] h1;
+		byte[8] h2;
+		byte[64] h3;
+		byte[512] data;
+		contentOffset += 2 + ((content[contentOffset] | content[contentOffset + 1] << 8) << 1);
+		while (contentOffset + 1 < contentLength) {
+			int dot = content[contentOffset] | content[contentOffset + 1] << 8;
+			if (dot == 0)
+				return true;
+			if (contentOffset + 10 >= contentLength)
+				return false;
+			int x = content[contentOffset + 2] | content[contentOffset + 3] << 8;
+			if (x >= width)
+				return false;
+			int y = content[contentOffset + 4] | content[contentOffset + 5] << 8;
+			if (y >= height)
+				return false;
+			int len = content[contentOffset + 6] | content[contentOffset + 7] << 8;
+			int end = contentOffset + 8 + len;
+			if (end >= contentLength)
+				return false;
+			int size = content[contentOffset + 8] | content[contentOffset + 9] << 8;
+			if (size > 512 || (size & 3) != 0 || size << 1 < dot)
+				return false;
+			int pixelsOffset = y * width + x;
+			if (pixelsOffset + dot > pixelsLength)
+				return false;
+			h1[0] = content[contentOffset + 10];
+			contentOffset += 11;
+			contentOffset = UnpackZim(content, contentOffset, end, h1, h2, 8);
+			contentOffset = UnpackZim(content, contentOffset, end, h2, h3, 64);
+			contentOffset = UnpackZim(content, contentOffset, end, h3, data, size);
+			for (int i = 1; i < size; i++)
+				data[i] ^= data[i - 1];
+			for (int i = 2; i < size; i++)
+				data[i] ^= data[i - 2];
+			size >>= 2;
+			for (int i = 0; i < dot; i++) {
+				int bit = ~i & 7;
+				int c = (data[i >> 3] >> bit & 1) << 3
+					  | (data[size + (i >> 3)] >> bit & 1) << 2
+					  | (data[2 * size + (i >> 3)] >> bit & 1) << 1
+					  | (data[3 * size + (i >> 3)] >> bit & 1);
+				Pixels[pixelsOffset + i] = ContentPalette[c];
+			}
+		}
+		return false;
+	}
+
 	bool DecodeQ4!(byte[] content, int contentLength)
 	{
 		if (contentLength < 22
@@ -14446,7 +14533,7 @@ public class RECOIL
 		}
 	}
 
-	static byte Gr12GtiaByteToGr8(int b, int ch, bool gtia10)
+	static int Gr12GtiaByteToGr8(int b, int ch, bool gtia10)
 	{
 		return Gr12GtiaNibbleToGr8(b >> 4, ch, gtia10) << 4
 			| Gr12GtiaNibbleToGr8(b & 0xf, ch, gtia10);
@@ -16570,6 +16657,7 @@ public class RECOIL
 		case PackExt("WND"):
 		case PackExt("XGA"):
 		case PackExt("XLP"):
+		case PackExt("ZIM"):
 		case PackExt("ZP1"):
 		case PackExt("ZXP"):
 			return true;
@@ -17375,6 +17463,8 @@ public class RECOIL
 			return DecodeXga(content, contentLength);
 		case PackExt("XLP"):
 			return DecodeXlp(content, contentLength);
+		case PackExt("ZIM"):
+			return DecodeZim(content, contentLength);
 		case PackExt("ZP1"):
 			return DecodeZp1(content, contentLength);
 		case PackExt("ZXP"):
