@@ -25,7 +25,7 @@
 	or <a href="https://sourceforge.net/p/recoil/code/ci/master/tree/">browse Git repository</a>.</p>
 	<p>RECOIL is based on a development library, which you can easily embed in your program.
 	It's not only a fully portable C library - it's better than that.
-	Since RECOIL is written in <a href="http://cito.sourceforge.net/">Ć</a>,
-	it is also available as pure Java, C#, JavaScript, ActionScript, Perl and <a href="http://dlang.org/">D</a>.</p>
+	Since RECOIL is written in <a href="https://github.com/pfusik/cito">Ć</a>,
+	it is also available as pure C++, Java, C# and JavaScript.</p>
 	<p>There are also <a href="https://github.com/gasman/pyrecoil">Python bindings</a>.</p>
 </page>

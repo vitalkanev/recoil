@@ -9,7 +9,7 @@ RECOIL is written in the Ć programming language.
 Official releases include translation of RECOIL to C,
 so you only need a C compiler and Make utility.
 In other cases (Git, Paint.NET, HTML 5, Android, UWP)
-you'll need cito (http://cito.sourceforge.net).
+you'll need cito (https://github.com/pfusik/cito).
 
 
 Getting officially released source code
