@@ -26,7 +26,7 @@
 // Simple code (e.g. uncompressed black&white images)
 // precedes the more complicated.
 // Each format is decoded by a method with a signature like:
-// bool DecodeXxx(byte[] content, int contentLength)
+// bool DecodeXxx!(byte[] content, int contentLength)
 // where `Xxx` is the filename extension and `true` is returned
 // on successful decoding.  `content` is read-only.
 // In rare occassions there are extra parameters such as the filename.
@@ -87,6 +87,7 @@ enum RECOILResolution
 	Bbc1x1,
 	Bbc2x1,
 	Bbc1x2,
+	Vic202x1,
 	C161x1,
 	C162x1,
 	C641x1,
@@ -3921,6 +3922,8 @@ public class RECOIL
 		case RECOILResolution.Bbc2x1:
 		case RECOILResolution.Bbc1x2:
 			return "BBC Micro";
+		case RECOILResolution.Vic202x1:
+			return "Commodore VIC-20";
 		case RECOILResolution.C161x1:
 		case RECOILResolution.C162x1:
 			return "Commodore 16";
@@ -3993,6 +3996,7 @@ public class RECOIL
 		case RECOILResolution.Tt2x1:
 		case RECOILResolution.Falcon2x1:
 		case RECOILResolution.Bbc2x1:
+		case RECOILResolution.Vic202x1:
 		case RECOILResolution.C162x1:
 		case RECOILResolution.C642x1:
 		case RECOILResolution.Coco2x2:
@@ -8580,23 +8584,30 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodePet!(byte[] content, int contentLength)
+	bool DecodePetScreen!(byte[] content, int screenOffset, int colorsOffset, int backgroundOffset, int columns, int rows)
 	{
-		if (contentLength != 2026)
+		int width = columns << 3;
+		int height = rows << 3;
+		if (!SetSize(width, height, RECOILResolution.C641x1))
 			return false;
-		SetSize(320, 200, RECOILResolution.C641x1);
 		byte[] font = resource<byte[]>("c64.fnt");
-		for (int y = 0; y < 200; y++) {
-			for (int x = 0; x < 320; x++) {
-				int offset = (y & ~7) * 5 + (x >> 3);
-				if ((font[content[2 + offset] << 3 | (y & 7)] >> (~x & 7) & 1) == 0)
-					offset = 0x3eb;
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int offset = (y >> 3) * columns + (x >> 3);
+				if ((font[content[screenOffset + offset] << 3 | (y & 7)] >> (~x & 7) & 1) == 0)
+					offset = backgroundOffset;
 				else
-					offset += 0x402;
-				Pixels[y * 320 + x] = C64Palette[content[offset] & 0xf];
+					offset += colorsOffset;
+				Pixels[y * width + x] = C64Palette[content[offset] & 0xf];
 			}
 		}
 		return true;
+	}
+
+	bool DecodePet!(byte[] content, int contentLength)
+	{
+		return contentLength == 2026
+			&& DecodePetScreen(content, 2, 0x402, 0x3eb, 40, 25);
 	}
 
 	bool DecodeScrCol!(string filename, byte[] content, int contentLength)
@@ -12019,6 +12030,76 @@ public class RECOIL
 			contentOffset = chunkEndOffset + 1 & ~1; // round up to even bytes
 		}
 		return false;
+	}
+
+	bool DecodeFlfFont!(byte[] content, int contentOffset, int contentLength, int columns, int rows, RECOILResolution resolution, int[] palette, int colors, int xMask, int cMask)
+	{
+		if (contentLength != contentOffset + columns * rows * 12)
+			return false;
+		int width = columns << 3;
+		int height = rows << 3;
+		SetSize(width, height, resolution);
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int offset = contentOffset + ((y >> 3) * columns + (x >> 3)) * 12;
+				int c = content[offset + (y & 7)] >> (x & xMask) & cMask;
+				c = content[offset + 8 + c];
+				if (c >= colors)
+					return false;
+				Pixels[y * width + x] = palette[c];
+			}
+		}
+		return true;
+	}
+
+	bool DecodeFlf!(byte[] content, int contentLength)
+	{
+		if (contentLength < 20 || !IsStringAt(content, 0, "FLUFF64"))
+			return false;
+		switch (content[11]) {
+		case 1:
+			return DecodeFlfFont(content, 15, contentLength, 40, 25, RECOILResolution.C642x1, C64Palette, 16, 6, 3);
+		case 4:
+		case 5:
+			return DecodeFlfFont(content, 18, contentLength, 40, 25, RECOILResolution.C642x1, C64Palette, 16, 6, 3);
+		case 6:
+			return DecodeFlfFont(content, 18, contentLength, 40, 25, RECOILResolution.C641x1, C64Palette, 16, 7, 1);
+		case 7:
+			int columns = content[0xf];
+			int rows = content[0x10];
+			// TODO: animation int screens = content[0x11];
+			int length = columns * rows;
+			return contentLength >= 0x2d + (length << 1)
+				&& DecodePetScreen(content, 0x1d + length, 0x1d, 0xd, columns, rows);
+		case 9:
+			if (content[12] != 6)
+				return false;
+			const int[8] Vic20Palette = {
+				0x000000,
+				0xffffff,
+				0x68372b,
+				0x70a4b2,
+				0x6f3d86,
+				0x588d43,
+				0x352879,
+				0xb8c76f
+			};
+			return DecodeFlfFont(content, 20, contentLength, content[0x12], content[0x13], RECOILResolution.Vic202x1, Vic20Palette, 8, 6, 3);
+		case 12:
+			if (contentLength < 64020)
+				return false;
+			int colors = content[0xfa0d];
+			if (contentLength != 0xfa0e + colors * 3)
+				return false;
+			DecodeR8G8B8Colors(content, 0xfa0e, colors, ContentPalette);
+			for (int c = colors; c < 256; c++)
+				ContentPalette[c] = 0;
+			SetSize(320, 200, RECOILResolution.Amiga1x1);
+			DecodeBytes(content, 13);
+			return true;
+		default:
+			return false;
+		}
 	}
 
 	// Atari 8-bit formats.
@@ -16358,6 +16439,7 @@ public class RECOIL
 		case PackExt("FD2"):
 		case PackExt("FFLI"):
 		case PackExt("FGE"):
+		case PackExt("FLF"):
 		case PackExt("FLI"):
 		case PackExt("FN2"):
 		case PackExt("FNT"):
@@ -16900,6 +16982,8 @@ public class RECOIL
 			return DecodeFfli(content, contentLength);
 		case PackExt("FGE"):
 			return DecodeFge(content, contentLength);
+		case PackExt("FLF"):
+			return DecodeFlf(content, contentLength);
 		case PackExt("FLI"):
 			return DecodeFli(content, contentLength)
 				|| DecodeBml(content, contentLength);

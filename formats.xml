@@ -1,5 +1,5 @@
 ﻿<formats version="4.3.2">
-	<platform name="Amiga" href="http://en.wikipedia.org/wiki/Amiga">
+	<platform name="Amiga" href="https://en.wikipedia.org/wiki/Amiga">
 		<format name="AMOS"><ext>ABK</ext></format>
 		<format name="Amiga Continuous Bitmap"><ext>ACBM</ext></format>
 		<format hardware="DCTV" name="DCTV">
@@ -7,6 +7,7 @@
 			<ext>DCTV</ext>
 		</format>
 		<format name="TVPaint" colors="16777216"><ext>DEEP</ext></format>
+		<format name="Turbo Rascal Syntax Error" width="320" height="200"><ext>FLF</ext></format>
 		<format name="Hold-And-Modify 6" colors="4096">
 			<ext>HAM</ext>
 			<ext>HAM6</ext>
@@ -34,7 +35,7 @@
 		<format name="Turbo Silver" colors="4096"><ext>RGBN</ext></format>
 		<format name="Sliced HAM" colors="4096"><ext>SHAM</ext></format>
 	</platform>
-	<platform name="Amstrad CPC" href="http://en.wikipedia.org/wiki/Amstrad_CPC">
+	<platform name="Amstrad CPC" href="https://en.wikipedia.org/wiki/Amstrad_CPC">
 		<format name="Mode 5" width="288" height="256" colors="27">
 			<ext>CM5</ext>
 			<companionExt>GFX</companionExt>
@@ -56,28 +57,28 @@
 			<companionExt>PAL</companionExt>
 		</format>
 	</platform>
-	<platform name="Apple II" href="http://en.wikipedia.org/wiki/Apple_II">
+	<platform name="Apple II" href="https://en.wikipedia.org/wiki/Apple_II">
 		<format name="High Resolution" width="280" height="192" colors="2"><ext>HGR</ext></format>
 		<format name="Sprites" colors="2"><ext>SPR</ext></format>
 	</platform>
-	<platform name="Apple IIe" href="http://en.wikipedia.org/wiki/Apple_IIe">
+	<platform name="Apple IIe" href="https://en.wikipedia.org/wiki/Apple_IIe">
 		<format name="Double High-Resolution" width="560" height="192" colors="2">
 			<ext>DHGR</ext>
 			<ext>DHR</ext>
 		</format>
 	</platform>
-	<platform name="Apple IIGS" href="http://en.wikipedia.org/wiki/Apple_IIGS">
+	<platform name="Apple IIGS" href="https://en.wikipedia.org/wiki/Apple_IIGS">
 		<format width="320" height="200" colors="3200"><ext>SH3</ext></format>
 		<format width="320" height="200" colors="256"><ext>SHR</ext></format>
 	</platform>
-	<platform name="Apple Macintosh" href="http://en.wikipedia.org/wiki/Macintosh_128K">
+	<platform name="Apple Macintosh" href="https://en.wikipedia.org/wiki/Macintosh_128K">
 		<format name="MacPaint" width="576" height="720" colors="2">
 			<ext>MAC</ext>
 			<ext>PNT</ext>
 			<ext>PNTG</ext>
 		</format>
 	</platform>
-	<platform name="Atari 8-bit" href="http://en.wikipedia.org/wiki/Atari_8-bit_family">
+	<platform name="Atari 8-bit" href="https://en.wikipedia.org/wiki/Atari_8-bit_family">
 		<format width="80" height="96" colors="256">
 			<ext>256</ext>
 			<ext>AP2</ext>
@@ -234,11 +235,11 @@
 		<format name="Blazing Paddles window" maxWidth="160" maxHeight="192" colors="4"><ext>WND</ext></format>
 		<format name="XL-Paint" width="160" maxHeight="200" colors="7" frames="2"><ext>XLP</ext></format>
 	</platform>
-	<platform name="Atari Portfolio" href="http://en.wikipedia.org/wiki/Atari_Portfolio">
+	<platform name="Atari Portfolio" href="https://en.wikipedia.org/wiki/Atari_Portfolio">
 		<format width="240" height="64" colors="2"><ext>PGC</ext></format>
 		<format width="240" height="64" colors="2"><ext>PGF</ext></format>
 	</platform>
-	<platform name="Atari ST/STE" href="http://en.wikipedia.org/wiki/Atari_ST">
+	<platform name="Atari ST/STE" href="https://en.wikipedia.org/wiki/Atari_ST">
 		<format name="Art Director" width="320" height="200" colors="16"><ext>ART</ext></format>
 		<format name="GFA Artist" width="320" height="200" colors="16"><ext>ART</ext></format>
 		<format name="Palette Master" width="320" height="200" colors="512"><ext>ART</ext></format>
@@ -365,7 +366,7 @@
 		<format width="640" height="480" colors="16"><ext>PI5</ext></format>
 		<format width="1280" height="960" colors="2"><ext>PI6</ext></format>
 	</platform>
-	<platform name="Atari Falcon" href="http://en.wikipedia.org/wiki/Atari_Falcon">
+	<platform name="Atari Falcon" href="https://en.wikipedia.org/wiki/Atari_Falcon">
 		<format name="ImageLab" grayscale="256">
 			<ext>B&amp;W</ext>
 			<ext>B_W</ext>
@@ -407,7 +408,7 @@
 		<format name="IndyPaint" colors="65536"><ext>TRU</ext></format>
 		<format colors="65536"><ext>XGA</ext></format>
 	</platform>
-	<platform name="BBC Micro" href="http://en.wikipedia.org/wiki/BBC_Micro">
+	<platform name="BBC Micro" href="https://en.wikipedia.org/wiki/BBC_Micro">
 		<format name="Mode 0" width="640" height="256" colors="2"><ext>BB0</ext></format>
 		<format name="Mode 1" width="320" height="256" colors="4"><ext>BB1</ext></format>
 		<format name="Mode 2" width="160" height="256" colors="8"><ext>BB2</ext></format>
@@ -415,10 +416,13 @@
 		<format name="Mode 5" width="160" height="256" colors="4"><ext>BB5</ext></format>
 		<format name="LdPic" maxWidth="640" height="256"><ext>BBG</ext></format>
 	</platform>
-	<platform name="Commodore 16" href="http://en.wikipedia.org/wiki/Commodore_16">
+	<platform name="Commodore VIC-20" href="https://en.wikipedia.org/wiki/Commodore_VIC-20">
+		<format name="Turbo Rascal Syntax Error" colors="8"><ext>FLF</ext></format>
+	</platform>
+	<platform name="Commodore 16" href="https://en.wikipedia.org/wiki/Commodore_16">
 		<format maxWidth="320" maxHeight="200" colors="121"><ext>P4I</ext></format>
 	</platform>
-	<platform name="Commodore 64" href="http://en.wikipedia.org/wiki/Commodore_64">
+	<platform name="Commodore 64" href="https://en.wikipedia.org/wiki/Commodore_64">
 		<format name="GoDot" width="320" height="200" colors="16"><ext>4BT</ext></format>
 		<format name="8x8 font" colors="2"><ext>64C</ext></format>
 		<format name="SEUCK sprites" colors="16"><ext>A</ext></format>
@@ -459,6 +463,7 @@
 		</format>
 		<format name="FLI Designer" width="148" height="200" colors="16"><ext>FD2</ext></format>
 		<format width="148" height="200" frames="2"><ext>FFLI</ext></format>
+		<format name="Turbo Rascal Syntax Error" colors="16"><ext>FLF</ext></format>
 		<format name="FLI" width="148" height="200" colors="16"><ext>FLI</ext></format>
 		<format name="Funpaint" width="296" height="200" frames="2">
 			<ext>FUN</ext>
@@ -519,7 +524,7 @@
 		<format maxWidth="320" height="200" colors="16"><ext>VIC</ext></format>
 		<format name="Vidcom 64Paint" width="160" height="200" colors="16"><ext>VID</ext></format>
 	</platform>
-	<platform name="Commodore 128" href="http://en.wikipedia.org/wiki/Commodore_128">
+	<platform name="Commodore 128" href="https://en.wikipedia.org/wiki/Commodore_128">
 		<format name="VDC BitMap" colors="2">
 			<ext>BM</ext>
 			<ext>VBM</ext>
@@ -537,7 +542,7 @@
 		<format><ext>PI</ext></format>
 		<format><ext>PIC</ext></format>
 	</platform>
-	<platform name="MSX" href="http://en.wikipedia.org/wiki/MSX">
+	<platform name="MSX" href="https://en.wikipedia.org/wiki/MSX">
 		<format name="MIG" maxWidth="512" maxHeight="424" maxFrames="2"><ext>MIG</ext></format>
 		<format name="Screen 2" width="256" height="192" colors="15">
 			<ext>SC2</ext>
@@ -545,7 +550,7 @@
 		</format>
 		<format name="Screen 3" width="64" height="48" colors="15"><ext>SC3</ext></format>
 	</platform>
-	<platform name="MSX2" href="http://en.wikipedia.org/wiki/MSX">
+	<platform name="MSX2" href="https://en.wikipedia.org/wiki/MSX">
 		<format name="Dynamic Publisher font" width="512" height="160" colors="2"><ext>FNT</ext></format>
 		<format colors="16">
 			<ext>GL5</ext>
@@ -617,7 +622,7 @@
 		</format>
 		<format name="Dynamic Publisher stamp" colors="2"><ext>STP</ext></format>
 	</platform>
-	<platform name="MSX2+" href="http://en.wikipedia.org/wiki/MSX">
+	<platform name="MSX2+" href="https://en.wikipedia.org/wiki/MSX">
 		<format hardware="V9990 VDP" name="GFX9k" colors="32768"><ext>G9B</ext></format>
 		<format colors="12515">
 			<ext>GLA</ext>
@@ -662,11 +667,11 @@
 		<format name="XLD4" width="640" height="400" colors="16"><ext>Q4</ext></format>
 		<format name="Z's Staff Kid98" colors="16"><ext>ZIM</ext></format>
 	</platform>
-	<platform name="Oric" href="http://en.wikipedia.org/wiki/Oric">
+	<platform name="Oric" href="https://en.wikipedia.org/wiki/Oric">
 		<format name="6x8 font" colors="2"><ext>CHS</ext></format>
 		<format width="240" height="200" colors="8"><ext>HIR</ext><ext>HRS</ext></format>
 	</platform>
-	<platform name="PC" href="http://en.wikipedia.org/wiki/IBM_PC_compatible">
+	<platform name="PC" href="https://en.wikipedia.org/wiki/IBM_PC_compatible">
 		<format name="Award BIOS logo"><ext>EPA</ext></format>
 		<format name="Handy Scanner 2000 POSTERING" width="840" colors="2"><ext>HS2</ext></format>
 		<format name="Image 72 font" colors="2"><ext>FNT</ext></format>
@@ -681,7 +686,7 @@
 			<ext>ICN</ext>
 		</format>
 	</platform>
-	<platform name="SAM Coupe" href="http://en.wikipedia.org/wiki/SAM_Coupé">
+	<platform name="SAM Coupe" href="https://en.wikipedia.org/wiki/SAM_Coupé">
 		<format name="Mode 4" width="256" height="192" colors="16">
 			<ext>SCS4</ext>
 			<ext>SS4</ext>
@@ -696,22 +701,22 @@
 		<format name="Hi-color" width="256" height="192" colors="15"><ext>SCR</ext></format>
 		<format name="Hi-res" width="512" height="192" colors="2"><ext>SCR</ext></format>
 	</platform>
-	<platform name="TRS-80" href="http://en.wikipedia.org/wiki/TRS-80">
+	<platform name="TRS-80" href="https://en.wikipedia.org/wiki/TRS-80">
 		<format width="640" height="240" colors="2"><ext>HR</ext></format>
 		<format name="CompuServe RLE" width="256" height="192" colors="2"><ext>RLE</ext></format>
 		<format name="MagicDraw" width="640" height="240" colors="2"><ext>SHR</ext></format>
 	</platform>
-	<platform name="TRS-80 Color Computer" href="http://en.wikipedia.org/wiki/TRS-80_Color_Computer">
+	<platform name="TRS-80 Color Computer" href="https://en.wikipedia.org/wiki/TRS-80_Color_Computer">
 		<format width="40" height="56" colors="2"><ext>CLP</ext></format>
 		<format width="256" height="192" colors="2"><ext>GRF</ext><ext>MAX</ext><ext>P41</ext><ext>PIX</ext></format>
 		<format width="128" height="96" colors="4"><ext>P11</ext></format>
 	</platform>
-	<platform name="ZX81" href="http://en.wikipedia.org/wiki/ZX81">
+	<platform name="ZX81" href="https://en.wikipedia.org/wiki/ZX81">
 		<format name="Sinclair BASIC" width="32" height="24" unit="characters" colors="2"><ext>P</ext></format>
 		<format name="ZXPaintyONE v2.0" width="32" height="24" unit="characters" colors="2"><ext>RAW</ext></format>
 		<format name="ZXpaintyONE" width="32" height="24" unit="characters" colors="2"><ext fake="true">ZP1</ext></format>
 	</platform>
-	<platform name="ZX Spectrum" href="http://en.wikipedia.org/wiki/ZX_Spectrum">
+	<platform name="ZX Spectrum" href="https://en.wikipedia.org/wiki/ZX_Spectrum">
 		<format width="256" height="192" colors="8" frames="3"><ext>3</ext></format>
 		<format name="Attributes" width="32" height="24" unit="characters" colors="15"><ext>ATR</ext></format>
 		<format name="Border Screen Multicolor 8x4" width="384" height="304" colors="15"><ext>BMC4</ext></format>
