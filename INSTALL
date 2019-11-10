@@ -15,14 +15,15 @@ you'll need cito (https://github.com/pfusik/cito).
 Getting officially released source code
 ---------------------------------------
 
-If you want to compile an official release of RECOIL, download the source distribution
-(recoil-*.tar.gz) and uncompress it to a directory of your choice.
+If you want to compile an official release of RECOIL,
+download the source distribution (recoil-*.tar.gz)
+and uncompress it to a directory of your choice.
 
 On Unix-like systems:
 
     tar zxf recoil-*.tar.gz
 
-On Windows you may use 7-Zip (http://7-zip.org).
+On Windows you may use 7-Zip (https://www.7-zip.org/).
 
 
 Getting latest source code
@@ -97,18 +98,12 @@ Building recoil2png, XnView/XnView MP/ImageMagick/Imagine/Windows Explorer
 plugins and RECOILWin on Windows
 --------------------------------------------------------------------------
 
-In Cygwin setup (https://www.cygwin.com/) select
-bash, coreutils, dos2unix, git, libxslt, make, tar,
-mingw64-{i686,x86_64}-{gcc-core,gcc-g++,headers,libpng,runtime,zlib}.
+Install MSYS2 (https://www.msys2.org/), then additional packages:
 
-Unfortunately mingw64-libpng is DLL-only, so get libpng source
-(http://libpng.org/pub/png/libpng.html) and compile it yourself:
+    pacman -S make mingw-w64-i686-gcc mingw-w64-x86_64-gcc mingw-w64-i686-libpng
 
-    bash ./configure --host=i686-w64-mingw32 && make && mv .libs/libpng16.a /usr/i686-w64-mingw32/sys-root/mingw/lib/
-    bash ./configure --host=x86_64-w64-mingw32 && make && mv .libs/libpng16.a /usr/x86_64-w64-mingw32/sys-root/mingw/lib/
-
-Install ImageMagick (http://www.imagemagick.org/) and edit its directories
-in RECOIL's win32/Makefile.
+Install ImageMagick 6 (https://www.imagemagick.org/)
+and edit its directories in RECOIL's win32/Makefile.
 
 To build RECOIL, from the command prompt navigate to the win32 directory and run:
 
@@ -118,7 +113,7 @@ To build RECOIL, from the command prompt navigate to the win32 directory and run
 Building Paint.NET plugin on Windows
 ------------------------------------
 
-Install Paint.NET and GNU Make (e.g. Cygwin's, https://www.cygwin.com/).
+Install Paint.NET and GNU Make (e.g. from MSYS2, see above).
 
 Make sure cito is on your PATH.
 
@@ -140,10 +135,9 @@ From the command prompt navigate to the www directory and run:
 Building Android application
 ----------------------------
 
-Install Android Studio (https://developer.android.com/studio/index.html)
-or the command-line SDK.
+Install Android Studio (https://developer.android.com/studio/).
 
-Make sure cito and ImageMagick 7 (http://imagemagick.org/) are on your PATH.
+Make sure cito and ImageMagick 7 (https://imagemagick.org/) are on your PATH.
 
 Build the project as any other Android project.
 
@@ -162,7 +156,7 @@ From the command prompt navigate to the osx directory and run:
 Building Windows 10 application
 -------------------------------
 
-Install Visual Studio 2017 and ImageMagick 7.
+Install Visual Studio 2019 and ImageMagick 7.
 
 Make sure cito and magick are on your PATH.
 
