@@ -3809,11 +3809,11 @@ class InflateStream : Stream
 public class RECOIL
 {
 	/// RECOIL version - major part.
-	public const int VersionMajor = 4;
+	public const int VersionMajor = 5;
 	/// RECOIL version - minor part.
-	public const int VersionMinor = 3;
+	public const int VersionMinor = 0;
 	/// RECOIL version - micro part.
-	public const int VersionMicro = 2;
+	public const int VersionMicro = 0;
 	/// RECOIL version as a string.
 	public const string Version = VersionMajor + "." + VersionMinor + "." + VersionMicro;
 
@@ -16312,8 +16312,8 @@ public class RECOIL
 
 	/// Checks whether the filename extension is supported by RECOIL.
 	/// `true` doesn't necessarily mean that the file contents is valid for RECOIL.
-	/// This function is meant to avoid reading files which are known to be
-	/// not supported (another criterium is the maximum file size, `MaxContentLength`).
+	/// This function is meant to avoid reading files which are known to be not supported.
+	/// Another criterium is the maximum file size, `MaxContentLength`.
 	public static bool IsOurFile(string filename)
 	{
 		switch (GetPackedExt(filename)) {

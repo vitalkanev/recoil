@@ -1,10 +1,10 @@
 Name: recoil
-Version: 4.3.2
+Version: 5.0.0
 Release: 1
 Summary: Viewer of retro computer image files
 License: GPLv2+
 Group: Applications/Multimedia
-Source: http://prdownloads.sourceforge.net/recoil/recoil-%{version}.tar.gz
+Source: https://downloads.sourceforge.net/recoil/recoil-%{version}.tar.gz
 URL: https://recoil.sourceforge.net/
 BuildRequires: gcc, libpng-devel, libxslt
 BuildRoot: %{_tmppath}/%{name}-root
@@ -70,6 +70,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/update-mime-database %{_datadir}/mime &> /dev/null || :
 
 %changelog
+* Tue Nov 12 2019 Piotr Fusik <fox@scene.pl>
+- 5.0.0-1
+
 * Sat Jul 6 2019 Piotr Fusik <fox@scene.pl>
 - 4.3.2-1
 
