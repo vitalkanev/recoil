@@ -217,6 +217,27 @@ static bool Repaint(bool fit_to_desktop)
 	}
 	InvalidateRect(hWnd, NULL, TRUE);
 	UpdateText();
+
+	UINT check;
+	switch (zoom) {
+	case 100:
+		check = IDM_ZOOM1;
+		break;
+	case 200:
+		check = IDM_ZOOM2;
+		break;
+	case 300:
+		check = IDM_ZOOM3;
+		break;
+	case 400:
+		check = IDM_ZOOM4;
+		break;
+	default:
+		check = 0;
+		break;
+	}
+	CheckMenuRadioItem(hMenu, IDM_ZOOM1, IDM_ZOOM4, check, MF_BYCOMMAND);
+
 	return true;
 }
 
