@@ -35,10 +35,10 @@ i686/recoil2png.exe: ../recoil2png.c ../pngsave.c ../pngsave.h ../recoil-stdio.c
 	$(DO)$(CC) -static -lpng16 -lz
 
 i686/IM_MOD_RL_recoil_.dll x86_64/IM_MOD_RL_recoil_.dll: ../imagemagick/recoilmagick.c ../formats.h ../recoil.c ../recoil.h
-	$(DO)$(CC) $(LDFLAGS_DLL) -I"$(IMAGEMAGICK_$(@D)_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_$(@D)_DIR)"
+	$(DO)$(CC) $(LDFLAGS_DLL) -I"$(IMAGEMAGICK_$(@D)_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_$(@D)_DIR)" -static-libgcc
  
 i686/Xrecoil.usr x86_64/Xrecoil.usr: ../Xrecoil.c ../formats.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
-	$(DO)$(CC) $(LDFLAGS_DLL)
+	$(DO)$(CC) $(LDFLAGS_DLL) -static 
 
 %/recoilwin.exe: recoilwin/recoilwin.c recoilwin/recoilwin.h recoil-win32.c recoil-win32.h %/recoilwin-res.o ../pngsave.c ../pngsave.h ../formats.h ../recoil.c ../recoil.h
 	$(DO)$(CC) -Wl,-subsystem,windows -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng16 -lz
@@ -50,7 +50,7 @@ i686/thumbrecoil.dll x86_64/thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../form
 	$(DO)$(CXX) $(LDFLAGS_DLL) -I. -I.. thumbrecoil/thumbrecoil.cpp -xc recoil-win32.c -xc ../recoil.c -static -lgdi32 -lole32 -luuid
 
 i686/RECOIL.plg x86_64/RECOIL.plg64: imagine/recoilimagine.c ../formats.h ../recoil.c ../recoil.h
-	$(DO)$(CC) $(LDFLAGS_DLL)
+	$(DO)$(CC) $(LDFLAGS_DLL) -static
 
 paint.net/RecoilPaintDotNet.dll: paint.net/RecoilPaintDotNet.cs paint.net/RecoilFileTypeFactory.cs paint.net/RECOIL.cs
 	$(DO)$(CSC) -t:library $(subst /,\\,$^) -r:"$(PAINT_NET_DIR)\PaintDotNet.Base.dll" -r:"$(PAINT_NET_DIR)\PaintDotNet.Data.dll"
@@ -62,7 +62,7 @@ paint.net/RECOIL.cs: ../recoil.ci ../atari8.fnt ../altirrapal.pal ../c16.pal ../
 	$(DO)$(CITO) -o $@ -I .. -n Recoil $<
 
 i686/by-platform.exe: by-platform.c recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h
-	$(DO)$(CC)
+	$(DO)$(CC) -static
 
 ../formats.h: ../formats.h.xsl ../formats.xml
 	$(DO)$(XSLTPROC)
