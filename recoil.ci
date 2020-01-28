@@ -2361,13 +2361,19 @@ class Q4Stream : RleStream
 
 	int ReadCode!()
 	{
-		for (;;) {
+		do {
 			int value = ReadBits(CodeBits);
-			if (value >= 2)
-				return value - 2;
-			if (value <= 0 || ++CodeBits > 15)
+			switch (value) {
+			case -1:
+			case 0:
 				return -1;
-		}
+			case 1:
+				break;
+			default:
+				return value - 2;
+			}
+		} while (++CodeBits <= 15);
+		return -1;
 	}
 
 	byte[65536] Unpacked;
@@ -7249,8 +7255,12 @@ public class RECOIL
 
 	static int UnpackZim(byte[] content, int contentOffset, int end, byte[] flags, byte[]! unpacked, int unpackedLength)
 	{
-		for (int unpackedOffset = 0; unpackedOffset < unpackedLength; unpackedOffset++)
-			unpacked[unpackedOffset] = contentOffset < end && (flags[unpackedOffset >> 3] >> (~unpackedOffset & 7) & 1) != 0 ? content[contentOffset++] : 0;
+		for (int unpackedOffset = 0; unpackedOffset < unpackedLength; unpackedOffset++) {
+			if (contentOffset < end && (flags[unpackedOffset >> 3] >> (~unpackedOffset & 7) & 1) != 0)
+				unpacked[unpackedOffset] = content[contentOffset++];
+			else
+				unpacked[unpackedOffset] = 0;
+		}
 		return contentOffset;
 	}
 
@@ -9692,7 +9702,9 @@ public class RECOIL
 			int count = 0;
 			for (int i = 0; i < pixelsLength; i++) {
 				if (count == 0) {
-					if (contentOffset + 1 >= contentLength || content[contentOffset++] != 0x80)
+					if (contentOffset + 1 >= contentLength)
+						return false;
+					if (content[contentOffset++] != 0x80)
 						return false;
 					count = content[contentOffset++];
 					if (count == 0)
@@ -10133,11 +10145,14 @@ public class RECOIL
 
 		// skip descriptions
 		int contentOffset = 10;
-		int zerosToSkip = 2;
-		do {
+		for (int zerosToSkip = 2;;) {
 			if (contentOffset + 16 >= contentLength)
 				return false;
-		} while (content[contentOffset++] != 0 || --zerosToSkip > 0);
+			if (content[contentOffset++] == 0) {
+				if (--zerosToSkip == 0)
+					break;
+			}
+		}
 
 		// determine height
 		int bitmapLength = Get32BigEndian(content, contentOffset);
@@ -10502,7 +10517,9 @@ public class RECOIL
 			bitmap[i * 2 + 1] = value & 0xff;
 			if (++i >= size)
 				break;
-			if (parser.ContentOffset >= contentLength || content[parser.ContentOffset++] != ',')
+			if (parser.ContentOffset >= contentLength)
+				return false;
+			if (content[parser.ContentOffset++] != ',')
 				return false;
 		}
 		if (!parser.Expect("};"))
@@ -10751,22 +10768,24 @@ public class RECOIL
 				for (int x = 0; x < 2; x++) {
 					if (repeatCount == 0) {
 						int nextContentOffset = contentOffset + compression * 2;
-						if (nextContentOffset <= contentLength) {
-							switch (compression) {
-							case 1:
-								repeatCount = content[contentOffset] + 1;
-								break;
-							case 2:
-								repeatCount = (content[contentOffset] << 8) + content[contentOffset + 1] + 1 << 1;
-								break;
-							case 3:
-								repeatCount = (content[contentOffset] << 8) + content[contentOffset + 1] + 1 << 2;
-								break;
-							}
-							contentOffset = nextContentOffset;
+						if (nextContentOffset > contentLength) {
+							unpacked[unpackedOffset + x] = 0;
+							continue;
 						}
+						switch (compression) {
+						case 1:
+							repeatCount = content[contentOffset] + 1;
+							break;
+						case 2:
+							repeatCount = (content[contentOffset] << 8) + content[contentOffset + 1] + 1 << 1;
+							break;
+						case 3:
+							repeatCount = (content[contentOffset] << 8) + content[contentOffset + 1] + 1 << 2;
+							break;
+						}
+						contentOffset = nextContentOffset;
 					}
-					unpacked[unpackedOffset + x] = repeatCount > 0 ? content[contentOffset - (--repeatCount & valueBytes - 1) - 1] : 0;
+					unpacked[unpackedOffset + x] = content[contentOffset - (--repeatCount & valueBytes - 1) - 1];
 				}
 			}
 		}
@@ -15436,8 +15455,11 @@ public class RECOIL
 				x--;
 			while (x >= 0 && pixels[y * 160 + x] == 0);
 			int x1 = x;
-			while (x < 159 && pixels[y * 160 + ++x] == 0)
+			while (x < 159) {
+				if (pixels[y * 160 + ++x] != 0)
+					break;
 				PlotSpcPattern(pixels, x, y, pattern);
+			}
 #if true
 			// the original program seems to do this
 			// FIXME: probably different if borders reached
