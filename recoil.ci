@@ -14745,7 +14745,7 @@ public class RECOIL
 	{
 		byte[32] bitmap;
 		for (int y = 0; y < 288; y++) {
-			int row = y >> 3;
+			int row = y >> 5;
 			int c = (second ? row / 3 : row % 3) + 1;
 			for (int col = 0; col < 32; col++) {
 				int ch = ((y & 0x18) << 1) + (col >> 1);
