@@ -2734,23 +2734,19 @@ class FanoTree
 class RecentInts
 {
 	const int Count = 128;
-	int[Count] Value;
+	int[Count] Value = 0;
 
 	// Internally we use a doubly linked ring for ordering keys by their usage.
 	byte[Count] Prev;
 	byte[Count] Next;
-	byte Head; // Most Recently Used key
+	byte Head = 0; // Most Recently Used key
 
 	RecentInts()
 	{
 		for (int i = 0; i < Count; i++) {
-			Value[i] = 0;
-			Prev[i] = i + 1;
-			Next[i] = i - 1;
+			Prev[i] = (i + 1) & (Count - 1);
+			Next[i] = (i - 1) & (Count - 1);
 		}
-		Prev[Count - 1] = 0;
-		Next[0] = Count - 1;
-		Head = 0;
 	}
 
 	/// Store the value.
