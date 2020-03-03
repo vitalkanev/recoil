@@ -15,6 +15,7 @@
 						<xsl:value-of select="@title" />
 					</xsl:if>
 				</title>
+				<link rel="apple-touch-icon" href="recoil-180x180.png" />
 				<style>
 					html { background-color: #eee; color: #000; font-family: Segoe UI,Helvetica,Arial,sans-serif; padding: 0em 3em; }
 					h1, h2 { color: #006374; }
