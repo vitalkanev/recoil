@@ -1,7 +1,7 @@
 /*
  * FileSelector.java - RECOIL for Android
  *
- * Copyright (C) 2013-2018  Piotr Fusik
+ * Copyright (C) 2013-2020  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -34,9 +34,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
+import android.widget.Filterable;
 import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.TextView;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -106,7 +107,6 @@ public class FileSelector extends ListActivity
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		getListView().setTextFilterEnabled(true);
 		uri = getIntent().getData();
 		if (uri == null)
 			uri = FileUtil.getInternalStorage();
@@ -151,6 +151,18 @@ public class FileSelector extends ListActivity
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		getMenuInflater().inflate(R.menu.file_selector, menu);
+
+		SearchView searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
+		searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+				public boolean onQueryTextChange(String newText) {
+					((Filterable) getListAdapter()).getFilter().filter(newText);
+					return true;
+				}
+				public boolean onQueryTextSubmit(String newText) {
+					return onQueryTextChange(newText);
+				}
+			});
+
 		MenuItem favoriteMenuItem = menu.findItem(R.id.menu_favorite);
 		if (isBuiltinFavorite())
 			favoriteMenuItem.setVisible(false);
@@ -165,18 +177,6 @@ public class FileSelector extends ListActivity
 		switch (item.getItemId()) {
 		case android.R.id.home:
 			finish();
-			return true;
-		case R.id.menu_search:
-			InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-			if (isSearch) {
-				imm.hideSoftInputFromWindow(getListView().getWindowToken(), 0);
-				getListView().clearTextFilter();
-				isSearch = false;
-			}
-			else {
-				imm.showSoftInput(getListView(), 0);
-				isSearch = true;
-			}
 			return true;
 		case R.id.menu_favorite:
 			FileUtil.setFavoriteIcon(item, FileUtil.toggleFavorite(this, new TreeSet(FileUtil.getUserFavorites(this)), uri));
