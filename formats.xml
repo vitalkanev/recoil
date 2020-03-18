@@ -1,4 +1,4 @@
-﻿<formats version="5.0.0">
+﻿<formats version="5.0.1">
 	<platform name="Amiga" href="https://en.wikipedia.org/wiki/Amiga">
 		<format name="AMOS"><ext>ABK</ext></format>
 		<format name="Amiga Continuous Bitmap"><ext>ACBM</ext></format>

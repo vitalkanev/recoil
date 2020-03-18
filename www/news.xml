@@ -1,4 +1,11 @@
 ﻿<page title="News">
+	<release project="RECOIL" version="5.0.1" date="2020-03-18">
+		<ul>
+			<li>Fixed colors in the ICE format.</li>
+			<li>Fixed search and the app icon on new Androids.</li>
+		</ul>
+	</release>
+
 	<release project="RECOIL" version="5.0.0" date="2019-11-12">
 		<ul>
 			<li>New formats: AMOS (ABK), Z's Staff Kid98 (ZIM), Turbo Rascal Syntax Error (FLF).</li>
