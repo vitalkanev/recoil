@@ -5,12 +5,18 @@ CC = gcc
 CFLAGS = -O1 -Wall -mmacosx-version-min=10.6
 QLRECOIL = bin/RECOIL.qlgenerator/Contents/MacOS/qlrecoil 
 PLIST = bin/RECOIL.qlgenerator/Contents/Info.plist
+ifneq (${RECOIL_CODESIGNING_IDENTITY}, )
+	QLCODESIGN = bin/RECOIL.qlgenerator/Contents/_CodeSignature/CodeResources
+endif
 
-recoil-$(VERSION)-macos.dmg: bin/QuickLook $(QLRECOIL) $(PLIST) bin/XnViewMP bin/Xrecoil.usr bin/bin bin/recoil2png
+recoil-$(VERSION)-macos.dmg: bin/QuickLook $(QLRECOIL) $(PLIST) $(QLCODESIGN) bin/XnViewMP bin/Xrecoil.usr bin/bin bin/recoil2png
 	hdiutil create -volname recoil-$(VERSION)-macos -srcfolder bin -format UDBZ -fs HFS+ -imagekey bzip2-level=3 -ov $@
 
 bin/QuickLook:
 	mkdir -p $(@D) && ln -s /Library/QuickLook $@
+
+$(QLCODESIGN):
+	codesign --entitlements entitlements.xml -f -s "${RECOIL_CODESIGNING_IDENTITY}" bin/RECOIL.qlgenerator
 
 $(QLRECOIL): qlrecoil.c ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
 	mkdir -p $(@D) && $(CC) $(CFLAGS) -o $@ -I .. -dynamiclib qlrecoil.c ../recoil-stdio.c ../recoil.c -framework QuickLook -framework ApplicationServices -framework CoreFoundation && strip -x $@
