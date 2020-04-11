@@ -3817,13 +3817,13 @@ public class RECOIL
 	/// RECOIL version - micro part.
 	public const int VersionMicro = 1;
 	/// RECOIL version as a string.
-	public const string Version = VersionMajor + "." + VersionMinor + "." + VersionMicro;
+	public const string Version = $"{VersionMajor}.{VersionMinor}.{VersionMicro}";
 
 	/// Years RECOIL was created in.
 	public const string Years = "2009-2020";
 
 	/// Short credits for RECOIL.
-	public const string Credits = "Retro Computer Image Library (C) " + Years + " Piotr Fusik and Adrian Matoga\n";
+	public const string Credits = $"Retro Computer Image Library (C) {Years} Piotr Fusik and Adrian Matoga\n";
 
 	/// Short license notice.
 	/// Display after the credits.
