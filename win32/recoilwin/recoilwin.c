@@ -1,7 +1,7 @@
 /*
  * recoilwin.c - Windows API port of RECOIL
  *
- * Copyright (C) 2009-2019  Piotr Fusik
+ * Copyright (C) 2009-2020  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -232,11 +232,26 @@ static bool Repaint(bool fit_to_desktop)
 	case 400:
 		check = IDM_ZOOM4;
 		break;
+	case 500:
+		check = IDM_ZOOM5;
+		break;
+	case 600:
+		check = IDM_ZOOM6;
+		break;
+	case 700:
+		check = IDM_ZOOM7;
+		break;
+	case 800:
+		check = IDM_ZOOM8;
+		break;
+	case 900:
+		check = IDM_ZOOM9;
+		break;
 	default:
 		check = 0;
 		break;
 	}
-	CheckMenuRadioItem(hMenu, IDM_ZOOM1, IDM_ZOOM4, check, MF_BYCOMMAND);
+	CheckMenuRadioItem(hMenu, IDM_ZOOM1, IDM_ZOOM9, check, MF_BYCOMMAND);
 
 	return true;
 }
@@ -312,10 +327,8 @@ static bool OpenImage(bool show_error)
 	SetMenuEnabled(IDM_FULLSCREEN, image_loaded);
 	SetMenuEnabled(IDM_ZOOMIN, image_loaded);
 	SetMenuEnabled(IDM_ZOOMOUT, image_loaded);
-	SetMenuEnabled(IDM_ZOOM1, image_loaded);
-	SetMenuEnabled(IDM_ZOOM2, image_loaded);
-	SetMenuEnabled(IDM_ZOOM3, image_loaded);
-	SetMenuEnabled(IDM_ZOOM4, image_loaded);
+	for (int id = IDM_ZOOM1; id <= IDM_ZOOM9; id++)
+		SetMenuEnabled(id, image_loaded);
 	if (!image_loaded) {
 		SetMenuEnabled(IDM_INVERT, false);
 		SetWindowText(hWnd, APP_TITLE);
@@ -654,6 +667,21 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			break;
 		case IDM_ZOOM4:
 			ZoomSet(400);
+			break;
+		case IDM_ZOOM5:
+			ZoomSet(500);
+			break;
+		case IDM_ZOOM6:
+			ZoomSet(600);
+			break;
+		case IDM_ZOOM7:
+			ZoomSet(700);
+			break;
+		case IDM_ZOOM8:
+			ZoomSet(800);
+			break;
+		case IDM_ZOOM9:
+			ZoomSet(900);
 			break;
 		case IDM_INVERT:
 			if (bitmap.bmiHeader.biClrUsed == 2) {

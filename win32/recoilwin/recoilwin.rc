@@ -1,7 +1,7 @@
 /*
  * recoilwin.rc - RECOILWin GUI definition
  *
- * Copyright (C) 2009-2018  Piotr Fusik
+ * Copyright (C) 2009-2020  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -60,6 +60,11 @@ IDR_MENU MENU
 		MENUITEM "&200% zoom\t2", IDM_ZOOM2, GRAYED
 		MENUITEM "&300% zoom\t3", IDM_ZOOM3, GRAYED
 		MENUITEM "&400% zoom\t4", IDM_ZOOM4, GRAYED
+		MENUITEM "&500% zoom\t5", IDM_ZOOM5, GRAYED
+		MENUITEM "&600% zoom\t6", IDM_ZOOM6, GRAYED
+		MENUITEM "&700% zoom\t7", IDM_ZOOM7, GRAYED
+		MENUITEM "&800% zoom\t8", IDM_ZOOM8, GRAYED
+		MENUITEM "&900% zoom\t9", IDM_ZOOM9, GRAYED
 		MENUITEM SEPARATOR
 		MENUITEM "&Invert black and white\tI", IDM_INVERT, GRAYED
 		MENUITEM SEPARATOR
@@ -106,6 +111,11 @@ IDR_ACCELERATORS ACCELERATORS
 	"2", IDM_ZOOM2
 	"3", IDM_ZOOM3
 	"4", IDM_ZOOM4
+	"5", IDM_ZOOM5
+	"6", IDM_ZOOM6
+	"7", IDM_ZOOM7
+	"8", IDM_ZOOM8
+	"9", IDM_ZOOM9
 	"i", IDM_INVERT
 	"I", IDM_INVERT
 }

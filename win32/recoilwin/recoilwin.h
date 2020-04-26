@@ -1,7 +1,7 @@
 /*
  * recoilwin.h - RECOILWin GUI declarations
  *
- * Copyright (C) 2009-2017  Piotr Fusik
+ * Copyright (C) 2009-2020  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -41,8 +41,13 @@
 #define IDM_ZOOM2        216
 #define IDM_ZOOM3        217
 #define IDM_ZOOM4        218
-#define IDM_INVERT       219
-#define IDM_SHOWPATH     220
-#define IDM_STATUSBAR    221
-#define IDM_ABOUT        222
+#define IDM_ZOOM5        219
+#define IDM_ZOOM6        220
+#define IDM_ZOOM7        221
+#define IDM_ZOOM8        222
+#define IDM_ZOOM9        223
+#define IDM_INVERT       224
+#define IDM_SHOWPATH     225
+#define IDM_STATUSBAR    226
+#define IDM_ABOUT        227
 #define IDR_ACCELERATORS 300
