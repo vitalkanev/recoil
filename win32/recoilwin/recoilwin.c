@@ -590,6 +590,9 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 	case WM_SIZE:
 		SendMessage(hStatus, WM_SIZE, 0, 0);
 		break;
+	case WM_DPICHANGED:
+		Repaint(true);
+		break;
 	case WM_LBUTTONDOWN:
 		OpenSiblingImage(1);
 		break;
