@@ -266,12 +266,17 @@ static void ToggleFullscreen(void)
 		fullscreen = false;
 	}
 	else {
-		ShowCursor(FALSE);
-		ShowStatusBar(false);
-		SetWindowLong(hWnd, GWL_STYLE, WS_VISIBLE | WS_POPUP);
-		SetMenu(hWnd, NULL);
-		MoveWindow(hWnd, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), TRUE);
-		fullscreen = true;
+		HMONITOR hMon = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+		MONITORINFO mi = { sizeof(MONITORINFO) };
+		if (GetMonitorInfo(hMon, &mi)) {
+			ShowCursor(FALSE);
+			ShowStatusBar(false);
+			SetWindowLong(hWnd, GWL_STYLE, WS_VISIBLE | WS_POPUP);
+			SetMenu(hWnd, NULL);
+			MoveWindow(hWnd, mi.rcMonitor.left, mi.rcMonitor.top,
+				mi.rcMonitor.right - mi.rcMonitor.left, mi.rcMonitor.bottom - mi.rcMonitor.top, TRUE);
+			fullscreen = true;
+		}
 	}
 	Repaint(true);
 }
