@@ -4246,8 +4246,7 @@ public class RECOIL
 			else if (c == '.')
 				break;
 		}
-		string() filename;
-		filename = baseFilename.Substring(0, i + 1);
+		string() filename = baseFilename.Substring(0, i + 1);
 		filename += lower ? lowerExt : upperExt;
 		return ReadFile(filename, content, contentLength);
 	}
