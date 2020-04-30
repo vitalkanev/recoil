@@ -5,7 +5,7 @@ RESOURCES := ../atari8.fnt ../altirrapal.pal ../c16.pal ../c64.fnt ../zx81.fnt
 
 all: recoil-$(VERSION)-java.jar recoil-$(VERSION)-javadoc.zip
 
-recoil-4.2.0-ALPHA3-java.jar: net/sf/recoil/RECOIL.class net/sf/recoil/atari8.fnt
+recoil-$(VERSION)-java.jar: net/sf/recoil/RECOIL.class net/sf/recoil/atari8.fnt
 	jar cf $@ net
 
 net/sf/recoil/RECOIL.class: java/RECOIL.java
