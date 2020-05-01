@@ -793,13 +793,13 @@ class BbgStream : RleStream
 		int result = 0;
 		for (int i = 0; i < count; i++) {
 			switch (ReadBit()) {
-			case -1:
-				return -1;
+			case 0:
+				break;
 			case 1:
 				result |= 1 << i;
 				break;
-			case 0:
-				break;
+			default:
+				return -1;
 			}
 		}
 		return result;
@@ -808,8 +808,6 @@ class BbgStream : RleStream
 	protected override bool ReadCommand!()
 	{
 		switch (ReadBit()) {
-		case -1:
-			return false;
 		case 0:
 			RepeatCount = 1;
 			break;
@@ -818,6 +816,8 @@ class BbgStream : RleStream
 			if (RepeatCount <= 0)
 				return false;
 			break;
+		default:
+			return false;
 		}
 		RepeatValue = ReadBitsReverse(ValueBits);
 		return true;
@@ -2555,8 +2555,7 @@ class PiStream : BitStream
 					position = width + 1;
 					break;
 				default:
-					// assert false;
-					return false;
+					assert false;
 				}
 				int copyEnd = indexesOffset + (length << 1);
 				if (copyEnd > indexesLength)
@@ -2636,8 +2635,6 @@ class A4rStream : Stream
 		UnpackedOffset = -1;
 		for (;;) {
 			switch (ReadFlag()) {
-			case -1:
-				return false;
 			case 0:
 				// literal byte
 				if (!CopyByte())
@@ -2679,6 +2676,8 @@ class A4rStream : Stream
 					break;
 				}
 				break;
+			default:
+				return false;
 			}
 		}
 	}
@@ -2829,6 +2828,8 @@ class BlazingPaddlesBoundingBox
 				if (Bottom < y)
 					Bottom = y;
 				break;
+			default:
+				assert false;
 			}
 		}
 		return false;
@@ -3441,7 +3442,7 @@ abstract class GtiaRenderer
 			default:
 				if ((objects & (P01 | P23)) != 0)
 					break; // players cover GTIA 9/11, even when fifth player is on top
-				// assert objects == 0 || objects == PF3;
+				assert objects == 0 || objects == PF3;
 				if (gtiaMode == 1) // GTIA 9
 					c |= playfield;
 				else if (playfield == 0) // GTIA 11 background
@@ -6199,6 +6200,8 @@ public class RECOIL
 				case 12:
 					rgb = DecodeMsxYjk(screen, screenOffset + (y >> interlaceMask << 8), x >> interlaceMask, false);
 					break;
+				default:
+					assert false;
 				}
 				Pixels[y * Width + x] = rgb;
 			}
@@ -6668,6 +6671,9 @@ public class RECOIL
 				Pixels[i] = rgb | (rgb >> 5 & 0x070707);
 			}
 			break;
+
+		default:
+			assert false;
 		}
 	}
 
@@ -10398,6 +10404,8 @@ public class RECOIL
 					case 2:
 						changeX += 8;
 						break;
+					default:
+						assert false;
 					}
 					changeColor++;
 				}
@@ -10777,6 +10785,8 @@ public class RECOIL
 						case 3:
 							repeatCount = (content[contentOffset] << 8) + content[contentOffset + 1] + 1 << 2;
 							break;
+						default:
+							assert false;
 						}
 						contentOffset = nextContentOffset;
 					}
@@ -11585,6 +11595,8 @@ public class RECOIL
 					c |= c >> holdBits;
 					rgb = (rgb & 0xff00ff) | c << 8;
 					break;
+				default:
+					assert false;
 				}
 				SetScaledPixel(x, y, rgb);
 			}
@@ -12178,6 +12190,8 @@ public class RECOIL
 		case 8:
 			GtiaColors[11] = GtiaColors[10] = GtiaColors[9] = GtiaColors[8] = value;
 			break;
+		default:
+			assert false;
 		}
 	}
 
@@ -13700,8 +13714,6 @@ public class RECOIL
 		bitStream.ContentLength = contentLength;
 		for (int unpackedOffset = 0; unpackedOffset < unpackedLength; ) {
 			switch (bitStream.ReadBit()) {
-			case -1:
-				return false;
 			case 0:
 				int literal = literalTree.ReadCode(bitStream);
 				if (literal < 0)
@@ -13725,6 +13737,8 @@ public class RECOIL
 				if (unpackedOffset >= unpackedLength)
 					return true;
 				break;
+			default:
+				return false;
 			}
 		}
 		return true;
@@ -13931,6 +13945,8 @@ public class RECOIL
 			case 4:
 				DecodeAtari8Gr15(unpacked, y * 40, 40, frame, y * 320, 320, 1);
 				break;
+			default:
+				assert false;
 			}
 			if (dliPresent[y]) {
 				int vcount = mode == 0 ? 16 + y : 16 + (y - 1 >> 1);
@@ -14478,6 +14494,8 @@ public class RECOIL
 			case 3:
 				DecodeAtari8Gr1Line(content, charactersOffset, content, fontOffset, frame, frameOffset, mode & 1);
 				break;
+			default:
+				assert false;
 			}
 			charactersOffset += columns;
 		}
@@ -14770,6 +14788,8 @@ public class RECOIL
 			case 11:
 				DecodeAtari8Gr11(bitmap, 0, frame, y << 8, 0, 1);
 				break;
+			default:
+				assert false;
 			}
 		}
 	}
@@ -15261,6 +15281,8 @@ public class RECOIL
 				case 3: // down
 					frameOffset += Width;
 					break;
+				default:
+					assert false;
 				}
 			}
 		}
