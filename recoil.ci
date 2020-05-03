@@ -3834,6 +3834,8 @@ public class RECOIL
 		"by the Free Software Foundation; either version 2 of the License, " +
 		"or (at your option) any later version.";
 
+	/// Constructs a decoder of images.
+	/// The decoder can be used for several images, one after another.
 	public RECOIL()
 	{
 		SetAtari8Palette(null);
@@ -4234,7 +4236,16 @@ public class RECOIL
 		return true;
 	}
 
-	protected virtual int ReadFile(string filename, byte[]! content, int contentLength) => -1;
+	/// Reads a companion file to the specified byte array.
+	/// Implement this method in a subclass to enable support for multi-file images.
+	/// Returns the number of bytes read (up to `contentLength`) or -1 on error.
+	protected virtual int ReadFile(
+		/// Name of the file to read.
+		string filename,
+		/// Out: target for the file contents.
+		byte[]! content,
+		/// Maximum number of bytes to read.
+		int contentLength) => -1;
 
 	int ReadCompanionFile(string baseFilename, string upperExt, string lowerExt, byte[]! content, int contentLength)
 	{
@@ -12132,8 +12143,11 @@ public class RECOIL
 
 	int[256] Atari8Palette;
 
-	/// Sets Atari 8-bit palette from a 768-byte array (256 times RGB).
-	public void SetAtari8Palette!(byte[] content)
+	/// Sets Atari 8-bit palette.
+	public void SetAtari8Palette!(
+		/// 768-byte array (256 times RGB).
+		/// `null` to use the default.
+		byte[] content)
 	{
 		if (content == null)
 			content = resource<byte[]>("altirrapal.pal");
@@ -16351,9 +16365,11 @@ public class RECOIL
 
 	/// Checks whether the filename extension is supported by RECOIL.
 	/// `true` doesn't necessarily mean that the file contents is valid for RECOIL.
-	/// This function is meant to avoid reading files which are known to be not supported.
+	/// This function is meant to avoid reading files which are known to be unsupported.
 	/// Another criterium is the maximum file size, `MaxContentLength`.
-	public static bool IsOurFile(string filename)
+	public static bool IsOurFile(
+		/// Name of the file to be checked.
+		string filename)
 	{
 		switch (GetPackedExt(filename)) {
 		case PackExt("256"):
