@@ -3846,7 +3846,7 @@ public class RECOIL
 	public const int MaxContentLength = 6 * 1024 * 1024;
 
 	/// Maximum width of a decoded image.
-	public const int MaxWidth = 2560;
+	public const int MaxWidth = 10000;
 	/// Maximum height of a decoded image.
 	public const int MaxHeight = 2560;
 	/// Maximum number of pixels in a decoded image.
@@ -8693,6 +8693,85 @@ public class RECOIL
 					}
 				}
 				Pixels[y * 320 + x] = C64Palette[c & 0xf];
+			}
+		}
+		return true;
+	}
+
+	bool DecodeCtm!(byte[] content, int contentLength)
+	{
+		if (contentLength < 30 || content[0] != 'C' || content[1] != 'T' || content[2] != 'M' || content[3] != 5)
+			return false;
+		int colorMethod = content[8];
+		if (colorMethod > 2)
+			return false;
+		int flags = content[9];
+		bool tiles = (flags & 1) != 0;
+		if (colorMethod == 1 && !tiles)
+			return false;
+		bool charex = (flags & 2) != 0;
+		bool multi = (flags & 4) != 0;
+		int charCount = content[10] + (content[11] << 8) + 1;
+		int tileCount = tiles ? content[12] + (content[13] << 8) + 1 : 0;
+		int tileWidth = tiles ? content[14] : 1;
+		int tileHeight = tiles ? content[15] : 1;
+		if (tileWidth == 0 || tileHeight == 0)
+			return false;
+		int mapWidth = content[16] | content[17] << 8;
+		int mapHeight = content[18] | content[19] << 8;
+		int tilesOffset = 20 + charCount * 9;
+		int tileColorsOffset = charex ? tilesOffset : tilesOffset + tileCount * (tileWidth * tileHeight << 1);
+		int mapOffset = colorMethod == 1 ? tileColorsOffset + tileCount : tileColorsOffset;
+		if (contentLength != mapOffset + (mapWidth * mapHeight << 1))
+			return false;
+		int width = mapWidth * tileWidth << 3;
+		int height = mapHeight * tileHeight << 3;
+		if (!SetSize(width, height, multi ? RECOILResolution.C642x1 : RECOILResolution.C641x1))
+			return false;
+		for (int y = 0; y < height; y++) {
+			int mapRowOffset = mapOffset + ((y >> 3) / tileHeight * mapWidth << 1);
+			for (int x = 0; x < width; x++) {
+				int mapTileOffset = mapRowOffset + ((x >> 3) / tileWidth << 1);
+				int tile = content[mapTileOffset] | content[mapTileOffset + 1] << 8;
+				int ch;
+				if (tiles) {
+					if (tile >= tileCount)
+						return false;
+					ch = (tile * tileHeight + (y >> 3) % tileHeight) * tileWidth + (x >> 3) % tileWidth;
+					if (!charex) {
+						int tileOffset = tilesOffset + (ch << 1);
+						ch = content[tileOffset] | content[tileOffset + 1] << 8;
+					}
+				}
+				else
+					ch = tile;
+				if (ch >= charCount)
+					return false;
+				int foregroundOffset;
+				switch (colorMethod) {
+				case 1:
+					foregroundOffset = tileColorsOffset + tile;
+					break;
+				case 2:
+					foregroundOffset = 20 + (charCount << 3) + ch;
+					break;
+				default:
+					foregroundOffset = 7;
+					break;
+				}
+				int c = content[20 + (ch << 3) + (y & 7)];
+				if (multi) {
+					c = c >> (~x & 6) & 3;
+					if (c == 3)
+						c = content[foregroundOffset] & 7;
+					else
+						c = content[4 + c];
+				}
+				else {
+					c = c >> (~x & 7) & 1;
+					c = content[c == 0 ? 4 : foregroundOffset];
+				}
+				Pixels[y * width + x] = C64Palette[c & 15];
 			}
 		}
 		return true;
@@ -16457,6 +16536,7 @@ public class RECOIL
 		case PackExt("CPR"):
 		case PackExt("CPT"):
 		case PackExt("CRG"):
+		case PackExt("CTM"):
 		case PackExt("CUT"):
 		case PackExt("CWG"):
 		case PackExt("DA4"):
@@ -16967,6 +17047,8 @@ public class RECOIL
 			return DecodeCpt(filename, content, contentLength);
 		case PackExt("CRG"):
 			return DecodeCrg(content, contentLength);
+		case PackExt("CTM"):
+			return DecodeCtm(content, contentLength);
 		case PackExt("CUT"):
 			return DecodeGr8Raw(content, contentLength, 96, 99);
 		case PackExt("CWG"):

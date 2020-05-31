@@ -443,6 +443,7 @@
 		</format>
 		<format name="CDU-Paint" width="160" height="200" colors="16"><ext>CDU</ext></format>
 		<format name="Cheese" width="160" height="200" colors="16"><ext>CHE</ext></format>
+		<format name="CharPad" colors="16"><ext>CTM</ext></format>
 		<format name="Create with Garfield" width="160" height="200" colors="16"><ext>CWG</ext></format>
 		<format name="Doodle" width="320" height="200" colors="16"><ext>DD</ext></format>
 		<format name="Dolphin Ed" width="160" height="200" colors="16"><ext>DOL</ext></format>
