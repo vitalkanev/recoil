@@ -7887,6 +7887,23 @@ public class RECOIL
 		0x959595
 	};
 
+	bool DecodeCle!(byte[] content, int contentLength)
+	{
+		if (contentLength != 8194)
+			return false;
+		SetSize(320, 200, RECOILResolution.C641x1);
+		int[4] palette;
+		palette[0] = C64Palette[content[8004] & 0xf];
+		palette[1] = C64Palette[content[8002] >> 4];
+		palette[2] = C64Palette[content[8002] & 0xf];
+		palette[3] = C64Palette[content[8003] & 0xf];
+		for (int y = 0; y < 200; y++) {
+			for (int x = 0; x < 320; x++)
+				Pixels[y * 320 + x] = palette[content[2 + (y & ~7) * 40 + (x & ~7) + (y & 7)] >> (~x & 6) & 3];
+		}
+		return true;
+	}
+
 	bool Decode4bt!(byte[] content, int contentLength)
 	{
 		if (contentLength < 5 || !IsStringAt(content, 0, "GOD0") || content[contentLength - 1] != 0xad)
@@ -16528,6 +16545,7 @@ public class RECOIL
 		case PackExt("CHR"):
 		case PackExt("CHS"):
 		case PackExt("CIN"):
+		case PackExt("CLE"):
 		case PackExt("CLP"):
 		case PackExt("CM5"):
 		case PackExt("CMP"):
@@ -17031,6 +17049,8 @@ public class RECOIL
 			return DecodeChs(content, contentLength);
 		case PackExt("CIN"):
 			return DecodeCin(content, contentLength);
+		case PackExt("CLE"):
+			return DecodeCle(content, contentLength);
 		case PackExt("CLP"):
 			return DecodeClp(content, contentLength);
 		case PackExt("CM5"):

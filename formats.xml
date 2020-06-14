@@ -443,6 +443,7 @@
 		</format>
 		<format name="CDU-Paint" width="160" height="200" colors="16"><ext>CDU</ext></format>
 		<format name="Cheese" width="160" height="200" colors="16"><ext>CHE</ext></format>
+		<format name="Centauri Logo-Editor" width="160" height="200" colors="4"><ext>CLE</ext></format>
 		<format name="CharPad" colors="16"><ext>CTM</ext></format>
 		<format name="Create with Garfield" width="160" height="200" colors="16"><ext>CWG</ext></format>
 		<format name="Doodle" width="320" height="200" colors="16"><ext>DD</ext></format>
