@@ -723,6 +723,7 @@
 		<format name="Attributes" width="32" height="24" unit="characters" colors="15"><ext>ATR</ext></format>
 		<format name="Border Screen Multicolor 8x4" width="384" height="304" colors="15"><ext>BMC4</ext></format>
 		<format name="Border Screen" width="384" height="304" colors="15"><ext>BSC</ext></format>
+		<format name="Border Screen by Trefi" maxWidth="384" maxHeight="304" maxFrames="2"><ext>BSP</ext></format>
 		<format name="CHR$" maxFrames="2"><ext>CH$</ext></format>
 		<format name="4x8 font" colors="2"><ext>CH4</ext></format>
 		<format name="6x8 font" colors="2"><ext>CH6</ext></format>

@@ -5465,6 +5465,8 @@ public class RECOIL
 	const int ZxAttributes8x4 = 2;
 	const int ZxAttributes8x8 = 3;
 
+	static int GetZxLineOffset(int y) => ((y & 0xc0) << 5) + ((y & 7) << 8) + ((y & 0x38) << 2);
+
 	void DecodeZx!(byte[] content, int bitmapOffset, int attributesOffset, int attributesMode, int pixelsOffset)
 	{
 		for (int y = 0; y < 192; y++) {
@@ -5483,7 +5485,7 @@ public class RECOIL
 					break;
 				default:
 					// x=CCCCCBBB, y=AARRRLLL -> o=AALLLRRRCCCCC
-					c = content[bitmapOffset + ((y & 0xc0) << 5) + ((y & 7) << 8) + ((y & 0x38) << 2) + col] >> (~x & 7);
+					c = content[bitmapOffset + GetZxLineOffset(y) + col] >> (~x & 7);
 					break;
 				}
 				c &= 1;
@@ -5512,7 +5514,7 @@ public class RECOIL
 							a = attributesOffset + (y >> 3 << 4) - 16;
 						break;
 					case ZxAttributesTimex:
-						a = attributesOffset + ((y & 0xc0) << 5) + ((y & 7) << 8) + ((y & 0x38) << 2);
+						a = attributesOffset + GetZxLineOffset(y);
 						break;
 					default:
 						// linear 8x1, 8x2, 8x4, 8x8
@@ -5532,7 +5534,7 @@ public class RECOIL
 		int inkColor = GetZxColor(content[contentOffset + 0x3000] >> 3);
 		for (int y = 0; y < 192; y++) {
 			for (int x = 0; x < 512; x++) {
-				int c = content[contentOffset + (x & 8) * 768 + ((y & 0xc0) << 5) + ((y & 7) << 8) + ((y & 0x38) << 2) + (x >> 4)] >> (~x & 7) & 1;
+				int c = content[contentOffset + (x & 8) * 768 + GetZxLineOffset(y) + (x >> 4)] >> (~x & 7) & 1;
 				int offset = pixelsOffset + (y << 10) + x;
 				Pixels[offset + 512] = Pixels[offset] = c == 0 ? inkColor ^ 0xffffff : inkColor;
 			}
@@ -5696,7 +5698,7 @@ public class RECOIL
 		Frames = 3;
 		for (int y = 0; y < 192; y++) {
 			for (int x = 0; x < 256; x++) {
-				int offset = (y & 0xc0) << 5 | (y & 7) << 8 | (y & 0x38) << 2 | x >> 3;
+				int offset = GetZxLineOffset(y) + (x >> 3);
 				int c = 0;
 				for (int frame = 0; frame < 3; frame++) {
 					if ((content[frame * 0x1800 + offset] >> (~x & 7) & 1) != 0)
@@ -5829,9 +5831,8 @@ public class RECOIL
 					int a = 0x1800 + (bY >> 3 << 5) + col;
 					if (contentLength == 11904 && (bY & 4) != 0)
 						a += 0x300;
-					a = content[a];
-					c = a;
-					if ((content[((bY & 0xc0) << 5) + ((bY & 7) << 8) + ((bY & 0x38) << 2) + col] >> (~x & 7) & 1) == 0)
+					c = a = content[a];
+					if ((content[GetZxLineOffset(bY) + col] >> (~x & 7) & 1) == 0)
 						c >>= 3;
 					c = GetZxColor(c);
 					if ((a & 0x40) == 0)
@@ -5898,6 +5899,106 @@ public class RECOIL
 		return true;
 	}
 
+	static int GetBspBitmapPixel(byte[] content, int bitmapOffset, int x, int y)
+	{
+		int col = x >> 3;
+		int a = content[bitmapOffset + 0x1800 + (y >> 3 << 5) + col];
+		int c = a;
+		if ((content[bitmapOffset + GetZxLineOffset(y) + col] >> (~x & 7) & 1) == 0)
+			c >>= 3;
+		c = GetZxColor(c);
+		if ((a & 0x40) == 0)
+			c &= 0xcdcdcd;
+		return c;
+	}
+
+	bool DecodeBspFrame!(int pixelsOffset, byte[] content, int contentLength, int bitmapOffset, int borderOffset)
+	{
+		for (int y = 0; y < Height; y++) {
+			int c = 0;
+			int b = 1;
+			for (int x = 0; x < Width; x++) {
+				if (borderOffset < 0)
+					c = GetBspBitmapPixel(content, bitmapOffset, x, y);
+				else if (x >= 64 && x < 320 && y >= 64 && y < 256) {
+					c = GetBspBitmapPixel(content, bitmapOffset, x - 64, y - 64);
+					b = 1;
+				}
+				else if (b > 0) {
+					if (--b == 0) {
+						if (borderOffset >= contentLength)
+							return false;
+						b = content[borderOffset++];
+						c = GetZxColor(b) & 0xcdcdcd;
+						b >>= 3;
+						switch (b) {
+						case 0:
+							break;
+						case 1:
+							if (borderOffset >= contentLength)
+								return false;
+							b = content[borderOffset++];
+							break;
+						case 2:
+							b = 12;
+							break;
+						default:
+							b += 13;
+							break;
+						}
+						b <<= 1;
+					}
+				}
+				Pixels[pixelsOffset + y * Width + x] = c;
+			}
+		}
+		return true;
+	}
+
+	bool DecodeBsp!(byte[] content, int contentLength)
+	{
+		if (contentLength < 6982)
+			return false;
+		switch (content[3] >> 6) {
+		case 1:
+			SetSize(384, 304, RECOILResolution.Spectrum1x1);
+			return DecodeBspFrame(0, content, contentLength, 0x46, 0x1b46);
+		case 2:
+			if (contentLength != 13894)
+				return false;
+			SetSize(256, 192, RECOILResolution.Spectrum1x1);
+			return DecodeBspFrame(0, content, contentLength, 0x46, -1)
+				&& DecodeBspFrame(256 * 192, content, contentLength, 0x1b46, -1)
+				&& ApplyBlend();
+		case 3:
+			int secondBorderOffset = content[0x46] | content[0x47] << 8;
+			SetSize(384, 304, RECOILResolution.Spectrum1x1);
+			return DecodeBspFrame(0, content, contentLength, 0x48, 0x3648)
+				&& DecodeBspFrame(384 * 304, content, contentLength, 0x1b48, secondBorderOffset)
+				&& ApplyBlend();
+		default:
+			if (contentLength != 6982)
+				return false;
+			SetSize(256, 192, RECOILResolution.Spectrum1x1);
+			return DecodeBspFrame(0, content, contentLength, 0x46, -1);
+		}
+	}
+
+	bool DecodeNxi!(byte[] content, int contentLength)
+	{
+		if (contentLength != 49664)
+			return false;
+		for (int i = 0; i < 256; i++) {
+			int c = content[i << 1];
+			ContentPalette[i] = (c >> 5) * 0x49 >> 1 << 16
+				| (c >> 2 & 7) * 0x49 >> 1 << 8
+				| ((c & 3) << 1 | (content[(i << 1) + 1] & 1)) * 0x49 >> 1;
+		}
+		SetSize(256, 192, RECOILResolution.Spectrum1x1);
+		DecodeBytes(content, 512);
+		return true;
+	}
+
 	bool DecodeSxg!(byte[] content, int contentLength)
 	{
 		if (contentLength < 19 || content[0] != 0x7f
@@ -5947,21 +6048,6 @@ public class RECOIL
 		default:
 			return false;
 		}
-	}
-
-	bool DecodeNxi!(byte[] content, int contentLength)
-	{
-		if (contentLength != 49664)
-			return false;
-		for (int i = 0; i < 256; i++) {
-			int c = content[i << 1];
-			ContentPalette[i] = (c >> 5 & 7) * 0x49 >> 1 << 16
-				| (c >> 2 & 7) * 0x49 >> 1 << 8
-				| ((c & 3) << 1 | (content[(i << 1) + 1] & 1)) * 0x49 >> 1;
-		}
-		SetSize(256, 192, RECOILResolution.Spectrum1x1);
-		DecodeBytes(content, 512);
-		return true;
 	}
 
 	// MSX formats.
@@ -16543,6 +16629,7 @@ public class RECOIL
 		case PackExt("BRU"):
 		case PackExt("BSC"):
 		case PackExt("BMC4"):
+		case PackExt("BSP"):
 		case PackExt("CA1"):
 		case PackExt("CA2"):
 		case PackExt("CA3"):
@@ -17037,6 +17124,8 @@ public class RECOIL
 		case PackExt("BSC"):
 		case PackExt("BMC4"):
 			return DecodeBsc(content, contentLength);
+		case PackExt("BSP"):
+			return DecodeBsp(content, contentLength);
 		case PackExt("CA1"):
 		case PackExt("CA2"):
 		case PackExt("CA3"):
