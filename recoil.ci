@@ -5959,29 +5959,21 @@ public class RECOIL
 	{
 		if (contentLength < 6982)
 			return false;
-		switch (content[3] >> 6) {
-		case 1:
-			SetSize(384, 304, RECOILResolution.Spectrum1x1);
-			return DecodeBspFrame(0, content, contentLength, 0x46, 0x1b46);
-		case 2:
-			if (contentLength != 13894)
-				return false;
+		if ((content[3] & 0x40) == 0) {
 			SetSize(256, 192, RECOILResolution.Spectrum1x1);
-			return DecodeBspFrame(0, content, contentLength, 0x46, -1)
+			DecodeBspFrame(0, content, contentLength, 0x46, -1);
+			if (content[3] < 0x80)
+				return true;
+			return contentLength == 13894
 				&& DecodeBspFrame(256 * 192, content, contentLength, 0x1b46, -1)
 				&& ApplyBlend();
-		case 3:
-			int secondBorderOffset = content[0x46] | content[0x47] << 8;
-			SetSize(384, 304, RECOILResolution.Spectrum1x1);
-			return DecodeBspFrame(0, content, contentLength, 0x48, 0x3648)
-				&& DecodeBspFrame(384 * 304, content, contentLength, 0x1b48, secondBorderOffset)
-				&& ApplyBlend();
-		default:
-			if (contentLength != 6982)
-				return false;
-			SetSize(256, 192, RECOILResolution.Spectrum1x1);
-			return DecodeBspFrame(0, content, contentLength, 0x46, -1);
 		}
+		SetSize(384, 304, RECOILResolution.Spectrum1x1);
+		if (content[3] < 0x80)
+			return DecodeBspFrame(0, content, contentLength, 0x46, 0x1b46);
+		return DecodeBspFrame(0, content, contentLength, 0x48, 0x3648)
+			&& DecodeBspFrame(384 * 304, content, contentLength, 0x1b48, content[0x46] | content[0x47] << 8)
+			&& ApplyBlend();
 	}
 
 	bool DecodeNxi!(byte[] content, int contentLength)
