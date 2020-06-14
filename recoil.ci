@@ -5949,6 +5949,21 @@ public class RECOIL
 		}
 	}
 
+	bool DecodeNxi!(byte[] content, int contentLength)
+	{
+		if (contentLength != 49664)
+			return false;
+		for (int i = 0; i < 256; i++) {
+			int c = content[i << 1];
+			ContentPalette[i] = (c >> 5 & 7) * 0x49 >> 1 << 16
+				| (c >> 2 & 7) * 0x49 >> 1 << 8
+				| ((c & 3) << 1 | (content[(i << 1) + 1] & 1)) * 0x49 >> 1;
+		}
+		SetSize(256, 192, RECOILResolution.Spectrum1x1);
+		DecodeBytes(content, 512);
+		return true;
+	}
+
 	// MSX formats.
 
 	void SetMsx1Palette!()
@@ -16750,6 +16765,7 @@ public class RECOIL
 		case PackExt("MUR"):
 		case PackExt("NEO"):
 		case PackExt("NLQ"):
+		case PackExt("NXI"):
 		case PackExt("OCP"):
 		case PackExt("P"):
 		case PackExt("P11"):
@@ -17436,6 +17452,8 @@ public class RECOIL
 				|| DecodeIff(content, contentLength, RECOILResolution.Ste1x1);
 		case PackExt("NLQ"):
 			return DecodeNlq(content, contentLength);
+		case PackExt("NXI"):
+			return DecodeNxi(content, contentLength);
 		case PackExt("OCP"):
 			return DecodeOcp(content, contentLength);
 		case PackExt("P"):

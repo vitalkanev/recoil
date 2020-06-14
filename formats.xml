@@ -736,6 +736,7 @@
 		<format name="MultiArtist 8x4" width="256" height="192" frames="2"><ext>MG4</ext></format>
 		<format name="MultiArtist 8x8" width="256" height="192" frames="2"><ext>MG8</ext></format>
 		<format width="256" height="192" colors="15"><ext>MLT</ext></format>
+		<format hardware="Next" width="256" height="192" colors="256"><ext>NXI</ext></format>
 		<format width="256" height="192" colors="8" frames="3"><ext>RGB</ext></format>
 		<format width="256" height="192" colors="15"><ext>SCR</ext></format>
 		<format hardware="ULAplus" name="ULAplus" width="256" height="192" colors="64"><ext>SCR</ext></format>
