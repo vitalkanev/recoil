@@ -68,8 +68,8 @@
 		</format>
 	</platform>
 	<platform name="Apple IIGS" href="https://en.wikipedia.org/wiki/Apple_IIGS">
-		<format name="Multi-palette" maxWidth="640" height="200" colors="3200"><ext>32K</ext></format>
-		<format name="Apple Preferred Format" maxWidth="640" colors="256">
+		<format name="Multi-palette" height="200" colors="3200"><ext>32K</ext></format>
+		<format name="Apple Preferred Format" colors="256">
 			<ext>GS</ext>
 			<ext>IIGS</ext>
 			<ext>PNT</ext>

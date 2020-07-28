@@ -7126,7 +7126,7 @@ public class RECOIL
 	bool DecodeApfShr!(byte[] content, int contentLength)
 	{
 		if (contentLength < 1249 || content[4] != 4 || !IsStringAt(content, 5, "MAIN")
-		 || content[10] != 0 || content[14] != 0)
+		 || content[14] != 0)
 			return false;
 		int paletteCount = content[13];
 		if (paletteCount > 16)
@@ -7137,16 +7137,19 @@ public class RECOIL
 		int mode = content[9] & 0xf0;
 		int width = content[11] | content[12] << 8;
 		int height = content[dirOffset - 2] | content[dirOffset - 1] << 8;
+		int bytesPerLine;
 		switch (mode) {
 		case 0:
-			if (width != 320 // TODO: other widths
-			 || !SetSize(320, height, RECOILResolution.AppleIIGS1x1))
+			if ((width & 1) != 0
+			 || !SetSize(width, height, RECOILResolution.AppleIIGS1x1))
 				return false;
+			bytesPerLine = width >> 1;
 			break;
 		case 0x80:
-			if (width != 640 // TODO: other widths
-			 || !SetSize(640, height << 1, RECOILResolution.AppleIIGS1x2))
+			if ((width & 3) != 0
+			 || !SetSize(width, height << 1, RECOILResolution.AppleIIGS1x2))
 				return false;
+			bytesPerLine = width >> 2;
 			break;
 		default:
 			return false;
@@ -7184,7 +7187,7 @@ public class RECOIL
 			}
 			int count = 1;
 			int pattern = 0;
-			for (int x = 0; x < 160; x++) {
+			for (int x = 0; x < bytesPerLine; x++) {
 				// uncompress Apple PackBytes
 				int b;
 				if (--count == 0) {
@@ -7204,14 +7207,15 @@ public class RECOIL
 				b = content[contentOffset++];
 				
 				if (mode == 0) {
-					Pixels[y * 320 + (x << 1)] = ContentPalette[b >> 4];
-					Pixels[y * 320 + (x << 1) + 1] = ContentPalette[b & 0xf];
+					Pixels[y * width + (x << 1)] = ContentPalette[b >> 4];
+					Pixels[y * width + (x << 1) + 1] = ContentPalette[b & 0xf];
 				}
 				else {
-					SetScaledPixel(x << 2, y, ContentPalette[8 + (b >> 6)]);
-					SetScaledPixel((x << 2) + 1, y, ContentPalette[12 + (b >> 4 & 3)]);
-					SetScaledPixel((x << 2) + 2, y, ContentPalette[(b >> 2 & 3)]);
-					SetScaledPixel((x << 2) + 3, y, ContentPalette[4 + (b & 3)]);
+					int offset = (y * width << 1) + (x << 2);
+					Pixels[offset + width] = Pixels[offset] = ContentPalette[8 + (b >> 6)];
+					Pixels[offset + width + 1] = Pixels[offset + 1] = ContentPalette[12 + (b >> 4 & 3)];
+					Pixels[offset + width + 2] = Pixels[offset + 2] = ContentPalette[(b >> 2 & 3)];
+					Pixels[offset + width + 3] = Pixels[offset + 3] = ContentPalette[4 + (b & 3)];
 				}
 			}
 		}
