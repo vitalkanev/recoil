@@ -5585,6 +5585,8 @@ public class RECOIL
 			SetUlaPlus(content, 0x3000);
 			DecodeZx(content, 0, 0x1800, ZxAttributesTimex, 0);
 			return true;
+		case 32768:
+			return DecodeAppleIIShr(content, contentLength);
 		default:
 			return DecodeAmstradScr(filename, content, contentLength);
 		}
