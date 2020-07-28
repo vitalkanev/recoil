@@ -68,7 +68,7 @@
 		</format>
 	</platform>
 	<platform name="Apple IIGS" href="https://en.wikipedia.org/wiki/Apple_IIGS">
-		<format name="Apple Preferred Format" maxWidth="640" height="200" colors="16">
+		<format name="Apple Preferred Format" maxWidth="640" colors="16">
 			<ext>IIGS</ext>
 			<ext>PNT</ext>
 			<ext>SHR</ext>

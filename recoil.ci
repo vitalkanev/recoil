@@ -7133,31 +7133,33 @@ public class RECOIL
 		if (paletteCount == 0 || paletteCount > 16)
 			return false;
 		int contentOffset = 0x11 + (paletteCount << 5);
-		if (contentOffset + 800 >= contentLength
-		 || content[contentOffset - 2] != 200 || content[contentOffset - 1] != 0) // TODO: other heights
+		if (contentOffset >= contentLength)
 			return false;
-		for (int y = 0; y < 200; y++) {
+		int height = content[contentOffset - 2] | content[contentOffset - 1] << 8;
+		if (contentOffset + (height << 2) >= contentLength)
+			return false;
+		for (int y = 0; y < height; y++) {
 			if (content[contentOffset + (y << 2) + 2] != mode || content[contentOffset + (y << 2) + 3] != 0)
 				return false;
 		}
 		int width = content[11] | content[12] << 8;
 		switch (mode) {
 		case 0:
-			if (width != 320) // TODO: other widths
+			if (width != 320 // TODO: other widths
+			 || !SetSize(320, height, RECOILResolution.AppleIIGS1x1))
 				return false;
-			SetSize(320, 200, RECOILResolution.AppleIIGS1x1);
 			break;
 		case 0x80:
-			if (width != 640) // TODO: other widths
+			if (width != 640 // TODO: other widths
+			 || !SetSize(640, height << 1, RECOILResolution.AppleIIGS1x2))
 				return false;
-			SetSize(640, 400, RECOILResolution.AppleIIGS1x2);
 			break;
 		default:
 			return false;
 		}
 		SetAppleIIGSPalette(content, 0xf, 0);
-		contentOffset += 800;
-		for (int y = 0; y < 200; y++) {
+		contentOffset += height << 2;
+		for (int y = 0; y < height; y++) {
 			int count = 1;
 			int pattern = 0;
 			for (int x = 0; x < 160; x++) {
@@ -17700,7 +17702,8 @@ public class RECOIL
 		case PackExt("PNT"):
 			return DecodeFalconPnt(content, contentLength)
 				|| DecodeApfShr(content, contentLength)
-				|| DecodeMac(content, contentLength);
+				|| DecodeMac(content, contentLength)
+				|| DecodeAppleIIShr(content, contentLength);
 		case PackExt("PP"):
 			return DecodePp(content, contentLength);
 		case PackExt("PPH"):
