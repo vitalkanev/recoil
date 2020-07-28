@@ -16811,6 +16811,8 @@ public class RECOIL
 		case PackExt("GR9"):
 		case PackExt("GR9P"):
 		case PackExt("GRP"):
+		case PackExt("GS"):
+		case PackExt("IIGS"):
 		case PackExt("GUN"):
 		case PackExt("HCM"):
 		case PackExt("HED"):
@@ -16864,7 +16866,6 @@ public class RECOIL
 		case PackExt("IFL"):
 		case PackExt("IGE"):
 		case PackExt("IHE"):
-		case PackExt("IIGS"):
 		case PackExt("IIM"):
 		case PackExt("ILD"):
 		case PackExt("ILS"):
@@ -17405,6 +17406,9 @@ public class RECOIL
 			return DecodeGr9p(content, contentLength);
 		case PackExt("GRP"):
 			return DecodeSc2(content, contentLength);
+		case PackExt("GS"):
+		case PackExt("IIGS"):
+			return DecodeApfShr(content, contentLength);
 		case PackExt("GUN"):
 			return DecodeGun(content, contentLength);
 		case PackExt("HCM"):
@@ -17493,8 +17497,6 @@ public class RECOIL
 			return DecodeIge(content, contentLength);
 		case PackExt("IHE"):
 			return DecodeIhe(content, contentLength);
-		case PackExt("IIGS"):
-			return DecodeApfShr(content, contentLength);
 		case PackExt("IIM"):
 			return DecodeIim(content, contentLength);
 		case PackExt("ILD"):
