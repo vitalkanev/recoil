@@ -4163,6 +4163,7 @@ public class RECOIL
 				Pixels[offset + x] = rgb;
 			break;
 		case RECOILResolution.Amiga1x2:
+		case RECOILResolution.AppleIIGS1x2:
 		case RECOILResolution.St1x2:
 		case RECOILResolution.Ste1x2:
 		case RECOILResolution.Pc801x2:
@@ -7125,42 +7126,69 @@ public class RECOIL
 	bool DecodeApfShr!(byte[] content, int contentLength)
 	{
 		if (contentLength < 1249 || content[4] != 4 || !IsStringAt(content, 5, "MAIN")
-		 || content[9] != 0x80 || content[10] != 0 // TODO: other modes
-		 || content[11] != 0x80 || content[12] != 2 // TODO: other widths
-		 || content[13] != 1 || content[14] != 0 // TODO: multipalete
-		 || content[0x2f] != 200 || content[0x30] != 0) // TODO: other heights
+		 || content[10] != 0 || content[14] != 0)
+			return false;
+		int mode = content[9] & 0xf0;
+		int paletteCount = content[13];
+		if (paletteCount == 0 || paletteCount > 16)
+			return false;
+		int contentOffset = 0x11 + (paletteCount << 5);
+		if (contentOffset + 800 >= contentLength
+		 || content[contentOffset - 2] != 200 || content[contentOffset - 1] != 0) // TODO: other heights
 			return false;
 		for (int y = 0; y < 200; y++) {
-			if (content[0x33 + (y << 2)] != 0x80 || content[0x34 + (y << 2)] != 0)
+			if (content[contentOffset + (y << 2) + 2] != mode || content[contentOffset + (y << 2) + 3] != 0)
 				return false;
 		}
-		SetSize(640, 400, RECOILResolution.AppleIIGS1x2);
+		int width = content[11] | content[12] << 8;
+		switch (mode) {
+		case 0:
+			if (width != 320) // TODO: other widths
+				return false;
+			SetSize(320, 200, RECOILResolution.AppleIIGS1x1);
+			break;
+		case 0x80:
+			if (width != 640) // TODO: other widths
+				return false;
+			SetSize(640, 400, RECOILResolution.AppleIIGS1x2);
+			break;
+		default:
+			return false;
+		}
 		SetAppleIIGSPalette(content, 0xf, 0);
-		int contentOffset = 0x351;
+		contentOffset += 800;
 		for (int y = 0; y < 200; y++) {
 			int count = 1;
 			int pattern = 0;
-			int b = 0;
-			for (int x = 0; x < 640; x++) {
-				if ((x & 3) == 0) {
-					// uncompress Apple PackBytes
-					if (--count == 0) {
-						if (contentOffset >= contentLength)
-							return false;
-						b = content[contentOffset++];
-						count = (b & 0x3f) + 1;
-						if (b >= 0x80)
-							count <<= 2;
-						const byte[4] patterns = { 0, 1, 4, 1 };
-						pattern = patterns[b >> 6];
-					}
-					else if ((count & pattern - 1) == 0)
-						contentOffset -= pattern;
+			for (int x = 0; x < 160; x++) {
+				// uncompress Apple PackBytes
+				int b;
+				if (--count == 0) {
 					if (contentOffset >= contentLength)
 						return false;
 					b = content[contentOffset++];
+					count = (b & 0x3f) + 1;
+					if (b >= 0x80)
+						count <<= 2;
+					const byte[4] patterns = { 0, 1, 4, 1 };
+					pattern = patterns[b >> 6];
 				}
-				Pixels[y * 1280 + 640 + x] = Pixels[y * 1280 + x] = ContentPalette[((x & 3) ^ 2) << 2 | (b >> ((~x & 3) << 1) & 3)];
+				else if ((count & pattern - 1) == 0)
+					contentOffset -= pattern;
+				if (contentOffset >= contentLength)
+					return false;
+				b = content[contentOffset++];
+				
+				if (mode == 0) {
+					Pixels[y * 320 + (x << 1)] = ContentPalette[b >> 4];
+					Pixels[y * 320 + (x << 1) + 1] = ContentPalette[b & 0xf];
+				}
+				else {
+					SetScaledPixel(x << 2, y, ContentPalette[8 + (b >> 6)]);
+					SetScaledPixel((x << 2) + 1, y, ContentPalette[12 + (b >> 4 & 3)]);
+					SetScaledPixel((x << 2) + 2, y, ContentPalette[(b >> 2 & 3)]);
+					SetScaledPixel((x << 2) + 3, y, ContentPalette[4 + (b & 3)]);
+				}
 			}
 		}
 		return true;
@@ -11381,7 +11409,7 @@ public class RECOIL
 		}
 	}
 
-	bool DecodePnt!(byte[] content, int contentLength)
+	bool DecodeFalconPnt!(byte[] content, int contentLength)
 	{
 		if (contentLength < 128 || content[0] != 'P' || content[1] != 'N' || content[2] != 'T' || content[3] != 0
 		 || content[4] != 1 || content[5] != 0 || content[12] != 0 || content[14] != 0)
@@ -16834,6 +16862,7 @@ public class RECOIL
 		case PackExt("IFL"):
 		case PackExt("IGE"):
 		case PackExt("IHE"):
+		case PackExt("IIGS"):
 		case PackExt("IIM"):
 		case PackExt("ILD"):
 		case PackExt("ILS"):
@@ -17462,6 +17491,8 @@ public class RECOIL
 			return DecodeIge(content, contentLength);
 		case PackExt("IHE"):
 			return DecodeIhe(content, contentLength);
+		case PackExt("IIGS"):
+			return DecodeApfShr(content, contentLength);
 		case PackExt("IIM"):
 			return DecodeIim(content, contentLength);
 		case PackExt("ILD"):
@@ -17667,7 +17698,8 @@ public class RECOIL
 		case PackExt("PMG"):
 			return DecodePmg(content, contentLength);
 		case PackExt("PNT"):
-			return DecodePnt(content, contentLength)
+			return DecodeFalconPnt(content, contentLength)
+				|| DecodeApfShr(content, contentLength)
 				|| DecodeMac(content, contentLength);
 		case PackExt("PP"):
 			return DecodePp(content, contentLength);
@@ -17831,7 +17863,7 @@ public class RECOIL
 		case PackExt("TNY"):
 			return DecodeTny(content, contentLength);
 		case PackExt("TPI"):
-			return DecodePnt(content, contentLength);
+			return DecodeFalconPnt(content, contentLength);
 		case PackExt("TRE"):
 			return DecodeTre(content, contentLength);
 		case PackExt("TRP"):
