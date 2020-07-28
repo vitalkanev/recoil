@@ -7132,17 +7132,11 @@ public class RECOIL
 		int paletteCount = content[13];
 		if (paletteCount == 0 || paletteCount > 16)
 			return false;
-		int contentOffset = 0x11 + (paletteCount << 5);
-		if (contentOffset >= contentLength)
+		int dirOffset = 0x11 + (paletteCount << 5);
+		if (dirOffset >= contentLength)
 			return false;
-		int height = content[contentOffset - 2] | content[contentOffset - 1] << 8;
-		if (contentOffset + (height << 2) >= contentLength)
-			return false;
-		for (int y = 0; y < height; y++) {
-			if (content[contentOffset + (y << 2) + 2] != mode || content[contentOffset + (y << 2) + 3] != 0)
-				return false;
-		}
 		int width = content[11] | content[12] << 8;
+		int height = content[dirOffset - 2] | content[dirOffset - 1] << 8;
 		switch (mode) {
 		case 0:
 			if (width != 320 // TODO: other widths
@@ -7157,9 +7151,15 @@ public class RECOIL
 		default:
 			return false;
 		}
-		SetAppleIIGSPalette(content, 0xf, 0);
-		contentOffset += height << 2;
+		int contentOffset = dirOffset + (height << 2);
+		if (contentOffset >= contentLength)
+			return false;
 		for (int y = 0; y < height; y++) {
+			int lineMode = content[dirOffset + (y << 2) + 2];
+			int palette = lineMode & 0xf;
+			if ((lineMode & 0xf0) != mode || palette >= paletteCount || content[dirOffset + (y << 2) + 3] != 0)
+				return false;
+			SetAppleIIGSPalette(content, 0xf + (palette << 5), 0);
 			int count = 1;
 			int pattern = 0;
 			for (int x = 0; x < 160; x++) {
