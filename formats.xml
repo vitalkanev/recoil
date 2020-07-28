@@ -75,7 +75,10 @@
 			<ext>PNT</ext>
 			<ext>SHR</ext>
 		</format>
-		<format width="320" height="200" colors="3200"><ext>SH3</ext></format>
+		<format width="320" height="200" colors="3200">
+			<ext>SH3</ext>
+			<ext>3200</ext>
+		</format>
 		<format width="320" height="200" colors="256"><ext>SHR</ext></format>
 	</platform>
 	<platform name="Apple Macintosh" href="https://en.wikipedia.org/wiki/Macintosh_128K">

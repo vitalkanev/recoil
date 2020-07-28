@@ -16641,6 +16641,8 @@ public class RECOIL
 			return DecodeElectronika(content);
 		case 32000:
 			return DecodeDoo(content, contentLength);
+		case 32768:
+			return DecodeAppleIIShr(content, contentLength);
 		default:
 			return DecodeStPi(content, contentLength)
 				|| DecodeSc8(null, content, contentLength);
@@ -17056,6 +17058,7 @@ public class RECOIL
 		case PackExt("SGE"):
 		case PackExt("SGX"):
 		case PackExt("SH3"):
+		case PackExt("3200"):
 		case PackExt("SHC"):
 		case PackExt("SHP"):
 		case PackExt("SHR"):
@@ -17834,7 +17837,9 @@ public class RECOIL
 		case PackExt("SGX"):
 			return DecodeSgx(content, contentLength);
 		case PackExt("SH3"):
-			return DecodeSh3(content, contentLength);
+		case PackExt("3200"):
+			return DecodeSh3(content, contentLength)
+				|| DecodeAppleIIShr(content, contentLength);
 		case PackExt("SHC"):
 			return DecodeShc(content, contentLength);
 		case PackExt("SHP"):
