@@ -70,6 +70,7 @@
 	<platform name="Apple IIGS" href="https://en.wikipedia.org/wiki/Apple_IIGS">
 		<format width="320" height="200" colors="3200"><ext>SH3</ext></format>
 		<format width="320" height="200" colors="256"><ext>SHR</ext></format>
+		<format name="Apple Preferred Format" width="640" height="200" colors="16"><ext>SHR</ext></format>
 	</platform>
 	<platform name="Apple Macintosh" href="https://en.wikipedia.org/wiki/Macintosh_128K">
 		<format name="MacPaint" width="576" height="720" colors="2">
