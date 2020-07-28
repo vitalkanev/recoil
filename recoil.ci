@@ -7128,13 +7128,13 @@ public class RECOIL
 		if (contentLength < 1249 || content[4] != 4 || !IsStringAt(content, 5, "MAIN")
 		 || content[10] != 0 || content[14] != 0)
 			return false;
-		int mode = content[9] & 0xf0;
 		int paletteCount = content[13];
-		if (paletteCount == 0 || paletteCount > 16)
+		if (paletteCount > 16)
 			return false;
 		int dirOffset = 0x11 + (paletteCount << 5);
 		if (dirOffset >= contentLength)
 			return false;
+		int mode = content[9] & 0xf0;
 		int width = content[11] | content[12] << 8;
 		int height = content[dirOffset - 2] | content[dirOffset - 1] << 8;
 		switch (mode) {
@@ -7151,15 +7151,37 @@ public class RECOIL
 		default:
 			return false;
 		}
-		int contentOffset = dirOffset + (height << 2);
+		int multipalOffset = -1;
+		int contentOffset = 0;
+		if (height == 200) {
+			for (int chunkLength = Get32LittleEndian(content, 0);;) {
+				if (chunkLength < 0)
+					return false;
+				contentOffset += chunkLength;
+				if (contentOffset + 6415 > contentLength)
+					break;
+				chunkLength = Get32LittleEndian(content, contentOffset);
+				if (chunkLength == 6415 && content[contentOffset + 4] == 8
+				 && IsStringAt(content, contentOffset + 5, "MULTIPAL")
+				 && content[contentOffset + 13] == 200 && content[contentOffset + 14] == 0) {
+					multipalOffset = contentOffset + 15;
+					break;
+				}
+			}
+		}
+		contentOffset = dirOffset + (height << 2);
 		if (contentOffset >= contentLength)
 			return false;
 		for (int y = 0; y < height; y++) {
-			int lineMode = content[dirOffset + (y << 2) + 2];
-			int palette = lineMode & 0xf;
-			if ((lineMode & 0xf0) != mode || palette >= paletteCount || content[dirOffset + (y << 2) + 3] != 0)
-				return false;
-			SetAppleIIGSPalette(content, 0xf + (palette << 5), 0);
+			if (multipalOffset >= 0)
+				SetAppleIIGSPalette(content, multipalOffset + (y << 5), 0);
+			else {
+				int lineMode = content[dirOffset + (y << 2) + 2];
+				int palette = lineMode & 0xf;
+				if ((lineMode & 0xf0) != mode || palette >= paletteCount || content[dirOffset + (y << 2) + 3] != 0)
+					return false;
+				SetAppleIIGSPalette(content, 0xf + (palette << 5), 0);
+			}
 			int count = 1;
 			int pattern = 0;
 			for (int x = 0; x < 160; x++) {
@@ -16813,6 +16835,7 @@ public class RECOIL
 		case PackExt("GRP"):
 		case PackExt("GS"):
 		case PackExt("IIGS"):
+		case PackExt("32K"):
 		case PackExt("GUN"):
 		case PackExt("HCM"):
 		case PackExt("HED"):
@@ -17408,6 +17431,7 @@ public class RECOIL
 			return DecodeSc2(content, contentLength);
 		case PackExt("GS"):
 		case PackExt("IIGS"):
+		case PackExt("32K"):
 			return DecodeApfShr(content, contentLength);
 		case PackExt("GUN"):
 			return DecodeGun(content, contentLength);
