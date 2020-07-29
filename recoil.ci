@@ -7125,6 +7125,52 @@ public class RECOIL
 		return true;
 	}
 
+	int DecodePackBytes!(byte[] content, int contentOffset, int contentLength, int pixelsOffset, int unpackedBytes)
+	{
+		int count = 1;
+		int pattern = 0;
+		for (int x = 0; x < unpackedBytes; x++) {
+			int b;
+			if (--count == 0) {
+				if (contentOffset >= contentLength)
+					return -1;
+				b = content[contentOffset++];
+				count = (b & 0x3f) + 1;
+				if (b >= 0x80)
+					count <<= 2;
+				const byte[4] patterns = { 0, 1, 4, 1 };
+				pattern = patterns[b >> 6];
+			}
+			else if ((count & pattern - 1) == 0)
+				contentOffset -= pattern;
+			if (contentOffset >= contentLength)
+				return -1;
+			b = content[contentOffset++];
+			
+			if (Resolution == RECOILResolution.AppleIIGS1x2) {
+				int offset = (pixelsOffset << 1) + (x << 2);
+				Pixels[offset + Width] = Pixels[offset] = ContentPalette[8 + (b >> 6)];
+				Pixels[offset + Width + 1] = Pixels[offset + 1] = ContentPalette[12 + (b >> 4 & 3)];
+				Pixels[offset + Width + 2] = Pixels[offset + 2] = ContentPalette[(b >> 2 & 3)];
+				Pixels[offset + Width + 3] = Pixels[offset + 3] = ContentPalette[4 + (b & 3)];
+			}
+			else {
+				Pixels[pixelsOffset + (x << 1)] = ContentPalette[b >> 4];
+				Pixels[pixelsOffset + (x << 1) + 1] = ContentPalette[b & 0xf];
+			}
+		}
+		return contentOffset;
+	}
+
+	bool DecodePaintworks!(byte[] content, int contentLength)
+	{
+		if (contentLength < 0x222 + 160 * 396 / 128)
+			return false;
+		SetSize(320, 396, RECOILResolution.AppleIIGS1x1);
+		SetAppleIIGSPalette(content, 0, 0);
+		return DecodePackBytes(content, 0x222, contentLength, 0, 160 * 396) > 0;
+	}
+
 	bool DecodeApfShr!(byte[] content, int contentLength)
 	{
 		if (contentLength < 1249 || content[4] != 4 || !IsStringAt(content, 5, "MAIN")
@@ -7187,39 +7233,9 @@ public class RECOIL
 					return false;
 				SetAppleIIGSPalette(content, 0xf + (palette << 5), 0);
 			}
-			int count = 1;
-			int pattern = 0;
-			for (int x = 0; x < bytesPerLine; x++) {
-				// uncompress Apple PackBytes
-				int b;
-				if (--count == 0) {
-					if (contentOffset >= contentLength)
-						return false;
-					b = content[contentOffset++];
-					count = (b & 0x3f) + 1;
-					if (b >= 0x80)
-						count <<= 2;
-					const byte[4] patterns = { 0, 1, 4, 1 };
-					pattern = patterns[b >> 6];
-				}
-				else if ((count & pattern - 1) == 0)
-					contentOffset -= pattern;
-				if (contentOffset >= contentLength)
-					return false;
-				b = content[contentOffset++];
-				
-				if (mode == 0) {
-					Pixels[y * width + (x << 1)] = ContentPalette[b >> 4];
-					Pixels[y * width + (x << 1) + 1] = ContentPalette[b & 0xf];
-				}
-				else {
-					int offset = (y * width << 1) + (x << 2);
-					Pixels[offset + width] = Pixels[offset] = ContentPalette[8 + (b >> 6)];
-					Pixels[offset + width + 1] = Pixels[offset + 1] = ContentPalette[12 + (b >> 4 & 3)];
-					Pixels[offset + width + 2] = Pixels[offset + 2] = ContentPalette[(b >> 2 & 3)];
-					Pixels[offset + width + 3] = Pixels[offset + 3] = ContentPalette[4 + (b & 3)];
-				}
-			}
+			contentOffset = DecodePackBytes(content, contentOffset, contentLength, y * width, bytesPerLine);
+			if (contentOffset < 0)
+				return false;
 		}
 		return true;
 	}
@@ -17738,7 +17754,8 @@ public class RECOIL
 			return DecodeFalconPnt(content, contentLength)
 				|| DecodeApfShr(content, contentLength)
 				|| DecodeMac(content, contentLength)
-				|| DecodeAppleIIShr(content, contentLength);
+				|| DecodeAppleIIShr(content, contentLength)
+				|| DecodePaintworks(content, contentLength);
 		case PackExt("PP"):
 			return DecodePp(content, contentLength);
 		case PackExt("PPH"):

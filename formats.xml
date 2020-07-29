@@ -75,6 +75,7 @@
 			<ext>PNT</ext>
 			<ext>SHR</ext>
 		</format>
+		<format name="Paintworks" width="320" height="396" colors="16"><ext>PNT</ext></format>
 		<format width="320" height="200" colors="3200">
 			<ext>SH3</ext>
 			<ext>3200</ext>
