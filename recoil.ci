@@ -17838,7 +17838,8 @@ public class RECOIL
 			return DecodeSgx(content, contentLength);
 		case PackExt("SH3"):
 		case PackExt("3200"):
-			return DecodeSh3(content, contentLength)
+			return DecodeApfShr(content, contentLength)
+				|| DecodeSh3(content, contentLength)
 				|| DecodeAppleIIShr(content, contentLength);
 		case PackExt("SHC"):
 			return DecodeShc(content, contentLength);
