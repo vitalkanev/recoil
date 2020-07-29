@@ -7160,10 +7160,10 @@ public class RECOIL
 		int contentOffset = 0;
 		if (height == 200) {
 			for (int chunkLength = Get32LittleEndian(content, 0);;) {
-				if (chunkLength < 0)
+				if (chunkLength <= 0)
 					return false;
 				contentOffset += chunkLength;
-				if (contentOffset + 6415 > contentLength)
+				if (contentOffset < 0 || contentOffset + 6415 > contentLength)
 					break;
 				chunkLength = Get32LittleEndian(content, contentOffset);
 				if (chunkLength == 6415 && content[contentOffset + 4] == 8
