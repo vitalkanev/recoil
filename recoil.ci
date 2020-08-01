@@ -411,6 +411,17 @@ class X68KPicStream : BitStream
 		}
 		return -1;
 	}
+
+	internal int ReadMl1Color!()
+	{
+		int color = ReadBits(10);
+		if (color < 0 || color >= 9 * 9 * 9)
+			return -1;
+		int r = color / 81;
+		int g = color / 9 % 9;
+		int b = color % 9;
+		return r * 255 >> 3 << 16 | g * 255 >> 3 << 8 | b * 255 >> 3;
+	}
 }
 
 class MppPaletteStream : BitStream
@@ -7518,6 +7529,138 @@ public class RECOIL
 	}
 
 	// NEC PC-98 formats.
+
+	bool DecodeMl1Chain!(X68KPicStream! stream, int pixelsOffset, int rgb)
+	{
+		for (;;) {
+			switch (stream.ReadBit()) {
+			case 0:
+				break;
+			case 1:
+				switch (stream.ReadBits(2)) {
+				case 0:
+					pixelsOffset++;
+					break;
+				case 1:
+					pixelsOffset--;
+					break;
+				case 2:
+					return true;
+				case 3:
+					switch (stream.ReadBit()) {
+					case 0:
+						pixelsOffset += 2;
+						break;
+					case 1:
+						pixelsOffset -= 2;
+						break;
+					default:
+						return false;
+					}
+					break;
+				default:
+					return false;
+				}
+				break;
+			default:
+				return false;
+			}
+			pixelsOffset += Width;
+			if (pixelsOffset < 0 || pixelsOffset >= Width * Height)
+				return false;
+			Pixels[pixelsOffset] = rgb;
+		}
+	}
+
+	bool DecodeMl1!(byte[] content, int contentLength)
+	{
+		if (contentLength < 97 || content[0] != '1' || content[1] != '0' || content[2] != '0' || content[3] != 0x1a)
+			return false;
+		int width = (content[14] << 8) + content[15] - (content[10] << 8) - content[11] + 1;
+		int height = (content[16] << 8) + content[17] - (content[12] << 8) - content[13] + 1;
+		if (!SetSize(width, height, RECOILResolution.Pc981x1))
+			return false;
+		X68KPicStream() stream;
+		stream.Content = content;
+		stream.ContentOffset = 0x60;
+		stream.ContentLength = contentLength;
+		int mode = stream.ReadBits(2);
+		int lastColor;
+		switch (mode) {
+		case 0:
+			for (int c = 0; c < 128; c++) {
+				int rgb = stream.ReadMl1Color();
+				if (rgb < 0)
+					return false;
+				ContentPalette[c] = rgb;
+			}
+			break;
+		case 1:
+			lastColor = stream.ReadBits(7);
+			if (lastColor < 0)
+				return false;
+			ContentPalette.Fill(0);
+			for (int i = 0; i <= lastColor; i++) {
+				int c = stream.ReadBits(7);
+				if (c < 0)
+					return false;
+				int rgb = stream.ReadMl1Color();
+				if (rgb < 0)
+					return false;
+				ContentPalette[c] = rgb; 
+			}
+			break;
+		case 2:
+			lastColor = stream.ReadBits(7);
+			if (lastColor < 0)
+				return false;
+			ContentPalette.Fill(0);
+			for (int c = 0; c <= lastColor; c++) {
+				if (stream.ReadBits(7) < 0)
+					return false;
+				int rgb = stream.ReadMl1Color();
+				if (rgb < 0)
+					return false;
+				ContentPalette[c] = rgb; 
+			}
+			break;
+		default:
+			return false;
+		}
+		const int clean = 1;
+		int pixelsLength = width * height;
+		for (int pixelsOffset = 0; pixelsOffset < pixelsLength; pixelsOffset++)
+			Pixels[pixelsOffset] = clean;
+		for (int pixelsOffset = 0; pixelsOffset < pixelsLength; ) {
+			int distance = stream.ReadLength();
+			if (distance < 0 || distance == 16001)
+				return false;
+			int c = mode == 2 ? stream.ReadLength() - 1 : stream.ReadBits(7);
+			if (c < 0 || c >= 128)
+				return false;
+			int rgb = ContentPalette[c];
+			switch (stream.ReadBit()) {
+			case 0:
+				break;
+			case 1:
+				if (!DecodeMl1Chain(stream, pixelsOffset, rgb))
+					return false;
+				break;
+			default:
+				return false;
+			}
+			Pixels[pixelsOffset++] = rgb;
+			while (--distance > 0) {
+				int old = Pixels[pixelsOffset];
+				if (old == clean)
+					Pixels[pixelsOffset] = rgb;
+				else
+					rgb = old;
+				pixelsOffset++;
+			}
+		}
+		return stream.ReadLength() == 16001;
+	}
 
 	static int UnpackZim(byte[] content, int contentOffset, int end, byte[] flags, byte[]! unpacked, int unpackedLength)
 	{
@@ -17004,6 +17147,7 @@ public class RECOIL
 		case PackExt("MIG"):
 		case PackExt("MIL"):
 		case PackExt("MIS"):
+		case PackExt("ML1"):
 		case PackExt("MLE"):
 		case PackExt("MLT"):
 		case PackExt("MPP"):
@@ -17692,6 +17836,8 @@ public class RECOIL
 			return contentLength == 10022 && DecodeC64Multicolor(320, content, 0x7e6, 0x16, 0x3fe, 0);
 		case PackExt("MIS"):
 			return DecodeMis(content, contentLength);
+		case PackExt("ML1"):
+			return DecodeMl1(content, contentLength);
 		case PackExt("MLE"):
 			return DecodeMle(content, contentLength);
 		case PackExt("MLT"):

@@ -677,6 +677,7 @@
 			<ext>MAG</ext>
 			<ext>MKI</ext>
 		</format>
+		<format colors="128"><ext>ML1</ext></format>
 		<format colors="256"><ext>PI</ext></format>
 		<format name="XLD4" width="640" height="400" colors="16"><ext>Q4</ext></format>
 		<format name="Z's Staff Kid98" colors="16"><ext>ZIM</ext></format>
