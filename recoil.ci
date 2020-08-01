@@ -411,17 +411,6 @@ class X68KPicStream : BitStream
 		}
 		return -1;
 	}
-
-	internal int ReadMl1Color!()
-	{
-		int color = ReadBits(10);
-		if (color < 0 || color >= 9 * 9 * 9)
-			return -1;
-		int r = color / 81;
-		int g = color / 9 % 9;
-		int b = color % 9;
-		return r * 255 >> 3 << 16 | g * 255 >> 3 << 8 | b * 255 >> 3;
-	}
 }
 
 class MppPaletteStream : BitStream
@@ -7588,44 +7577,27 @@ public class RECOIL
 		int lastColor;
 		switch (mode) {
 		case 0:
-			for (int c = 0; c < 128; c++) {
-				int rgb = stream.ReadMl1Color();
-				if (rgb < 0)
-					return false;
-				ContentPalette[c] = rgb;
-			}
+			lastColor = 127;
 			break;
 		case 1:
-			lastColor = stream.ReadBits(7);
-			if (lastColor < 0)
-				return false;
-			ContentPalette.Fill(0);
-			for (int i = 0; i <= lastColor; i++) {
-				int c = stream.ReadBits(7);
-				if (c < 0)
-					return false;
-				int rgb = stream.ReadMl1Color();
-				if (rgb < 0)
-					return false;
-				ContentPalette[c] = rgb; 
-			}
-			break;
 		case 2:
 			lastColor = stream.ReadBits(7);
-			if (lastColor < 0)
-				return false;
-			ContentPalette.Fill(0);
-			for (int c = 0; c <= lastColor; c++) {
-				if (stream.ReadBits(7) < 0)
-					return false;
-				int rgb = stream.ReadMl1Color();
-				if (rgb < 0)
-					return false;
-				ContentPalette[c] = rgb; 
-			}
 			break;
 		default:
 			return false;
+		}
+		ContentPalette.Fill(0);
+		for (int i = 0; i <= lastColor; i++) {
+			int j = 0;
+			if (mode > 0)
+				j = stream.ReadBits(7);
+			int c = stream.ReadBits(10);
+			if (c < 0 || c >= 9 * 9 * 9)
+				return false;
+			int r = c / 81;
+			int g = c / 9 % 9;
+			int b = c % 9;
+			ContentPalette[mode == 1 ? j : i] = r * 255 >> 3 << 16 | g * 255 >> 3 << 8 | b * 255 >> 3;
 		}
 		const int clean = 1;
 		int pixelsLength = width * height;
