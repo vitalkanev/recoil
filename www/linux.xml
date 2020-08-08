@@ -2,9 +2,8 @@
 	<h2>Command-line converter</h2>
 	<p>To install:</p>
 	<ul>
-		<li>On 64-bit Debian/Ubuntu: <download prefix="recoil-2png_" suffix="-1_amd64.deb" /></li>
-		<li>On 64-bit Fedora: <download prefix="recoil-2png-" suffix="-1.x86_64.rpm" /></li>
-		<li>On 32-bit Fedora: <download prefix="recoil-2png-" suffix="-1.i686.rpm" /></li>
+		<li>On Debian/Ubuntu: <download prefix="recoil-2png_" suffix="-1_amd64.deb" /></li>
+		<li>On Fedora: <download prefix="recoil-2png-" suffix="-1.x86_64.rpm" /></li>
 		<li>From source code: <download prefix="recoil-" suffix=".tar.gz" />,
 		uncompress it and follow the instructions in the <code>INSTALL</code> file.</li>
 	</ul>

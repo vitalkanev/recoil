@@ -120,26 +120,16 @@ deb64:
 	ssh vm 'rm -rf recoil-$(VERSION) && tar xf recoil-$(VERSION).tar.gz && make -C recoil-$(VERSION) deb'
 	scp vm:recoil-2png_$(VERSION)-1_amd64.deb vm:recoil-xnview_$(VERSION)-1_amd64.deb vm:recoil-thumbnailer_$(VERSION)-1_all.deb ../../
 
-deb32:
-	scp ../../recoil-$(VERSION).tar.gz vm:.
-	ssh vm 'rm -rf recoil-$(VERSION) && tar xf recoil-$(VERSION).tar.gz && make -C recoil-$(VERSION) deb'
-	scp vm:recoil-2png_$(VERSION)-1_i386.deb vm:recoil-xnview_$(VERSION)-1_i386.deb ../../
-
 rpm64:
 	scp ../../recoil-$(VERSION).tar.gz vm:.
 	ssh vm 'rpmbuild -tb recoil-$(VERSION).tar.gz'
 	scp vm:rpmbuild/RPMS/x86_64/recoil-2png-$(VERSION)-1.x86_64.rpm vm:rpmbuild/RPMS/noarch/recoil-thumbnailer-$(VERSION)-1.noarch.rpm ../../
-
-rpm32:
-	scp ../../recoil-$(VERSION).tar.gz vm:.
-	ssh vm 'rpmbuild -tb recoil-$(VERSION).tar.gz'
-	scp vm:rpmbuild/RPMS/i686/recoil-2png-$(VERSION)-1.i686.rpm ../../
 
 clean:
 	$(RM) $(WIN64_BIN) i686/recoilwin-res.o recoil.ico COPYING.txt \
 		i686/recoil.wixobj x86_64/recoil.wixobj setup/formats.wxi setup/dialog.jpg setup/banner.jpg \
 		paint.net/RecoilFileTypeFactory.cs paint.net/RECOIL.cs ../formats.h
 
-.PHONY: all clean setup x64-setup ../MANIFEST srcdist dist deb64 deb32 rpm64 rpm32 ../../recoil-$(VERSION).tar.gz
+.PHONY: all clean setup x64-setup ../MANIFEST srcdist dist deb64 rpm64 ../../recoil-$(VERSION).tar.gz
 
 .DELETE_ON_ERROR:
