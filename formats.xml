@@ -665,6 +665,7 @@
 		<format name="Maki-chan Graphics" maxWidth="640" maxHeight="200" colors="8"><ext>MAG</ext></format>
 	</platform>
 	<platform name="NEC PC-88" href="https://en.wikipedia.org/wiki/PC-8800_series">
+		<format name="DaVinci" width="640" height="200" colors="8"><ext>IMG</ext></format>
 		<format name="Maki-chan Graphics" colors="8"><ext>MAG</ext></format>
 		<format colors="8"><ext>PI</ext></format>
 	</platform>

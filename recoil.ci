@@ -781,6 +781,32 @@ class BldStream : RleStream
 	}
 }
 
+class DaVinciStream : RleStream
+{
+	protected override int ReadValue!()
+	{
+		if (ContentOffset + 3 > ContentLength)
+			return -1;
+		ContentOffset += 3;
+		return Content[ContentOffset - 2] << 16 | Content[ContentOffset - 1] << 8 | Content[ContentOffset - 3];
+	}
+
+	protected override bool ReadCommand!()
+	{
+		int b = ReadByte();
+		if (b < 0)
+			return false;
+		if (b >= 128) {
+			RepeatValue = ReadValue();
+			b &= 0x7f;
+		}
+		else
+			RepeatValue = -1;
+		RepeatCount = b;
+		return true;
+	}
+}
+
 class BbgStream : RleStream
 {
 	internal int ValueBits;
@@ -7515,6 +7541,33 @@ public class RECOIL
 			return false;
 		}
 		return DecodeX68KPicScreen(stream, pixelsLength, 0, depth);
+	}
+
+	// NEC PC-88 formats.
+
+	bool DecodeDaVinci!(byte[] content, int contentLength)
+	{
+		if ((contentLength & 0xff) != 0)
+			return false;
+		SetSize(640, 400, RECOILResolution.Pc881x2);
+		DaVinciStream() stream;
+		stream.Content = content;
+		stream.ContentOffset = 0;
+		stream.ContentLength = contentLength;
+		for (int y = 0; y < 200; y++) {
+			for (int column = 0; column < 640; column += 8) {
+				int b = stream.ReadRle();
+				if (b < 0)
+					return false;
+				for (int x = 0; x < 8; x++) {
+					int offset = y * 1280 + column + x;
+					Pixels[offset + 640] = Pixels[offset] = (b >> (7 - x) & 0x010101) * 0xff;
+				}
+			}
+		}
+		Console.WriteLine(stream.RepeatCount);
+		Console.WriteLine(stream.ContentOffset);
+		return stream.RepeatCount == 0 && contentLength - stream.ContentOffset < 256;
 	}
 
 	// NEC PC-98 formats.
@@ -17705,7 +17758,8 @@ public class RECOIL
 			return DecodeIls(content, contentLength);
 		case PackExt("IMG"):
 			return DecodeStImg(content, contentLength)
-				|| DecodeZxImg(content, contentLength);
+				|| DecodeZxImg(content, contentLength)
+				|| DecodeDaVinci(content, contentLength);
 		case PackExt("TIMG"):
 		case PackExt("XIMG"):
 			return DecodeStImg(content, contentLength);
