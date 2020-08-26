@@ -5604,45 +5604,6 @@ public class RECOIL
 		return ApplyBlend();
 	}
 
-	bool DecodeScr!(string filename, byte[] content, int contentLength)
-	{
-		switch (contentLength) {
-		case 960:
-			return DecodeAtari8Scr(content, contentLength);
-		case 1002:
-			return DecodeScrCol(filename, content, contentLength);
-		case 6144:
-			SetZx(RECOILResolution.Spectrum1x1);
-			DecodeZx(content, 0, -1, ZxAttributesNone, 0);
-			return true;
-		case 6912:
-		case 6913: // border color - ignore
-			SetZx(RECOILResolution.Spectrum1x1);
-			DecodeZx(content, 0, 0x1800, ZxAttributes8x8, 0);
-			return true;
-		case 6976:
-			SetUlaPlus(content, 0x1b00);
-			DecodeZx(content, 0, 0x1800, ZxAttributes8x8, 0);
-			return true;
-		case 12288:
-			SetZx(RECOILResolution.Timex1x1);
-			DecodeZx(content, 0, 0x1800, ZxAttributesTimex, 0);
-			return true;
-		case 12289:
-			SetSize(512, 384, RECOILResolution.Timex1x2);
-			DecodeTimexHires(content, 0, 0);
-			return true;
-		case 12352: // untested, based on https://web.archive.org/web/20140315185332/http://www.zxshed.co.uk/sinclairfaq/index.php5?title=ULAplus
-			SetUlaPlus(content, 0x3000);
-			DecodeZx(content, 0, 0x1800, ZxAttributesTimex, 0);
-			return true;
-		case 32768:
-			return DecodeAppleIIShr(content, contentLength);
-		default:
-			return DecodeAmstradScr(filename, content, contentLength);
-		}
-	}
-
 	bool DecodeZxIfl!(byte[] content, int contentLength)
 	{
 		if (contentLength != 9216)
@@ -14928,7 +14889,7 @@ public class RECOIL
 		ApplyAtari8Palette(frame);
 	}
 
-	bool DecodeAtari8Scr!(byte[] content, int contentLength)
+	bool DecodeGr0!(byte[] content, int contentLength)
 	{
 		if (contentLength != 960)
 			return false;
@@ -16942,6 +16903,45 @@ public class RECOIL
 		}
 	}
 
+	bool DecodeScr!(string filename, byte[] content, int contentLength)
+	{
+		switch (contentLength) {
+		case 960:
+			return DecodeGr0(content, contentLength);
+		case 1002:
+			return DecodeScrCol(filename, content, contentLength);
+		case 6144:
+			SetZx(RECOILResolution.Spectrum1x1);
+			DecodeZx(content, 0, -1, ZxAttributesNone, 0);
+			return true;
+		case 6912:
+		case 6913: // border color - ignore
+			SetZx(RECOILResolution.Spectrum1x1);
+			DecodeZx(content, 0, 0x1800, ZxAttributes8x8, 0);
+			return true;
+		case 6976:
+			SetUlaPlus(content, 0x1b00);
+			DecodeZx(content, 0, 0x1800, ZxAttributes8x8, 0);
+			return true;
+		case 12288:
+			SetZx(RECOILResolution.Timex1x1);
+			DecodeZx(content, 0, 0x1800, ZxAttributesTimex, 0);
+			return true;
+		case 12289:
+			SetSize(512, 384, RECOILResolution.Timex1x2);
+			DecodeTimexHires(content, 0, 0);
+			return true;
+		case 12352: // untested, based on https://web.archive.org/web/20140315185332/http://www.zxshed.co.uk/sinclairfaq/index.php5?title=ULAplus
+			SetUlaPlus(content, 0x3000);
+			DecodeZx(content, 0, 0x1800, ZxAttributesTimex, 0);
+			return true;
+		case 32768:
+			return DecodeAppleIIShr(content, contentLength);
+		default:
+			return DecodeAmstradScr(filename, content, contentLength);
+		}
+	}
+
 	static int PackExt(string ext)
 		=> ext.Length == 0 || ext.Length > 4 ? 0
 			: ext[0] + (ext.Length >= 2 ? ext[1] << 8 : 0) + (ext.Length >= 3 ? ext[2] << 16 : 0) + (ext.Length >= 4 ? ext[3] << 24 : 0) | 0x20202020;
@@ -17124,6 +17124,8 @@ public class RECOIL
 		case PackExt("GLC"):
 		case PackExt("GLS"):
 		case PackExt("GOD"):
+		case PackExt("GR0"):
+		case PackExt("ASC"):
 		case PackExt("GR1"):
 #if FIVE_CHAR_EXT
 		case PackExt("GR10P"):
@@ -17717,6 +17719,9 @@ public class RECOIL
 			return DecodeGlYjk(null, content, contentLength);
 		case PackExt("GOD"):
 			return DecodeGod(content, contentLength);
+		case PackExt("GR0"):
+		case PackExt("ASC"):
+			return DecodeGr0(content, contentLength);
 		case PackExt("GR1"):
 			return DecodeGr1(content, contentLength, 0);
 #if FIVE_CHAR_EXT
