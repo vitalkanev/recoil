@@ -12994,7 +12994,7 @@ public class RECOIL
 		}
 	}
 
-	void DecodeAtari8Player(byte[] content, int contentOffset, int color, byte[]! frame, int frameOffset, int height)
+	void DecodeAtari8Player(byte[] content, int contentOffset, int color, byte[]! frame, int frameOffset, int height, bool multi)
 	{
 		color &= 0xfe;
 		for (int y = 0; y < height; y++) {
@@ -13002,7 +13002,7 @@ public class RECOIL
 			for (int x = 0; x < 8; x++) {
 				int c = b >> (7 - x) & 1;
 				if (c != 0)
-					frame[frameOffset + x * 2 + 1] = frame[frameOffset + x * 2] |= color;
+					frame[frameOffset + x * 2 + 1] = frame[frameOffset + x * 2] = multi ? frame[frameOffset + x * 2] | color : color;
 			}
 			frameOffset += Width;
 		}
@@ -13523,7 +13523,7 @@ public class RECOIL
 	void DecodeAt800Players(byte[] content, byte[]! frame)
 	{
 		for (int i = 0; i < 4; i++)
-			DecodeAtari8Player(content, 4 + i * 240, content[i], frame, i * (8 + At800SpriteGap) * 2, 240);
+			DecodeAtari8Player(content, 4 + i * 240, content[i], frame, i * (8 + At800SpriteGap) * 2, 240, false);
 	}
 
 	void DecodeAt800Missiles(byte[] content, int contentOffset, byte[]! frame, int frameOffset)
@@ -13545,7 +13545,7 @@ public class RECOIL
 			return false;
 		SetSize(16, 240, RECOILResolution.Xe2x1);
 		byte[16 * 240] frame = 0;
-		DecodeAtari8Player(content, 1, content[0], frame, 0, 240);
+		DecodeAtari8Player(content, 1, content[0], frame, 0, 240, false);
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -13608,7 +13608,7 @@ public class RECOIL
 			return false;
 		SetSize(16, height, RECOILResolution.Xe2x1);
 		byte[16 * maxHeight] frame = 0;
-		DecodeAtari8Player(content, 2, content[1], frame, 0, height);
+		DecodeAtari8Player(content, 2, content[1], frame, 0, height, false);
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -13629,6 +13629,33 @@ public class RECOIL
 			frame[y * 4 + 1] = frame[y * 4] = (b & 2) == 0 ? 0 : content[1];
 			frame[y * 4 + 3] = frame[y * 4 + 2] = (b & 1) == 0 ? 0 : content[1];
 		}
+		return ApplyAtari8Palette(frame);
+	}
+
+	bool DecodeMpl!(byte[] content, int contentLength)
+	{
+		const int maxWidth = 56;
+		const int maxHeight = 40;
+		if (contentLength < 13 || contentLength > 9 + 4 * maxHeight)
+			return false;
+		int height = content[0];
+		if (9 + (height << 2) != contentLength)
+			return false;
+		int minX = 255;
+		int maxX = 0;
+		for (int i = 1; i < 5; i++) {
+			int x = content[i];
+			if (minX > x)
+				minX = x;
+			if (maxX < x)
+				maxX = x;
+		}
+		if (maxX + 8 > maxWidth)
+			return false;
+		SetSize(maxX + 8 - minX << 1, height, RECOILResolution.Xe2x1);
+		byte[maxWidth * 2 * maxHeight] frame = 0;
+		for (int i = 3; i >= 0; i--)
+			DecodeAtari8Player(content, 9 + i * height, content[5 + i], frame, content[1 + i] - minX << 1, height, false);
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -13658,10 +13685,10 @@ public class RECOIL
 		for (int shape = 0; shape < shapes; shape++) {
 			int contentOffset = 0x119 + shape * (4 * height);
 			int frameOffset = (shape >> 3) * (height + verticalGap) * 320 + (shape & 7) * (16 + horizontalGap << 1);
-			DecodeAtari8Player(content, contentOffset, content[0x15], frame, frameOffset, height);
-			DecodeAtari8Player(content, contentOffset + height, content[0x16], frame, frameOffset, height);
-			DecodeAtari8Player(content, contentOffset + 2 * height, content[0x15], frame, frameOffset + 16, height);
-			DecodeAtari8Player(content, contentOffset + 3 * height, content[0x16], frame, frameOffset + 16, height);
+			DecodeAtari8Player(content, contentOffset, content[0x15], frame, frameOffset, height, true);
+			DecodeAtari8Player(content, contentOffset + height, content[0x16], frame, frameOffset, height, true);
+			DecodeAtari8Player(content, contentOffset + 2 * height, content[0x15], frame, frameOffset + 16, height, true);
+			DecodeAtari8Player(content, contentOffset + 3 * height, content[0x16], frame, frameOffset + 16, height, true);
 		}
 		return ApplyAtari8Palette(frame);
 	}
@@ -13706,11 +13733,11 @@ public class RECOIL
 			if (multi) {
 				int spritePair = shape / shapes;
 				int contentOffset = 11 + (spritePair * shapes + shape) * height;
-				DecodeAtari8Player(content, contentOffset, content[3 + spritePair * 2], frame, frameOffset, height);
-				DecodeAtari8Player(content, contentOffset + shapes * height, content[4 + spritePair * 2], frame, frameOffset, height);
+				DecodeAtari8Player(content, contentOffset, content[3 + spritePair * 2], frame, frameOffset, height, true);
+				DecodeAtari8Player(content, contentOffset + shapes * height, content[4 + spritePair * 2], frame, frameOffset, height, true);
 			}
 			else
-				DecodeAtari8Player(content, 11 + shape * height, content[3 + shape / shapes], frame, frameOffset, height);
+				DecodeAtari8Player(content, 11 + shape * height, content[3 + shape / shapes], frame, frameOffset, height, false);
 		}
 		return ApplyAtari8Palette(frame);
 	}
@@ -13731,8 +13758,8 @@ public class RECOIL
 		byte[(16 + frameGap) * 2 * 16 * 48] frame = 0;
 
 		for (int f = 0; f < frames; f++) {
-			DecodeAtari8Player(content, 42 + f * 48, content[7 + f], frame, f * frameWidth, height);
-			DecodeAtari8Player(content, 858 + f * 48, content[24 + f], frame, f * frameWidth + gap * 2, height);
+			DecodeAtari8Player(content, 42 + f * 48, content[7 + f], frame, f * frameWidth, height, true);
+			DecodeAtari8Player(content, 858 + f * 48, content[24 + f], frame, f * frameWidth + gap * 2, height, true);
 		}
 		return ApplyAtari8Palette(frame);
 	}
@@ -17209,6 +17236,7 @@ public class RECOIL
 		case PackExt("ML1"):
 		case PackExt("MLE"):
 		case PackExt("MLT"):
+		case PackExt("MPL"):
 		case PackExt("MPP"):
 		case PackExt("MSL"):
 		case PackExt("MSP"):
@@ -17903,6 +17931,8 @@ public class RECOIL
 			return DecodeMle(content, contentLength);
 		case PackExt("MLT"):
 			return DecodeMcMlt(content, contentLength, 0);
+		case PackExt("MPL"):
+			return DecodeMpl(content, contentLength);
 		case PackExt("MPP"):
 			return DecodeMpp(content, contentLength);
 		case PackExt("MSL"):
