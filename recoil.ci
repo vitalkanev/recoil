@@ -5607,6 +5607,8 @@ public class RECOIL
 	bool DecodeScr!(string filename, byte[] content, int contentLength)
 	{
 		switch (contentLength) {
+		case 960:
+			return DecodeAtari8Scr(content, contentLength);
 		case 1002:
 			return DecodeScrCol(filename, content, contentLength);
 		case 6144:
@@ -14918,6 +14920,22 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	void DecodeAtari8Gr0Screen!(byte[] content, byte[] font)
+	{
+		SetSize(320, 192, RECOILResolution.Xe1x1);
+		byte[320 * 192] frame;
+		DecodeAtari8Gr0(content, 40, font, 0, frame);
+		ApplyAtari8Palette(frame);
+	}
+
+	bool DecodeAtari8Scr!(byte[] content, int contentLength)
+	{
+		if (contentLength != 960)
+			return false;
+		DecodeAtari8Gr0Screen(content, resource<byte[]>("atari8.fnt"));
+		return true;
+	}
+
 	bool DecodeSge!(byte[] content, int contentLength)
 	{
 		if (contentLength != 960)
@@ -14928,10 +14946,8 @@ public class RECOIL
 			font[0x7d * 8 + 4 + i] = font[0x5b * 8 + i] = 0x0f;
 			font[0x7d * 8 + i] = font[0x5b * 8 + 4 + i] = 0xf0;
 		}
-		SetSize(320, 192, RECOILResolution.Xe1x1);
-		byte[320 * 192] frame;
-		DecodeAtari8Gr0(content, 40, font, 0, frame);
-		return ApplyAtari8Palette(frame);
+		DecodeAtari8Gr0Screen(content, font);
+		return true;
 	}
 
 	bool DecodeAsciiArtEditor!(byte[] content, int contentLength)

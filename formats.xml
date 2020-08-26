@@ -232,6 +232,7 @@
 		<format name="Rambrandt" width="80" height="192" colors="128"><ext>RM3</ext></format>
 		<format name="Rambrandt" width="160" height="192" colors="99"><ext>RM4</ext></format>
 		<format name="Mamut" width="160" height="96" colors="4"><ext>RYS</ext></format>
+		<format name="Mad Studio Graphics 0" width="40" height="24" unit="characters" colors="2"><ext>SCR</ext></format>
 		<format name="Standard Graphics 3" width="40" height="24" colors="4"><ext>SG3</ext></format>
 		<format name="Semi-Graphic logos Editor" width="40" height="24" unit="characters" colors="2"><ext>SGE</ext></format>
 		<format name="SAMAR Hi-res Interlace with Map of Colours" width="320" height="192" frames="2"><ext>SHC</ext></format>
