@@ -7121,7 +7121,7 @@ public class RECOIL
 		}
 	}
 
-	bool DecodeSpr!(byte[] content, int contentLength)
+	bool DecodeAppleSpr!(byte[] content, int contentLength)
 	{
 		SetSize(SprStream.Width, SprStream.Height, RECOILResolution.AppleII1x1);
 		for (int i = 0; i < SprStream.Width * SprStream.Height; i++)
@@ -13598,6 +13598,19 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodeAtari8Spr!(byte[] content, int contentLength)
+	{
+		if (contentLength < 3 || contentLength > 42)
+			return false;
+		int height = content[0];
+		if (2 + height != contentLength)
+			return false;
+		SetSize(16, height, RECOILResolution.Xe2x1);
+		byte[16 * 40] frame = 0;
+		DecodeAtari8Player(content, 2, content[1], frame, 0, height);
+		return ApplyAtari8Palette(frame);
+	}
+
 	bool DecodeLdm!(byte[] content, int contentLength)
 	{
 		if (contentLength < 281)
@@ -18085,7 +18098,8 @@ public class RECOIL
 		case PackExt("SPD"):
 			return DecodeSpd(content, contentLength);
 		case PackExt("SPR"):
-			return DecodeSpr(content, contentLength);
+			return DecodeAppleSpr(content, contentLength)
+				|| DecodeAtari8Spr(content, contentLength);
 		case PackExt("SPS"):
 			return DecodeSps(content, contentLength);
 		case PackExt("SPU"):
