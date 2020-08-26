@@ -13600,14 +13600,35 @@ public class RECOIL
 
 	bool DecodeAtari8Spr!(byte[] content, int contentLength)
 	{
-		if (contentLength < 3 || contentLength > 42)
+		const int maxHeight = 40;
+		if (contentLength < 3 || contentLength > 2 + maxHeight)
 			return false;
 		int height = content[0];
 		if (2 + height != contentLength)
 			return false;
 		SetSize(16, height, RECOILResolution.Xe2x1);
-		byte[16 * 40] frame = 0;
+		byte[16 * maxHeight] frame = 0;
 		DecodeAtari8Player(content, 2, content[1], frame, 0, height);
+		return ApplyAtari8Palette(frame);
+	}
+
+	bool DecodeMsl!(byte[] content, int contentLength)
+	{
+		const int maxHeight = 34;
+		if (contentLength < 3 || contentLength > 2 + maxHeight)
+			return false;
+		int height = content[0];
+		if (2 + height != contentLength)
+			return false;
+		SetSize(4, height, RECOILResolution.Xe2x1);
+		byte[4 * maxHeight] frame;
+		for (int y = 0; y < height; y++) {
+			int b = content[2 + y];
+			if (b > 3)
+				return false;
+			frame[y * 4 + 1] = frame[y * 4] = (b & 2) == 0 ? 0 : content[1];
+			frame[y * 4 + 3] = frame[y * 4 + 2] = (b & 1) == 0 ? 0 : content[1];
+		}
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -17189,6 +17210,7 @@ public class RECOIL
 		case PackExt("MLE"):
 		case PackExt("MLT"):
 		case PackExt("MPP"):
+		case PackExt("MSL"):
 		case PackExt("MSP"):
 		case PackExt("MUR"):
 		case PackExt("NEO"):
@@ -17883,6 +17905,8 @@ public class RECOIL
 			return DecodeMcMlt(content, contentLength, 0);
 		case PackExt("MPP"):
 			return DecodeMpp(content, contentLength);
+		case PackExt("MSL"):
+			return DecodeMsl(content, contentLength);
 		case PackExt("MSP"):
 			return DecodeMsp(content, contentLength);
 		case PackExt("MUR"):
