@@ -783,7 +783,7 @@ class BldStream : RleStream
 
 class DaVinciStream : RleStream
 {
-	protected override int ReadValue!()
+	internal override int ReadValue!()
 	{
 		if (ContentOffset + 3 > ContentLength)
 			return -1;
@@ -7528,8 +7528,6 @@ public class RECOIL
 				}
 			}
 		}
-		Console.WriteLine(stream.RepeatCount);
-		Console.WriteLine(stream.ContentOffset);
 		return stream.RepeatCount == 0 && contentLength - stream.ContentOffset < 256;
 	}
 
