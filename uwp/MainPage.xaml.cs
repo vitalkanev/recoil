@@ -1,7 +1,7 @@
 ﻿/*
  * MainPage.xaml.cs - Universal Windows application
  *
- * Copyright (C) 2014-2019  Piotr Fusik
+ * Copyright (C) 2014-2020  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -32,6 +32,7 @@ using Windows.Storage.Pickers;
 using Windows.Storage.Search;
 using Windows.Storage.Streams;
 using Windows.UI.Popups;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Imaging;
@@ -101,6 +102,7 @@ namespace RECOIL
 			SaveAsButton.Visibility = Visibility.Visible;
 			ShareButton.Visibility = Visibility.Visible;
 			CopyButton.Visibility = Visibility.Visible;
+			FullScreenButton.Visibility = Visibility.Visible;
 		}
 
 		void SetIndex(int index)
@@ -210,6 +212,15 @@ namespace RECOIL
 		void Share(object sender, RoutedEventArgs e)
 		{
 			DataTransferManager.ShowShareUI();
+		}
+
+		void ToggleFullScreen(object sender, RoutedEventArgs e)
+		{
+			ApplicationView view = ApplicationView.GetForCurrentView();
+			if (view.IsFullScreenMode)
+				view.ExitFullScreenMode();
+			else
+				view.TryEnterFullScreenMode();
 		}
 	}
 }

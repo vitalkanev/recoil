@@ -21,6 +21,7 @@
 			<AppBarButton Name="CopyButton" Icon="Copy" Label="Copy" Click="Copy" ToolTipService.ToolTip="Copy to clipboard" Visibility="Collapsed" />
 			<AppBarButton Name="PreviousButton" Icon="Back" Label="Previous" Click="OpenPrevious" ToolTipService.ToolTip="Previous file" Visibility="Collapsed" />
 			<AppBarButton Name="NextButton" Icon="Forward" Label="Next" Click="OpenNext" ToolTipService.ToolTip="Next file" Visibility="Collapsed" />
+			<AppBarButton Name="FullScreenButton" Icon="FullScreen" Label="Full Screen" Click="ToggleFullScreen" ToolTipService.ToolTip="Toggle full screen" Visibility="Collapsed" />
 		</CommandBar>
 	</Page.BottomAppBar>
 </Page>
