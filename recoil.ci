@@ -364,7 +364,7 @@ class BitStream : Stream
 
 	/// Reads one bit (0 or 1).
 	/// Returns -1 on end of stream.
-	internal int ReadBit!()
+	internal virtual int ReadBit!()
 	{
 		if ((Bits & 0x7f) == 0) {
 			if (ContentOffset >= ContentLength)
@@ -410,6 +410,66 @@ class X68KPicStream : BitStream
 			}
 		}
 		return -1;
+	}
+}
+
+class Mx1Stream : X68KPicStream
+{
+	byte[256] DecodeTable;
+
+	internal Mx1Stream()
+	{
+		int d = 0;
+		for (int e = 0; e < 256; e++) {
+			if ((e >= '!' && e <= '~' && e != '"' && e != '\'' && e != ',' && e != '@' && e != '\\' && e != '`') || (e >= 0xa1 && e <= 0xc8))
+				DecodeTable[e] = d++;
+			else
+				DecodeTable[e] = 128;
+		}
+	}
+
+	internal override int ReadBit!()
+	{
+		if ((Bits & 0x3f) == 0) {
+			int e;
+			do {
+				if (ContentOffset >= ContentLength)
+					return -1;
+				e = Content[ContentOffset++];
+			} while (e == '\r' || e == '\n' || e == ' ');
+			int d;
+			if (e == 0xef) {
+				// UTF-8
+				if (ContentOffset + 1 >= ContentLength)
+					return -1;
+				switch (Content[ContentOffset++]) {
+				case 0xbd:
+					e = Content[ContentOffset++];
+					if (e < 0xa1 || e > 0xbf)
+						return -1;
+					d = e - (0xa1 - 0x58);
+					break;
+				case 0xbe:
+					e = Content[ContentOffset++];
+					if (e < 0x80 || e > 0x88)
+						return -1;
+					d = e - (0x80 - 0x77);
+					break;
+				default:
+					return -1;
+				}
+			}
+			else {
+				// Shift-JIS
+				d = DecodeTable[e];
+				if (d >= 128)
+					return -1;
+			}
+			Bits = d << 1 | 1;
+		}
+		else
+			Bits <<= 1;
+		return Bits >> 7 & 1;
 	}
 }
 
@@ -7575,18 +7635,20 @@ public class RECOIL
 		}
 	}
 
-	bool DecodeMl1!(byte[] content, int contentLength)
+	bool DecodeMl1Mx1!(X68KPicStream! stream)
 	{
-		if (contentLength < 97 || content[0] != '1' || content[1] != '0' || content[2] != '0' || content[3] != 0x1a)
+		if (stream.ReadBits(32) != 0x3130301a
+		 || stream.ReadBits(32) < 0
+		 || stream.ReadBits(16) < 0)
 			return false;
-		int width = (content[14] << 8) + content[15] - (content[10] << 8) - content[11] + 1;
-		int height = (content[16] << 8) + content[17] - (content[12] << 8) - content[13] + 1;
-		if (!SetSize(width, height, RECOILResolution.Pc981x1))
-			return false;
-		X68KPicStream() stream;
-		stream.Content = content;
-		stream.ContentOffset = 0x60;
-		stream.ContentLength = contentLength;
+		int startX = stream.ReadBits(16);
+		int startY = stream.ReadBits(16);
+		int width = stream.ReadBits(16) - startX + 1;
+		int height = stream.ReadBits(16) - startY + 1;
+		for (int i = 0; i < 39; i++) {
+			if (stream.ReadBits(16) < 0)
+				return false;
+		}
 		int mode = stream.ReadBits(2);
 		int lastColor;
 		switch (mode) {
@@ -7600,6 +7662,8 @@ public class RECOIL
 		default:
 			return false;
 		}
+		if (!SetSize(width, height, RECOILResolution.Pc981x1))
+			return false;
 		ContentPalette.Fill(0);
 		for (int i = 0; i <= lastColor; i++) {
 			int j = 0;
@@ -7619,7 +7683,7 @@ public class RECOIL
 			Pixels[pixelsOffset] = clean;
 		for (int pixelsOffset = 0; pixelsOffset < pixelsLength; ) {
 			int distance = stream.ReadLength();
-			if (distance < 0 || distance == 16001)
+			if (distance < 0 || distance == pixelsLength + 1)
 				return false;
 			int c = mode == 2 ? stream.ReadLength() - 1 : stream.ReadBits(7);
 			if (c < 0 || c >= 128)
@@ -7645,7 +7709,42 @@ public class RECOIL
 				pixelsOffset++;
 			}
 		}
-		return stream.ReadLength() == 16001;
+		return stream.ReadLength() == pixelsLength + 1;
+	}
+
+	bool DecodeMl1!(byte[] content, int contentLength)
+	{
+		X68KPicStream() stream;
+		stream.Content = content;
+		stream.ContentOffset = 0;
+		stream.ContentLength = contentLength;
+		return DecodeMl1Mx1(stream);
+	}
+
+	bool DecodeMx1!(byte[] content, int contentLength)
+	{
+		int contentOffset = 0;
+		for (;;) {
+			int lineOffset = contentOffset;
+			for (;;) {
+				if (contentOffset >= contentLength)
+					return false;
+				int c = content[contentOffset++];
+				if (c == '\r' || c == '\n')
+					break;
+			}
+			if (contentOffset - lineOffset >= "@@@ (1lines) @@@\n".Length
+			 && IsStringAt(content, lineOffset, "@@@ ")
+			 && IsStringAt(content, contentOffset - "es) @@@\n".Length, "es) @@@"))
+				break;
+		}
+
+		Mx1Stream() stream;
+		stream.Content = content;
+		stream.ContentOffset = contentOffset;
+		stream.ContentLength = contentLength;
+		return DecodeMl1Mx1(stream);
+		// TODO: following images in the file
 	}
 
 	static int UnpackZim(byte[] content, int contentOffset, int end, byte[] flags, byte[]! unpacked, int unpackedLength)
@@ -17257,6 +17356,7 @@ public class RECOIL
 		case PackExt("MSL"):
 		case PackExt("MSP"):
 		case PackExt("MUR"):
+		case PackExt("MX1"):
 		case PackExt("NEO"):
 		case PackExt("NLQ"):
 		case PackExt("NXI"):
@@ -17960,6 +18060,8 @@ public class RECOIL
 			return DecodeMsp(content, contentLength);
 		case PackExt("MUR"):
 			return DecodeMur(filename, content, contentLength);
+		case PackExt("MX1"):
+			return DecodeMx1(content, contentLength);
 		case PackExt("NEO"):
 			return DecodeNeo(filename, content, contentLength)
 				|| DecodeIff(content, contentLength, RECOILResolution.Ste1x1);
