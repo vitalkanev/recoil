@@ -7683,7 +7683,7 @@ public class RECOIL
 			Pixels[pixelsOffset] = clean;
 		for (int pixelsOffset = 0; pixelsOffset < pixelsLength; ) {
 			int distance = stream.ReadLength();
-			if (distance < 0 || distance == pixelsLength + 1)
+			if (distance < 0 || pixelsOffset + distance > pixelsLength)
 				return false;
 			int c = mode == 2 ? stream.ReadLength() - 1 : stream.ReadBits(7);
 			if (c < 0 || c >= 128)
