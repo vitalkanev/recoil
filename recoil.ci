@@ -390,6 +390,36 @@ class BitStream : Stream
 		}
 		return result;
 	}
+
+	protected int ReadNl3Char!(bool skipSpace)
+	{
+		int e;
+		do {
+			if (ContentOffset >= ContentLength)
+				return -1;
+			e = Content[ContentOffset++];
+		} while (e == '\r' || e == '\n' || (skipSpace && e == ' '));
+		if (e != 0xef)
+			return e;
+		// UTF-8
+		if (ContentOffset + 1 >= ContentLength)
+			return -1;
+		switch (Content[ContentOffset++]) {
+		case 0xbd:
+			e = Content[ContentOffset++];
+			if (e >= 0xa0 && e <= 0xbf)
+				return e;
+			break;
+		case 0xbe:
+			e = Content[ContentOffset++];
+			if (e >= 0x80 && e <= 0x9f)
+				return e + (0xc0 - 0x80);
+			break;
+		default:
+			break;
+		}
+		return -1;
+	}
 }
 
 class X68KPicStream : BitStream
@@ -431,40 +461,12 @@ class Mx1Stream : X68KPicStream
 	internal override int ReadBit!()
 	{
 		if ((Bits & 0x3f) == 0) {
-			int e;
-			do {
-				if (ContentOffset >= ContentLength)
-					return -1;
-				e = Content[ContentOffset++];
-			} while (e == '\r' || e == '\n' || e == ' ');
-			int d;
-			if (e == 0xef) {
-				// UTF-8
-				if (ContentOffset + 1 >= ContentLength)
-					return -1;
-				switch (Content[ContentOffset++]) {
-				case 0xbd:
-					e = Content[ContentOffset++];
-					if (e < 0xa1 || e > 0xbf)
-						return -1;
-					d = e - (0xa1 - 0x58);
-					break;
-				case 0xbe:
-					e = Content[ContentOffset++];
-					if (e < 0x80 || e > 0x88)
-						return -1;
-					d = e - (0x80 - 0x77);
-					break;
-				default:
-					return -1;
-				}
-			}
-			else {
-				// Shift-JIS
-				d = DecodeTable[e];
-				if (d >= 128)
-					return -1;
-			}
+			int e = ReadNl3Char(true);
+			if (e < 0)
+				return -1;
+			int d = DecodeTable[e];
+			if (d >= 128)
+				return -1;
 			Bits = d << 1 | 1;
 		}
 		else
@@ -2064,6 +2066,44 @@ class Tre1Stream : RleStream
 		LastRgb = RECOIL.GetFalconTrueColor(Content, ContentOffset);
 		ContentOffset += 2;
 		return LastRgb;
+	}
+}
+
+class Nl3Stream : RleStream
+{
+	internal override int ReadValue!()
+	{
+		int e = ReadNl3Char(false);
+		if (e < 0x20)
+			return -1;
+		if (e < 0x7f)
+			return e - 0x20;
+		if (e < 0xa0)
+			return -1;
+		if (e < 0xe0)
+			return e - (0xa0 - 0x5f);
+		if (e == 0xfd)
+			return 159;
+		if (e == 0xfe)
+			return 160;
+		return -1;
+	}
+
+	protected override bool ReadCommand!()
+	{
+		int b = ReadValue();
+		if (b < 0 || b > 127)
+			return false;
+		RepeatValue = b & 0x3f;
+		if (b < 64)
+			RepeatCount = 1;
+		else {
+			b = ReadValue();
+			if (b < 0)
+				return false;
+			RepeatCount = b + 2;
+		}
+		return true;
 	}
 }
 
@@ -4439,6 +4479,14 @@ public class RECOIL
 		c = (c & 0x3e0) << 14 | (c & 0xfc00) | (c & 0x1f) << 3;
 		// RRRRR000 GGGGGG00 BBBBB000
 		return c | (c >> 5 & 0x070007) | (c >> 6 & 0x000300);
+	}
+
+	static int Get729Color(int c)
+	{
+		int r = c / 81;
+		int g = c / 9 % 9;
+		int b = c % 9;
+		return r * 255 >> 3 << 16 | g * 255 >> 3 << 8 | b * 255 >> 3;
 	}
 
 	internal static int GetFalconTrueColor(byte[] content, int contentOffset)
@@ -7593,6 +7641,33 @@ public class RECOIL
 
 	// NEC PC-98 formats.
 
+	bool DecodeNl3!(byte[] content, int contentLength)
+	{
+		Nl3Stream() stream;
+		stream.Content = content;
+		stream.ContentOffset = 0;
+		stream.ContentLength = contentLength;
+		for (int i = 0; i < 64; i++) {
+			int c = stream.ReadValue();
+			if (c < 0 || c > 127)
+				return false;
+			c |= stream.ReadValue() << 7;
+			if (c < 0 || c >= 9 * 9 * 9)
+				return false;
+			ContentPalette[i] = Get729Color(c);
+		}
+		SetSize(160, 100, RECOILResolution.Pc981x1);
+		for (int x = 0; x < 160; x++) {
+			for (int y = 0; y < 100; y++) {
+				int b = stream.ReadRle();
+				if (b < 0)
+					return false;
+				Pixels[y * 160 + x] = ContentPalette[b];
+			}
+		}
+		return true;
+	}
+
 	bool DecodeMl1Chain!(X68KPicStream! stream, int pixelsOffset, int rgb)
 	{
 		for (;;) {
@@ -7645,8 +7720,8 @@ public class RECOIL
 		int startY = stream.ReadBits(16);
 		int width = stream.ReadBits(16) - startX + 1;
 		int height = stream.ReadBits(16) - startY + 1;
-		for (int i = 0; i < 39; i++) {
-			if (stream.ReadBits(16) < 0)
+		for (int i = 0; i < 78 * 8; i++) {
+			if (stream.ReadBit() < 0)
 				return false;
 		}
 		int mode = stream.ReadBits(2);
@@ -7672,10 +7747,7 @@ public class RECOIL
 			int c = stream.ReadBits(10);
 			if (c < 0 || c >= 9 * 9 * 9)
 				return false;
-			int r = c / 81;
-			int g = c / 9 % 9;
-			int b = c % 9;
-			ContentPalette[mode == 1 ? j : i] = r * 255 >> 3 << 16 | g * 255 >> 3 << 8 | b * 255 >> 3;
+			ContentPalette[mode == 1 ? j : i] = Get729Color(c);
 		}
 		const int clean = 1;
 		int pixelsLength = width * height;
@@ -17358,6 +17430,7 @@ public class RECOIL
 		case PackExt("MUR"):
 		case PackExt("MX1"):
 		case PackExt("NEO"):
+		case PackExt("NL3"):
 		case PackExt("NLQ"):
 		case PackExt("NXI"):
 		case PackExt("OCP"):
@@ -18065,6 +18138,8 @@ public class RECOIL
 		case PackExt("NEO"):
 			return DecodeNeo(filename, content, contentLength)
 				|| DecodeIff(content, contentLength, RECOILResolution.Ste1x1);
+		case PackExt("NL3"):
+			return DecodeNl3(content, contentLength);
 		case PackExt("NLQ"):
 			return DecodeNlq(content, contentLength);
 		case PackExt("NXI"):
