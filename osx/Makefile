@@ -1,4 +1,4 @@
-VERSION = 5.0.1
+VERSION = 5.1.0
 
 CC = gcc
 # As of Xcode 4.6.3, -O2 allocates a 2.5MB of stack for RECOIL_Decode, which causes non-deterministic bus errors :(

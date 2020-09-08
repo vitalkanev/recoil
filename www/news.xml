@@ -1,4 +1,22 @@
 ﻿<page title="News">
+	<release project="RECOIL" version="5.1.0" date="2020-09-08">
+		<ul title="New formats">
+			<li>Apple II: Apple Preferred Format (GS/IIGS/PNT/SHR), Multi-palette (32K), 3201</li>
+			<li>Atari 8-bit: Mad Studio (GR0/ASC/SCR, SPR, MSL, MPL)</li>
+			<li>C64: CharPad (CTM), Centauri Logo-Editor (CLE)</li>
+			<li>NEC PC-88: DaVinci (IMG)</li>
+			<li>NEC PC-98: Mapletown Network (ML1, MX1, NL3)</li>
+			<li>ZX Spectrum: ZX Spectrum Next (NXI), Border Screen by Trefi (BSP)</li>
+		</ul>
+		<ul title="RECOILWin">
+			<li>Multiple monitors support: full screen on the current monitor, adapt to the DPI when switching monitors.</li>
+			<li>Press 5-9 for 5x-9x zoom.</li>
+		</ul>
+		<ul title="Windows 10 app">
+			<li>Full screen mode.</li>
+		</ul>
+	</release>
+
 	<release project="RECOIL" version="5.0.1" date="2020-03-18">
 		<ul>
 			<li>Fixed colors in the ICE format.</li>
