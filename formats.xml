@@ -688,7 +688,7 @@
 		</format>
 		<format name="Mapletown Network ML1" colors="128"><ext>ML1</ext></format>
 		<format name="Mapletown Network MX1" colors="128"><ext>MX1</ext></format>
-		<format width="160" height="100" colors="128"><ext>NL3</ext></format>
+		<format name="Mapletown Network NL3" width="160" height="100" colors="64"><ext>NL3</ext></format>
 		<format colors="256"><ext>PI</ext></format>
 		<format name="XLD4" width="640" height="400" colors="16"><ext>Q4</ext></format>
 		<format name="Z's Staff Kid98" colors="16"><ext>ZIM</ext></format>
