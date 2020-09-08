@@ -79,7 +79,7 @@ static void ShowAbout(void)
 		"Retro Computer Image Library\n"
 		"(C) " RECOIL_YEARS " Piotr Fusik and Adrian Matoga\n"
 		"Formats research, testing by Mariusz Rozwadowski\n"
-		"RECOIL icon (C) 2014 Pawel Szewczyk\n\n"
+		"Icon by Pawel Szewczyk\n\n"
 		RECOIL_COPYRIGHT,
 		APP_TITLE " " RECOIL_VERSION,
 		MB_OK | MB_USERICON,
