@@ -290,9 +290,7 @@ class ZxpStream : Stream
 {
 	internal int ReadChar!()
 	{
-		if (ContentOffset >= ContentLength)
-			return -1;
-		int c = Content[ContentOffset++];
+		int c = ReadByte();
 		// ZXP is CRLF. We support LF just in case.
 		if (c == '\r' && ContentOffset < ContentLength && Content[ContentOffset] == '\n') {
 			ContentOffset++;
@@ -394,11 +392,9 @@ class BitStream : Stream
 	protected int ReadNl3Char!(bool skipSpace)
 	{
 		int e;
-		do {
-			if (ContentOffset >= ContentLength)
-				return -1;
-			e = Content[ContentOffset++];
-		} while (e == '\r' || e == '\n' || (skipSpace && e == ' '));
+		do
+			e = ReadByte();
+		while (e == '\r' || e == '\n' || (skipSpace && e == ' '));
 		if (e != 0xef)
 			return e;
 		// UTF-8
@@ -2082,9 +2078,9 @@ class Nl3Stream : RleStream
 			return -1;
 		if (e < 0xe0)
 			return e - (0xa0 - 0x5f);
-		if (e == 0xfd)
+		if (e == 0xfd) // TODO: test
 			return 159;
-		if (e == 0xfe)
+		if (e == 0xfe) // TODO: test
 			return 160;
 		return -1;
 	}
