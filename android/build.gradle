@@ -80,7 +80,7 @@ preBuild.dependsOn copyJavaResources
 
 android {
     compileSdkVersion 29
-    buildToolsVersion '30.0.1'
+    buildToolsVersion '30.0.2'
     sourceSets {
         main {
             manifest {
