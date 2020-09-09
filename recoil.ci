@@ -7641,6 +7641,9 @@ public class RECOIL
 	{
 		Nl3Stream() stream;
 		stream.Content = content;
+		// XXX: https://emk.name/2015/04/ml1.html contains additional code in nl3.js
+		// to skip some initial bytes and use alternative decoding table for some images.
+		// This is not necessary for the test files I have.
 		stream.ContentOffset = 0;
 		stream.ContentLength = contentLength;
 		for (int i = 0; i < 64; i++) {
