@@ -454,6 +454,26 @@ class Mx1Stream : X68KPicStream
 		}
 	}
 
+	internal bool FindImage!()
+	{
+		for (;;) {
+			int lineOffset = ContentOffset;
+			for (;;) {
+				int c = ReadByte();
+				if (c < 0)
+					return false;
+				if (c == '\r' || c == '\n')
+					break;
+			}
+			if (ContentOffset - lineOffset >= "@@@ (1lines) @@@\n".Length
+				&& RECOIL.IsStringAt(Content, lineOffset, "@@@ ")
+				&& RECOIL.IsStringAt(Content, ContentOffset - "lines) @@@\n".Length, "lines) @@@")) {
+				Bits = 0;
+				return true;
+			}
+		}
+	}
+
 	internal override int ReadBit!()
 	{
 		if ((Bits & 0x3f) == 0) {
@@ -7709,19 +7729,21 @@ public class RECOIL
 		}
 	}
 
-	bool DecodeMl1Mx1!(X68KPicStream! stream)
+	const int Ml1SingleImage = -1;
+
+	int DecodeMl1Mx1!(X68KPicStream! stream, int imageOffset)
 	{
 		if (stream.ReadBits(32) != 0x3130301a
 		 || stream.ReadBits(32) < 0
 		 || stream.ReadBits(16) < 0)
-			return false;
-		int startX = stream.ReadBits(16);
-		int startY = stream.ReadBits(16);
-		int width = stream.ReadBits(16) - startX + 1;
-		int height = stream.ReadBits(16) - startY + 1;
+			return -1;
+		int left = stream.ReadBits(16);
+		int top = stream.ReadBits(16);
+		int width = stream.ReadBits(16) - left + 1;
+		int height = stream.ReadBits(16) - top + 1;
 		for (int i = 0; i < 78 * 8; i++) {
 			if (stream.ReadBit() < 0)
-				return false;
+				return -1;
 		}
 		int mode = stream.ReadBits(2);
 		int lastColor;
@@ -7734,10 +7756,15 @@ public class RECOIL
 			lastColor = stream.ReadBits(7);
 			break;
 		default:
-			return false;
+			return -1;
 		}
-		if (!SetSize(width, height, RECOILResolution.Pc981x1))
-			return false;
+
+		if (imageOffset == Ml1SingleImage) {
+			if (!SetSize(width, height, RECOILResolution.Pc981x1))
+				return -1;
+			imageOffset = 0;
+		}
+
 		ContentPalette.Fill(0);
 		for (int i = 0; i <= lastColor; i++) {
 			int j = 0;
@@ -7745,42 +7772,51 @@ public class RECOIL
 				j = stream.ReadBits(7);
 			int c = stream.ReadBits(10);
 			if (c < 0 || c >= 9 * 9 * 9)
-				return false;
+				return -1;
 			ContentPalette[mode == 1 ? j : i] = Get729Color(c);
 		}
+
 		const int clean = 1;
-		int pixelsLength = width * height;
-		for (int pixelsOffset = 0; pixelsOffset < pixelsLength; pixelsOffset++)
-			Pixels[pixelsOffset] = clean;
-		for (int pixelsOffset = 0; pixelsOffset < pixelsLength; ) {
-			int distance = stream.ReadLength();
-			if (distance < 0 || pixelsOffset + distance > pixelsLength)
-				return false;
-			int c = mode == 2 ? stream.ReadLength() - 1 : stream.ReadBits(7);
-			if (c < 0 || c >= 128)
-				return false;
-			int rgb = ContentPalette[c];
-			switch (stream.ReadBit()) {
-			case 0:
-				break;
-			case 1:
-				if (!DecodeMl1Chain(stream, pixelsOffset, rgb))
-					return false;
-				break;
-			default:
-				return false;
-			}
-			Pixels[pixelsOffset++] = rgb;
-			while (--distance > 0) {
-				int old = Pixels[pixelsOffset];
-				if (old == clean)
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++)
+				Pixels[imageOffset + y * Width + x] = clean;
+		}
+
+		int distance = 1;
+		int rgb = 0;
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int pixelsOffset = imageOffset + y * Width + x;
+				if (--distance > 0) {
+					int old = Pixels[pixelsOffset];
+					if (old == clean)
+						Pixels[pixelsOffset] = rgb;
+					else
+						rgb = old;
+				}
+				else {
+					distance = stream.ReadLength();
+					if (distance < 0)
+						return -1;
+					int c = mode == 2 ? stream.ReadLength() - 1 : stream.ReadBits(7);
+					if (c < 0 || c >= 128)
+						return -1;
+					rgb = ContentPalette[c];
+					switch (stream.ReadBit()) {
+					case 0:
+						break;
+					case 1:
+						if (!DecodeMl1Chain(stream, pixelsOffset, rgb))
+							return -1;
+						break;
+					default:
+						return -1;
+					}
 					Pixels[pixelsOffset] = rgb;
-				else
-					rgb = old;
-				pixelsOffset++;
+				}
 			}
 		}
-		return stream.ReadLength() == pixelsLength + 1;
+		return distance == 1 && stream.ReadLength() == width * height + 1 ? height : -1;
 	}
 
 	bool DecodeMl1!(byte[] content, int contentLength)
@@ -7789,33 +7825,74 @@ public class RECOIL
 		stream.Content = content;
 		stream.ContentOffset = 0;
 		stream.ContentLength = contentLength;
-		return DecodeMl1Mx1(stream);
+		return DecodeMl1Mx1(stream, Ml1SingleImage) > 0;
+	}
+
+	bool DecodeMx1Tiles!(Mx1Stream! stream, int width, int height, int shift)
+	{
+		if (!SetSize(width << shift, height << shift, RECOILResolution.Pc981x1))
+			return false;
+		for (int y = 0; y < Height; y += height) {
+			for (int x = 0; x < Width; x += width) {
+				if (!stream.FindImage() || DecodeMl1Mx1(stream, y * Width + x) < 0)
+					return false;
+			}
+		}
+		return true;
 	}
 
 	bool DecodeMx1!(byte[] content, int contentLength)
 	{
-		int contentOffset = 0;
-		for (;;) {
-			int lineOffset = contentOffset;
-			for (;;) {
-				if (contentOffset >= contentLength)
-					return false;
-				int c = content[contentOffset++];
-				if (c == '\r' || c == '\n')
-					break;
-			}
-			if (contentOffset - lineOffset >= "@@@ (1lines) @@@\n".Length
-			 && IsStringAt(content, lineOffset, "@@@ ")
-			 && IsStringAt(content, contentOffset - "es) @@@\n".Length, "es) @@@"))
-				break;
-		}
-
 		Mx1Stream() stream;
 		stream.Content = content;
-		stream.ContentOffset = contentOffset;
+		stream.ContentOffset = 0;
 		stream.ContentLength = contentLength;
-		return DecodeMl1Mx1(stream);
-		// TODO: following images in the file
+		if (!stream.FindImage() || DecodeMl1Mx1(stream, Ml1SingleImage) < 0)
+			return false;
+		if (!stream.FindImage())
+			return true;
+
+		int sameSizeImages = 1;
+		int width = Width;
+		int height = Height;
+		do {
+			if (DecodeMl1Mx1(stream, Ml1SingleImage) < 0)
+				return false;
+			if (sameSizeImages > 0 && Width == width && Height == height)
+				sameSizeImages++;
+			else {
+				if (width < Width)
+					width = Width;
+				if (sameSizeImages > 0) {
+					height *= sameSizeImages;
+					sameSizeImages = 0;
+				}
+				height += Height;
+			}
+		} while (stream.FindImage());
+
+		stream.ContentOffset = 0;
+		switch (sameSizeImages) {
+		case 4:
+			return DecodeMx1Tiles(stream, width, height, 1);
+		case 16:
+			return DecodeMx1Tiles(stream, width, height, 2);
+		case 0:
+			break;
+		default:
+			height *= sameSizeImages;
+			break;
+		}
+
+		if (!SetSize(width, height, RECOILResolution.Pc981x1))
+			return false;
+		int pixelsLength = width * height;
+		for (int pixelsOffset = 0; pixelsOffset < pixelsLength; pixelsOffset++)
+			Pixels[pixelsOffset] = 0;
+		int imageOffset = 0;
+		while (stream.FindImage())
+			imageOffset += DecodeMl1Mx1(stream, imageOffset) * width;
+		return true;
 	}
 
 	static int UnpackZim(byte[] content, int contentOffset, int end, byte[] flags, byte[]! unpacked, int unpackedLength)
