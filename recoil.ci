@@ -7700,6 +7700,7 @@ public class RECOIL
 		if (contentLength < 42
 		 || !IsStringAt(content, 0, "SS_SIF    0.0")
 		 || content[0x11] != ' '
+		 || content[0x13] != 'B' || content[0x14] != 'R' || content[0x15] != 'G'
 		 || content[0x18] != 0x80 || content[0x19] != 2 // TODO: width != 640
 		 || content[0x1a] != 0xc8 || content[0x1b] != 0) // TODO: height != 200
 			return false;
@@ -7708,10 +7709,10 @@ public class RECOIL
 		rle.Content = content;
 		rle.ContentOffset = 0x28;
 		rle.ContentLength = contentLength;
-		if (content[0x10] == 'I')
-			rle.SkipChunk();
-		if (content[0x12] == 'B')
-			rle.SkipChunk();
+		if (content[0x10] == 'I' && !rle.SkipChunk())
+			return false;
+		if (content[0x12] == 'B' && !rle.SkipChunk())
+			return false;
 		byte[16000] blue;
 		byte[16000] red;
 		if (!rle.Unpack(blue, 0, 1, 16000)
