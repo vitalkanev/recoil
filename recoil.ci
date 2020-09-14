@@ -1220,6 +1220,41 @@ class SpsStream : RleStream
 	}
 }
 
+class ArtMaster88Stream : RleStream
+{
+	int Escape = -1;
+
+	protected override bool ReadCommand!()
+	{
+		int b = ReadByte();
+		if (b < 0)
+			return false;
+		if (b == Escape) {
+			b = ReadByte();
+			if (b < 0)
+				return false;
+			RepeatCount = b - 1 & 0xff;
+			Escape = -1;
+		}
+		else {
+			RepeatCount = 1;
+			Escape = RepeatValue = b;
+		}
+		return true;
+	}
+
+	internal bool SkipChunk!()
+	{
+		if (ContentOffset + 1 >= ContentLength)
+			return false;
+		int length = Content[ContentOffset] | Content[ContentOffset + 1] << 8;
+		if (length < 2)
+			return false;
+		ContentOffset += length;
+		return true;
+	}
+}
+
 class SrStream : RleStream
 {
 	protected override bool ReadCommand!()
@@ -7632,27 +7667,67 @@ public class RECOIL
 
 	// NEC PC-88 formats.
 
+	void SetPc88EightPixels!(int column, int y, int b)
+	{
+		for (int x = 0; x < 8; x++) {
+			int offset = y * 1280 + column + x;
+			Pixels[offset + 640] = Pixels[offset] = (b >> (7 - x) & 0x010101) * 0xff;
+		}
+	}
+
 	bool DecodeDaVinci!(byte[] content, int contentLength)
 	{
 		if ((contentLength & 0xff) != 0)
 			return false;
 		SetSize(640, 400, RECOILResolution.Pc881x2);
-		DaVinciStream() stream;
-		stream.Content = content;
-		stream.ContentOffset = 0;
-		stream.ContentLength = contentLength;
+		DaVinciStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 0;
+		rle.ContentLength = contentLength;
 		for (int y = 0; y < 200; y++) {
 			for (int column = 0; column < 640; column += 8) {
-				int b = stream.ReadRle();
+				int b = rle.ReadRle();
 				if (b < 0)
 					return false;
-				for (int x = 0; x < 8; x++) {
-					int offset = y * 1280 + column + x;
-					Pixels[offset + 640] = Pixels[offset] = (b >> (7 - x) & 0x010101) * 0xff;
-				}
+				SetPc88EightPixels(column, y, b);
 			}
 		}
-		return stream.RepeatCount == 0 && contentLength - stream.ContentOffset < 256;
+		return rle.RepeatCount == 0 && contentLength - rle.ContentOffset < 256;
+	}
+
+	bool DecodeArtMaster88!(byte[] content, int contentLength)
+	{
+		if (contentLength < 42
+		 || !IsStringAt(content, 0, "SS_SIF    0.0")
+		 || content[0x11] != ' '
+		 || content[0x18] != 0x80 || content[0x19] != 2 // TODO: width != 640
+		 || content[0x1a] != 0xc8 || content[0x1b] != 0) // TODO: height != 200
+			return false;
+		SetSize(640, 400, RECOILResolution.Pc881x2);
+		ArtMaster88Stream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 0x28;
+		rle.ContentLength = contentLength;
+		if (content[0x10] == 'I')
+			rle.SkipChunk();
+		if (content[0x12] == 'B')
+			rle.SkipChunk();
+		byte[16000] blue;
+		byte[16000] red;
+		if (!rle.Unpack(blue, 0, 1, 16000)
+		 || !rle.Unpack(red, 0, 1, 16000))
+			return false;
+		int offset = 0;
+		for (int y = 0; y < 200; y++) {
+			for (int column = 0; column < 640; column += 8) {
+				int g = rle.ReadRle();
+				if (g < 0)
+					return false;
+				SetPc88EightPixels(column, y, red[offset] << 16 | g << 8 | blue[offset]);
+				offset++;
+			}
+		}
+		return true;
 	}
 
 	// NEC PC-98 formats.
@@ -18090,6 +18165,7 @@ public class RECOIL
 		case PackExt("IMG"):
 			return DecodeStImg(content, contentLength)
 				|| DecodeZxImg(content, contentLength)
+				|| DecodeArtMaster88(content, contentLength)
 				|| DecodeDaVinci(content, contentLength);
 		case PackExt("TIMG"):
 		case PackExt("XIMG"):
