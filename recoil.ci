@@ -5260,7 +5260,7 @@ public class RECOIL
 	{
 		for (int x = 0; x < Width; x++) {
 			int b = content[lineOffset + (x >> 2)] >> (~x & 3);
-			Pixels[y * Width + x] = ContentPalette[(b >> 3 & 2) + (b & 1)];
+			Pixels[y * Width + x] = ContentPalette[((b & 1) << 1) + (b >> 4 & 1)];
 		}
 	}
 
