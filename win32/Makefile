@@ -53,7 +53,7 @@ i686/RECOIL.plg x86_64/RECOIL.plg64: imagine/recoilimagine.c ../formats.h ../rec
 	$(DO)$(CC) $(LDFLAGS_DLL) -static
 
 paint.net/RecoilPaintDotNet.dll: paint.net/RecoilPaintDotNet.cs paint.net/RecoilFileTypeFactory.cs paint.net/RECOIL.cs
-	$(DO)$(CSC) -t:library $(subst /,\\,$^) -r:"$(PAINT_NET_DIR)\PaintDotNet.Base.dll" -r:"$(PAINT_NET_DIR)\PaintDotNet.Data.dll"
+	$(DO)$(CSC) -t:library $(subst /,\\,$^) -r:"$(PAINT_NET_DIR)\PaintDotNet.Base.dll" -r:"$(PAINT_NET_DIR)\PaintDotNet.Core.dll" -r:"$(PAINT_NET_DIR)\PaintDotNet.Data.dll"
 
 paint.net/RecoilFileTypeFactory.cs: paint.net/RecoilFileTypeFactory.cs.xsl ../formats.xml
 	$(DO)$(XSLTPROC)
