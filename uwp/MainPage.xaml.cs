@@ -97,19 +97,19 @@ namespace RECOIL
 			}
 
 			// display
-			Image.Source = bitmap;
-			FileName.Text = file.Name;
-			SaveAsButton.Visibility = Visibility.Visible;
-			ShareButton.Visibility = Visibility.Visible;
-			CopyButton.Visibility = Visibility.Visible;
-			FullScreenButton.Visibility = Visibility.Visible;
+			this.Image.Source = bitmap;
+			this.FileName.Text = file.Name;
+			this.SaveAsButton.Visibility = Visibility.Visible;
+			this.ShareButton.Visibility = Visibility.Visible;
+			this.CopyButton.Visibility = Visibility.Visible;
+			this.FullScreenButton.Visibility = Visibility.Visible;
 		}
 
 		void SetIndex(int index)
 		{
-			Index = index;
-			PreviousButton.IsEnabled = index > 0;
-			NextButton.IsEnabled = index + 1 < Files.Count;
+			this.Index = index;
+			this.PreviousButton.IsEnabled = index > 0;
+			this.NextButton.IsEnabled = index + 1 < this.Files.Count;
 		}
 
 		public async Task ShowFiles(IReadOnlyList<StorageFile> files)
@@ -117,15 +117,15 @@ namespace RECOIL
 			if (files.Count > 0) {
 				await ShowFile(files[0]);
 				if (files.Count > 1) {
-					Files = files;
+					this.Files = files;
 					SetIndex(0);
-					PreviousButton.Visibility = Visibility.Visible;
-					NextButton.Visibility = Visibility.Visible;
+					this.PreviousButton.Visibility = Visibility.Visible;
+					this.NextButton.Visibility = Visibility.Visible;
 				}
 				else {
-					Files = null;
-					PreviousButton.Visibility = Visibility.Collapsed;
-					NextButton.Visibility = Visibility.Collapsed;
+					this.Files = null;
+					this.PreviousButton.Visibility = Visibility.Collapsed;
+					this.NextButton.Visibility = Visibility.Collapsed;
 				}
 			}
 		}
@@ -137,17 +137,17 @@ namespace RECOIL
 
 		async void OpenPrevious(object sender, RoutedEventArgs e)
 		{
-			if (Files != null && Index > 0) {
-				SetIndex(Index - 1);
-				await ShowFile(Files[Index]);
+			if (this.Files != null && this.Index > 0) {
+				SetIndex(this.Index - 1);
+				await ShowFile(this.Files[Index]);
 			}
 		}
 
 		async void OpenNext(object sender, RoutedEventArgs e)
 		{
-			if (Files != null && Index + 1 < Files.Count) {
-				SetIndex(Index + 1);
-				await ShowFile(Files[Index]);
+			if (this.Files != null && this.Index + 1 < this.Files.Count) {
+				SetIndex(this.Index + 1);
+				await ShowFile(this.Files[this.Index]);
 			}
 		}
 
@@ -204,7 +204,7 @@ namespace RECOIL
 				return; // do we need this?
 			DataRequestDeferral deferral = e.Request.GetDeferral();
 			DataPackage package = e.Request.Data;
-			package.Properties.Title = FileName.Text;
+			package.Properties.Title = this.FileName.Text;
 			await PutBitmap(package);
 			deferral.Complete();
 		}
