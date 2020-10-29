@@ -29,7 +29,6 @@ using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.Pickers;
-using Windows.Storage.Search;
 using Windows.Storage.Streams;
 using Windows.UI.Popups;
 using Windows.UI.ViewManagement;
@@ -165,7 +164,8 @@ namespace RECOIL
 			FileSavePicker picker = new FileSavePicker {
 				SuggestedStartLocation = PickerLocationId.PicturesLibrary,
 				SuggestedFileName = FileName.Text,
-				FileTypeChoices = { { "PNG Image", new string[] { ".png" } } } };
+				FileTypeChoices = { { "PNG Image", new string[] { ".png" } } }
+			};
 			StorageFile file = await picker.PickSaveFileAsync();
 			if (file != null) {
 				try {
