@@ -22,4 +22,8 @@
 	<h2>Command-line converter</h2>
 	<p>To install, open <code>recoil-<version />-macos.dmg</code> then drag <code>recoil2png</code> to <code>bin</code>.</p>
 	<recoil2png />
+
+	<a href="https://www.macstadium.com">
+		<img src="MacStadium-developerlogo.png" alt="Powered By MacStadium" />
+	</a>
 </page>
