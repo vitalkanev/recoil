@@ -1,4 +1,12 @@
 ﻿<page title="News">
+	<release project="RECOIL" version="5.1.1" date="2020-10-30">
+		<ul>
+			<li>New format: NEC PC-88 ArtMaster88 (IMG).</li>
+			<li>Fixed colors in Amstrad CPC Mode 1 (SCR+PAL, PPH+ODD+EVE).</li>
+			<li>Decode multiple tiles in a Mapletown Network MX1 file (MX1).</li>
+		</ul>
+	</release>
+
 	<release project="RECOIL" version="5.1.0" date="2020-09-08">
 		<ul title="New formats">
 			<li>Apple II: Apple Preferred Format (GS/IIGS/PNT/SHR), Multi-palette (32K), 3201</li>
