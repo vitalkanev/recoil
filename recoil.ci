@@ -9615,8 +9615,9 @@ public class RECOIL
 
 	bool DecodePsc!(byte[] content, int contentLength)
 	{
-		if (contentLength < 18 || !IsStringAt(content, 0, "tm89PS")
-		 || content[6] != 0 || content[7] != 0xcb || content[8] != 2 || content[9] != 1
+		// https://github.com/thmuch/tosgem-image-reader/blob/main/docs/PaintShopCompressed.md
+		if (contentLength < 18 || !IsStringAt(content, 0, "tm89")
+		 || content[8] != 2 || content[9] != 1
 		 || content[10] != 2 || content[11] != 0x7f || content[12] != 1 || content[13] != 0x8f)
 			return false;
 		byte[32000] unpacked;
