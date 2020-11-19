@@ -341,7 +341,7 @@
 		<format name="PaintPro ST"><ext>PIC</ext></format>
 		<format width="320" height="200" colors="256" frames="2"><ext>PL4</ext></format>
 		<format name="Pablo Paint 1.1" width="320" height="200" colors="16"><ext>PPP</ext></format>
-		<format name="PaintShop (compressed)" width="640" height="400" colors="2"><ext>PSC</ext></format>
+		<format name="PaintShop (compressed)" maxWidth="640" maxHeight="400" colors="2"><ext>PSC</ext></format>
 		<format name="RGB Intermediate" width="320" height="200" colors="4096" frames="3"><ext>RGB</ext></format>
 		<format name="ZZ_ROUGH" width="320" height="200" colors="16"><ext>RGH</ext></format>
 		<format name="Paintworks" width="320" height="200" colors="16">
