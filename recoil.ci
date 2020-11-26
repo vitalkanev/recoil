@@ -1253,6 +1253,17 @@ class ArtMaster88Stream : RleStream
 		ContentOffset += length;
 		return true;
 	}
+
+	internal byte[4][32000] Planes;
+
+	internal bool ReadPlanes!(int planes, int planeLength)
+	{
+		for (int plane = 0; plane < planes; plane++) {
+			if (!Unpack(Planes[plane], 0, 1, planeLength))
+				return false;
+		}
+		return true;
+	}
 }
 
 class SrStream : RleStream
@@ -7699,34 +7710,61 @@ public class RECOIL
 	{
 		if (contentLength < 42
 		 || !IsStringAt(content, 0, "SS_SIF    0.0")
-		 || content[0x11] != ' '
 		 || content[0x13] != 'B' || content[0x14] != 'R' || content[0x15] != 'G'
-		 || content[0x18] != 0x80 || content[0x19] != 2 // TODO: width != 640
-		 || content[0x1a] != 0xc8 || content[0x1b] != 0) // TODO: height != 200
+		 || content[0x18] != 0x80 || content[0x19] != 2) // TODO: width != 640
 			return false;
-		SetSize(640, 400, RECOILResolution.Pc881x2);
 		ArtMaster88Stream() rle;
 		rle.Content = content;
 		rle.ContentOffset = 0x28;
 		rle.ContentLength = contentLength;
 		if (content[0x10] == 'I' && !rle.SkipChunk())
 			return false;
-		if (content[0x12] == 'B' && !rle.SkipChunk())
-			return false;
-		byte[16000] blue;
-		byte[16000] red;
-		if (!rle.Unpack(blue, 0, 1, 16000)
-		 || !rle.Unpack(red, 0, 1, 16000))
-			return false;
-		int offset = 0;
-		for (int y = 0; y < 200; y++) {
-			for (int column = 0; column < 640; column += 8) {
-				int g = rle.ReadRle();
-				if (g < 0)
-					return false;
-				SetPc88EightPixels(column, y, red[offset] << 16 | g << 8 | blue[offset]);
-				offset++;
+		switch (content[0x1a] | content[0x1b] << 8) {
+		case 200:
+			SetSize(640, 400, RECOILResolution.Pc881x2);
+			if (content[0x12] == 'B' && !rle.SkipChunk())
+				return false;
+			if (!rle.ReadPlanes(3, 16000))
+				return false;
+			for (int y = 0; y < 200; y++) {
+				for (int column = 0; column < 80; column++) {
+					int offset = y * 80 + column;
+					SetPc88EightPixels(column << 3, y, rle.Planes[1][offset] << 16 | rle.Planes[2][offset] << 8 | rle.Planes[0][offset]);
+				}
 			}
+			break;
+		case 400:
+			SetSize(640, 400, RECOILResolution.Pc981x1);
+			if (content[0x11] != 'R' || rle.ContentOffset + 0x62 >= contentLength
+			 || content[rle.ContentOffset] != 0x62 || content[rle.ContentOffset + 1] != 0)
+				return false;
+			for (int c = 0; c < 16; c++) {
+				int offset = rle.ContentOffset + 2 + c * 6;
+				int rgb = content[offset] << 16 | content[offset + 2] << 8 | content[offset + 4];
+				if ((rgb & 0xf0f0f0) != 0
+				 || content[offset + 1] != 0 || content[offset + 3] != 0 || content[offset + 5] != 0)
+					return false;
+				ContentPalette[c] = rgb * 0x11;
+			}
+			rle.ContentOffset += 0x62;
+			if (content[0x12] == 'B' && !rle.SkipChunk())
+				return false;
+			if (!rle.ReadPlanes(4, 32000))
+				return false;
+			for (int y = 0; y < 400; y++) {
+				for (int column = 0; column < 80; column++) {
+					int offset = y * 80 + column;
+					for (int x = 0; x < 8; x++) {
+						int c = 0;
+						for (int plane = 0; plane < 4; plane++)
+							c |= (rle.Planes[plane][offset] >> (7 - x) & 1) << plane;
+						Pixels[y * 640 + (column << 3) + x] = ContentPalette[c];
+					}
+				}
+			}
+			break;
+		default:
+			return false;
 		}
 		return true;
 	}
@@ -17334,6 +17372,7 @@ public class RECOIL
 		case PackExt("APP"):
 		case PackExt("APS"):
 		case PackExt("ART"):
+		case PackExt("ARV"):
 		case PackExt("ATR"):
 		case PackExt("B&W"):
 		case PackExt("B_W"):
@@ -17824,6 +17863,8 @@ public class RECOIL
 				|| DecodePaletteMaster(content, contentLength) // contentLength == 36864
 				|| DecodeAtari8Artist(content, contentLength) // contentLength == 3206
 				|| DecodeAsciiArtEditor(content, contentLength); // ends with 0x9b
+		case PackExt("ARV"):
+			return DecodeArtMaster88(content, contentLength);
 		case PackExt("ATR"):
 			return DecodeAtr(content, contentLength);
 		case PackExt("B&W"):
