@@ -1,7 +1,7 @@
 /*
  * recoilmagick.c - RECOIL coder for ImageMagick
  *
- * Copyright (C) 2009-2015  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2020  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -50,36 +50,27 @@ static MagickBooleanType IsRECOIL(const unsigned char *magick, const size_t leng
 
 static Image *ReadRECOILImage(const ImageInfo *image_info, ExceptionInfo *exception)
 {
-	Image *image;
-	MagickSizeType content_len;
-	RECOIL *recoil;
-	unsigned char *content;
-	PixelPacket *q;
-	const int *pixels;
-	int num_pixels;
-	int i;
-
 	assert(image_info != NULL);
 	assert(image_info->signature == MagickSignature);
 	if (image_info->debug)
 		LogMagickEvent(TraceEvent, GetMagickModule(), "%s", image_info->filename);
 	assert(exception != NULL);
 	assert(exception->signature == MagickSignature);
-	image = AcquireImage(image_info);
+	Image *image = AcquireImage(image_info);
 	if (!OpenBlob(image_info, image, ReadBinaryBlobMode, exception)) {
 		(void) DestroyImageList(image);
 		return NULL;
 	}
 
-	content_len = GetBlobSize(image);
+	MagickSizeType content_len = GetBlobSize(image);
 	if (content_len > RECOIL_MAX_CONTENT_LENGTH)
 		ThrowReaderException(CorruptImageError, "FileDecodingError");
 	if (content_len == 0) /* failed to get file length */
 		content_len = RECOIL_MAX_CONTENT_LENGTH;
-	recoil = RECOIL_New();
+	RECOIL *recoil = RECOIL_New();
 	if (recoil == NULL)
 		ThrowReaderException(ResourceLimitError, "MemoryAllocationFailed");
-	content = malloc(content_len);
+	uint8_t *content = malloc(content_len);
 	if (content == NULL) {
 		RECOIL_Delete(recoil);
 		ThrowReaderException(ResourceLimitError, "MemoryAllocationFailed");
@@ -105,16 +96,16 @@ static Image *ReadRECOILImage(const ImageInfo *image_info, ExceptionInfo *except
 		return NULL;
 	}
 
-	q = QueueAuthenticPixels(image, 0, 0, image->columns, image->rows, exception);
+	PixelPacket *q = QueueAuthenticPixels(image, 0, 0, image->columns, image->rows, exception);
 	if (q == NULL) {
 		RECOIL_Delete(recoil);
 		(void) DestroyImageList(image);
 		return NULL;
 	}
 
-	pixels = RECOIL_GetPixels(recoil);
-	num_pixels = image->columns * image->rows;
-	for (i = 0; i < num_pixels; i++) {
+	const int *pixels = RECOIL_GetPixels(recoil);
+	int num_pixels = image->columns * image->rows;
+	for (int i = 0; i < num_pixels; i++) {
 		int rgb = pixels[i];
 		q[i].red = ScaleCharToQuantum((unsigned char) (rgb >> 16));
 		q[i].green = ScaleCharToQuantum((unsigned char) (rgb >> 8));
@@ -141,8 +132,7 @@ static const struct Format {
 
 ModuleExport unsigned long RegisterRECOILImage(void)
 {
-	const struct Format *pf;
-	for (pf = formats; pf < formats + sizeof(formats) / sizeof(formats[0]); pf++) {
+	for (const struct Format *pf = formats; pf < formats + sizeof(formats) / sizeof(formats[0]); pf++) {
 		MagickInfo *entry = SetMagickInfo(pf->name);
 		entry->decoder = ReadRECOILImage;
 		entry->magick = IsRECOIL;
@@ -155,7 +145,6 @@ ModuleExport unsigned long RegisterRECOILImage(void)
 
 ModuleExport void UnregisterRECOILImage(void)
 {
-	const struct Format *pf;
-	for (pf = formats; pf < formats + sizeof(formats) / sizeof(formats[0]); pf++)
+	for (const struct Format *pf = formats; pf < formats + sizeof(formats) / sizeof(formats[0]); pf++)
 		UnregisterMagickInfo(pf->name);
 }
