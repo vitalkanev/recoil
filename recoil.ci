@@ -13773,6 +13773,20 @@ public class RECOIL
 		}
 	}
 
+	bool DecodePi9!(byte[] content, int contentLength)
+	{
+		switch (contentLength) {
+		case 7684:
+		case 7808:
+		case 7936:
+			return DecodeGr9(content, 7680);
+		case 7720:
+			return DecodeApc(content, contentLength);
+		default:
+			return DecodeFuckpaint(content, contentLength);
+		}
+	}
+
 	bool DecodeHpm!(byte[] content, int contentLength)
 	{
 		// This format appears in Grass' Slideshow.
@@ -17712,8 +17726,8 @@ public class RECOIL
 		case PackExt("SUH"):
 		case PackExt("PI4"):
 		case PackExt("PI7"):
-		case PackExt("PI9"):
 		case PackExt("PI8"):
+		case PackExt("PI9"):
 		case PackExt("PIC"):
 		case PackExt("PIX"):
 		case PackExt("PL4"):
@@ -18456,10 +18470,11 @@ public class RECOIL
 			return DecodeFuckpaint(content, contentLength)
 				|| DecodeStPi(content, contentLength);
 		case PackExt("PI7"):
-		case PackExt("PI9"):
 			return DecodeFuckpaint(content, contentLength);
 		case PackExt("PI8"):
 			return DecodePi8(content, contentLength);
+		case PackExt("PI9"):
+			return DecodePi9(content, contentLength);
 		case PackExt("PIC"):
 			return DecodePic(content, contentLength);
 		case PackExt("PIX"):

@@ -224,6 +224,7 @@
 		<format name="Daisy-Dot font" colors="2"><ext>NLQ</ext></format>
 		<format name="PowerGraphics" maxWidth="336" height="240" colors="256"><ext>PGR</ext></format>
 		<format maxWidth="320" height="192"><ext>PI8</ext></format>
+		<format width="80"><ext>PI9</ext></format>
 		<format name="Graphic Arts Department" width="160" height="96" colors="128"><ext>PIC</ext></format>
 		<format name="Koala MicroIllustrator" width="160" height="192" colors="4"><ext>PIC</ext></format>
 		<format name="AtariTools-800 player" width="8" height="240" colors="2"><ext>PLA</ext></format>
