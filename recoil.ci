@@ -1481,17 +1481,19 @@ class XeKoalaStream : RleStream
 		}
 	}
 
-	internal static bool UnpackWrapped(byte[] content, int contentLength, byte[]! unpacked, int unpackedLength)
+	internal static bool UnpackWrapped(byte[] content, int contentOffset, int contentLength, byte[]! unpacked, int unpackedLength)
 	{
-		return contentLength >= 26
-			&& content[0] == 0xff && content[1] == 0x80 && content[2] == 0xc9 && content[3] == 0xc7
-			&& content[4] >= 26 && content[4] < contentLength
-			&& content[5] == 0
-			&& content[6] == 1 && content[8] == 0x0e
-			&& content[9] == 0 && content[10] == 40
-			&& content[11] == 0 && content[12] == 192
-			&& content[20] == 0 && content[21] == 0
-			&& UnpackRaw(content[7], content, content[4] + 1, contentLength, unpacked, unpackedLength);
+		if (contentLength < contentOffset + 26
+		 || content[contentOffset] != 0xff || content[contentOffset + 1] != 0x80 || content[contentOffset + 2] != 0xc9 || content[contentOffset + 3] != 0xc7)
+			return false;
+		int offset = content[contentOffset + 4];
+		return offset >= 26 && contentOffset + offset < contentLength
+			&& content[contentOffset + 5] == 0
+			&& content[contentOffset + 6] == 1 && content[contentOffset + 8] == 0x0e
+			&& content[contentOffset + 9] == 0 && content[contentOffset + 10] == 40
+			&& content[contentOffset + 11] == 0 && content[contentOffset + 12] == 192
+			&& content[contentOffset + 20] == 0 && content[contentOffset + 21] == 0
+			&& UnpackRaw(content[contentOffset + 7], content, contentOffset + offset + 1, contentLength, unpacked, unpackedLength);
 	}
 }
 
@@ -13773,20 +13775,6 @@ public class RECOIL
 		}
 	}
 
-	bool DecodePi9!(byte[] content, int contentLength)
-	{
-		switch (contentLength) {
-		case 7684:
-		case 7808:
-		case 7936:
-			return DecodeGr9(content, 7680);
-		case 7720:
-			return DecodeApc(content, contentLength);
-		default:
-			return DecodeFuckpaint(content, contentLength);
-		}
-	}
-
 	bool DecodeHpm!(byte[] content, int contentLength)
 	{
 		// This format appears in Grass' Slideshow.
@@ -13891,6 +13879,25 @@ public class RECOIL
 		GtiaColors[6] = 0x0e;
 		DecodeAtari8Gr15(content, 2, contentStride, frame, 0, width << 1, height);
 		return ApplyAtari8Palette(frame);
+	}
+
+	bool DecodeAtari8Koala!(byte[] content, int contentOffset, int contentLength)
+	{
+		byte[7680] unpacked;
+		if (!XeKoalaStream.UnpackWrapped(content, contentOffset, contentLength, unpacked, 7680))
+			return false;
+		SetSize(320, 192, RECOILResolution.Xe2x1);
+		SetPF0123Bak(content, contentOffset + 13);
+		byte[320 * 192] frame;
+		DecodeAtari8Gr15(unpacked, 0, 40, frame, 0, 320, 192);
+		return ApplyAtari8Palette(frame);
+	}
+
+	bool DecodeAtari8Pix!(byte[] content, int contentLength)
+	{
+		return contentLength >= 30 && content[0] == 0x1b && content[1] == 0x4d
+			&& 4 + (content[2] | content[3] << 8) == contentLength
+			&& DecodeAtari8Koala(content, 4, contentLength);
 	}
 
 	const int At800SpriteGap = 2;
@@ -14849,7 +14856,7 @@ public class RECOIL
 		byte[7680] unpacked;
 		int colorsOffset;
 		int dliOffset;
-		if (XeKoalaStream.UnpackWrapped(content, contentLength - 464, unpacked, mode == 0 ? 3840 : 7680)) {
+		if (XeKoalaStream.UnpackWrapped(content, 0, contentLength - 464, unpacked, mode == 0 ? 3840 : 7680)) {
 			// File written by a Rambrandt plugin ("DOS module").
 			// Documentation suggests RM0-RM4 extensions.
 			colorsOffset = contentLength - 464;
@@ -17292,20 +17299,26 @@ public class RECOIL
 
 	// Various platform formats.
 
+	bool DecodePi9!(byte[] content, int contentLength)
+	{
+		switch (contentLength) {
+		case 7684:
+		case 7808:
+		case 7936:
+			return DecodeGr9(content, 7680);
+		case 7720:
+			return DecodeApc(content, contentLength);
+		default:
+			return DecodeFuckpaint(content, contentLength);
+		}
+	}
+
 	bool DecodePic!(byte[] content, int contentLength)
 	{
 		if (DecodePsion3Pic(content, contentLength)
-		 || DecodeX68KPic(content, contentLength))
+		 || DecodeX68KPic(content, contentLength)
+		 || DecodeAtari8Koala(content, 0, contentLength))
 			return true;
-
-		byte[7680] unpacked;
-		if (XeKoalaStream.UnpackWrapped(content, contentLength, unpacked, 7680)) {
-			SetSize(320, 192, RECOILResolution.Xe2x1);
-			SetPF0123Bak(content, 13);
-			byte[320 * 192] frame;
-			DecodeAtari8Gr15(unpacked, 0, 40, frame, 0, 320, 192);
-			return ApplyAtari8Palette(frame);
-		}
 
 		switch (contentLength) {
 		case 4325:
@@ -18479,7 +18492,8 @@ public class RECOIL
 			return DecodePic(content, contentLength);
 		case PackExt("PIX"):
 			return DecodeFalconPix(content, contentLength)
-				|| DecodeCocoMax(content, contentLength);
+				|| DecodeCocoMax(content, contentLength)
+				|| DecodeAtari8Pix(content, contentLength);
 		case PackExt("PL4"):
 			return DecodePl4(content, contentLength);
 		case PackExt("PLA"):

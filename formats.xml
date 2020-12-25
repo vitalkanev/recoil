@@ -227,6 +227,7 @@
 		<format width="80"><ext>PI9</ext></format>
 		<format name="Graphic Arts Department" width="160" height="96" colors="128"><ext>PIC</ext></format>
 		<format name="Koala MicroIllustrator" width="160" height="192" colors="4"><ext>PIC</ext></format>
+		<format width="160" height="192" colors="4"><ext>PIX</ext></format>
 		<format name="AtariTools-800 player" width="8" height="240" colors="2"><ext>PLA</ext></format>
 		<format name="Plama 256 (SFDN compressed)" width="80" height="96" colors="256"><ext>PLS</ext></format>
 		<format name="PMG Designer by Henryk Karpowicz"><ext>PMD</ext></format>
