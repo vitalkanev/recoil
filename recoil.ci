@@ -13761,6 +13761,18 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	bool DecodePi8!(byte[] content, int contentLength)
+	{
+		switch (contentLength) {
+		case 7680:
+			return DecodeMic(null, content, contentLength);
+		case 7685:
+			return DecodeGr8(content, contentLength);
+		default:
+			return false;
+		}
+	}
+
 	bool DecodeHpm!(byte[] content, int contentLength)
 	{
 		// This format appears in Grass' Slideshow.
@@ -17701,6 +17713,7 @@ public class RECOIL
 		case PackExt("PI4"):
 		case PackExt("PI7"):
 		case PackExt("PI9"):
+		case PackExt("PI8"):
 		case PackExt("PIC"):
 		case PackExt("PIX"):
 		case PackExt("PL4"):
@@ -18445,6 +18458,8 @@ public class RECOIL
 		case PackExt("PI7"):
 		case PackExt("PI9"):
 			return DecodeFuckpaint(content, contentLength);
+		case PackExt("PI8"):
+			return DecodePi8(content, contentLength);
 		case PackExt("PIC"):
 			return DecodePic(content, contentLength);
 		case PackExt("PIX"):
