@@ -14356,6 +14356,21 @@ public class RECOIL
 		return ApplyAtari8Palette(frame);
 	}
 
+	// MGA
+	bool DecodeMga!(byte[] content, int contentLength)
+	{
+		if (contentLength != 7856)
+			return false;
+		SetSize(320, 192, RECOILResolution.Xe4x2);
+		byte[320 * 192] frame;
+		GtiaColors[8] = 0x00;
+		DecodeAtari8Gr9(content, 0, 80, frame, 320, 640, 320, 96);
+		DecodeAtari8Gr11PalBlend(content, 40, 80, frame, 0);
+		// 40 bytes of text in screen codes at 0x1e00
+		// the trailing 136 bytes are unknown
+		return ApplyAtari8Palette(frame);
+	}
+
 	// AP3, APV, DGP, ESC, ILC, PZM
 	bool DecodeAp3!(byte[] content, int contentLength)
 	{
@@ -17614,6 +17629,7 @@ public class RECOIL
 		case PackExt("MG2"):
 		case PackExt("MG4"):
 		case PackExt("MG8"):
+		case PackExt("MGA"):
 		case PackExt("MGP"):
 		case PackExt("MIC"):
 		case PackExt("MIG"):
@@ -18309,6 +18325,8 @@ public class RECOIL
 		case PackExt("MG4"):
 		case PackExt("MG8"):
 			return DecodeMg(content, contentLength);
+		case PackExt("MGA"):
+			return DecodeMga(content, contentLength);
 		case PackExt("MGP"):
 			return DecodeMgp(content, contentLength);
 		case PackExt("MIC"):

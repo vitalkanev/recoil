@@ -210,6 +210,7 @@
 		<format name="McPainter" width="160" height="200" colors="16" frames="2"><ext>MCP</ext></format>
 		<format name="Paradox" width="160" height="100" colors="16"><ext>MCPP</ext></format>
 		<format width="160" height="192" colors="9"><ext>MCS</ext></format>
+		<format width="80" height="96" colors="256"><ext>MGA</ext></format>
 		<format name="Magic Painter" width="160" height="96"><ext fake="true">MGP</ext></format>
 		<format name="Micro Illustrator / Graphics 15" width="160" maxHeight="240" colors="4"><ext>MIC</ext></format>
 		<format name="AtariGraphics" width="160" height="192" colors="4"><ext fake="true">MIC</ext></format>
