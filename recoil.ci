@@ -4681,6 +4681,25 @@ public class RECOIL
 		return DecodeRleBlackAndWhite(rle, 0xffffff);
 	}
 
+	bool DecodeMonoArt!(byte[] content, int contentLength)
+	{
+		// the origin, even the platform of the format is unknown
+		if (contentLength < 4)
+			return false;
+		int columns = content[0] + 1;
+		int height = content[1] + 1;
+		// size limitations are unknown
+		// several files have content[0] == 0x0b
+		// GUY.ART has content[1] == 0x37
+		if (columns > 30 || height > 64 || contentLength != 3 + columns * height)
+			return false;
+		SetSize(columns << 3, height, RECOILResolution.Portfolio1x1);
+		ContentPalette[0] = 0xffffff;
+		ContentPalette[1] = 0;
+		DecodeBitplanes(content, 2, columns, 1, 0, columns << 3, height);
+		return true;
+	}
+
 	// Psion Series 3 formats.
 
 	bool DecodePsion3Pic!(byte[] content, int contentLength)
@@ -17878,6 +17897,7 @@ public class RECOIL
 				|| DecodeGfaArtist(content, contentLength) // contentLength == 32032
 				|| DecodePaletteMaster(content, contentLength) // contentLength == 36864
 				|| DecodeAtari8Artist(content, contentLength) // contentLength == 3206
+				|| DecodeMonoArt(content, contentLength) // dimensions in the file, largest known file is 639 bytes
 				|| DecodeAsciiArtEditor(content, contentLength); // ends with 0x9b
 		case PackExt("ARV"):
 			return DecodeArtMaster88(content, contentLength);

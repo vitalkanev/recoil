@@ -257,6 +257,7 @@
 		<format name="XL-Paint" width="160" maxHeight="200" colors="7" frames="2"><ext>XLP</ext></format>
 	</platform>
 	<platform name="Atari Portfolio" href="https://en.wikipedia.org/wiki/Atari_Portfolio">
+		<format colors="2"><ext>ART</ext></format><!-- not sure if Portfolio -->
 		<format width="240" height="64" colors="2"><ext>PGC</ext></format>
 		<format width="240" height="64" colors="2"><ext>PGF</ext></format>
 	</platform>
