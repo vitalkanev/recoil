@@ -1,7 +1,7 @@
 /*
  * recoil-win32.h - Win32 API subclass of RECOIL
  *
- * Copyright (C) 2015-2019  Piotr Fusik
+ * Copyright (C) 2015-2020  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -24,6 +24,7 @@
 #ifndef _RECOILWIN32_H_
 #define _RECOILWIN32_H_
 
+#include <windows.h>
 #include <stdint.h>
 #include "recoil.h"
 
@@ -31,8 +32,10 @@
 extern "C" {
 #endif
 
-int SlurpFile(const char *filename, uint8_t *buffer, int len);
-RECOIL *RECOILWin32_New(void);
+int RECOILWin32_SlurpFileA(const char *filename, uint8_t *buffer, int len);
+int RECOILWin32_SlurpFileW(LPCWSTR filename, uint8_t *buffer, int len);
+bool RECOILWin32_DecodeA(RECOIL *self, const char *filename, uint8_t const *content, int contentLength);
+bool RECOILWin32_DecodeW(RECOIL *self, LPCWSTR filename, uint8_t const *content, int contentLength);
 
 #ifdef __cplusplus
 }

@@ -1,7 +1,7 @@
 /*
  * thumbrecoil.cpp - Windows thumbnail provider for RECOIL
  *
- * Copyright (C) 2011-2019  Piotr Fusik
+ * Copyright (C) 2011-2020  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -87,14 +87,8 @@ class CRECOILThumbProvider : IPersistFile, IExtractImage
 
 	HRESULT Decode(LPCWSTR pszFilename, HBITMAP *phBitmap)
 	{
-		// filename to ASCII
-		int cbFilename = WideCharToMultiByte(CP_ACP, 0, pszFilename, -1, NULL, 0, NULL, NULL);
-		char filename[cbFilename];
-		if (WideCharToMultiByte(CP_ACP, 0, pszFilename, -1, filename, cbFilename, NULL, NULL) <= 0)
-			return HRESULT_FROM_WIN32(GetLastError());
-
 		// decode
-		if (!RECOIL_Decode(m_pRecoil, filename, m_content, m_contentLen))
+		if (!RECOILWin32_DecodeW(m_pRecoil, pszFilename, m_content, m_contentLen))
 			return E_FAIL;
 		int width = RECOIL_GetWidth(m_pRecoil);
 		int height = RECOIL_GetHeight(m_pRecoil);
@@ -124,7 +118,7 @@ public:
 	CRECOILThumbProvider() : m_cRef(1), m_pstream(NULL), m_filename(NULL)
 	{
 		DllAddRef();
-		m_pRecoil = RECOILWin32_New();
+		m_pRecoil = RECOIL_New();
 	}
 
 	virtual ~CRECOILThumbProvider()
@@ -195,17 +189,12 @@ public:
 		if (m_pRecoil == NULL)
 			return E_OUTOFMEMORY;
 
-		HANDLE fh = CreateFileW(pszFileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-		if (fh == INVALID_HANDLE_VALUE)
-			return HRESULT_FROM_WIN32(GetLastError());
 		free(m_filename);
 		m_filename = NULL;
-		if (!ReadFile(fh, m_content, sizeof(m_content), reinterpret_cast<LPDWORD>(&m_contentLen), NULL)) {
-			HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
-			CloseHandle(fh);
-			return hr;
-		}
-		CloseHandle(fh);
+
+		m_contentLen = RECOILWin32_SlurpFileW(pszFileName, m_content, sizeof(m_content));
+		if (m_contentLen < 0)
+			return HRESULT_FROM_WIN32(GetLastError());
 
 		m_filename = _wcsdup(pszFileName);
 		if (m_filename == NULL)

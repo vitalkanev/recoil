@@ -319,14 +319,14 @@ static bool OpenImage(bool show_error)
 	SetMenuEnabled(IDM_LASTFILE, true);
 
 	static BYTE content[RECOIL_MAX_CONTENT_LENGTH];
-	int content_len = SlurpFile(image_filename, content, sizeof(content));
+	int content_len = RECOILWin32_SlurpFileA(image_filename, content, sizeof(content));
 	if (content_len < 0) {
 		if (show_error)
 			ShowError("Cannot open file");
 		return false;
 	}
 
-	image_loaded = RECOIL_Decode(recoil, image_filename, content, content_len);
+	image_loaded = RECOILWin32_DecodeA(recoil, image_filename, content, content_len);
 	SetMenuEnabled(IDM_SAVEAS, image_loaded);
 	SetMenuEnabled(IDM_COPY, image_loaded);
 	SetMenuEnabled(IDM_FULLSCREEN, image_loaded);
@@ -515,7 +515,7 @@ static void SelectAndSaveImage(void)
 static bool OpenPalette(const char *filename)
 {
 	BYTE atari8_palette[768 + 1];
-	int atari8_palette_len = SlurpFile(filename, atari8_palette, sizeof(atari8_palette));
+	int atari8_palette_len = RECOILWin32_SlurpFileA(filename, atari8_palette, sizeof(atari8_palette));
 	if (atari8_palette_len < 0) {
 		ShowError("Cannot open file");
 		return false;
@@ -777,7 +777,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 0;
 	}
 
-	recoil = RECOILWin32_New();
+	recoil = RECOIL_New();
 	if (recoil == NULL)
 		return 1;
 
