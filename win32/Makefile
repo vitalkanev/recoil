@@ -17,8 +17,8 @@ SEVENZIP = 7z a -mx=9 -bd -bso0
 CANDLE = candle -ext WixUtilExtension -nologo -o $@
 LIGHT = light -ext WixUtilExtension -nologo -o $@ -spdb
 MAGICK = magick
-IMAGEMAGICK_i686_DIR = C:\Program Files (x86)\ImageMagick-6.9.11-Q16-HDRI
-IMAGEMAGICK_x86_64_DIR = C:\Program Files\ImageMagick-6.9.11-Q16-HDRI
+IMAGEMAGICK_i686_DIR = C:\Program Files (x86)\ImageMagick-7.0.10-Q16-HDRI
+IMAGEMAGICK_x86_64_DIR = C:\Program Files\ImageMagick-7.0.10-Q16-HDRI
 PAINT_NET_DIR = C:\Program Files\paint.net
 ifdef V
 DO = mkdir -p $(@D) && 
@@ -29,13 +29,13 @@ endif
 WIN32_BIN = i686/recoil2png.exe i686/IM_MOD_RL_recoil_.dll i686/Xrecoil.usr i686/recoilwin.exe i686/thumbrecoil.dll i686/RECOIL.plg paint.net/RecoilPaintDotNet.dll
 WIN64_BIN = $(WIN32_BIN) x86_64/IM_MOD_RL_recoil_.dll x86_64/Xrecoil.usr x86_64/thumbrecoil.dll x86_64/RECOIL.plg64
 
-all: $(WIN32_BIN)
+all: $(WIN32_BIN) $(WIN64_BIN)
 
 i686/recoil2png.exe: ../recoil2png.c ../pngsave.c ../pngsave.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
 	$(DO)$(CC) -static -lpng16 -lz
 
 i686/IM_MOD_RL_recoil_.dll x86_64/IM_MOD_RL_recoil_.dll: ../imagemagick/recoilmagick.c ../formats.h ../recoil.c ../recoil.h
-	$(DO)$(CC) $(LDFLAGS_DLL) -I"$(IMAGEMAGICK_$(@D)_DIR)"/include -lCORE_RL_magick_ -L"$(IMAGEMAGICK_$(@D)_DIR)" -static-libgcc
+	$(DO)$(CC) $(LDFLAGS_DLL) -D MAGICK7 -I"$(IMAGEMAGICK_$(@D)_DIR)"/include -lCORE_RL_MagickCore_ -L"$(IMAGEMAGICK_$(@D)_DIR)" -static-libgcc
  
 i686/Xrecoil.usr x86_64/Xrecoil.usr: ../Xrecoil.c ../formats.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
 	$(DO)$(CC) $(LDFLAGS_DLL) -static 

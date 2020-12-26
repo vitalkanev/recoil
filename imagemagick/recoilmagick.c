@@ -24,6 +24,21 @@
 #include "recoil.h"
 #include "formats.h"
 
+#ifdef MAGICK7
+#include "MagickCore/studio.h"
+#include "MagickCore/blob.h"
+#include "MagickCore/blob-private.h"
+#include "MagickCore/cache.h"
+#include "MagickCore/exception.h"
+#include "MagickCore/exception-private.h"
+#include "MagickCore/image.h"
+#include "MagickCore/list.h"
+#include "MagickCore/magick.h"
+#include "MagickCore/quantum-private.h"
+#include "MagickCore/string_.h"
+#include "MagickCore/module.h"
+#define MAGICK7_COMMA_EXCEPTION(exception) , exception
+#else
 #include "magick/studio.h"
 #include "magick/blob.h"
 #include "magick/blob-private.h"
@@ -41,6 +56,8 @@
 #include "magick/static.h"
 #include "magick/string_.h"
 #include "magick/module.h"
+#define MAGICK7_COMMA_EXCEPTION(exception)
+#endif
 
 static MagickBooleanType IsRECOIL(const unsigned char *magick, const size_t length)
 {
@@ -51,12 +68,12 @@ static MagickBooleanType IsRECOIL(const unsigned char *magick, const size_t leng
 static Image *ReadRECOILImage(const ImageInfo *image_info, ExceptionInfo *exception)
 {
 	assert(image_info != NULL);
-	assert(image_info->signature == MagickSignature);
+	assert(image_info->signature == MagickCoreSignature);
 	if (image_info->debug)
 		LogMagickEvent(TraceEvent, GetMagickModule(), "%s", image_info->filename);
 	assert(exception != NULL);
-	assert(exception->signature == MagickSignature);
-	Image *image = AcquireImage(image_info);
+	assert(exception->signature == MagickCoreSignature);
+	Image *image = AcquireImage(image_info MAGICK7_COMMA_EXCEPTION(exception));
 	if (!OpenBlob(image_info, image, ReadBinaryBlobMode, exception)) {
 		(void) DestroyImageList(image);
 		return NULL;
@@ -89,14 +106,21 @@ static Image *ReadRECOILImage(const ImageInfo *image_info, ExceptionInfo *except
 	free(content);
 
 	image->depth = 8;
-	if (!SetImageExtent(image, RECOIL_GetWidth(recoil), RECOIL_GetHeight(recoil))) {
+	if (!SetImageExtent(image, RECOIL_GetWidth(recoil), RECOIL_GetHeight(recoil) MAGICK7_COMMA_EXCEPTION(exception))) {
+#ifndef MAGICK7
 		InheritException(exception, &image->exception);
+#endif
 		RECOIL_Delete(recoil);
 		(void) DestroyImageList(image);
 		return NULL;
 	}
 
-	PixelPacket *q = QueueAuthenticPixels(image, 0, 0, image->columns, image->rows, exception);
+#ifdef MAGICK7
+	Quantum
+#else
+	PixelPacket
+#endif
+		*q = QueueAuthenticPixels(image, 0, 0, image->columns, image->rows, exception);
 	if (q == NULL) {
 		RECOIL_Delete(recoil);
 		(void) DestroyImageList(image);
@@ -107,9 +131,19 @@ static Image *ReadRECOILImage(const ImageInfo *image_info, ExceptionInfo *except
 	int num_pixels = image->columns * image->rows;
 	for (int i = 0; i < num_pixels; i++) {
 		int rgb = pixels[i];
-		q[i].red = ScaleCharToQuantum((unsigned char) (rgb >> 16));
-		q[i].green = ScaleCharToQuantum((unsigned char) (rgb >> 8));
-		q[i].blue = ScaleCharToQuantum((unsigned char) rgb);
+		Quantum r = ScaleCharToQuantum((unsigned char) (rgb >> 16));
+		Quantum g = ScaleCharToQuantum((unsigned char) (rgb >> 8));
+		Quantum b = ScaleCharToQuantum((unsigned char) rgb);
+#ifdef MAGICK7
+		SetPixelRed(image, r, q);
+		SetPixelGreen(image, g, q);
+		SetPixelBlue(image, b, q);
+		q += GetPixelChannels(image);
+#else
+		q[i].red = r;
+		q[i].green = g;
+		q[i].blue = b;
+#endif
 	}
 	RECOIL_Delete(recoil);
 	SyncAuthenticPixels(image, exception);
@@ -133,11 +167,15 @@ static const struct Format {
 ModuleExport unsigned long RegisterRECOILImage(void)
 {
 	for (const struct Format *pf = formats; pf < formats + sizeof(formats) / sizeof(formats[0]); pf++) {
+#ifdef MAGICK7
+		MagickInfo *entry = AcquireMagickInfo("RECOIL", pf->name, pf->description);
+#else
 		MagickInfo *entry = SetMagickInfo(pf->name);
+		entry->module = ConstantString("RECOIL");
+		entry->description = ConstantString(pf->description);
+#endif
 		entry->decoder = ReadRECOILImage;
 		entry->magick = IsRECOIL;
-		entry->description = ConstantString(pf->description);
-		entry->module = ConstantString("RECOIL");
 		RegisterMagickInfo(entry);
 	}	
 	return MagickImageCoderSignature;
