@@ -1454,46 +1454,47 @@ class XeKoalaStream : RleStream
 		return true;
 	}
 
-	internal static bool UnpackRaw(int type, byte[] content, int contentOffset, int contentLength, byte[]! unpacked, int unpackedLength)
+	internal byte[7680] Unpacked;
+
+	internal bool UnpackRaw!(int type, int unpackedLength)
 	{
-		XeKoalaStream() rle;
-		rle.Content = content;
-		rle.ContentOffset = contentOffset;
-		rle.ContentLength = contentLength;
 		switch (type) {
 		case 0:
-			if (contentLength - contentOffset != unpackedLength)
+			if (ContentLength - ContentOffset != unpackedLength)
 				return false;
-			content.CopyTo(contentOffset, unpacked, 0, unpackedLength);
+			Content.CopyTo(ContentOffset, Unpacked, 0, unpackedLength);
 			return true;
 		case 1:
 			for (int x = 0; x < 40; x++) {
 				for (int unpackedOffset = x; unpackedOffset < 80; unpackedOffset += 40) {
-					if (!rle.Unpack(unpacked, unpackedOffset, 80, unpackedLength))
+					if (!Unpack(Unpacked, unpackedOffset, 80, unpackedLength))
 						return false;
 				}
 			}
 			return true;
 		case 2:
-			return rle.Unpack(unpacked, 0, 1, unpackedLength);
+			return Unpack(Unpacked, 0, 1, unpackedLength);
 		default:
 			return false;
 		}
 	}
 
-	internal static bool UnpackWrapped(byte[] content, int contentOffset, int contentLength, byte[]! unpacked, int unpackedLength)
+	internal bool UnpackWrapped!(int unpackedLength)
 	{
-		if (contentLength < contentOffset + 26
-		 || content[contentOffset] != 0xff || content[contentOffset + 1] != 0x80 || content[contentOffset + 2] != 0xc9 || content[contentOffset + 3] != 0xc7)
+		if (ReadByte() != 0xff || ReadByte() != 0x80 || ReadByte() != 0xc9 || ReadByte() != 0xc7)
 			return false;
-		int offset = content[contentOffset + 4];
-		return offset >= 26 && contentOffset + offset < contentLength
-			&& content[contentOffset + 5] == 0
-			&& content[contentOffset + 6] == 1 && content[contentOffset + 8] == 0x0e
-			&& content[contentOffset + 9] == 0 && content[contentOffset + 10] == 40
-			&& content[contentOffset + 11] == 0 && content[contentOffset + 12] == 192
-			&& content[contentOffset + 20] == 0 && content[contentOffset + 21] == 0
-			&& UnpackRaw(content[contentOffset + 7], content, contentOffset + offset + 1, contentLength, unpacked, unpackedLength);
+		int offset = ReadByte();
+		if (offset < 26 || ReadByte() != 0 || ReadByte() != 1)
+			return false;
+		int type = ReadByte();
+		if (ReadByte() != 0x0e || ReadByte() != 0 || ReadByte() != 40
+		 || ReadByte() != 0 || ReadByte() != 192)
+			return false;
+		ContentOffset += 7;
+		if (ReadByte() != 0 || ReadByte() != 0)
+			return false;
+		ContentOffset += offset - 21;
+		return UnpackRaw(type, unpackedLength);
 	}
 }
 
@@ -13461,14 +13462,17 @@ public class RECOIL
 	{
 		if (contentLength < 2)
 			return false;
-		byte[7680] unpacked;
-		if (!XeKoalaStream.UnpackRaw(content[0], content, 1, contentLength, unpacked, 7680))
+		XeKoalaStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 1;
+		rle.ContentLength = contentLength;
+		if (!rle.UnpackRaw(content[0], 7680))
 			return false;
 		GtiaColors[6] = 0x0c;
 		GtiaColors[5] = 0x00;
 		SetSize(320, 192, RECOILResolution.Xe1x1);
 		byte[320 * 192] frame;
-		DecodeAtari8Gr8(unpacked, 0, frame, 0, 192);
+		DecodeAtari8Gr8(rle.Unpacked, 0, frame, 0, 192);
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -13899,13 +13903,16 @@ public class RECOIL
 
 	bool DecodeAtari8Koala!(byte[] content, int contentOffset, int contentLength)
 	{
-		byte[7680] unpacked;
-		if (!XeKoalaStream.UnpackWrapped(content, contentOffset, contentLength, unpacked, 7680))
+		XeKoalaStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = contentOffset;
+		rle.ContentLength = contentLength;
+		if (!rle.UnpackWrapped(7680))
 			return false;
 		SetSize(320, 192, RECOILResolution.Xe2x1);
 		SetPF0123Bak(content, contentOffset + 13);
 		byte[320 * 192] frame;
-		DecodeAtari8Gr15(unpacked, 0, 40, frame, 0, 320, 192);
+		DecodeAtari8Gr15(rle.Unpacked, 0, 40, frame, 0, 320, 192);
 		return ApplyAtari8Palette(frame);
 	}
 
@@ -14867,29 +14874,8 @@ public class RECOIL
 		return ApplyAtari8PaletteBlend(frame1, frame2);
 	}
 
-	bool DecodeRm!(byte[] content, int contentLength, int mode, RECOILResolution resolution)
+	bool DecodeRmUnpacked!(byte[] content, int colorsOffset, int dliOffset, byte[] bitmap, int mode, RECOILResolution resolution)
 	{
-		byte[7680] unpacked;
-		int colorsOffset;
-		int dliOffset;
-		if (XeKoalaStream.UnpackWrapped(content, 0, contentLength - 464, unpacked, mode == 0 ? 3840 : 7680)) {
-			// File written by a Rambrandt plugin ("DOS module").
-			// Documentation suggests RM0-RM4 extensions.
-			colorsOffset = contentLength - 464;
-			dliOffset = contentLength - 384;
-		}
-		else if (contentLength == 8192) {
-			// Rambrandt native raw format.
-			// Rambrandt writes directly to disk using its own filesystem:
-			// 10 pictures per disk, 32 characters filename (no extension).
-			// We assume RM0-RM4 extensions even though it's a different format.
-			content.CopyTo(0, unpacked, 0, 7680);
-			colorsOffset = 0x1e00;
-			dliOffset = 0x1e80;
-		}
-		else
-			return false;
-
 		bool[192] dliPresent = false;
 		for (int i = 0; i < 128; i++) {
 			int y = content[dliOffset + i];
@@ -14937,19 +14923,19 @@ public class RECOIL
 		for (int y = 0; y < height; y++) {
 			switch (mode) {
 			case 0:
-				DecodeAtari8Gr7(unpacked, y * 40, frame, y * 640, 1);
+				DecodeAtari8Gr7(bitmap, y * 40, frame, y * 640, 1);
 				break;
 			case 1:
-				DecodeAtari8Gr9(unpacked, y * 40, 40, frame, y * 320, 320, 320, 1);
+				DecodeAtari8Gr9(bitmap, y * 40, 40, frame, y * 320, 320, 320, 1);
 				break;
 			case 2:
-				DecodeAtari8Gr10(unpacked, y * 40, frame, y * 320, 320, 1);
+				DecodeAtari8Gr10(bitmap, y * 40, frame, y * 320, 320, 1);
 				break;
 			case 3:
-				DecodeAtari8Gr11(unpacked, y * 40, frame, y * 320, 320, 1);
+				DecodeAtari8Gr11(bitmap, y * 40, frame, y * 320, 320, 1);
 				break;
 			case 4:
-				DecodeAtari8Gr15(unpacked, y * 40, 40, frame, y * 320, 320, 1);
+				DecodeAtari8Gr15(bitmap, y * 40, 40, frame, y * 320, 320, 1);
 				break;
 			default:
 				assert false;
@@ -14964,6 +14950,27 @@ public class RECOIL
 			}
 		}
 		return ApplyAtari8Palette(frame);
+	}
+
+	bool DecodeRm!(byte[] content, int contentLength, int mode, RECOILResolution resolution)
+	{
+		XeKoalaStream() rle;
+		rle.Content = content;
+		rle.ContentOffset = 0;
+		rle.ContentLength = contentLength - 464;
+		if (rle.UnpackWrapped(mode == 0 ? 3840 : 7680)) {
+			// File written by a Rambrandt plugin ("DOS module").
+			// Documentation suggests RM0-RM4 extensions.
+			return DecodeRmUnpacked(content, contentLength - 464, contentLength - 384, rle.Unpacked, mode, resolution);
+		}
+		else if (contentLength == 8192) {
+			// Rambrandt native raw format.
+			// Rambrandt writes directly to disk using its own filesystem:
+			// 10 pictures per disk, 32 characters filename (no extension).
+			// We assume RM0-RM4 extensions even though it's a different format.
+			return DecodeRmUnpacked(content, 0x1e00, 0x1e80, content, mode, resolution);
+		}
+		return false;
 	}
 
 	bool DecodeAgp!(byte[] content, int contentLength)
