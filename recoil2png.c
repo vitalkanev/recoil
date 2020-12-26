@@ -1,7 +1,7 @@
 /*
  * recoil2png.c - command-line converter of retro computer pictures to the PNG format
  *
- * Copyright (C) 2009-2019  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2020  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -92,7 +92,8 @@ static bool process_file(RECOIL *recoil, const char *input_file, const char *out
 		strcpy(output_default + (dotp == 0 ? i : dotp), ".png");
 		output_file = output_default;
 	}
-	if (!RECOIL_SavePng(recoil, output_file)) {
+	FILE *fp = fopen(output_file, "wb");
+	if (fp == NULL || !RECOIL_SavePng(recoil, fp)) {
 		fprintf(stderr, "recoil2png: cannot write %s\n", output_file);
 		return false;
 	}

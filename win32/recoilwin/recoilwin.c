@@ -21,8 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#define UNICODE 1
+#define _UNICODE 1
+#define PRIts "ls"
+
 #include <windows.h>
 #include <commctrl.h>
+#include <tchar.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -37,7 +42,7 @@
 #define WINDOW_WIDTH_MIN        200
 #define WINDOW_HEIGHT_MIN       100
 #define APP_TITLE               "RECOILWin"
-#define WND_CLASS_NAME          "RECOILWin"
+#define WND_CLASS_NAME          _T("RECOILWin")
 
 static HINSTANCE hInst;
 static HWND hWnd;
@@ -45,7 +50,7 @@ static HMENU hMenu;
 static HWND hStatus;
 
 static RECOIL *recoil;
-static char image_filename[MAX_PATH] = "";
+static _TCHAR image_filename[MAX_PATH] = _T("");
 static bool image_loaded = false;
 
 static bool skip_files = true;
@@ -67,13 +72,13 @@ static BYTE *bitmap_pixels;
 
 static void ShowError(const char *message)
 {
-	MessageBox(hWnd, message, APP_TITLE, MB_OK | MB_ICONERROR);
+	MessageBoxA(hWnd, message, APP_TITLE, MB_OK | MB_ICONERROR);
 }
 
 static void ShowAbout(void)
 {
-	MSGBOXPARAMS mbp = {
-		sizeof(MSGBOXPARAMS),
+	MSGBOXPARAMSA mbp = {
+		sizeof(MSGBOXPARAMSA),
 		hWnd,
 		hInst,
 		"Retro Computer Image Library\n"
@@ -83,12 +88,12 @@ static void ShowAbout(void)
 		RECOIL_COPYRIGHT,
 		APP_TITLE " " RECOIL_VERSION,
 		MB_OK | MB_USERICON,
-		MAKEINTRESOURCE(IDI_APP),
+		MAKEINTRESOURCEA(IDI_APP),
 		0,
 		NULL,
 		LANG_NEUTRAL
 	};
-	MessageBoxIndirect(&mbp);
+	MessageBoxIndirectA(&mbp);
 }
 
 static void SetMenuEnabled(int id, bool enable)
@@ -101,11 +106,10 @@ static void SetMenuCheck(int id, bool check)
 	CheckMenuItem(hMenu, id, MF_BYCOMMAND | (check ? MF_CHECKED : MF_UNCHECKED));
 }
 
-static int GetPathLength(const char *filename)
+static int GetPathLength(LPCTSTR filename)
 {
-	int i;
 	int len = 0;
-	for (i = 0; filename[i] != '\0'; i++)
+	for (int i = 0; filename[i] != '\0'; i++)
 		if (filename[i] == '\\' || filename[i] == '/')
 			len = i + 1;
 	return len;
@@ -113,20 +117,23 @@ static int GetPathLength(const char *filename)
 
 static void UpdateText(void)
 {
-	char buf[MAX_PATH + 64];
-	const char *filename = image_filename;
-	int frames;
+	LPCTSTR filename = image_filename;
 	if (filename[0] == '\0')
 		return;
 	if (!show_path)
 		filename += GetPathLength(filename);
-	sprintf(buf, "%s - " APP_TITLE, filename);
+	_TCHAR buf[MAX_PATH + 64];
+	_stprintf(buf, MAX_PATH + 64, _T("%" PRIts " - " APP_TITLE), filename);
 	SetWindowText(hWnd, buf);
-	frames = RECOIL_GetFrames(recoil);
+	int frames = RECOIL_GetFrames(recoil);
 	if (image_loaded) {
 		int colors = RECOIL_GetColors(recoil);
-		sprintf(buf, "%s, %dx%d, %d color%s, %s%d%% zoom", RECOIL_GetPlatform(recoil), RECOIL_GetOriginalWidth(recoil), RECOIL_GetOriginalHeight(recoil),
-			colors, colors == 1 ? "" : "s", frames == 2 ? "2 frames, " : frames == 3 ? "3 frames, " : "", zoom);
+		_stprintf(buf, MAX_PATH + 64, _T("%s, %dx%d, %d color%s, %s%d%% zoom"),
+			RECOIL_GetPlatform(recoil),
+			RECOIL_GetOriginalWidth(recoil), RECOIL_GetOriginalHeight(recoil),
+			colors, colors == 1 ? _T("") : _T("s"),
+			frames == 2 ? _T("2 frames, ") : frames == 3 ? _T("3 frames, ") : _T(""),
+			zoom);
 		SetWindowText(hStatus, buf);
 		SendMessage(hStatus, SB_SETTIPTEXT, 0, (LPARAM) buf);
 	}
@@ -319,14 +326,14 @@ static bool OpenImage(bool show_error)
 	SetMenuEnabled(IDM_LASTFILE, true);
 
 	static BYTE content[RECOIL_MAX_CONTENT_LENGTH];
-	int content_len = RECOILWin32_SlurpFileA(image_filename, content, sizeof(content));
+	int content_len = RECOILWin32_SlurpFile(image_filename, content, sizeof(content));
 	if (content_len < 0) {
 		if (show_error)
 			ShowError("Cannot open file");
 		return false;
 	}
 
-	image_loaded = RECOILWin32_DecodeA(recoil, image_filename, content, content_len);
+	image_loaded = RECOILWin32_Decode(recoil, image_filename, content, content_len);
 	SetMenuEnabled(IDM_SAVEAS, image_loaded);
 	SetMenuEnabled(IDM_COPY, image_loaded);
 	SetMenuEnabled(IDM_FULLSCREEN, image_loaded);
@@ -336,7 +343,7 @@ static bool OpenImage(bool show_error)
 		SetMenuEnabled(id, image_loaded);
 	if (!image_loaded) {
 		SetMenuEnabled(IDM_INVERT, false);
-		SetWindowText(hWnd, APP_TITLE);
+		SetWindowText(hWnd, _T(APP_TITLE));
 		SetWindowText(hStatus, NULL);
 		if (show_error) {
 			Repaint(true);
@@ -396,7 +403,7 @@ static void SelectAndOpenImage(void)
 		sizeof(OPENFILENAME),
 		NULL,
 		0,
-		RECOILWIN_FILTERS,
+		_T(RECOILWIN_FILTERS),
 		NULL,
 		0,
 		1,
@@ -405,7 +412,7 @@ static void SelectAndOpenImage(void)
 		NULL,
 		0,
 		NULL,
-		"Select picture",
+		_T("Select picture"),
 		OFN_ENABLESIZING | OFN_EXPLORER | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST,
 		0,
 		0,
@@ -423,16 +430,14 @@ static void SelectAndOpenImage(void)
 		ShowCursor(FALSE);
 }
 
-static bool GetSiblingFile(char *filename, int dir)
+static bool GetSiblingFile(LPTSTR filename, int dir)
 {
 	int path_len = GetPathLength(filename);
 	if (path_len > MAX_PATH - 2)
 		return false;
-	char mask[MAX_PATH];
-	memcpy(mask, filename, path_len);
-	mask[path_len] = '*';
-	mask[path_len + 1] = '\0';
-	char best[MAX_PATH];
+	_TCHAR mask[MAX_PATH];
+	_stprintf(mask, MAX_PATH, _T("%.*" PRIts "*"), path_len, filename);
+	_TCHAR best[MAX_PATH];
 	best[0] = '\0';
 	WIN32_FIND_DATA wfd;
 	HANDLE fh = FindFirstFile(mask, &wfd);
@@ -441,18 +446,15 @@ static bool GetSiblingFile(char *filename, int dir)
 	do {
 		if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0
 		 && wfd.nFileSizeHigh == 0 && wfd.nFileSizeLow <= RECOIL_MAX_CONTENT_LENGTH
-		 && RECOIL_IsOurFile(wfd.cFileName)
-		 && ((dir & 1) == 0 || _stricmp(wfd.cFileName, filename + path_len) * dir > 0)
-		 && (best[0] == '\0' || (_stricmp(wfd.cFileName, best) ^ dir) < 0))
-			strcpy(best, wfd.cFileName);
+		 && RECOILWin32_IsOurFile(wfd.cFileName)
+		 && ((dir & 1) == 0 || _tcsicmp(wfd.cFileName, filename + path_len) * dir > 0)
+		 && (best[0] == '\0' || (_tcsicmp(wfd.cFileName, best) ^ dir) < 0))
+			_tcscpy_s(best, MAX_PATH, wfd.cFileName);
 	} while (FindNextFile(fh, &wfd));
 	FindClose(fh);
 	if (best[0] == '\0')
 		return false;
-	if (path_len + strlen(best) + 1 >= MAX_PATH)
-		return false;
-	strcpy(filename + path_len, best);
-	return true;
+	return _tcscpy_s(filename + path_len, MAX_PATH - path_len, best) == 0;
 }
 
 static void OpenSiblingImage(int dir)
@@ -478,12 +480,12 @@ static void OpenSiblingImage(int dir)
 
 static void SelectAndSaveImage(void)
 {
-	static char png_filename[MAX_PATH] = "";
+	static _TCHAR png_filename[MAX_PATH] = _T("");
 	static OPENFILENAME ofn = {
 		sizeof(OPENFILENAME),
 		NULL,
 		0,
-		"PNG images (*.png)\0*.png\0\0",
+		_T("PNG images (*.png)\0*.png\0\0"),
 		NULL,
 		0,
 		1,
@@ -492,11 +494,11 @@ static void SelectAndSaveImage(void)
 		NULL,
 		0,
 		NULL,
-		"Select output file",
+		_T("Select output file"),
 		OFN_ENABLESIZING | OFN_EXPLORER | OFN_OVERWRITEPROMPT,
 		0,
 		0,
-		"png",
+		_T("png"),
 		0,
 		NULL,
 		NULL
@@ -505,17 +507,18 @@ static void SelectAndSaveImage(void)
 	if (fullscreen)
 		ShowCursor(TRUE);
 	if (GetSaveFileName(&ofn)) {
-		if (!RECOIL_SavePng(recoil, png_filename))
+		FILE *fp = _tfopen(png_filename, _T("wb"));
+		if (fp == NULL || !RECOIL_SavePng(recoil, fp))
 			ShowError("Error writing file");
 	}
 	if (fullscreen)
 		ShowCursor(FALSE);
 }
 
-static bool OpenPalette(const char *filename)
+static bool OpenPalette(LPCTSTR filename)
 {
 	BYTE atari8_palette[768 + 1];
-	int atari8_palette_len = RECOILWin32_SlurpFileA(filename, atari8_palette, sizeof(atari8_palette));
+	int atari8_palette_len = RECOILWin32_SlurpFile(filename, atari8_palette, sizeof(atari8_palette));
 	if (atari8_palette_len < 0) {
 		ShowError("Cannot open file");
 		return false;
@@ -538,14 +541,14 @@ static void UseExternalPalette(bool act)
 
 static void SelectAndOpenPalette(void)
 {
-	static char act_filename[MAX_PATH] = "";
+	static _TCHAR act_filename[MAX_PATH] = _T("");
 	static OPENFILENAME ofn = {
 		sizeof(OPENFILENAME),
 		NULL,
 		0,
-		"Palette files (*.act;*.pal)\0"
+		_T("Palette files (*.act;*.pal)\0"
 		"*.act;*pal\0"
-		"\0",
+		"\0"),
 		NULL,
 		0,
 		1,
@@ -554,7 +557,7 @@ static void SelectAndOpenPalette(void)
 		NULL,
 		0,
 		NULL,
-		"Select Atari 8-bit palette",
+		_T("Select Atari 8-bit palette"),
 		OFN_ENABLESIZING | OFN_EXPLORER | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST,
 		0,
 		0,
@@ -744,28 +747,18 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 	return 0;
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
-	char *pb;
-	char *pe;
-	for (pb = lpCmdLine; *pb == ' ' || *pb == '\t'; pb++);
-	for (pe = pb; *pe != '\0'; pe++);
-	while (--pe > pb && (*pe == ' ' || *pe == '\t'));
-	/* Now pb and pe point at respectively the first and last non-blank
-	   character in lpCmdLine. If pb > pe then the command line is blank. */
-	if (*pb == '"' && *pe == '"')
-		pb++;
-	else
-		pe++;
-	*pe = '\0';
-	/* Now pb contains the filename, if any, specified on the command line. */
+	int argc;
+	LPWSTR *argv = CommandLineToArgvW(lpCmdLine, &argc);
+	LPWSTR filename = argc > 1 ? argv[1] : NULL;
 
 	hWnd = FindWindow(WND_CLASS_NAME, NULL);
 	if (hWnd != NULL) {
 		/* an instance of RECOILWin is already running */
-		if (*pb != '\0') {
+		if (filename != NULL) {
 			/* pass the filename */
-			COPYDATASTRUCT cds = { 'O', (DWORD) (pe + 1 - pb), pb };
+			COPYDATASTRUCT cds = { 'O', ((DWORD) wcslen(filename) + 1) * sizeof(WCHAR), filename };
 			SendMessage(hWnd, WM_COPYDATA, (WPARAM) NULL, (LPARAM) &cds);
 		}
 		else {
@@ -797,7 +790,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wc.lpszClassName = WND_CLASS_NAME;
 	RegisterClass(&wc);
 
-	hWnd = CreateWindow(WND_CLASS_NAME, APP_TITLE,
+	hWnd = CreateWindow(WND_CLASS_NAME, _T(APP_TITLE),
 		WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 		NULL, NULL, hInstance, NULL
@@ -813,10 +806,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	HACCEL hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATORS));
 	DragAcceptFiles(hWnd, TRUE);
 
-	if (*pb != '\0') {
-		memcpy(image_filename, pb, pe + 1 - pb);
+	if (filename != NULL && wcscpy_s(image_filename, sizeof(image_filename) / sizeof(image_filename[0]), filename) == 0)
 		OpenImage(true);
-	}
 	else
 		SelectAndOpenImage();
 

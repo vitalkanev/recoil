@@ -32,10 +32,21 @@
 extern "C" {
 #endif
 
+bool RECOILWin32_IsOurFileW(LPCWSTR filename);
 int RECOILWin32_SlurpFileA(const char *filename, uint8_t *buffer, int len);
 int RECOILWin32_SlurpFileW(LPCWSTR filename, uint8_t *buffer, int len);
 bool RECOILWin32_DecodeA(RECOIL *self, const char *filename, uint8_t const *content, int contentLength);
 bool RECOILWin32_DecodeW(RECOIL *self, LPCWSTR filename, uint8_t const *content, int contentLength);
+
+#ifdef UNICODE
+#define RECOILWin32_IsOurFile RECOILWin32_IsOurFileW
+#define RECOILWin32_SlurpFile RECOILWin32_SlurpFileW
+#define RECOILWin32_Decode RECOILWin32_DecodeW
+#else
+#define RECOILWin32_IsOurFile RECOIL_IsOurFile
+#define RECOILWin32_SlurpFile RECOILWin32_SlurpFileA
+#define RECOILWin32_Decode RECOILWin32_DecodeA
+#endif
 
 #ifdef __cplusplus
 }

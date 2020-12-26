@@ -23,6 +23,13 @@
 
 #include "recoil-win32.h"
 
+bool RECOILWin32_IsOurFileW(LPCWSTR filename)
+{
+	char utf8Filename[4096];
+	return WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, filename, -1, utf8Filename, sizeof(utf8Filename), NULL, NULL) > 0
+		&& RECOIL_IsOurFile(utf8Filename);
+}
+
 static int RECOILWin32_ReadAndClose(HANDLE fh, uint8_t *buffer, int len)
 {
 	if (fh == INVALID_HANDLE_VALUE)

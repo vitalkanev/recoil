@@ -1,7 +1,7 @@
 /*
  * pngsave.c - save PNG file
  *
- * Copyright (C) 2009-2019  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2020  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -36,11 +36,8 @@ static void RECOIL_Rgb2Png(png_colorp dest, const int *src, int length)
 	}
 }
 
-bool RECOIL_SavePng(RECOIL *self, const char *filename)
+bool RECOIL_SavePng(RECOIL *self, FILE *fp)
 {
-	FILE *fp = fopen(filename, "wb");
-	if (fp == NULL)
-		return false;
 	png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (png_ptr == NULL) {
 		fclose(fp);

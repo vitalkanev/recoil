@@ -41,7 +41,7 @@ i686/Xrecoil.usr x86_64/Xrecoil.usr: ../Xrecoil.c ../formats.h ../recoil-stdio.c
 	$(DO)$(CC) $(LDFLAGS_DLL) -static 
 
 %/recoilwin.exe: recoilwin/recoilwin.c recoilwin/recoilwin.h recoil-win32.c recoil-win32.h %/recoilwin-res.o ../pngsave.c ../pngsave.h ../formats.h ../recoil.c ../recoil.h
-	$(DO)$(CC) -Wl,-subsystem,windows -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng16 -lz
+	$(DO)$(CC) -municode -Wl,-subsystem,windows -lcomctl32 -lcomdlg32 -lgdi32 -static -lpng16 -lz
 
 i686/recoilwin-res.o x86_64/recoilwin-res.o: recoilwin/recoilwin.rc recoilwin/recoilwin.h recoil.ico ../recoil.h
 	$(DO)$(WINDRES) -I.. $<

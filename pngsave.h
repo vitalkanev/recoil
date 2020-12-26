@@ -1,7 +1,7 @@
 /*
  * pngsave.h - save PNG file
  *
- * Copyright (C) 2009-2019  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2020  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -25,6 +25,7 @@
 #define _PNGSAVE_H_
 
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "recoil.h"
 
@@ -32,7 +33,7 @@
 extern "C" {
 #endif
 
-bool RECOIL_SavePng(RECOIL *self, const char *filename);
+bool RECOIL_SavePng(RECOIL *self, FILE *fp);
 
 #ifdef __cplusplus
 }
