@@ -105,6 +105,5 @@ bool RECOIL_SavePng(RECOIL *self, FILE *fp)
 	png_write_end(png_ptr, info_ptr);
 	png_destroy_write_struct(&png_ptr, &info_ptr);
 	free(pixels);
-	fclose(fp);
-	return true;
+	return fclose(fp) == 0;
 }
