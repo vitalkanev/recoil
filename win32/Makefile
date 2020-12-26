@@ -49,7 +49,7 @@ i686/recoilwin-res.o x86_64/recoilwin-res.o: recoilwin/recoilwin.rc recoilwin/re
 i686/thumbrecoil.dll x86_64/thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../formats.h recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h
 	$(DO)$(CXX) $(LDFLAGS_DLL) -I. -I.. thumbrecoil/thumbrecoil.cpp -xc recoil-win32.c -xc ../recoil.c -static -lgdi32 -lole32 -luuid
 
-i686/RECOIL.plg x86_64/RECOIL.plg64: imagine/recoilimagine.c ../formats.h ../recoil.c ../recoil.h
+i686/RECOIL.plg x86_64/RECOIL.plg64: imagine/recoilimagine.c ../formats.h recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h
 	$(DO)$(CC) $(LDFLAGS_DLL) -static
 
 paint.net/RecoilPaintDotNet.dll: paint.net/RecoilPaintDotNet.cs paint.net/RecoilFileTypeFactory.cs paint.net/RECOIL.cs

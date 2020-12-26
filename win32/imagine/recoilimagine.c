@@ -25,7 +25,7 @@
 #include <malloc.h>
 
 #include "ImagPlug.h"
-#include "recoil.h"
+#include "recoil-win32.h"
 #include "formats.h"
 
 #define VERSION_NUMBER ((RECOIL_VERSION_MAJOR<<24)|(RECOIL_VERSION_MINOR<<16)|(RECOIL_VERSION_MICRO<<8))
@@ -63,7 +63,7 @@ static LPIMAGINEBITMAP IMAGINEAPI loadFile(IMAGINEPLUGINFILEINFOTABLE *fileInfoT
 		return NULL;
 	}
 
-	if (!RECOIL_Decode(recoil, filename, loadParam->buffer, loadParam->length)) {
+	if (!RECOILWin32_DecodeA(recoil, filename, loadParam->buffer, loadParam->length)) {
 		RECOIL_Delete(recoil);
 		loadParam->errorCode = IMAGINEERROR_UNSUPPORTEDTYPE;
 		return NULL;
