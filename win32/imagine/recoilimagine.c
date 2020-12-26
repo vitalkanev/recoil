@@ -22,7 +22,6 @@
  */
 
 #include <windows.h>
-#include <malloc.h>
 
 #include "ImagPlug.h"
 #include "recoil-win32.h"
@@ -41,29 +40,16 @@ static LPIMAGINEBITMAP IMAGINEAPI loadFile(IMAGINEPLUGINFILEINFOTABLE *fileInfoT
 	if (iface == NULL)
 		return NULL;
 
-	char *filename;
-	if (iface->lpVtbl->IsUnicode()) {
-		int cch = lstrlenW((LPCWSTR) loadParam->fileName) + 1;
-		filename = (char *) alloca(cch * 2);
-		if (filename == NULL) {
-			loadParam->errorCode = IMAGINEERROR_OUTOFMEMORY;
-			return NULL;
-		}
-		if (WideCharToMultiByte(CP_ACP, 0, (LPCWSTR) loadParam->fileName, -1, filename, cch, NULL, NULL) <= 0) {
-			loadParam->errorCode = IMAGINEERROR_FILENOTFOUND;
-			return NULL;
-		}
-	}
-	else
-		filename = (char *) loadParam->fileName;
-
 	RECOIL *recoil = RECOIL_New();
 	if (recoil == NULL) {
 		loadParam->errorCode = IMAGINEERROR_OUTOFMEMORY;
 		return NULL;
 	}
 
-	if (!RECOILWin32_DecodeA(recoil, filename, loadParam->buffer, loadParam->length)) {
+	bool ok = iface->lpVtbl->IsUnicode()
+		? RECOILWin32_DecodeW(recoil, (LPCWSTR) loadParam->fileName, loadParam->buffer, loadParam->length)
+		: RECOILWin32_DecodeA(recoil, (const char *) loadParam->fileName, loadParam->buffer, loadParam->length);
+	if (!ok) {
 		RECOIL_Delete(recoil);
 		loadParam->errorCode = IMAGINEERROR_UNSUPPORTEDTYPE;
 		return NULL;
