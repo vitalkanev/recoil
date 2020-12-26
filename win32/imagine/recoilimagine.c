@@ -1,7 +1,7 @@
 /*
  * recoilimagine.c - RECOIL coder for Imagine
  *
- * Copyright (C) 2012-2013  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2012-2020  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -38,18 +38,10 @@ static BOOL IMAGINEAPI checkFile(IMAGINEPLUGINFILEINFOTABLE *fileInfoTable, IMAG
 static LPIMAGINEBITMAP IMAGINEAPI loadFile(IMAGINEPLUGINFILEINFOTABLE *fileInfoTable, IMAGINELOADPARAM *loadParam, int flags)
 {
 	const IMAGINEPLUGININTERFACE *iface = fileInfoTable->iface;
-	char *filename;
-	RECOIL *recoil;
-	int width;
-	int height;
-	const int *pixels;
-	LPIMAGINEBITMAP bitmap;
-	IMAGINECALLBACKPARAM param;
-	int y;
-
 	if (iface == NULL)
 		return NULL;
 
+	char *filename;
 	if (iface->lpVtbl->IsUnicode()) {
 		int cch = lstrlenW((LPCWSTR) loadParam->fileName) + 1;
 		filename = (char *) alloca(cch * 2);
@@ -65,7 +57,7 @@ static LPIMAGINEBITMAP IMAGINEAPI loadFile(IMAGINEPLUGINFILEINFOTABLE *fileInfoT
 	else
 		filename = (char *) loadParam->fileName;
 
-	recoil = RECOIL_New();
+	RECOIL *recoil = RECOIL_New();
 	if (recoil == NULL) {
 		loadParam->errorCode = IMAGINEERROR_OUTOFMEMORY;
 		return NULL;
@@ -76,11 +68,11 @@ static LPIMAGINEBITMAP IMAGINEAPI loadFile(IMAGINEPLUGINFILEINFOTABLE *fileInfoT
 		loadParam->errorCode = IMAGINEERROR_UNSUPPORTEDTYPE;
 		return NULL;
 	}
-	width = RECOIL_GetWidth(recoil);
-	height = RECOIL_GetHeight(recoil);
-	pixels = RECOIL_GetPixels(recoil);
+	int width = RECOIL_GetWidth(recoil);
+	int height = RECOIL_GetHeight(recoil);
+	const int *pixels = RECOIL_GetPixels(recoil);
 
-	bitmap = iface->lpVtbl->Create(width, height, 24, flags);
+	LPIMAGINEBITMAP bitmap = iface->lpVtbl->Create(width, height, 24, flags);
 	if (bitmap == NULL) {
 		RECOIL_Delete(recoil);
 		loadParam->errorCode = IMAGINEERROR_OUTOFMEMORY;
@@ -91,14 +83,14 @@ static LPIMAGINEBITMAP IMAGINEAPI loadFile(IMAGINEPLUGINFILEINFOTABLE *fileInfoT
 		return bitmap;
 	}
 
+	IMAGINECALLBACKPARAM param;
 	param.dib = bitmap;
 	param.param = loadParam->callback.param;
 	param.overall = height - 1;
 	param.message = NULL;
-	for (y = 0; y < height; y++) {
+	for (int y = 0; y < height; y++) {
 		LPBYTE dest = iface->lpVtbl->GetLineBits(bitmap, y);
-		int x;
-		for (x = 0; x < width; x++) {
+		for (int x = 0; x < width; x++) {
 			int rgb = *pixels++;
 			/* 0xRRGGBB -> 0xBB 0xGG 0xRR */
 			*dest++ = (BYTE) rgb;
