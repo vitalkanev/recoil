@@ -103,8 +103,8 @@ class CRECOILThumbProvider : IPersistFile, IExtractImage
 		bmi.bmiHeader.biBitCount = 32;
 		bmi.bmiHeader.biCompression = BI_RGB;
 		int *pBits;
-		HBITMAP hbmp = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, reinterpret_cast<void **>(&pBits), NULL, 0);
-		if (hbmp == NULL)
+		HBITMAP hbmp = CreateDIBSection(nullptr, &bmi, DIB_RGB_COLORS, reinterpret_cast<void **>(&pBits), nullptr, 0);
+		if (hbmp == nullptr)
 			return E_OUTOFMEMORY;
 		int pixels_count = width * height;
 		for (int i = 0; i < pixels_count; i++)
@@ -115,7 +115,7 @@ class CRECOILThumbProvider : IPersistFile, IExtractImage
 
 public:
 
-	CRECOILThumbProvider() : m_cRef(1), m_pstream(NULL), m_filename(NULL)
+	CRECOILThumbProvider() : m_cRef(1), m_pstream(nullptr), m_filename(nullptr)
 	{
 		DllAddRef();
 		m_pRecoil = RECOIL_New();
@@ -123,7 +123,7 @@ public:
 
 	virtual ~CRECOILThumbProvider()
 	{
-		if (m_pstream != NULL)
+		if (m_pstream != nullptr)
 			m_pstream->Release();
 		free(m_filename);
 		RECOIL_Delete(m_pRecoil);
@@ -154,7 +154,7 @@ public:
 			return S_OK;
 		}
 #endif
-		*ppv = NULL;
+		*ppv = nullptr;
 		return E_NOINTERFACE;
 	}
 
@@ -186,18 +186,18 @@ public:
 
 	STDMETHODIMP Load(LPCOLESTR pszFileName, DWORD dwMode)
 	{
-		if (m_pRecoil == NULL)
+		if (m_pRecoil == nullptr)
 			return E_OUTOFMEMORY;
 
 		free(m_filename);
-		m_filename = NULL;
+		m_filename = nullptr;
 
 		m_contentLen = RECOILWin32_SlurpFileW(pszFileName, m_content, sizeof(m_content));
 		if (m_contentLen < 0)
 			return HRESULT_FROM_WIN32(GetLastError());
 
 		m_filename = _wcsdup(pszFileName);
-		if (m_filename == NULL)
+		if (m_filename == nullptr)
 			return E_OUTOFMEMORY;
 
 		return S_OK;
@@ -222,18 +222,18 @@ public:
 
 	STDMETHODIMP GetLocation(LPWSTR pszPathBuffer, DWORD cchMax, DWORD *pdwPriority, const SIZE *prgSize, DWORD pdwRecClrDepth, DWORD *pdwFlags)
 	{
-		if (m_filename == NULL)
+		if (m_filename == nullptr)
 			return E_UNEXPECTED;
-		if (pszPathBuffer != NULL)
+		if (pszPathBuffer != nullptr)
 			lstrcpynW(pszPathBuffer, m_filename, cchMax);
-		if (pdwFlags != NULL)
+		if (pdwFlags != nullptr)
 			*pdwFlags = IEIFLAG_CACHE;
 		return S_OK;
 	}
 
 	STDMETHODIMP Extract(HBITMAP *phBmpImage)
 	{
-		if (m_filename == NULL)
+		if (m_filename == nullptr)
 			return E_UNEXPECTED;
 		return Decode(m_filename, phBmpImage);
 	}
@@ -244,7 +244,7 @@ public:
 
 	STDMETHODIMP Initialize(IStream *pstream, DWORD grfMode)
 	{
-		if (m_pstream != NULL)
+		if (m_pstream != nullptr)
 			return E_UNEXPECTED;
 		m_pstream = pstream;
 		pstream->AddRef();
@@ -255,9 +255,9 @@ public:
 
 	STDMETHODIMP GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_ALPHATYPE *pdwAlpha)
 	{
-		if (m_pstream == NULL)
+		if (m_pstream == nullptr)
 			return E_UNEXPECTED;
-		if (m_pRecoil == NULL)
+		if (m_pRecoil == nullptr)
 			return E_OUTOFMEMORY;
 
 		// get filename
@@ -294,7 +294,7 @@ public:
 			DllAddRef();
 			return S_OK;
 		}
-		*ppv = NULL;
+		*ppv = nullptr;
 		return E_NOINTERFACE;
 	}
 
@@ -312,11 +312,11 @@ public:
 
 	STDMETHODIMP CreateInstance(LPUNKNOWN punkOuter, REFIID riid, void **ppv)
 	{
-		*ppv = NULL;
-		if (punkOuter != NULL)
+		*ppv = nullptr;
+		if (punkOuter != nullptr)
 			return CLASS_E_NOAGGREGATION;
 		CRECOILThumbProvider *punk = new CRECOILThumbProvider;
-		if (punk == NULL)
+		if (punk == nullptr)
 			return E_OUTOFMEMORY;
 		HRESULT hr = punk->QueryInterface(riid, ppv);
 		punk->Release();
@@ -340,22 +340,22 @@ STDAPI_(BOOL) DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 	return TRUE;
 }
 
-static BOOL MyRegCreateKey(HKEY hk1, LPCSTR subkey, PHKEY hk2)
+static bool MyRegCreateKey(HKEY hk1, LPCSTR subkey, PHKEY hk2)
 {
-	return RegCreateKeyEx(hk1, subkey, 0, NULL, 0, KEY_WRITE, NULL, hk2, NULL) == ERROR_SUCCESS;
+	return RegCreateKeyEx(hk1, subkey, 0, nullptr, 0, KEY_WRITE, nullptr, hk2, nullptr) == ERROR_SUCCESS;
 }
 
-static BOOL MyRegSetValueString(HKEY hk1, LPCSTR name, LPCSTR data)
+static bool MyRegSetValueString(HKEY hk1, LPCSTR name, LPCSTR data)
 {
 	return RegSetValueEx(hk1, name, 0, REG_SZ, reinterpret_cast<const BYTE *>(data), strlen(data) + 1) == ERROR_SUCCESS;
 }
 
-static BOOL RegisterCLSID(HKEY hk1, LPCSTR subkey)
+static bool RegisterCLSID(HKEY hk1, LPCSTR subkey)
 {
 	HKEY hk2;
 	if (!MyRegCreateKey(hk1, subkey, &hk2))
-		return FALSE;
-	BOOL ok = MyRegSetValueString(hk2, NULL, CLSID_RECOILThumbProvider_str);
+		return false;
+	bool ok = MyRegSetValueString(hk2, nullptr, CLSID_RECOILThumbProvider_str);
 	RegCloseKey(hk2);
 	return ok;
 }
@@ -373,7 +373,7 @@ STDAPI __declspec(dllexport) DllRegisterServer(void)
 		RegCloseKey(hk1);
 		return E_FAIL;
 	}
-	BOOL ok = MyRegSetValueString(hk2, NULL, szModulePath)
+	bool ok = MyRegSetValueString(hk2, nullptr, szModulePath)
 		&& MyRegSetValueString(hk2, "ThreadingModel", "Both");
 	RegCloseKey(hk2);
 	RegCloseKey(hk1);
@@ -426,13 +426,13 @@ STDAPI __declspec(dllexport) DllUnregisterServer(void)
 
 STDAPI __declspec(dllexport) DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv)
 {
-	if (ppv == NULL)
+	if (ppv == nullptr)
 		return E_INVALIDARG;
 	if (rclsid == CLSID_RECOILThumbProvider) {
 		static CRECOILThumbProviderFactory g_ClassFactory;
 		return g_ClassFactory.QueryInterface(riid, ppv);
 	}
-	*ppv = NULL;
+	*ppv = nullptr;
 	return CLASS_E_CLASSNOTAVAILABLE;
 }
 
