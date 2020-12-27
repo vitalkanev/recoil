@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 	<?include formats.wxi?>
+	<!-- <?define IMCONFIG?> -->
 	<?define RECOIL_EXTS=$(var.FIRST_EXT);atr;$(var.OTHER_EXTS)?>
 	<?define DOUBLECLICK=Double-click Atari image file in Windows Explorer to display it in ?>
 
@@ -188,26 +189,30 @@
 		<Property Id="IMCODERS.DIR">
 			<RegistrySearch Id="imcoders.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="CoderModulesPath" Type="directory" Win64="no" />
 		</Property>
-		<Property Id="IMCONFIG.DIR">
-			<RegistrySearch Id="imconfig.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="ConfigurePath" Type="directory" Win64="no" />
-		</Property>
-		<Property Id="CODER.XML">
-			<DirectorySearch Id="coder.xml" Path="[IMCONFIG.DIR]" Depth="1">
-				<FileSearch Name="coder.xml" />
-			</DirectorySearch>
-		</Property>
+		<?ifdef IMCONFIG?>
+			<Property Id="IMCONFIG.DIR">
+				<RegistrySearch Id="imconfig.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="ConfigurePath" Type="directory" Win64="no" />
+			</Property>
+			<Property Id="CODER.XML">
+				<DirectorySearch Id="coder.xml" Path="[IMCONFIG.DIR]" Depth="1">
+					<FileSearch Name="coder.xml" />
+				</DirectorySearch>
+			</Property>
+		<?endif?>
 		<?if $(sys.BUILDARCH) = x64?>
 			<Property Id="IMCODERS64.DIR">
 				<RegistrySearch Id="imcoders64.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="CoderModulesPath" Type="directory" Win64="yes" />
 			</Property>
-			<Property Id="IMCONFIG64.DIR">
-				<RegistrySearch Id="imconfig64.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="ConfigurePath" Type="directory" Win64="yes" />
-			</Property>
-			<Property Id="CODER64.XML">
-				<DirectorySearch Id="coder64.xml" Path="[IMCONFIG64.DIR]" Depth="1">
-					<FileSearch Name="coder.xml" />
-				</DirectorySearch>
-			</Property>
+			<?ifdef IMCONFIG?>
+				<Property Id="IMCONFIG64.DIR">
+					<RegistrySearch Id="imconfig64.dir" Root="HKLM" Key="SOFTWARE\ImageMagick\Current" Name="ConfigurePath" Type="directory" Win64="yes" />
+				</Property>
+				<Property Id="CODER64.XML">
+					<DirectorySearch Id="coder64.xml" Path="[IMCONFIG64.DIR]" Depth="1">
+						<FileSearch Name="coder.xml" />
+					</DirectorySearch>
+				</Property>
+			<?endif?>
 		<?endif?>
 
 		<Property Id="IMAGINE.DIR">
@@ -368,28 +373,32 @@
 				<Directory Id="IMCODERS.DIR" Name="ImageMagick-RECOIL"><!-- fake Name -->
 					<Component Id="IM_MOD_RL_recoil_.dll" Win64="no">
 						<File Source="i686\IM_MOD_RL_recoil_.dll" Checksum="yes" KeyPath="yes" />
-						<?foreach EXT in $(var.RECOIL_EXTS)?>
-							<?if $(var.EXT) != "b&w" and $(var.EXT) != "ch$" ?><!-- TODO: don't skip -->
-								<util:XmlConfig Id="coder.xml_$(var.EXT)_Element_create" On="install" Action="create" Node="element" ElementPath="/codermap" Name="coder" File="[CODER.XML]" />
-								<util:XmlConfig Id="coder.xml_$(var.EXT)_Magick_create" ElementId="coder.xml_$(var.EXT)_Element_create" Name="magick" Value="$(var.EXT)" File="[CODER.XML]" />
-								<util:XmlConfig Id="coder.xml_$(var.EXT)_Name_create" ElementId="coder.xml_$(var.EXT)_Element_create" Name="name" Value="RECOIL" File="[CODER.XML]" />
-								<util:XmlConfig Id="coder.xml_$(var.EXT)_Element_delete" On="uninstall" Action="delete" Node="element" VerifyPath="/codermap/coder[\[]@magick='$(var.EXT)' and @name='RECOIL'[\]]" ElementPath="/codermap" Name="coder" File="[CODER.XML]" />
-							<?endif?>
- 						<?endforeach?>
+						<?ifdef IMCONFIG?>
+							<?foreach EXT in $(var.RECOIL_EXTS)?>
+								<?if $(var.EXT) != "b&w" and $(var.EXT) != "ch$" ?><!-- TODO: don't skip -->
+									<util:XmlConfig Id="coder.xml_$(var.EXT)_Element_create" On="install" Action="create" Node="element" ElementPath="/codermap" Name="coder" File="[CODER.XML]" />
+									<util:XmlConfig Id="coder.xml_$(var.EXT)_Magick_create" ElementId="coder.xml_$(var.EXT)_Element_create" Name="magick" Value="$(var.EXT)" File="[CODER.XML]" />
+									<util:XmlConfig Id="coder.xml_$(var.EXT)_Name_create" ElementId="coder.xml_$(var.EXT)_Element_create" Name="name" Value="RECOIL" File="[CODER.XML]" />
+									<util:XmlConfig Id="coder.xml_$(var.EXT)_Element_delete" On="uninstall" Action="delete" Node="element" VerifyPath="/codermap/coder[\[]@magick='$(var.EXT)' and @name='RECOIL'[\]]" ElementPath="/codermap" Name="coder" File="[CODER.XML]" />
+								<?endif?>
+							<?endforeach?>
+						<?endif?>
 					</Component>
 				</Directory>
 				<?if $(sys.BUILDARCH) = x64?>
 					<Directory Id="IMCODERS64.DIR" Name="ImageMagick64-RECOIL"><!-- fake Name -->
 						<Component Id="IM_MOD_RL_recoil_64.dll" Win64="yes">
 							<File Id="IM_MOD_RL_recoil_64.dll" Source="x86_64\IM_MOD_RL_recoil_.dll" Checksum="yes" KeyPath="yes" />
-							<?foreach EXT in $(var.RECOIL_EXTS)?>
-								<?if $(var.EXT) != "b&w" and $(var.EXT) != "ch$" ?><!-- TODO: don't skip -->
-									<util:XmlConfig Id="coder64.xml_$(var.EXT)_Element_create" On="install" Action="create" Node="element" ElementPath="/codermap" Name="coder" File="[CODER64.XML]" />
-									<util:XmlConfig Id="coder64.xml_$(var.EXT)_Magick_create" ElementId="coder64.xml_$(var.EXT)_Element_create" Name="magick" Value="$(var.EXT)" File="[CODER64.XML]" />
-									<util:XmlConfig Id="coder64.xml_$(var.EXT)_Name_create" ElementId="coder64.xml_$(var.EXT)_Element_create" Name="name" Value="RECOIL" File="[CODER64.XML]" />
-									<util:XmlConfig Id="coder64.xml_$(var.EXT)_Element_delete" On="uninstall" Action="delete" Node="element" VerifyPath="/codermap/coder[\[]@magick='$(var.EXT)' and @name='RECOIL'[\]]" ElementPath="/codermap" Name="coder" File="[CODER64.XML]" />
-								<?endif?>
-							<?endforeach?>
+							<?ifdef IMCONFIG?>
+								<?foreach EXT in $(var.RECOIL_EXTS)?>
+									<?if $(var.EXT) != "b&w" and $(var.EXT) != "ch$" ?><!-- TODO: don't skip -->
+										<util:XmlConfig Id="coder64.xml_$(var.EXT)_Element_create" On="install" Action="create" Node="element" ElementPath="/codermap" Name="coder" File="[CODER64.XML]" />
+										<util:XmlConfig Id="coder64.xml_$(var.EXT)_Magick_create" ElementId="coder64.xml_$(var.EXT)_Element_create" Name="magick" Value="$(var.EXT)" File="[CODER64.XML]" />
+										<util:XmlConfig Id="coder64.xml_$(var.EXT)_Name_create" ElementId="coder64.xml_$(var.EXT)_Element_create" Name="name" Value="RECOIL" File="[CODER64.XML]" />
+										<util:XmlConfig Id="coder64.xml_$(var.EXT)_Element_delete" On="uninstall" Action="delete" Node="element" VerifyPath="/codermap/coder[\[]@magick='$(var.EXT)' and @name='RECOIL'[\]]" ElementPath="/codermap" Name="coder" File="[CODER64.XML]" />
+									<?endif?>
+								<?endforeach?>
+							<?endif?>
 						</Component>
 					</Directory>
 				<?endif?>
