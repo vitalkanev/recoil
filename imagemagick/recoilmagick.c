@@ -81,7 +81,7 @@ static Image *ReadRECOILImage(const ImageInfo *image_info, ExceptionInfo *except
 
 	MagickSizeType content_len = GetBlobSize(image);
 	if (content_len > RECOIL_MAX_CONTENT_LENGTH)
-		ThrowReaderException(CorruptImageError, "FileDecodingError");
+		ThrowReaderException(CorruptImageError, "ImageTypeNotSupported");
 	if (content_len == 0) /* failed to get file length */
 		content_len = RECOIL_MAX_CONTENT_LENGTH;
 	RECOIL *recoil = RECOIL_New();
@@ -101,7 +101,7 @@ static Image *ReadRECOILImage(const ImageInfo *image_info, ExceptionInfo *except
 	if (!RECOIL_Decode(recoil, image_info->filename, content, content_len)) {
 		free(content);
 		RECOIL_Delete(recoil);
-		ThrowReaderException(CorruptImageError, "FileDecodingError");
+		ThrowReaderException(CorruptImageError, "ImageTypeNotSupported");
 	}
 	free(content);
 
