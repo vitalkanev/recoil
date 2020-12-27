@@ -157,13 +157,6 @@ static const struct Format {
 	const char *description;
 } formats[] = { MAGICK_RECOIL_FORMATS };
 
-/* Workaround for MagickCore.h: it omits __declspec(dllexport) for MinGW.
-   As a result, no symbol has __declspec(dllexport) and thus all are exported from the DLL. */
-#ifdef _WIN32
-#undef ModuleExport
-#define ModuleExport __declspec(dllexport)
-#endif
-
 ModuleExport unsigned long RegisterRECOILImage(void)
 {
 	for (const struct Format *pf = formats; pf < formats + sizeof(formats) / sizeof(formats[0]); pf++) {
