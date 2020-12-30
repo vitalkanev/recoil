@@ -506,12 +506,20 @@
 		<?endif?>
 
 		<Feature Id="imagemagick32" Title="ImageMagick 7 32-bit coder" Level="0" ConfigurableDirectory="IMCODERS.DIR" Description="Image coder for 32-bit ImageMagick." AllowAdvertise="no">
-			<Condition Level="1">IMCODERS.DIR AND CODER.XML</Condition>
+			<Condition Level="1">IMCODERS.DIR
+				<?ifdef IMCONFIG?>
+					AND CODER.XML
+				<?endif?>
+			</Condition>
 			<ComponentRef Id="IM_MOD_RL_recoil_.dll" />
 		</Feature>
 		<?if $(sys.BUILDARCH) = x64?>
 			<Feature Id="imagemagick64" Title="ImageMagick 7 64-bit coder" Level="0" ConfigurableDirectory="IMCODERS64.DIR" Description="Image coder for 64-bit ImageMagick." AllowAdvertise="no">
-				<Condition Level="1">IMCODERS64.DIR AND CODER64.XML</Condition>
+				<Condition Level="1">IMCODERS64.DIR
+				<?ifdef IMCONFIG?>
+					AND CODER64.XML
+				<?endif?>
+				</Condition>
 				<ComponentRef Id="IM_MOD_RL_recoil_64.dll" />
 			</Feature>
 		<?endif?>
