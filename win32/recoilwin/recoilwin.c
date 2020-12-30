@@ -750,7 +750,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
 	int argc;
-	LPWSTR *argv = CommandLineToArgvW(lpCmdLine, &argc);
+	LPWSTR *argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 	LPWSTR filename = argc > 1 ? argv[1] : NULL;
 
 	hWnd = FindWindow(WND_CLASS_NAME, NULL);
