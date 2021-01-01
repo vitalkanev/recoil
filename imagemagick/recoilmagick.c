@@ -127,6 +127,13 @@ static Image *ReadRECOILImage(const ImageInfo *image_info, ExceptionInfo *except
 		return NULL;
 	}
 
+	float x_dpi = RECOIL_GetXPixelsPerInch(recoil);
+	if (x_dpi != 0) {
+		image->units = PixelsPerInchResolution;
+		image->resolution.x = x_dpi;
+		image->resolution.y = RECOIL_GetYPixelsPerInch(recoil);;
+	}
+
 	const int *pixels = RECOIL_GetPixels(recoil);
 	int num_pixels = image->columns * image->rows;
 	for (int i = 0; i < num_pixels; i++) {
