@@ -4271,14 +4271,16 @@ public class RECOIL
 		}
 	}
 
-	// Vertical pixel density per meter for a 12 inch PAL TV assuming interlaced picture.
+	// Vertical pixel density per meter for a 12 inch TV assuming interlaced picture.
 	// 640x480 yields 800 virtual diagonal pixels.
 	// Divide by 12 inches to calculate the DPI.
 	// Divide by 0.0254 to convert inches to meters.
 	const int PalTvYPixelsPerMeter = 800 * 10000 / (12 * 254);
+	const int NtscTvYPixelsPerMeter = 800 * 10000 / (12 * 254); // FIXME
 
-	// Dot clock for square pixels in the PAL system.
+	// Dot clock for square pixels in the PAL and NTSC systems.
 	const int PalSquareDotClock = 14750000;
+	const int NtscSquareDotClock = 12272727;
 
 	// http://www.atari.org.pl/forum/viewtopic.php?id=17147
 	const int PortfolioPixelsPerMeter = 240 * 1000 / 113;
@@ -4287,6 +4289,8 @@ public class RECOIL
 	public int GetXPixelsPerMeter()
 	{
 		switch (Resolution) {
+		case RECOILResolution.AppleII1x1:
+			return NtscTvYPixelsPerMeter * 7 / 12;
 		case RECOILResolution.Xe1x1:
 		case RECOILResolution.Xe2x1:
 		case RECOILResolution.Xe4x1:
@@ -4299,6 +4303,14 @@ public class RECOIL
 			return PalTvYPixelsPerMeter * (1773447 * 4 / 1000) / (PalSquareDotClock / 1000);
 		case RECOILResolution.Portfolio1x1:
 			return PortfolioPixelsPerMeter;
+		case RECOILResolution.Msx11x1:
+		case RECOILResolution.Msx14x4:
+		case RECOILResolution.Msx21x1:
+		case RECOILResolution.Msx22x1:
+		case RECOILResolution.Msx21x2:
+		case RECOILResolution.Msx2Plus1x1:
+		case RECOILResolution.Msx2Plus2x1:
+			return NtscTvYPixelsPerMeter * 7 / 8;
 		// TODO: other platforms
 		default:
 			return 0;
@@ -4309,6 +4321,8 @@ public class RECOIL
 	public int GetYPixelsPerMeter()
 	{
 		switch (Resolution) {
+		case RECOILResolution.AppleII1x1:
+			return NtscTvYPixelsPerMeter / 2;
 		case RECOILResolution.Xe1x1:
 		case RECOILResolution.Xe2x1:
 		case RECOILResolution.Xe4x1:
@@ -4320,6 +4334,15 @@ public class RECOIL
 			return PalTvYPixelsPerMeter / 2;
 		case RECOILResolution.Portfolio1x1:
 			return PortfolioPixelsPerMeter;
+		case RECOILResolution.Msx11x1:
+		case RECOILResolution.Msx14x4:
+		case RECOILResolution.Msx21x1:
+		case RECOILResolution.Msx22x1:
+		case RECOILResolution.Msx21x2:
+		case RECOILResolution.Msx2Plus1x1:
+		case RECOILResolution.Msx2Plus2x1:
+			// TODO: separate non-interlaced, PAL
+			return NtscTvYPixelsPerMeter;
 		// TODO: other platforms
 		default:
 			return 0;
