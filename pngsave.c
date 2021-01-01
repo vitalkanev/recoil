@@ -1,7 +1,7 @@
 /*
  * pngsave.c - save PNG file
  *
- * Copyright (C) 2009-2020  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2021  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -69,6 +69,7 @@ bool RECOIL_SavePng(RECOIL *self, FILE *fp)
 		return false;
 	}
 	const int *palette = RECOIL_ToPalette(self, pixels);
+	bool packing;
 	if (palette == NULL) {
 		free(pixels);
 		pixels = (png_bytep) malloc(width * height * sizeof(png_color));
@@ -80,8 +81,8 @@ bool RECOIL_SavePng(RECOIL *self, FILE *fp)
 		RECOIL_Rgb2Png((png_colorp) pixels, RECOIL_GetPixels(self), width * height);
 		png_set_IHDR(png_ptr, info_ptr, width, height, 8, PNG_COLOR_TYPE_RGB,
 			PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
-		png_write_info(png_ptr, info_ptr);
 		width *= sizeof(png_color);
+		packing = false;
 	}
 	else {
 		int colors = RECOIL_GetColors(self);
@@ -94,10 +95,16 @@ bool RECOIL_SavePng(RECOIL *self, FILE *fp)
 		png_set_IHDR(png_ptr, info_ptr, width, height, bit_depth, PNG_COLOR_TYPE_PALETTE,
 			PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 		png_set_PLTE(png_ptr, info_ptr, png_palette, colors);
-		png_write_info(png_ptr, info_ptr);
-		if (bit_depth < 8)
-			png_set_packing(png_ptr);
+		packing = bit_depth < 8;
 	}
+	float x_ppm = RECOIL_GetXPixelsPerMeter(self);
+	if (x_ppm != 0) {
+		float y_ppm = RECOIL_GetYPixelsPerMeter(self);
+		png_set_pHYs(png_ptr, info_ptr, x_ppm, y_ppm, PNG_RESOLUTION_METER);
+	}
+	png_write_info(png_ptr, info_ptr);
+	if (packing)
+		png_set_packing(png_ptr);
 	png_bytep row_pointers[RECOIL_MAX_HEIGHT];
 	for (int y = 0; y < height; y++)
 		row_pointers[y] = pixels + y * width;

@@ -1,6 +1,6 @@
 // recoil.ci - RECOIL core
 //
-// Copyright (C) 2009-2020  Piotr Fusik and Adrian Matoga
+// Copyright (C) 2009-2021  Piotr Fusik and Adrian Matoga
 //
 // This file is part of RECOIL (Retro Computer Image Library),
 // see http://recoil.sourceforge.net
@@ -4036,7 +4036,7 @@ public class RECOIL
 	public const string Version = $"{VersionMajor}.{VersionMinor}.{VersionMicro}";
 
 	/// Years RECOIL was created in.
-	public const string Years = "2009-2020";
+	public const string Years = "2009-2021";
 
 	/// Short credits for RECOIL.
 	public const string Credits = $"Retro Computer Image Library (C) {Years} Piotr Fusik and Adrian Matoga\n";
@@ -4270,6 +4270,59 @@ public class RECOIL
 			return Height;
 		}
 	}
+
+	// Vertical pixel density per meter for a 12 inch PAL TV assuming interlaced picture.
+	// 640x480 yields 800 virtual diagonal pixels.
+	// Divide by 12 inches to calculate the DPI.
+	// Divide by 0.0254 to convert inches to meters.
+	const int PalTvYPixelsPerMeter = 800 * 10000 / (12 * 254);
+
+	// Dot clock for square pixels in the PAL system.
+	const int PalSquareDotClock = 14750000;
+
+	/// Returns horizontal pixel density per meter or zero if unknown.
+	public int GetXPixelsPerMeter()
+	{
+		switch (Resolution) {
+		case RECOILResolution.Xe1x1:
+		case RECOILResolution.Xe2x1:
+		case RECOILResolution.Xe4x1:
+		case RECOILResolution.Xe2x2:
+		case RECOILResolution.Xe4x2:
+		case RECOILResolution.Xe4x4:
+		case RECOILResolution.Xe8x8:
+			// TODO: NTSC
+			return PalTvYPixelsPerMeter * (1773447 * 4 / 1000) / (PalSquareDotClock / 1000);
+		// TODO: other platforms
+		default:
+			return 0;
+		}
+	}
+
+	/// Returns vertical pixel density per meter or zero if unknown.
+	public int GetYPixelsPerMeter()
+	{
+		switch (Resolution) {
+		case RECOILResolution.Xe1x1:
+		case RECOILResolution.Xe2x1:
+		case RECOILResolution.Xe4x1:
+		case RECOILResolution.Xe2x2:
+		case RECOILResolution.Xe4x2:
+		case RECOILResolution.Xe4x4:
+		case RECOILResolution.Xe8x8:
+			// TODO: NTSC
+			return PalTvYPixelsPerMeter / 2;
+		// TODO: other platforms
+		default:
+			return 0;
+		}
+	}
+
+	/// Returns horizontal pixel density per inch or zero if unknown.
+	public float GetXPixelsPerInch() => GetXPixelsPerMeter() * 0.0254;
+
+	/// Returns vertical pixel density per inch or zero if unknown.
+	public float GetYPixelsPerInch() => GetYPixelsPerMeter() * 0.0254;
 
 	/// Returns the number of alternating frames the pictures is composed of.
 	/// * 1 means the picture doesn't flicker.

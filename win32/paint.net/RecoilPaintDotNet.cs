@@ -1,7 +1,7 @@
 ﻿/*
  * RecoilPaintDotNet.cs - Paint.NET file type plugin
  *
- * Copyright (C) 2013-2020  Piotr Fusik
+ * Copyright (C) 2013-2021  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -72,6 +72,9 @@ namespace Recoil.PaintDotNet
 			GCHandle pinnedPixels = GCHandle.Alloc(recoil.GetPixels(), GCHandleType.Pinned);
 			using (Bitmap bitmap = new Bitmap(width, recoil.GetHeight(), width << 2, PixelFormat.Format32bppRgb, pinnedPixels.AddrOfPinnedObject())) {
 				pinnedPixels.Free();
+				float xDpi = recoil.GetXPixelsPerInch();
+				if (xDpi != 0)
+					bitmap.SetResolution(xDpi, recoil.GetYPixelsPerInch());
 				return Document.FromImage(bitmap);
 			}
 		}

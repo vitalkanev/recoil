@@ -1,7 +1,7 @@
 /*
  * recoilwin.c - Windows API port of RECOIL
  *
- * Copyright (C) 2009-2020  Piotr Fusik
+ * Copyright (C) 2009-2021  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -363,8 +363,10 @@ static bool OpenImage(bool show_error)
 	bitmap.bmiHeader.biPlanes = 1;
 	bitmap.bmiHeader.biBitCount = palette != NULL ? 8 : 24;
 	bitmap.bmiHeader.biCompression = BI_RGB;
-	bitmap.bmiHeader.biXPelsPerMeter = 1000;
-	bitmap.bmiHeader.biYPelsPerMeter = 1000;
+	bitmap.bmiHeader.biXPelsPerMeter = RECOIL_GetXPixelsPerMeter(recoil);
+	bitmap.bmiHeader.biYPelsPerMeter = RECOIL_GetYPixelsPerMeter(recoil);
+	if (bitmap.bmiHeader.biXPelsPerMeter == 0)
+		bitmap.bmiHeader.biXPelsPerMeter = bitmap.bmiHeader.biYPelsPerMeter = 96 * 10000 / 254;
 	if (palette != NULL) {
 		int bytesPerLine = (width + 3) & ~3;
 		bitmap.bmiHeader.biSizeImage = sizeof(BITMAPINFOHEADER) + colors * sizeof(RGBQUAD) + height * bytesPerLine;

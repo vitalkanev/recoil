@@ -1,7 +1,7 @@
 ﻿/*
  * MainPage.xaml.cs - Universal Windows application
  *
- * Copyright (C) 2014-2020  Piotr Fusik
+ * Copyright (C) 2014-2021  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -42,6 +42,8 @@ namespace RECOIL
 	{
 		IReadOnlyList<StorageFile> Files;
 		int Index;
+		float DpiX;
+		float DpiY;
 
 		public MainPage()
 		{
@@ -79,6 +81,13 @@ namespace RECOIL
 			int width = recoil.GetWidth();
 			int height = recoil.GetHeight();
 			int[] pixels = recoil.GetPixels();
+			float dpiX = recoil.GetXPixelsPerInch();
+			if (dpiX == 0)
+				this.DpiX = this.DpiY = 96;
+			else {
+				this.DpiX = dpiX;
+				this.DpiY = recoil.GetYPixelsPerInch();
+			}
 
 			// convert to BGRA
 			WriteableBitmap bitmap = new WriteableBitmap(width, height);
@@ -155,7 +164,7 @@ namespace RECOIL
 			BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, stream);
 			WriteableBitmap bitmap = (WriteableBitmap) Image.Source;
 			encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Ignore,
-				(uint) bitmap.PixelWidth, (uint) bitmap.PixelHeight, 96, 96, bitmap.PixelBuffer.ToArray());
+				(uint) bitmap.PixelWidth, (uint) bitmap.PixelHeight, this.DpiX, this.DpiY, bitmap.PixelBuffer.ToArray());
 			await encoder.FlushAsync();
 		}
 
