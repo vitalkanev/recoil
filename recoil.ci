@@ -4280,6 +4280,9 @@ public class RECOIL
 	// Dot clock for square pixels in the PAL system.
 	const int PalSquareDotClock = 14750000;
 
+	// http://www.atari.org.pl/forum/viewtopic.php?id=17147
+	const int PortfolioPixelsPerMeter = 240 * 1000 / 113;
+
 	/// Returns horizontal pixel density per meter or zero if unknown.
 	public int GetXPixelsPerMeter()
 	{
@@ -4291,8 +4294,11 @@ public class RECOIL
 		case RECOILResolution.Xe4x2:
 		case RECOILResolution.Xe4x4:
 		case RECOILResolution.Xe8x8:
+			// http://virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf
 			// TODO: NTSC
 			return PalTvYPixelsPerMeter * (1773447 * 4 / 1000) / (PalSquareDotClock / 1000);
+		case RECOILResolution.Portfolio1x1:
+			return PortfolioPixelsPerMeter;
 		// TODO: other platforms
 		default:
 			return 0;
@@ -4312,6 +4318,8 @@ public class RECOIL
 		case RECOILResolution.Xe8x8:
 			// TODO: NTSC
 			return PalTvYPixelsPerMeter / 2;
+		case RECOILResolution.Portfolio1x1:
+			return PortfolioPixelsPerMeter;
 		// TODO: other platforms
 		default:
 			return 0;
