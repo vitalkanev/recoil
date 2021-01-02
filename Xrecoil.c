@@ -1,7 +1,7 @@
 /*
  * Xrecoil.c - RECOIL plugin for XnView http://www.xnview.com
  *
- * Copyright (C) 2009-2019  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2021  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -138,7 +138,10 @@ DLL_EXPORT BOOL API gfpLoadPictureGetInfo(
 	*pictype = GFP_RGB;
 	*width = RECOIL_GetWidth(recoil);
 	*height = RECOIL_GetHeight(recoil);
-	*dpi = 68;
+	// choose the vertical DPI, so that platforms using a TV have same DPI
+	int ppm = RECOIL_GetYPixelsPerMeter(recoil);
+	// meters to inches with rounding
+	*dpi = ppm == 0 ? 68 : (ppm * 254 + 127) / 10000;
 	*bits_per_pixel = 24;
 	*bytes_per_line = *width * 3;
 	*has_colormap = FALSE;
