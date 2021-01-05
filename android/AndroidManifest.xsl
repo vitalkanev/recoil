@@ -6,7 +6,7 @@
 			package="net.sf.recoil" android:versionCode="{translate(@version, '.', '')}" android:versionName="{@version}" android:installLocation="auto">
 			<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 			<supports-screens android:largeScreens="true" android:xlargeScreens="true" />
-			<application android:label="@string/app_name" android:icon="@drawable/ic_launcher" android:description="@string/app_description">
+			<application android:label="@string/app_name" android:icon="@drawable/ic_launcher" android:description="@string/app_description" android:requestLegacyExternalStorage="true">
 				<activity android:name=".FavoriteSelector" android:label="@string/app_name">
 					<intent-filter>
 						<action android:name="android.intent.action.MAIN" />
