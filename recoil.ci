@@ -8935,19 +8935,8 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodeIsh!(byte[] content, int contentLength)
+	bool DecodeIsh!(byte[] content)
 	{
-		if (contentLength != 9194)
-			return false;
-		SetSize(320, 200, RECOILResolution.C641x1);
-		DecodeC64HiresFrame(content, 2, 0x2002, 0);
-		return true;
-	}
-
-	bool DecodeHed!(byte[] content, int contentLength)
-	{
-		if (contentLength != 9218)
-			return false;
 		SetSize(320, 200, RECOILResolution.C641x1);
 		DecodeC64HiresFrame(content, 2, 0x2002, 0);
 		return true;
@@ -18319,7 +18308,7 @@ public class RECOIL
 		case PackExt("HCM"):
 			return DecodeHcm(content, contentLength);
 		case PackExt("HED"):
-			return DecodeHed(content, contentLength);
+			return contentLength == 9218 && DecodeIsh(content);
 		case PackExt("HFC"):
 			return DecodeHfc(content, contentLength);
 		case PackExt("HGB"):
@@ -18439,7 +18428,7 @@ public class RECOIL
 		case PackExt("IRG"):
 			return DecodeAtari8Ice(content, contentLength, false, 1);
 		case PackExt("ISH"):
-			return DecodeIsh(content, contentLength);
+			return contentLength == 9194 && DecodeIsh(content);
 		case PackExt("ISM"):
 			return contentLength == 10218 && DecodeC64Multicolor(320, content, 0x402, 0x2402, 2, content[0x2401]);
 		case PackExt("IST"):
