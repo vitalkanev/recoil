@@ -8935,6 +8935,15 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeIsh!(byte[] content, int contentLength)
+	{
+		if (contentLength != 9194)
+			return false;
+		SetSize(320, 200, RECOILResolution.C641x1);
+		DecodeC64HiresFrame(content, 2, 0x2002, 0);
+		return true;
+	}
+
 	bool DecodeHed!(byte[] content, int contentLength)
 	{
 		if (contentLength != 9218)
@@ -17759,6 +17768,7 @@ public class RECOIL
 		case PackExt("IPT"):
 		case PackExt("IR2"):
 		case PackExt("IRG"):
+		case PackExt("ISH"):
 		case PackExt("ISM"):
 		case PackExt("IST"):
 		case PackExt("JGP"):
@@ -18428,6 +18438,8 @@ public class RECOIL
 			return DecodeAtari8Ice(content, contentLength, false, 2);
 		case PackExt("IRG"):
 			return DecodeAtari8Ice(content, contentLength, false, 1);
+		case PackExt("ISH"):
+			return DecodeIsh(content, contentLength);
 		case PackExt("ISM"):
 			return contentLength == 10218 && DecodeC64Multicolor(320, content, 0x402, 0x2402, 2, content[0x2401]);
 		case PackExt("IST"):

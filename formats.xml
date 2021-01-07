@@ -522,6 +522,7 @@
 		<format name="Interlace Hires Editor" width="320" height="200" colors="3" frames="2"><ext>IHE</ext></format>
 		<format name="Interpaint" width="320" height="200" colors="16"><ext>IPH</ext></format>
 		<format name="Interpaint" width="160" height="200" colors="16"><ext>IPT</ext></format>
+		<format name="Image System" width="320" height="200" colors="16"><ext>ISH</ext></format>
 		<format name="Image System" width="160" height="200" colors="16"><ext>ISM</ext></format>
 		<format name="Doodle (compressed)" width="320" height="200" colors="16"><ext>JJ</ext></format>
 		<format name="Koala Painter" width="160" height="200" colors="16">
