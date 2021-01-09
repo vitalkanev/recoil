@@ -4081,296 +4081,24 @@ public class RECOIL
 	/// Number of frames (normally 1; 2 or 3 for flickering pictures).
 	int Frames;
 
+	/// `true` if NTSC is preferred over PAL.
 	bool Ntsc;
 
 	int LeftSkip;
 
-	/// Returns decoded image width.
-	public int GetWidth() => Width;
-
-	/// Returns decoded image height.
-	public int GetHeight() => Height;
-
-	/// Returns pixels of the decoded image, top-down, left-to-right.
-	/// Each pixel is a 24-bit integer 0xRRGGBB.
-	public int[] GetPixels() => Pixels;
-
 	/// Maximum length of a string returned by `GetPlatform()`.
 	public const int MaxPlatformLength = "TRS-80 Color Computer".Length;
 
-	public void SetNtsc!(bool ntsc)
+	/// Selects the PAL/NTSC video standard for applicable platforms.
+	public void SetNtsc!(
+		/// `true` for NTSC, `false` for PAL
+		bool ntsc)
 	{
 		Ntsc = ntsc;
 	}
 
+	/// Returns `true` if NTSC video standard is selected.
 	public bool IsNtsc() => Ntsc;
-
-	/// Returns the computer family of the decoded file format.
-	public string GetPlatform()
-	{
-		switch (Resolution) {
-		case RECOILResolution.Amiga1x1:
-		case RECOILResolution.Amiga2x1:
-		case RECOILResolution.Amiga4x1:
-		case RECOILResolution.Amiga8x1:
-		case RECOILResolution.Amiga1x2:
-		case RECOILResolution.Amiga1x4:
-			return "Amiga";
-		case RECOILResolution.Amstrad1x1:
-		case RECOILResolution.Amstrad2x1:
-		case RECOILResolution.Amstrad1x2:
-			return "Amstrad CPC";
-		case RECOILResolution.AppleII1x1:
-			return "Apple II";
-		case RECOILResolution.AppleIIe1x2:
-			return "Apple IIe";
-		case RECOILResolution.AppleIIGS1x1:
-		case RECOILResolution.AppleIIGS1x2:
-			return "Apple IIGS";
-		case RECOILResolution.Macintosh1x1:
-			return "Apple Macintosh";
-		case RECOILResolution.Xe1x1:
-		case RECOILResolution.Xe2x1:
-		case RECOILResolution.Xe4x1:
-		case RECOILResolution.Xe2x2:
-		case RECOILResolution.Xe4x2:
-		case RECOILResolution.Xe4x4:
-		case RECOILResolution.Xe8x8:
-			return "Atari 8-bit";
-		case RECOILResolution.Portfolio1x1:
-			return "Atari Portfolio";
-		case RECOILResolution.St1x1:
-		case RECOILResolution.St1x2:
-			return "Atari ST";
-		case RECOILResolution.Ste1x1:
-		case RECOILResolution.Ste1x2:
-			return "Atari STE";
-		case RECOILResolution.Tt1x1:
-		case RECOILResolution.Tt2x1:
-			return "Atari TT";
-		case RECOILResolution.Falcon1x1:
-		case RECOILResolution.Falcon2x1:
-			return "Atari Falcon";
-		case RECOILResolution.Bbc1x1:
-		case RECOILResolution.Bbc2x1:
-		case RECOILResolution.Bbc1x2:
-			return "BBC Micro";
-		case RECOILResolution.Vic202x1:
-			return "Commodore VIC-20";
-		case RECOILResolution.C161x1:
-		case RECOILResolution.C162x1:
-			return "Commodore 16";
-		case RECOILResolution.C641x1:
-		case RECOILResolution.C642x1:
-			return "Commodore 64";
-		case RECOILResolution.C1281x1:
-			return "Commodore 128";
-		case RECOILResolution.Electronika1x1:
-			return "Electronika BK";
-		case RECOILResolution.FmTowns1x1:
-			return "FM Towns";
-		case RECOILResolution.Msx11x1:
-		case RECOILResolution.Msx14x4:
-			return "MSX";
-		case RECOILResolution.Msx21x1:
-		case RECOILResolution.Msx22x1:
-		case RECOILResolution.Msx21x2:
-			return "MSX2";
-		case RECOILResolution.Msx2Plus1x1:
-		case RECOILResolution.Msx2Plus2x1:
-			return "MSX2+";
-		case RECOILResolution.Oric1x1:
-			return "Oric";
-		case RECOILResolution.Pc1x1:
-			return "PC";
-		case RECOILResolution.Pc801x2:
-			return "NEC PC-80";
-		case RECOILResolution.Pc881x2:
-			return "NEC PC-88";
-		case RECOILResolution.Pc88Va1x1:
-			return "NEC PC-88 VA";
-		case RECOILResolution.Pc981x1:
-			return "NEC PC-98";
-		case RECOILResolution.PlayStation1x1:
-			return "PlayStation";
-		case RECOILResolution.Psion31x1:
-			return "Psion Series 3";
-		case RECOILResolution.SamCoupe1x1:
-			return "SAM Coupe";
-		case RECOILResolution.X68K1x1:
-			return "Sharp X68000";
-		case RECOILResolution.Spectrum1x1:
-		case RECOILResolution.Spectrum4x4:
-			return "ZX Spectrum";
-		case RECOILResolution.Timex1x1:
-		case RECOILResolution.Timex1x2:
-			return "Timex 2048";
-		case RECOILResolution.Trs1x1:
-		case RECOILResolution.Trs1x2:
-			return "TRS-80";
-		case RECOILResolution.Coco1x1:
-		case RECOILResolution.Coco2x2:
-			return "TRS-80 Color Computer";
-		case RECOILResolution.Zx811x1:
-			return "ZX81";
-		default:
-			return "Unknown";
-		}
-	}
-
-	/// Returns original width of the decoded image (informational).
-	public int GetOriginalWidth()
-	{
-		switch (Resolution) {
-		case RECOILResolution.Amiga2x1:
-		case RECOILResolution.Amstrad2x1:
-		case RECOILResolution.Xe2x1:
-		case RECOILResolution.Xe2x2:
-		case RECOILResolution.Tt2x1:
-		case RECOILResolution.Falcon2x1:
-		case RECOILResolution.Bbc2x1:
-		case RECOILResolution.Vic202x1:
-		case RECOILResolution.C162x1:
-		case RECOILResolution.C642x1:
-		case RECOILResolution.Coco2x2:
-		case RECOILResolution.Msx22x1:
-		case RECOILResolution.Msx2Plus2x1:
-			return Width >> 1;
-		case RECOILResolution.Amiga4x1:
-		case RECOILResolution.Msx14x4:
-		case RECOILResolution.Spectrum4x4:
-		case RECOILResolution.Xe4x1:
-		case RECOILResolution.Xe4x2:
-		case RECOILResolution.Xe4x4:
-			return Width >> 2;
-		case RECOILResolution.Amiga8x1:
-		case RECOILResolution.Xe8x8:
-			return Width >> 3;
-		default:
-			return Width;
-		}
-	}
-
-	/// Returns original height of the decoded image (informational).
-	public int GetOriginalHeight()
-	{
-		switch (Resolution) {
-		case RECOILResolution.Amiga1x2:
-		case RECOILResolution.Amstrad1x2:
-		case RECOILResolution.AppleIIe1x2:
-		case RECOILResolution.AppleIIGS1x2:
-		case RECOILResolution.Xe2x2:
-		case RECOILResolution.Xe4x2:
-		case RECOILResolution.St1x2:
-		case RECOILResolution.Ste1x2:
-		case RECOILResolution.Bbc1x2:
-		case RECOILResolution.Msx21x2:
-		case RECOILResolution.Pc801x2:
-		case RECOILResolution.Pc881x2:
-		case RECOILResolution.Timex1x2:
-		case RECOILResolution.Trs1x2:
-		case RECOILResolution.Coco2x2:
-			return Height >> 1;
-		case RECOILResolution.Amiga1x4:
-		case RECOILResolution.Msx14x4:
-		case RECOILResolution.Spectrum4x4:
-		case RECOILResolution.Xe4x4:
-			return Height >> 2;
-		case RECOILResolution.Xe8x8:
-			return Height >> 3;
-		default:
-			return Height;
-		}
-	}
-
-	// Vertical pixel density per meter for a 12 inch TV assuming interlaced picture.
-	// 640x480 yields 800 virtual diagonal pixels.
-	// Divide by 12 inches to calculate the DPI.
-	// Divide by 0.0254 to convert inches to meters.
-	const int PalTvYPixelsPerMeter = 800 * 10000 / (12 * 254);
-	const int NtscTvYPixelsPerMeter = 800 * 10000 / (12 * 254); // FIXME
-
-	// Dot clock for square pixels in the PAL and NTSC systems.
-	const int PalSquareDotClock = 14750000;
-	const int NtscSquareDotClock = 12272727;
-
-	// http://www.atari.org.pl/forum/viewtopic.php?id=17147
-	const int PortfolioPixelsPerMeter = 240 * 1000 / 113;
-
-	/// Returns horizontal pixel density per meter or zero if unknown.
-	public int GetXPixelsPerMeter()
-	{
-		switch (Resolution) {
-		case RECOILResolution.AppleII1x1:
-			return NtscTvYPixelsPerMeter * 7 / 12;
-		case RECOILResolution.Xe1x1:
-		case RECOILResolution.Xe2x1:
-		case RECOILResolution.Xe4x1:
-		case RECOILResolution.Xe2x2:
-		case RECOILResolution.Xe4x2:
-		case RECOILResolution.Xe4x4:
-		case RECOILResolution.Xe8x8:
-			// http://virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf
-			return Ntsc ? NtscTvYPixelsPerMeter * (1789773 * 4 / 1000) / (NtscSquareDotClock / 1000)
-				: PalTvYPixelsPerMeter * (1773447 * 4 / 1000) / (PalSquareDotClock / 1000);
-		case RECOILResolution.Portfolio1x1:
-			return PortfolioPixelsPerMeter;
-		case RECOILResolution.Msx11x1:
-		case RECOILResolution.Msx14x4:
-		case RECOILResolution.Msx21x1:
-		case RECOILResolution.Msx22x1:
-		case RECOILResolution.Msx21x2:
-		case RECOILResolution.Msx2Plus1x1:
-		case RECOILResolution.Msx2Plus2x1:
-			return NtscTvYPixelsPerMeter * 7 / 8;
-		// TODO: other platforms
-		default:
-			return 0;
-		}
-	}
-
-	/// Returns vertical pixel density per meter or zero if unknown.
-	public int GetYPixelsPerMeter()
-	{
-		switch (Resolution) {
-		case RECOILResolution.AppleII1x1:
-			return NtscTvYPixelsPerMeter / 2;
-		case RECOILResolution.Xe1x1:
-		case RECOILResolution.Xe2x1:
-		case RECOILResolution.Xe4x1:
-		case RECOILResolution.Xe2x2:
-		case RECOILResolution.Xe4x2:
-		case RECOILResolution.Xe4x4:
-		case RECOILResolution.Xe8x8:
-			return Ntsc ? NtscTvYPixelsPerMeter / 2 : PalTvYPixelsPerMeter / 2;
-		case RECOILResolution.Portfolio1x1:
-			return PortfolioPixelsPerMeter;
-		case RECOILResolution.Msx11x1:
-		case RECOILResolution.Msx14x4:
-		case RECOILResolution.Msx21x1:
-		case RECOILResolution.Msx22x1:
-		case RECOILResolution.Msx21x2:
-		case RECOILResolution.Msx2Plus1x1:
-		case RECOILResolution.Msx2Plus2x1:
-			// TODO: separate non-interlaced, PAL
-			return NtscTvYPixelsPerMeter;
-		// TODO: other platforms
-		default:
-			return 0;
-		}
-	}
-
-	/// Returns horizontal pixel density per inch or zero if unknown.
-	public float GetXPixelsPerInch() => GetXPixelsPerMeter() * 0.0254;
-
-	/// Returns vertical pixel density per inch or zero if unknown.
-	public float GetYPixelsPerInch() => GetYPixelsPerMeter() * 0.0254;
-
-	/// Returns the number of alternating frames the pictures is composed of.
-	/// * 1 means the picture doesn't flicker.
-	/// * 2 means the picture is displayed by quickly alternating two sub-pictures.
-	/// * 3 means the picture is displayed by alternating three sub-pictures.
-	public int GetFrames() => Frames;
 
 	/// Initializes decoded image size and resolution.
 	bool SetSize!(int width, int height, RECOILResolution resolution)
@@ -18839,6 +18567,283 @@ public class RECOIL
 			return false;
 		}
 	}
+
+	/// Returns decoded image width.
+	public int GetWidth() => Width;
+
+	/// Returns decoded image height.
+	public int GetHeight() => Height;
+
+	/// Returns pixels of the decoded image, top-down, left-to-right.
+	/// Each pixel is a 24-bit integer 0xRRGGBB.
+	public int[] GetPixels() => Pixels;
+
+	/// Returns the computer family of the decoded file format.
+	public string GetPlatform()
+	{
+		switch (Resolution) {
+		case RECOILResolution.Amiga1x1:
+		case RECOILResolution.Amiga2x1:
+		case RECOILResolution.Amiga4x1:
+		case RECOILResolution.Amiga8x1:
+		case RECOILResolution.Amiga1x2:
+		case RECOILResolution.Amiga1x4:
+			return "Amiga";
+		case RECOILResolution.Amstrad1x1:
+		case RECOILResolution.Amstrad2x1:
+		case RECOILResolution.Amstrad1x2:
+			return "Amstrad CPC";
+		case RECOILResolution.AppleII1x1:
+			return "Apple II";
+		case RECOILResolution.AppleIIe1x2:
+			return "Apple IIe";
+		case RECOILResolution.AppleIIGS1x1:
+		case RECOILResolution.AppleIIGS1x2:
+			return "Apple IIGS";
+		case RECOILResolution.Macintosh1x1:
+			return "Apple Macintosh";
+		case RECOILResolution.Xe1x1:
+		case RECOILResolution.Xe2x1:
+		case RECOILResolution.Xe4x1:
+		case RECOILResolution.Xe2x2:
+		case RECOILResolution.Xe4x2:
+		case RECOILResolution.Xe4x4:
+		case RECOILResolution.Xe8x8:
+			return "Atari 8-bit";
+		case RECOILResolution.Portfolio1x1:
+			return "Atari Portfolio";
+		case RECOILResolution.St1x1:
+		case RECOILResolution.St1x2:
+			return "Atari ST";
+		case RECOILResolution.Ste1x1:
+		case RECOILResolution.Ste1x2:
+			return "Atari STE";
+		case RECOILResolution.Tt1x1:
+		case RECOILResolution.Tt2x1:
+			return "Atari TT";
+		case RECOILResolution.Falcon1x1:
+		case RECOILResolution.Falcon2x1:
+			return "Atari Falcon";
+		case RECOILResolution.Bbc1x1:
+		case RECOILResolution.Bbc2x1:
+		case RECOILResolution.Bbc1x2:
+			return "BBC Micro";
+		case RECOILResolution.Vic202x1:
+			return "Commodore VIC-20";
+		case RECOILResolution.C161x1:
+		case RECOILResolution.C162x1:
+			return "Commodore 16";
+		case RECOILResolution.C641x1:
+		case RECOILResolution.C642x1:
+			return "Commodore 64";
+		case RECOILResolution.C1281x1:
+			return "Commodore 128";
+		case RECOILResolution.Electronika1x1:
+			return "Electronika BK";
+		case RECOILResolution.FmTowns1x1:
+			return "FM Towns";
+		case RECOILResolution.Msx11x1:
+		case RECOILResolution.Msx14x4:
+			return "MSX";
+		case RECOILResolution.Msx21x1:
+		case RECOILResolution.Msx22x1:
+		case RECOILResolution.Msx21x2:
+			return "MSX2";
+		case RECOILResolution.Msx2Plus1x1:
+		case RECOILResolution.Msx2Plus2x1:
+			return "MSX2+";
+		case RECOILResolution.Oric1x1:
+			return "Oric";
+		case RECOILResolution.Pc1x1:
+			return "PC";
+		case RECOILResolution.Pc801x2:
+			return "NEC PC-80";
+		case RECOILResolution.Pc881x2:
+			return "NEC PC-88";
+		case RECOILResolution.Pc88Va1x1:
+			return "NEC PC-88 VA";
+		case RECOILResolution.Pc981x1:
+			return "NEC PC-98";
+		case RECOILResolution.PlayStation1x1:
+			return "PlayStation";
+		case RECOILResolution.Psion31x1:
+			return "Psion Series 3";
+		case RECOILResolution.SamCoupe1x1:
+			return "SAM Coupe";
+		case RECOILResolution.X68K1x1:
+			return "Sharp X68000";
+		case RECOILResolution.Spectrum1x1:
+		case RECOILResolution.Spectrum4x4:
+			return "ZX Spectrum";
+		case RECOILResolution.Timex1x1:
+		case RECOILResolution.Timex1x2:
+			return "Timex 2048";
+		case RECOILResolution.Trs1x1:
+		case RECOILResolution.Trs1x2:
+			return "TRS-80";
+		case RECOILResolution.Coco1x1:
+		case RECOILResolution.Coco2x2:
+			return "TRS-80 Color Computer";
+		case RECOILResolution.Zx811x1:
+			return "ZX81";
+		default:
+			return "Unknown";
+		}
+	}
+
+	/// Returns original width of the decoded image (informational).
+	public int GetOriginalWidth()
+	{
+		switch (Resolution) {
+		case RECOILResolution.Amiga2x1:
+		case RECOILResolution.Amstrad2x1:
+		case RECOILResolution.Xe2x1:
+		case RECOILResolution.Xe2x2:
+		case RECOILResolution.Tt2x1:
+		case RECOILResolution.Falcon2x1:
+		case RECOILResolution.Bbc2x1:
+		case RECOILResolution.Vic202x1:
+		case RECOILResolution.C162x1:
+		case RECOILResolution.C642x1:
+		case RECOILResolution.Coco2x2:
+		case RECOILResolution.Msx22x1:
+		case RECOILResolution.Msx2Plus2x1:
+			return Width >> 1;
+		case RECOILResolution.Amiga4x1:
+		case RECOILResolution.Msx14x4:
+		case RECOILResolution.Spectrum4x4:
+		case RECOILResolution.Xe4x1:
+		case RECOILResolution.Xe4x2:
+		case RECOILResolution.Xe4x4:
+			return Width >> 2;
+		case RECOILResolution.Amiga8x1:
+		case RECOILResolution.Xe8x8:
+			return Width >> 3;
+		default:
+			return Width;
+		}
+	}
+
+	/// Returns original height of the decoded image (informational).
+	public int GetOriginalHeight()
+	{
+		switch (Resolution) {
+		case RECOILResolution.Amiga1x2:
+		case RECOILResolution.Amstrad1x2:
+		case RECOILResolution.AppleIIe1x2:
+		case RECOILResolution.AppleIIGS1x2:
+		case RECOILResolution.Xe2x2:
+		case RECOILResolution.Xe4x2:
+		case RECOILResolution.St1x2:
+		case RECOILResolution.Ste1x2:
+		case RECOILResolution.Bbc1x2:
+		case RECOILResolution.Msx21x2:
+		case RECOILResolution.Pc801x2:
+		case RECOILResolution.Pc881x2:
+		case RECOILResolution.Timex1x2:
+		case RECOILResolution.Trs1x2:
+		case RECOILResolution.Coco2x2:
+			return Height >> 1;
+		case RECOILResolution.Amiga1x4:
+		case RECOILResolution.Msx14x4:
+		case RECOILResolution.Spectrum4x4:
+		case RECOILResolution.Xe4x4:
+			return Height >> 2;
+		case RECOILResolution.Xe8x8:
+			return Height >> 3;
+		default:
+			return Height;
+		}
+	}
+
+	// Vertical pixel density per meter for a 12 inch TV assuming interlaced picture.
+	// 640x480 yields 800 virtual diagonal pixels.
+	// Divide by 12 inches to calculate the DPI.
+	// Divide by 0.0254 to convert inches to meters.
+	const int PalTvYPixelsPerMeter = 800 * 10000 / (12 * 254);
+	const int NtscTvYPixelsPerMeter = 800 * 10000 / (12 * 254); // FIXME
+
+	// Dot clock for square pixels in the PAL and NTSC systems.
+	const int PalSquareDotClock = 14750000;
+	const int NtscSquareDotClock = 12272727;
+
+	// http://www.atari.org.pl/forum/viewtopic.php?id=17147
+	const int PortfolioPixelsPerMeter = 240 * 1000 / 113;
+
+	/// Returns horizontal pixel density per meter or zero if unknown.
+	public int GetXPixelsPerMeter()
+	{
+		switch (Resolution) {
+		case RECOILResolution.AppleII1x1:
+			return NtscTvYPixelsPerMeter * 7 / 12;
+		case RECOILResolution.Xe1x1:
+		case RECOILResolution.Xe2x1:
+		case RECOILResolution.Xe4x1:
+		case RECOILResolution.Xe2x2:
+		case RECOILResolution.Xe4x2:
+		case RECOILResolution.Xe4x4:
+		case RECOILResolution.Xe8x8:
+			// http://virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf
+			return Ntsc ? NtscTvYPixelsPerMeter * (1789773 * 4 / 1000) / (NtscSquareDotClock / 1000)
+				: PalTvYPixelsPerMeter * (1773447 * 4 / 1000) / (PalSquareDotClock / 1000);
+		case RECOILResolution.Portfolio1x1:
+			return PortfolioPixelsPerMeter;
+		case RECOILResolution.Msx11x1:
+		case RECOILResolution.Msx14x4:
+		case RECOILResolution.Msx21x1:
+		case RECOILResolution.Msx22x1:
+		case RECOILResolution.Msx21x2:
+		case RECOILResolution.Msx2Plus1x1:
+		case RECOILResolution.Msx2Plus2x1:
+			return NtscTvYPixelsPerMeter * 7 / 8;
+		// TODO: other platforms
+		default:
+			return 0;
+		}
+	}
+
+	/// Returns vertical pixel density per meter or zero if unknown.
+	public int GetYPixelsPerMeter()
+	{
+		switch (Resolution) {
+		case RECOILResolution.AppleII1x1:
+			return NtscTvYPixelsPerMeter / 2;
+		case RECOILResolution.Xe1x1:
+		case RECOILResolution.Xe2x1:
+		case RECOILResolution.Xe4x1:
+		case RECOILResolution.Xe2x2:
+		case RECOILResolution.Xe4x2:
+		case RECOILResolution.Xe4x4:
+		case RECOILResolution.Xe8x8:
+			return Ntsc ? NtscTvYPixelsPerMeter / 2 : PalTvYPixelsPerMeter / 2;
+		case RECOILResolution.Portfolio1x1:
+			return PortfolioPixelsPerMeter;
+		case RECOILResolution.Msx11x1:
+		case RECOILResolution.Msx14x4:
+		case RECOILResolution.Msx21x1:
+		case RECOILResolution.Msx22x1:
+		case RECOILResolution.Msx21x2:
+		case RECOILResolution.Msx2Plus1x1:
+		case RECOILResolution.Msx2Plus2x1:
+			// TODO: separate non-interlaced, PAL
+			return NtscTvYPixelsPerMeter;
+		// TODO: other platforms
+		default:
+			return 0;
+		}
+	}
+
+	/// Returns horizontal pixel density per inch or zero if unknown.
+	public float GetXPixelsPerInch() => GetXPixelsPerMeter() * 0.0254;
+
+	/// Returns vertical pixel density per inch or zero if unknown.
+	public float GetYPixelsPerInch() => GetYPixelsPerMeter() * 0.0254;
+
+	/// Returns the number of alternating frames the pictures is composed of.
+	/// * 1 means the picture doesn't flicker.
+	/// * 2 means the picture is displayed by quickly alternating two sub-pictures.
+	/// * 3 means the picture is displayed by alternating three sub-pictures.
+	public int GetFrames() => Frames;
 
 	// One bit for each RGB value.
 	byte[256 * 256 * 256 / 8] ColorInUse;
