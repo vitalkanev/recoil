@@ -131,8 +131,8 @@ static void UpdateText(void)
 		_stprintf(buf, MAX_PATH + 64, _T("%s, %dx%d, %d color%s, %s%d%% zoom"),
 			RECOIL_GetPlatform(recoil),
 			RECOIL_GetOriginalWidth(recoil), RECOIL_GetOriginalHeight(recoil),
-			colors, colors == 1 ? _T("") : _T("s"),
-			frames == 2 ? _T("2 frames, ") : frames == 3 ? _T("3 frames, ") : _T(""),
+			colors, colors == 1 ? "" : "s",
+			frames == 2 ? "2 frames, " : frames == 3 ? "3 frames, " : "",
 			zoom);
 		SetWindowText(hStatus, buf);
 		SendMessage(hStatus, SB_SETTIPTEXT, 0, (LPARAM) buf);
