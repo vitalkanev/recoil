@@ -99,10 +99,11 @@ enum RECOILResolution
 	Msx11x1,
 	Msx14x4,
 	Msx21x1,
-	Msx22x1,
 	Msx21x2,
+	Msx21x1i,
+	Msx22x1i,
 	Msx2Plus1x1,
-	Msx2Plus2x1,
+	Msx2Plus2x1i,
 	Oric1x1,
 	Pc1x1,
 	Pc801x2,
@@ -4151,8 +4152,8 @@ public class RECOIL
 		switch (resolution) {
 		case RECOILResolution.Amiga2x1:
 		case RECOILResolution.Falcon2x1:
-		case RECOILResolution.Msx22x1:
-		case RECOILResolution.Msx2Plus2x1:
+		case RECOILResolution.Msx22x1i:
+		case RECOILResolution.Msx2Plus2x1i:
 			width <<= 1;
 			break;
 		case RECOILResolution.Amiga4x1:
@@ -4185,8 +4186,8 @@ public class RECOIL
 		case RECOILResolution.Amiga2x1:
 		case RECOILResolution.Tt2x1:
 		case RECOILResolution.Falcon2x1:
-		case RECOILResolution.Msx22x1:
-		case RECOILResolution.Msx2Plus2x1:
+		case RECOILResolution.Msx22x1i:
+		case RECOILResolution.Msx2Plus2x1i:
 			offset += x << 1;
 			Pixels[offset + 1] = Pixels[offset] = rgb;
 			break;
@@ -6327,9 +6328,9 @@ public class RECOIL
 	void DecodeMsxScreen!(byte[] content, int contentOffset, byte[] interlace, int height, int mode, int interlaceMask)
 	{
 		if (interlaceMask != 0) {
-			SetSize(512, height << 1, mode >= 10 ? RECOILResolution.Msx2Plus2x1 :
-				mode >> 1 == 3 ? RECOILResolution.Msx21x1 :
-				RECOILResolution.Msx22x1);
+			SetSize(512, height << 1, mode >= 10 ? RECOILResolution.Msx2Plus2x1i :
+				mode >> 1 == 3 ? RECOILResolution.Msx21x1i :
+				RECOILResolution.Msx22x1i);
 			Frames = 2;
 		}
 		else if (mode >> 1 == 3)
@@ -6529,7 +6530,7 @@ public class RECOIL
 		if (contentLength != 108544)
 			return false;
 		SetMsxCompanionPalette(filename, "PL7", "pl7");
-		SetSize(512, 424, RECOILResolution.Msx21x1);
+		SetSize(512, 424, RECOILResolution.Msx21x1i);
 		Frames = 2;
 		DecodeNibbles(content, 0, 256);
 		return true;
@@ -8251,13 +8252,13 @@ public class RECOIL
 				break;
 			case 0x10:
 			case 0x50:
-				resolution = RECOILResolution.Msx22x1;
+				resolution = RECOILResolution.Msx22x1i;
 				break;
 			case 0x20:
 			case 0x40:
 				if (colors == 16)
 					width >>= 1;
-				resolution = RECOILResolution.Msx2Plus2x1;
+				resolution = RECOILResolution.Msx2Plus2x1i;
 				break;
 			case 0x24:
 			case 0x44:
@@ -8267,7 +8268,7 @@ public class RECOIL
 				break;
 			case 0x60:
 				width = bytesPerLine << 2;
-				resolution = RECOILResolution.Msx21x1;
+				resolution = RECOILResolution.Msx21x1i;
 				break;
 			case 0x64:
 				width = bytesPerLine << 2;
@@ -18646,11 +18647,12 @@ public class RECOIL
 		case RECOILResolution.Msx14x4:
 			return "MSX";
 		case RECOILResolution.Msx21x1:
-		case RECOILResolution.Msx22x1:
 		case RECOILResolution.Msx21x2:
+		case RECOILResolution.Msx21x1i:
+		case RECOILResolution.Msx22x1i:
 			return "MSX2";
 		case RECOILResolution.Msx2Plus1x1:
-		case RECOILResolution.Msx2Plus2x1:
+		case RECOILResolution.Msx2Plus2x1i:
 			return "MSX2+";
 		case RECOILResolution.Oric1x1:
 			return "Oric";
@@ -18706,8 +18708,8 @@ public class RECOIL
 		case RECOILResolution.C162x1:
 		case RECOILResolution.C642x1:
 		case RECOILResolution.Coco2x2:
-		case RECOILResolution.Msx22x1:
-		case RECOILResolution.Msx2Plus2x1:
+		case RECOILResolution.Msx22x1i:
+		case RECOILResolution.Msx2Plus2x1i:
 			return Width >> 1;
 		case RECOILResolution.Amiga4x1:
 		case RECOILResolution.Msx14x4:
@@ -18775,6 +18777,7 @@ public class RECOIL
 	{
 		switch (Resolution) {
 		case RECOILResolution.AppleII1x1:
+			// https://pineight.com/mw/index.php?title=Dot_clock_rates
 			return NtscTvYPixelsPerMeter * 7 / 12;
 		case RECOILResolution.Xe1x1:
 		case RECOILResolution.Xe2x1:
@@ -18783,18 +18786,23 @@ public class RECOIL
 		case RECOILResolution.Xe4x2:
 		case RECOILResolution.Xe4x4:
 		case RECOILResolution.Xe8x8:
+			// https://pineight.com/mw/index.php?title=Dot_clock_rates
 			// http://virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf
-			return Ntsc ? NtscTvYPixelsPerMeter * (1789773 * 4 / 1000) / (NtscSquareDotClock / 1000)
+			return Ntsc ? NtscTvYPixelsPerMeter * 7 / 12
 				: PalTvYPixelsPerMeter * (1773447 * 4 / 1000) / (PalSquareDotClock / 1000);
 		case RECOILResolution.Portfolio1x1:
 			return PortfolioPixelsPerMeter;
 		case RECOILResolution.Msx11x1:
 		case RECOILResolution.Msx14x4:
 		case RECOILResolution.Msx21x1:
-		case RECOILResolution.Msx22x1:
-		case RECOILResolution.Msx21x2:
 		case RECOILResolution.Msx2Plus1x1:
-		case RECOILResolution.Msx2Plus2x1:
+			// https://pineight.com/mw/index.php?title=Dot_clock_rates
+			return NtscTvYPixelsPerMeter * 7 / 16;
+		case RECOILResolution.Msx21x2:
+		case RECOILResolution.Msx21x1i:
+		case RECOILResolution.Msx22x1i:
+		case RECOILResolution.Msx2Plus2x1i:
+			// https://pineight.com/mw/index.php?title=Dot_clock_rates
 			return NtscTvYPixelsPerMeter * 7 / 8;
 		// TODO: other platforms
 		default:
@@ -18821,11 +18829,13 @@ public class RECOIL
 		case RECOILResolution.Msx11x1:
 		case RECOILResolution.Msx14x4:
 		case RECOILResolution.Msx21x1:
-		case RECOILResolution.Msx22x1:
-		case RECOILResolution.Msx21x2:
 		case RECOILResolution.Msx2Plus1x1:
-		case RECOILResolution.Msx2Plus2x1:
-			// TODO: separate non-interlaced, PAL
+			// TODO: PAL?
+			return NtscTvYPixelsPerMeter / 2;
+		case RECOILResolution.Msx21x2:
+		case RECOILResolution.Msx21x1i:
+		case RECOILResolution.Msx22x1i:
+		case RECOILResolution.Msx2Plus2x1i:
 			return NtscTvYPixelsPerMeter;
 		// TODO: other platforms
 		default:
