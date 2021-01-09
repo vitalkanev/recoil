@@ -199,7 +199,7 @@
 		<format name="Larka Edytor Obiektów trybu $4+" colors="5"><ext>LEO</ext></format>
 		<format name="Technicolor Dream" width="80" height="119" colors="256">
 			<ext>LUM</ext>
-			<companionExt>COL</companionExt>
+			<companionExt optional="true">COL</companionExt>
 		</format>
 		<format width="56" height="60" colors="2"><ext>KFX</ext></format>
 		<format name="Envision"><ext>MAP</ext></format>
@@ -581,20 +581,20 @@
 	<platform name="MSX2" href="https://en.wikipedia.org/wiki/MSX">
 		<format name="Dot Designer's Club (DD-Graph)" maxWidth="256" maxHeight="212" colors="16">
 			<ext>CMP</ext>
-			<companionExt>PL5</companionExt>
+			<companionExt optional="true">PL5</companionExt>
 		</format>
 		<format name="Dynamic Publisher font" width="512" height="160" colors="2"><ext>FNT</ext></format>
 		<format colors="16">
 			<ext>GL5</ext>
-			<companionExt>PL5</companionExt>
+			<companionExt optional="true">PL5</companionExt>
 		</format>
 		<format colors="4">
 			<ext>GL6</ext>
-			<companionExt>PL6</companionExt>
+			<companionExt optional="true">PL6</companionExt>
 		</format>
 		<format colors="16">
 			<ext>GL7</ext>
-			<companionExt>PL7</companionExt>
+			<companionExt optional="true">PL7</companionExt>
 		</format>
 		<format colors="256"><ext>GL8</ext></format>
 		<format name="Maki-chan Graphics">
@@ -637,20 +637,20 @@
 		</format>
 		<format name="Graph Saurus" width="256" maxHeight="212" colors="16">
 			<ext>SR5</ext>
-			<companionExt>PL5</companionExt>
+			<companionExt optional="true">PL5</companionExt>
 		</format>
 		<format name="Graph Saurus" width="512" maxHeight="212" colors="4">
 			<ext>SR6</ext>
-			<companionExt>PL6</companionExt>
+			<companionExt optional="true">PL6</companionExt>
 		</format>
 		<format name="Graph Saurus" width="512" height="212" colors="16">
 			<ext>SR7</ext>
-			<companionExt>PL7</companionExt>
+			<companionExt optional="true">PL7</companionExt>
 		</format>
 		<format name="Graph Saurus" width="256" height="212" colors="256"><ext>SR8</ext></format>
 		<format name="Graph Saurus" width="512" height="424" colors="16" frames="2">
 			<ext>SRI</ext>
-			<companionExt>PL7</companionExt>
+			<companionExt optional="true">PL7</companionExt>
 		</format>
 		<format name="Dynamic Publisher stamp" colors="2"><ext>STP</ext></format>
 	</platform>
@@ -658,7 +658,7 @@
 		<format hardware="V9990 VDP" name="GFX9k" colors="32768"><ext>G9B</ext></format>
 		<format colors="12515">
 			<ext>GLA</ext>
-			<companionExt>PLA</companionExt>
+			<companionExt optional="true">PLA</companionExt>
 		</format>
 		<format colors="19268">
 			<ext>GLC</ext>
