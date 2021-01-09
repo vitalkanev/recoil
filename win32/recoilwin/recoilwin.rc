@@ -1,7 +1,7 @@
 /*
  * recoilwin.rc - RECOILWin GUI definition
  *
- * Copyright (C) 2009-2020  Piotr Fusik
+ * Copyright (C) 2009-2021  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -42,9 +42,6 @@ IDR_MENU MENU
 		MENUITEM SEPARATOR
 		MENUITEM "&Save as...\tS", IDM_SAVEAS, GRAYED
 		MENUITEM SEPARATOR
-		MENUITEM "&Load Atari 8-bit palette...\tP", IDM_LOADPALETTE
-		MENUITEM "Use Atari 8-bit palette file", IDM_USEPALETTE, GRAYED
-		MENUITEM SEPARATOR
 		MENUITEM "&Exit\tEsc", IDM_EXIT
 	}
 	POPUP "&Edit"
@@ -67,6 +64,14 @@ IDR_MENU MENU
 		MENUITEM "&900% zoom\t9", IDM_ZOOM9, GRAYED
 		MENUITEM SEPARATOR
 		MENUITEM "&Invert black and white\tI", IDM_INVERT, GRAYED
+		MENUITEM SEPARATOR
+		POPUP "&Video standard"
+		{
+			MENUITEM "&PAL", IDM_PAL
+			MENUITEM "&NTSC", IDM_NTSC
+		}
+		MENUITEM "&Load Atari 8-bit palette...\tP", IDM_LOADPALETTE
+		MENUITEM "Use Atari 8-bit palette file", IDM_USEPALETTE, GRAYED
 		MENUITEM SEPARATOR
 		MENUITEM "Show file &path", IDM_SHOWPATH
 		MENUITEM "&Status bar", IDM_STATUSBAR, CHECKED

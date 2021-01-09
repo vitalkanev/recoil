@@ -1,7 +1,7 @@
 /*
  * recoilwin.h - RECOILWin GUI declarations
  *
- * Copyright (C) 2009-2020  Piotr Fusik
+ * Copyright (C) 2009-2021  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -30,24 +30,26 @@
 #define IDM_LASTFILE     205
 #define IDM_SKIPFILES    206
 #define IDM_SAVEAS       207
-#define IDM_LOADPALETTE  208
-#define IDM_USEPALETTE   209
-#define IDM_EXIT         210
-#define IDM_COPY         211
-#define IDM_FULLSCREEN   212
-#define IDM_ZOOMIN       213
-#define IDM_ZOOMOUT      214
-#define IDM_ZOOM1        215
-#define IDM_ZOOM2        216
-#define IDM_ZOOM3        217
-#define IDM_ZOOM4        218
-#define IDM_ZOOM5        219
-#define IDM_ZOOM6        220
-#define IDM_ZOOM7        221
-#define IDM_ZOOM8        222
-#define IDM_ZOOM9        223
-#define IDM_INVERT       224
-#define IDM_SHOWPATH     225
-#define IDM_STATUSBAR    226
-#define IDM_ABOUT        227
+#define IDM_EXIT         208
+#define IDM_COPY         209
+#define IDM_FULLSCREEN   210
+#define IDM_ZOOMIN       211
+#define IDM_ZOOMOUT      212
+#define IDM_ZOOM1        213
+#define IDM_ZOOM2        214
+#define IDM_ZOOM3        215
+#define IDM_ZOOM4        216
+#define IDM_ZOOM5        217
+#define IDM_ZOOM6        218
+#define IDM_ZOOM7        219
+#define IDM_ZOOM8        220
+#define IDM_ZOOM9        221
+#define IDM_INVERT       222
+#define IDM_PAL          223
+#define IDM_NTSC         224
+#define IDM_LOADPALETTE  225
+#define IDM_USEPALETTE   226
+#define IDM_SHOWPATH     227
+#define IDM_STATUSBAR    228
+#define IDM_ABOUT        229
 #define IDR_ACCELERATORS 300

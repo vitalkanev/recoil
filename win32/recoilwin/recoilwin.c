@@ -353,7 +353,7 @@ static bool OpenImage(bool show_error)
 	}
 	int width = RECOIL_GetWidth(recoil);
 	int height = RECOIL_GetHeight(recoil);
-	const int *palette = RECOIL_ToPalette(recoil, bitmap.pixels + RECOIL_MAX_PIXELS_LENGTH); /* an area we won't need later */
+	const int *palette = RECOIL_ToPalette(recoil, bitmap.pixels + RECOIL_MAX_PIXELS_LENGTH); // an area we won't need later
 	int colors = RECOIL_GetColors(recoil);
 	SetMenuEnabled(IDM_INVERT, colors == 2);
 
@@ -467,7 +467,7 @@ static void OpenSiblingImage(int dir)
 		if (skip_files) {
 			if (OpenImage(false))
 				return;
-			/* first->next, last->prev */
+			// first->next, last->prev
 			if ((dir & 1) == 0)
 				dir >>= 1;
 		}
@@ -515,6 +515,14 @@ static void SelectAndSaveImage(void)
 	}
 	if (fullscreen)
 		ShowCursor(FALSE);
+}
+
+static void SetNtsc(bool ntsc)
+{
+	RECOIL_SetNtsc(recoil, ntsc);
+	CheckMenuRadioItem(hMenu, IDM_PAL, IDM_NTSC, ntsc ? IDM_NTSC : IDM_PAL, MF_BYCOMMAND);
+	if (image_loaded)
+		OpenImage(true);
 }
 
 static bool OpenPalette(LPCTSTR filename)
@@ -639,13 +647,6 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 		case IDM_SAVEAS:
 			SelectAndSaveImage();
 			break;
-		case IDM_LOADPALETTE:
-			SelectAndOpenPalette();
-			break;
-		case IDM_USEPALETTE:
-			RECOIL_SetAtari8Palette(recoil, NULL);
-			UseExternalPalette(false);
-			break;
 		case IDM_EXIT:
 			PostQuitMessage(0);
 			break;
@@ -704,6 +705,19 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 				Repaint(true);
 			}
 			break;
+		case IDM_PAL:
+			SetNtsc(false);
+			break;
+		case IDM_NTSC:
+			SetNtsc(true);
+			break;
+		case IDM_LOADPALETTE:
+			SelectAndOpenPalette();
+			break;
+		case IDM_USEPALETTE:
+			RECOIL_SetAtari8Palette(recoil, NULL);
+			UseExternalPalette(false);
+			break;
 		case IDM_SHOWPATH:
 			show_path = !show_path;
 			SetMenuCheck(IDM_SHOWPATH, show_path);
@@ -737,7 +751,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 	case WM_DROPFILES:
 		{
 			HDROP hDrop = (HDROP) wParam;
-			/* when dragging many files, get just the first filename */
+			// when dragging many files, get just the first filename
 			DragQueryFile(hDrop, 0, image_filename, MAX_PATH);
 			DragFinish(hDrop);
 			OpenImage(true);
@@ -757,14 +771,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
 	hWnd = FindWindow(WND_CLASS_NAME, NULL);
 	if (hWnd != NULL) {
-		/* an instance of RECOILWin is already running */
+		// an instance of RECOILWin is already running
 		if (filename != NULL) {
-			/* pass the filename */
+			// pass the filename
 			COPYDATASTRUCT cds = { 'O', ((DWORD) wcslen(filename) + 1) * sizeof(WCHAR), filename };
 			SendMessage(hWnd, WM_COPYDATA, (WPARAM) NULL, (LPARAM) &cds);
 		}
 		else {
-			/* bring the open dialog to top */
+			// bring the open dialog to top
 			HWND hChild = GetLastActivePopup(hWnd);
 			if (hChild != hWnd)
 				SetForegroundWindow(hChild);

@@ -1,7 +1,7 @@
 /*
  * recoil2png.c - command-line converter of retro computer pictures to the PNG format
  *
- * Copyright (C) 2009-2020  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2021  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -35,6 +35,8 @@ static void print_help(void)
 		"Usage: recoil2png [OPTIONS] INPUTFILE...\n"
 		"Options:\n"
 		"-o FILE  --output=FILE   Set output file name\n"
+		"         --pal           Emulate PAL video standard if applicable (default)\n"
+		"         --ntsc          Emulate NTSC video standard if applicable\n"
 		"-p FILE  --palette=FILE  Load Atari 8-bit palette (768 bytes)\n"
 		"-h       --help          Display this information\n"
 		"-v       --version       Display version information\n"
@@ -121,6 +123,10 @@ int main(int argc, char **argv)
 			output_file = argv[++i];
 		else if (strncmp(arg, "--output=", 9) == 0)
 			output_file = arg + 9;
+		else if (strcmp(arg, "--pal") == 0)
+			RECOIL_SetNtsc(recoil, false);
+		else if (strcmp(arg, "--ntsc") == 0)
+			RECOIL_SetNtsc(recoil, true);
 		else if (arg[1] == 'p' && arg[2] == '\0' && i + 1 < argc) {
 			if (!load_palette(recoil, argv[++i]))
 				return 1;

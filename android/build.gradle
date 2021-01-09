@@ -61,7 +61,7 @@ task generateStoreGfx(type:Exec) {
     commandLine 'magick', inputs.files.asPath, '-crop', '334x163+89+140', '-sample', '1024x500', '-quality', '95', '-strip', outputs.files.asPath
 }
 
-final CITO_RESOURCES = [ 'atari8.fnt', 'altirrapal.pal', 'c16.pal', 'c64.fnt', 'zx81.fnt' ]
+final CITO_RESOURCES = [ 'altirrantsc.pal', 'altirrapal.pal', 'atari8.fnt', 'c16.pal', 'c64.fnt', 'zx81.fnt' ]
 final CITO_JAVA_DIR = file 'build/generated/source/cito/net/sf/recoil'
 task cito(type:Exec) {
     inputs.files '../recoil.ci', CITO_RESOURCES.collect { '../' + it }

@@ -1,7 +1,7 @@
 VERSION = 5.1.1
 SEVENZIP = 7z a -mx=9 -bd -bso0
 
-RESOURCES := ../atari8.fnt ../altirrapal.pal ../c16.pal ../c64.fnt ../zx81.fnt
+RESOURCES := ../altirrantsc.pal ../altirrapal.pal ../atari8.fnt ../c16.pal ../c64.fnt ../zx81.fnt
 
 all: recoil-$(VERSION)-java.jar recoil-$(VERSION)-javadoc.zip
 
