@@ -6746,8 +6746,8 @@ public class RECOIL
 		}
 		if (stream.ContentOffset != stream.ContentLength)
 			return false;
+		SetMsxCompanionPalette(filename, "PL5", "pl5");
 		SetSize(width << 1, height, RECOILResolution.Msx21x1);
-		SetMsxPalette(Msx2DefaultPalette, 0, 16);
 		DecodeNibbles(unpacked, 0, width);
 		return true;
 	}
