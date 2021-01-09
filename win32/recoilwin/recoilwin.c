@@ -812,6 +812,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		NULL, NULL, hInstance, NULL
 	);
 	hMenu = GetMenu(hWnd);
+	CheckMenuRadioItem(hMenu, IDM_PAL, IDM_NTSC, IDM_PAL, MF_BYCOMMAND);
 
 	hStatus = CreateWindow(STATUSCLASSNAME, NULL,
 		WS_VISIBLE | WS_CHILD | SBT_TOOLTIPS,
