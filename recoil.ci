@@ -2904,6 +2904,15 @@ class ZimStream : Stream
 	byte[1] Flags1;
 	internal byte[8] Flags2;
 
+	internal int ReadWord!()
+	{
+		if (ContentOffset + 1 >= ContentLength)
+			return -1;
+		int result = Content[ContentOffset] | Content[ContentOffset + 1] << 8;
+		ContentOffset += 2;
+		return result;
+	}
+
 	internal int ReadUnpacked!(byte[] flags, int unpackedOffset) => (flags[unpackedOffset >> 3] >> (~unpackedOffset & 7) & 1) != 0 ? ReadByte() : 0;
 
 	internal bool Unpack!(byte[] flags, byte[]! unpacked, int unpackedLength)
@@ -7969,17 +7978,6 @@ public class RECOIL
 		return true;
 	}
 
-	static int UnpackZim(byte[] content, int contentOffset, int end, byte[] flags, byte[]! unpacked, int unpackedLength)
-	{
-		for (int unpackedOffset = 0; unpackedOffset < unpackedLength; unpackedOffset++) {
-			if (contentOffset < end && (flags[unpackedOffset >> 3] >> (~unpackedOffset & 7) & 1) != 0)
-				unpacked[unpackedOffset] = content[contentOffset++];
-			else
-				unpacked[unpackedOffset] = 0;
-		}
-		return contentOffset;
-	}
-
 	bool DecodeZim!(byte[] content, int contentLength)
 	{
 		if (contentLength < 700 || !IsStringAt(content, 0, "FORMAT-A"))
@@ -8011,38 +8009,46 @@ public class RECOIL
 		int pixelsLength = width * height;
 		for (int pixelsOffset = 0; pixelsOffset < pixelsLength; pixelsOffset++)
 			Pixels[pixelsOffset] = ContentPalette[0];
-		byte[1] h1;
-		byte[8] h2;
-		byte[64] h3;
+		byte[64] flags3;
 		byte[512] data;
-		contentOffset += 2 + ((content[contentOffset] | content[contentOffset + 1] << 8) << 1);
-		while (contentOffset + 1 < contentLength) {
-			int dot = content[contentOffset] | content[contentOffset + 1] << 8;
-			if (dot == 0)
+		ZimStream() stream;
+		stream.Content = content;
+		stream.ContentOffset = contentOffset;
+		stream.ContentLength = contentLength;
+		int skip = stream.ReadWord();
+		stream.ContentOffset += skip << 1;
+		for (;;) {
+			int dot = stream.ReadWord();
+			switch (dot) {
+			case -1:
+				return false;
+			case 0:
 				return true;
-			if (contentOffset + 10 >= contentLength)
+			default:
+				break;
+			}
+			int x = stream.ReadWord();
+			if (x < 0 || x >= width)
 				return false;
-			int x = content[contentOffset + 2] | content[contentOffset + 3] << 8;
-			if (x >= width)
+			int y = stream.ReadWord();
+			if (y < 0 || y >= height)
 				return false;
-			int y = content[contentOffset + 4] | content[contentOffset + 5] << 8;
-			if (y >= height)
+			int len = stream.ReadWord();
+			if (len < 0)
 				return false;
-			int len = content[contentOffset + 6] | content[contentOffset + 7] << 8;
-			int end = contentOffset + 8 + len;
-			if (end >= contentLength)
+			stream.ContentLength = stream.ContentOffset + len;
+			if (stream.ContentLength >= contentLength)
 				return false;
-			int size = content[contentOffset + 8] | content[contentOffset + 9] << 8;
+			int size = stream.ReadWord();
 			if (size > 512 || (size & 3) != 0 || size << 1 < dot)
 				return false;
 			int pixelsOffset = y * width + x;
 			if (pixelsOffset + dot > pixelsLength)
 				return false;
-			h1[0] = content[contentOffset + 10];
-			contentOffset += 11;
-			contentOffset = UnpackZim(content, contentOffset, end, h1, h2, 8);
-			contentOffset = UnpackZim(content, contentOffset, end, h2, h3, 64);
-			contentOffset = UnpackZim(content, contentOffset, end, h3, data, size);
+			stream.UnpackFlags2();
+			stream.Unpack(stream.Flags2, flags3, 64);
+			stream.Unpack(flags3, data, size);
+			stream.ContentLength = contentLength;
 			for (int i = 1; i < size; i++)
 				data[i] ^= data[i - 1];
 			for (int i = 2; i < size; i++)
@@ -8057,7 +8063,6 @@ public class RECOIL
 				Pixels[pixelsOffset + i] = ContentPalette[c];
 			}
 		}
-		return false;
 	}
 
 	bool DecodeQ4!(byte[] content, int contentLength)
