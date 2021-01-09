@@ -2899,6 +2899,37 @@ class A4rStream : Stream
 	}
 }
 
+class ZimStream : Stream
+{
+	byte[1] Flags1;
+	internal byte[8] Flags2;
+
+	internal int ReadUnpacked!(byte[] flags, int unpackedOffset) => (flags[unpackedOffset >> 3] >> (~unpackedOffset & 7) & 1) != 0 ? ReadByte() : 0;
+
+	internal bool Unpack!(byte[] flags, byte[]! unpacked, int unpackedLength)
+	{
+		bool enough = true;
+		for (int unpackedOffset = 0; unpackedOffset < unpackedLength; unpackedOffset++) {
+			int b = ReadUnpacked(flags, unpackedOffset);
+			if (b < 0) {
+				enough = false;
+				b = 0;
+			}
+			unpacked[unpackedOffset] = b;
+		}
+		return enough;
+	}
+
+	internal bool UnpackFlags2!()
+	{
+		int b = ReadByte();
+		if (b < 0)
+			return false;
+		Flags1[0] = b;
+		return Unpack(Flags1, Flags2, 8);
+	}
+}
+
 class FanoTree
 {
 	/// Count[n] == number of codes of bit length n.
@@ -6669,6 +6700,49 @@ public class RECOIL
 		return true;
 	}
 
+	bool DecodeDdGraph!(byte[] content, int contentLength)
+	{
+		if (contentLength < 4)
+			return false;
+		int width = content[0];
+		if (width == 0 || width > 128)
+			return false;
+		int height = content[1];
+		if (height == 0 || height > 212)
+			return false;
+		int verbatimLines = content[2];
+		if (verbatimLines == 0 || verbatimLines > height)
+			return false;
+		ZimStream() stream;
+		stream.Content = content;
+		stream.ContentOffset = 3;
+		stream.ContentLength = contentLength;
+		int flagsOffset = 64;
+		byte[212 * 128] unpacked;
+		int unpackedOffset = 0;
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				if (flagsOffset >= 64) {
+					if (!stream.UnpackFlags2())
+						return false;
+					flagsOffset = 0;
+				}
+				int b = stream.ReadUnpacked(stream.Flags2, flagsOffset++);
+				if (b < 0)
+					return false;
+				if (y >= verbatimLines)
+					b ^= unpacked[unpackedOffset - width];
+				unpacked[unpackedOffset++] = b;
+			}
+		}
+		if (stream.ContentOffset != stream.ContentLength)
+			return false;
+		SetSize(width << 1, height, RECOILResolution.Msx21x1);
+		SetMsxPalette(Msx2DefaultPalette, 0, 16);
+		DecodeNibbles(unpacked, 0, width);
+		return true;
+	}
+
 	int DecodeMsxYjk(byte[] content, int contentOffset, int x, bool usePalette)
 	{
 		int y = content[contentOffset + x] >> 3;
@@ -9436,7 +9510,7 @@ public class RECOIL
 		return DecodeBlackAndWhite(content, 0, contentLength, false, 0xffffff);
 	}
 
-	bool DecodeCmp!(byte[] content, int contentLength)
+	bool DecodeStCmp!(byte[] content, int contentLength)
 	{
 		if (contentLength < 5)
 			return false;
@@ -17870,7 +17944,8 @@ public class RECOIL
 		case PackExt("CM5"):
 			return DecodeCm5(filename, content, contentLength);
 		case PackExt("CMP"):
-			return DecodeCmp(content, contentLength);
+			return DecodeDdGraph(content, contentLength)
+				|| DecodeStCmp(content, contentLength);
 		case PackExt("CP3"):
 			return DecodeCp3(content, contentLength);
 		case PackExt("CPI"):

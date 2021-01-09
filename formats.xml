@@ -579,6 +579,7 @@
 		<format name="Screen 3" width="64" height="48" colors="15"><ext>SC3</ext></format>
 	</platform>
 	<platform name="MSX2" href="https://en.wikipedia.org/wiki/MSX">
+		<format name="Dot designer's Club (DD-Graph)" maxWidth="256" maxHeight="212" colors="16"><ext>CMP</ext></format>
 		<format name="Dynamic Publisher font" width="512" height="160" colors="2"><ext>FNT</ext></format>
 		<format colors="16">
 			<ext>GL5</ext>
