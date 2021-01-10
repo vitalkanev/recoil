@@ -2,7 +2,7 @@ VERSION = 6.0.0
 
 CC = gcc
 # As of Xcode 4.6.3, -O2 allocates a 2.5MB of stack for RECOIL_Decode, which causes non-deterministic bus errors :(
-CFLAGS = -O1 -Wall -mmacosx-version-min=10.6
+CFLAGS = -O1 -Wall -mmacosx-version-min=10.6 -arch x86_64 -arch arm64
 QLRECOIL = bin/RECOIL.qlgenerator/Contents/MacOS/qlrecoil 
 PLIST = bin/RECOIL.qlgenerator/Contents/Info.plist
 QLCODESIGN = bin/RECOIL.qlgenerator/Contents/_CodeSignature/CodeResources
