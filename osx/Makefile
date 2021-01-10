@@ -40,6 +40,9 @@ bin/bin:
 
 bin/recoil2png: ../recoil2png.c ../pngsave.c ../pngsave.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
 	mkdir -p $(@D) && $(CC) $(CFLAGS) -o $@ -I .. ../recoil2png.c ../pngsave.c ../recoil-stdio.c ../recoil.c /usr/local/lib/libpng.a -lz
+ifdef RECOIL_CODESIGNING_IDENTITY
+	codesign -f -s "$(RECOIL_CODESIGNING_IDENTITY)" bin/recoil2png
+endif
 
 %.c %.h: %.ci ../altirrantsc.pal ../altirrapal.pal ../atari8.fnt ../c16.pal ../c64.fnt ../zx81.fnt
 	cito -o $*.c -I .. $<
