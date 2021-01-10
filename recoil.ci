@@ -4094,9 +4094,6 @@ public class RECOIL
 	/// The decoder can be used for several images, one after another.
 	public RECOIL()
 	{
-		Ntsc = true;
-		SetAtari8Palette(null);
-		Ntsc = false;
 		SetAtari8Palette(null);
 	}
 
@@ -4123,7 +4120,7 @@ public class RECOIL
 	int Frames;
 
 	/// `true` if NTSC is preferred over PAL.
-	bool Ntsc;
+	bool Ntsc = false;
 
 	int LeftSkip;
 
@@ -4136,6 +4133,7 @@ public class RECOIL
 		bool ntsc)
 	{
 		Ntsc = ntsc;
+		SetAtari8Palette(null);
 	}
 
 	/// Returns `true` if NTSC video standard is selected.
@@ -12927,7 +12925,7 @@ public class RECOIL
 
 	// Atari 8-bit formats.
 
-	int[2 * 256] Atari8Palette;
+	int[256] Atari8Palette;
 
 	/// Sets Atari 8-bit palette.
 	public void SetAtari8Palette!(
@@ -12937,7 +12935,7 @@ public class RECOIL
 	{
 		if (content == null)
 			content = Ntsc ? resource<byte[]>("altirrantsc.pal") : resource<byte[]>("altirrapal.pal");
-		DecodeR8G8B8Colors(content, 0, 256, Atari8Palette, Ntsc ? 256 : 0);
+		DecodeR8G8B8Colors(content, 0, 256, Atari8Palette, 0);
 	}
 
 	static int ParseAtari8ExecutableHeader(byte[] content, int contentOffset)
@@ -13279,20 +13277,18 @@ public class RECOIL
 	bool ApplyAtari8Palette!(byte[] frame)
 	{
 		int pixelsLength = Width * Height;
-		int paletteOffset = Ntsc ? 256 : 0;
 		for (int i = 0; i < pixelsLength; i++)
-			Pixels[i] = Atari8Palette[paletteOffset + frame[i]];
+			Pixels[i] = Atari8Palette[frame[i]];
 		return true;
 	}
 
 	bool ApplyAtari8PaletteBlend!(byte[] frame1, byte[] frame2)
 	{
 		int pixelsLength = Width * Height;
-		int paletteOffset = Ntsc ? 256 : 0;
 		Frames = 2;
 		for (int i = 0; i < pixelsLength; i++) {
-			int rgb1 = Atari8Palette[paletteOffset + frame1[i]];
-			int rgb2 = Atari8Palette[paletteOffset + frame2[i]];
+			int rgb1 = Atari8Palette[frame1[i]];
+			int rgb2 = Atari8Palette[frame2[i]];
 			// This clever formula just computes the byte-by-byte averages.
 			Pixels[i] = (rgb1 & rgb2) + ((rgb1 ^ rgb2) >> 1 & 0x7f7f7f);
 		}
@@ -13302,12 +13298,11 @@ public class RECOIL
 	bool ApplyAtari8PaletteBlend3!(byte[] frame1, byte[] frame2, byte[] frame3)
 	{
 		int pixelsLength = Width * Height;
-		int paletteOffset = Ntsc ? 256 : 0;
 		Frames = 3;
 		for (int i = 0; i < pixelsLength; i++) {
-			int rgb1 = Atari8Palette[paletteOffset + frame1[i]];
-			int rgb2 = Atari8Palette[paletteOffset + frame2[i]];
-			int rgb3 = Atari8Palette[paletteOffset + frame3[i]];
+			int rgb1 = Atari8Palette[frame1[i]];
+			int rgb2 = Atari8Palette[frame2[i]];
+			int rgb3 = Atari8Palette[frame3[i]];
 			Pixels[i] = ((rgb1 >> 16) + (rgb2 >> 16) + (rgb3 >> 16)) / 3 << 16
 				| ((rgb1 >> 8 & 0xff) + (rgb2 >> 8 & 0xff) + (rgb3 >> 8 & 0xff)) / 3 << 8
 				| ((rgb1 & 0xff) + (rgb2 & 0xff) + (rgb3 & 0xff)) / 3;
