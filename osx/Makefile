@@ -39,7 +39,7 @@ bin/bin:
 	mkdir -p $(@D) && ln -s /usr/local/bin $@
 
 bin/recoil2png: ../recoil2png.c ../pngsave.c ../pngsave.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
-	mkdir -p $(@D) && $(CC) $(CFLAGS) -o $@ -I .. ../recoil2png.c ../pngsave.c ../recoil-stdio.c ../recoil.c /usr/local/lib/libpng.a -lz
+	mkdir -p $(@D) && $(CC) $(CFLAGS) -o $@ -I .. -I /usr/local/include ../recoil2png.c ../pngsave.c ../recoil-stdio.c ../recoil.c /usr/local/lib/libpng.a -lz
 ifdef RECOIL_CODESIGNING_IDENTITY
 	codesign --options runtime -f -s "$(RECOIL_CODESIGNING_IDENTITY)" bin/recoil2png
 endif
