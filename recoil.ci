@@ -215,22 +215,34 @@ class Stream
 		return -1;
 	}
 
+	/// Reads an integer in range `0`..`maxValue`
+	/// in base `b`.
+	/// Returns -1 on error.
+	protected int ParseInt!(int b, int maxValue)
+	{
+		int r = ReadHexDigit();
+		if (r < 0 || r >= b)
+			return -1;
+		do {
+			int d = ReadHexDigit();
+			if (d < 0)
+				return r;
+			if (d >= b)
+				return -1;
+			r = r * b + d;
+		} while (r <= maxValue);
+		return -1;
+	}
+
 	/// Reads a decimal integer in range 0-32000
 	/// stored as ASCII digits followed by CRLF.
 	/// Returns -1 on error.
-	internal int ParseInt!()
+	internal int ParseDaliInt!()
 	{
-		for (int r = 0; ;) {
-			int c = ReadByte();
-			if (c < '0' || c > '9') {
-				if (c != '\r' || ReadByte() != '\n')
-					return -1;
-				return r;
-			}
-			if (r > 3200)
-				return -1;
-			r = r * 10 + c - '0';
-		}
+		int r = ParseInt(10, 32000);
+		if (r < 0 || ReadByte() != '\r' || ReadByte() != '\n')
+			return -1;
+		return r;
 	}
 }
 
@@ -308,30 +320,11 @@ class SprStream : Stream
 	const int Width = 320;
 	const int Height = 200;
 
-	/// Reads an integer in range 0 - Width-1
-	/// in base `b`.
-	/// returns -1 on error.
-	int ReadBase!(int b)
-	{
-		int r = ReadHexDigit();
-		if (r < 0 || r >= b)
-			return -1;
-		do {
-			int d = ReadHexDigit();
-			if (d < 0)
-				return r;
-			if (d >= b)
-				return -1;
-			r = r * b + d;
-		} while (r < Width);
-		return -1;
-	}
-
 	/// Reads a decimal, hexadecimal (with `$` prefix)
 	/// or binary (with `%` prefix) integer.
 	/// Skips leading whitespace.
 	/// Returns -1 on error.
-	internal int ReadInt!()
+	internal int ReadSprInt!()
 	{
 		while (ContentOffset < ContentLength) {
 			int c = Content[ContentOffset];
@@ -344,12 +337,12 @@ class SprStream : Stream
 				break;
 			case '$':
 				ContentOffset++;
-				return ReadBase(16);
+				return ParseInt(16, Width - 1);
 			case '%':
 				ContentOffset++;
-				return ReadBase(2);
+				return ParseInt(2, Width - 1);
 			default:
-				return ReadBase(10);
+				return ParseInt(10, Width - 1);
 			}
 		}
 		return -1;
@@ -3138,15 +3131,7 @@ class IcnParser : Stream
 	{
 		if (!Expect("0x"))
 			return -1;
-		int r = 0;
-		for (;;) {
-			int d = ReadHexDigit();
-			if (d < 0)
-				return r;
-			if (r >> 12 != 0)
-				return -1; // 16-bit overflow
-			r = r << 4 | d;
-		}
+		return ParseInt(16, 0xffff);
 	}
 
 	internal int ParseDefine!(string s)
@@ -7215,19 +7200,19 @@ public class RECOIL
 		s.ContentOffset = 0;
 		s.ContentLength = contentLength;
 		for (;;) {
-			int cols = s.ReadInt();
+			int cols = s.ReadSprInt();
 			if (cols < 0)
 				return false;
-			int rows = s.ReadInt();
+			int rows = s.ReadSprInt();
 			if (rows < 0)
 				return false;
-			int order = s.ReadInt();
+			int order = s.ReadSprInt();
 			if (order < 0)
 				return false;
-			int x = s.ReadInt();
+			int x = s.ReadSprInt();
 			if (x < 0)
 				return false;
-			int y = s.ReadInt();
+			int y = s.ReadSprInt();
 			if (y < 0)
 				return false;
 			if (rows == 0)
@@ -7237,7 +7222,7 @@ public class RECOIL
 			if (order == 2) {
 				for (int col = 0; col < cols; col++) {
 					for (int row = 0; row < rows; row++) {
-						int b = s.ReadInt();
+						int b = s.ReadSprInt();
 						if (b < 0)
 							return false;
 						DrawSprByte(x + (col << 3), y + row, b);
@@ -7247,7 +7232,7 @@ public class RECOIL
 			else {
 				for (int row = 0; row < rows; row++) {
 					for (int col = 0; col < cols; col++) {
-						int b = s.ReadInt();
+						int b = s.ReadSprInt();
 						if (b < 0)
 							return false;
 						DrawSprByte(x + (col << 3), y + row, b);
@@ -10211,8 +10196,8 @@ public class RECOIL
 		stream.Content = content;
 		stream.ContentOffset = 32;
 		stream.ContentLength = contentLength;
-		int countLength = stream.ParseInt();
-		return countLength > 0 && stream.ParseInt() > 0
+		int countLength = stream.ParseDaliInt();
+		return countLength > 0 && stream.ParseDaliInt() > 0
 			&& stream.Decode(countLength, this, 0, mode);
 	}
 
@@ -10224,7 +10209,7 @@ public class RECOIL
 		stream.Content = content;
 		stream.ContentOffset = 12;
 		stream.ContentLength = contentLength;
-		int countLength = stream.ParseInt();
+		int countLength = stream.ParseDaliInt();
 		int paletteOffset = stream.ContentOffset;
 		stream.ContentOffset = paletteOffset + 32;
 		return stream.Decode(countLength, this, paletteOffset, 0);
@@ -10665,7 +10650,7 @@ public class RECOIL
 		rle.Content = content;
 		rle.ContentOffset = 0;
 		rle.ContentLength = contentLength;
-		int compressedLength = rle.ParseInt();
+		int compressedLength = rle.ParseDaliInt();
 		if (compressedLength < 0)
 			return false;
 		int paletteOffset = rle.ContentOffset;
@@ -10678,7 +10663,7 @@ public class RECOIL
 			return false;
 
 		rle.ContentLength = contentLength;
-		compressedLength = rle.ParseInt();
+		compressedLength = rle.ParseDaliInt();
 		if (compressedLength < 0 || rle.ContentOffset + compressedLength != contentLength)
 			return false;
 		rle.ContentLength = contentLength;
