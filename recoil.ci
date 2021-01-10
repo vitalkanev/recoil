@@ -6709,7 +6709,7 @@ public class RECOIL
 		return true;
 	}
 
-	bool DecodeDdGraph!(byte[] content, int contentLength)
+	bool DecodeDdGraph!(string filename, byte[] content, int contentLength)
 	{
 		if (contentLength < 4)
 			return false;
@@ -17949,7 +17949,7 @@ public class RECOIL
 		case PackExt("CM5"):
 			return DecodeCm5(filename, content, contentLength);
 		case PackExt("CMP"):
-			return DecodeDdGraph(content, contentLength)
+			return DecodeDdGraph(filename, content, contentLength)
 				|| DecodeStCmp(content, contentLength);
 		case PackExt("CP3"):
 			return DecodeCp3(content, contentLength);
