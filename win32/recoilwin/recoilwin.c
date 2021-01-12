@@ -527,47 +527,48 @@ static void SetNtsc(bool ntsc)
 
 static bool OpenPalette(LPCTSTR filename)
 {
-	BYTE atari8_palette[768 + 1];
-	int atari8_palette_len = RECOILWin32_SlurpFile(filename, atari8_palette, sizeof(atari8_palette));
-	if (atari8_palette_len < 0) {
+	BYTE content[RECOIL_MAX_PLATFORM_PALETTE_CONTENT_LENGTH];
+	int content_len = RECOILWin32_SlurpFile(filename, content, sizeof(content));
+	if (content_len < 0) {
 		ShowError("Cannot open file");
 		return false;
 	}
-	if (atari8_palette_len != 768) {
-		ShowError("Invalid file length - must be 768 bytes");
+	bool ok;
+#ifdef UNICODE
+	char utf8Filename[4096];
+	if (WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, filename, -1, utf8Filename, sizeof(utf8Filename), NULL, NULL) <= 0)
+		return false;
+	ok = RECOIL_SetPlatformPalette(recoil, utf8Filename, content, content_len);
+#else
+	ok = RECOIL_SetPlatformPalette(recoil, filename, content, content_len);
+#endif
+	if (!ok) {
+		ShowError("Invalid palette file");
 		return false;
 	}
-	RECOIL_SetAtari8Palette(recoil, atari8_palette);
 	return true;
-}
-
-static void UseExternalPalette(bool act)
-{
-	SetMenuEnabled(IDM_USEPALETTE, act);
-	SetMenuCheck(IDM_USEPALETTE, act);
-	if (image_loaded)
-		OpenImage(true);
 }
 
 static void SelectAndOpenPalette(void)
 {
-	static _TCHAR act_filename[MAX_PATH] = _T("");
+	static _TCHAR palette_filename[MAX_PATH] = _T("");
 	static OPENFILENAME ofn = {
 		sizeof(OPENFILENAME),
 		NULL,
 		0,
-		_T("Palette files (*.act;*.pal)\0"
-		"*.act;*pal\0"
+		_T("All palette files (*.act;*.pal;*.vpl)\0*.act;*pal;*.vpl\0"
+		"Atari 8-bit palettes (*.act;*.pal)\0*.act;*pal\0"
+		"C64 palettes (*.vpl)\0*.vpl\0"
 		"\0"),
 		NULL,
 		0,
 		1,
-		act_filename,
+		palette_filename,
 		MAX_PATH,
 		NULL,
 		0,
 		NULL,
-		_T("Select Atari 8-bit palette"),
+		_T("Select platform palette"),
 		OFN_ENABLESIZING | OFN_EXPLORER | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST,
 		0,
 		0,
@@ -579,8 +580,11 @@ static void SelectAndOpenPalette(void)
 	ofn.hwndOwner = hWnd;
 	if (fullscreen)
 		ShowCursor(TRUE);
-	if (GetOpenFileName(&ofn) && OpenPalette(act_filename))
-		UseExternalPalette(true);
+	if (GetOpenFileName(&ofn) && OpenPalette(palette_filename)) {
+		SetMenuEnabled(IDM_RESETPALETTES, true);
+		if (image_loaded)
+			OpenImage(true);
+	}
 	if (fullscreen)
 		ShowCursor(FALSE);
 }
@@ -714,9 +718,9 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 		case IDM_LOADPALETTE:
 			SelectAndOpenPalette();
 			break;
-		case IDM_USEPALETTE:
-			RECOIL_SetAtari8Palette(recoil, NULL);
-			UseExternalPalette(false);
+		case IDM_RESETPALETTES:
+			SetMenuEnabled(IDM_RESETPALETTES, false);
+			SetNtsc(RECOIL_IsNtsc(recoil));
 			break;
 		case IDM_SHOWPATH:
 			show_path = !show_path;

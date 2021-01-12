@@ -1,4 +1,4 @@
-.TH RECOIL2PNG 1 "Oct 20, 2019" "Retro Computer Image Library"
+.TH RECOIL2PNG 1 "Jan 12, 2021" "Retro Computer Image Library"
 .SH NAME
 recoil2png \- convert retro computer images to PNG
 .SH SYNOPSIS
@@ -35,9 +35,11 @@ If you do not specify this option, the name of the input file is reused,
 with the extension changed to "png".
 .TP
 \fB\-p\fR \fIFILE\fR, \fB\-\-palette\fR=\fIFILE\fR
-Use the specified RGB palette for Atari 8-bit pictures.
-The palette file must be 768 bytes long.
-This option only affects Atari 8-bit formats.
+Use the specified RGB palette for Atari 8-bit or C64 pictures.
+Atari 8-bit palette files must be 768 bytes long with
+an extension of "act" or "pal".
+C64 palette files must be text files in the VICE Palette format
+with the extension "vpl".
 .TP
 \fB\-h\fR, \fB\-\-help\fR
 Display help message and exit.

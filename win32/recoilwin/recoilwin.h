@@ -48,7 +48,7 @@
 #define IDM_PAL          223
 #define IDM_NTSC         224
 #define IDM_LOADPALETTE  225
-#define IDM_USEPALETTE   226
+#define IDM_RESETPALETTES 226
 #define IDM_SHOWPATH     227
 #define IDM_STATUSBAR    228
 #define IDM_ABOUT        229

@@ -349,6 +349,76 @@ class SprStream : Stream
 	}
 }
 
+class VplStream : Stream
+{
+	int[256] Palette;
+
+	int SkipWhitespace!()
+	{
+		while (ContentOffset < ContentLength) {
+			int b = Content[ContentOffset];
+			switch (b) {
+			case ' ':
+			case '\t':
+			case '\r':
+				ContentOffset++;
+				break;
+			default:
+				return b;
+			}
+		}
+		return -1;
+	}
+
+	internal int Decode!()
+	{
+		int colors = 0;
+		for (;;) {
+			switch (SkipWhitespace()) {
+			case -1:
+				return colors;
+			case '#':
+			case '\n':
+				SkipUntilByte('\n');
+				break;
+			default:
+				if (colors >= 256)
+					return -1;
+				int r = ParseInt(16, 0xff);
+				if (r < 0)
+					return -1;
+				SkipWhitespace();
+				int g = ParseInt(16, 0xff);
+				if (g < 0)
+					return -1;
+				SkipWhitespace();
+				int b = ParseInt(16, 0xff);
+				if (b < 0)
+					return -1;
+				SkipWhitespace();
+				if (ParseInt(16, 0xf) < 0)
+					return -1;
+				Palette[colors++] = r << 16 | g << 8 | b;
+				switch (SkipWhitespace()) {
+				case -1:
+					return colors;
+				case '\n':
+					ContentOffset++;
+					break;
+				default:
+					return -1;
+				}
+				break;
+			}
+		}
+	}
+
+	void CopyTo(int[]! palette, int colors)
+	{
+		Palette.CopyTo(0, palette, 0, colors);
+	}
+}
+
 /// Readable in-memory stream of bits, most-significant bit first.
 class BitStream : Stream
 {
@@ -3087,7 +3157,7 @@ class BlazingPaddlesBoundingBox
 
 class IcnParser : Stream
 {
-	bool SkipWhitespace!()
+	bool SkipWhitespaceAndComments!()
 	{
 		bool got = false;
 		while (ContentOffset < ContentLength) {
@@ -3118,7 +3188,7 @@ class IcnParser : Stream
 
 	internal bool Expect!(string s)
 	{
-		if (!SkipWhitespace())
+		if (!SkipWhitespaceAndComments())
 			return false;
 		int length = s.Length;
 		for (int i = 0; i < length; i++)
@@ -4079,33 +4149,47 @@ public class RECOIL
 	/// The decoder can be used for several images, one after another.
 	public RECOIL()
 	{
-		SetAtari8Palette(null);
+		SetNtsc(false);
 	}
 
 	/// Maximum length of a supported input file.
 	/// You may assume that files longer than this are not supported by RECOIL.
 	public const int MaxContentLength = 6 * 1024 * 1024;
 
+	/// Maximum length of a supported platform palette file.
+	// Largest VPL included with VICE 3.5 is 3112 bytes.
+	public const int MaxPlatformPaletteContentLength = 32768;
+
 	/// Maximum width of a decoded image.
 	public const int MaxWidth = 10000;
+
 	/// Maximum height of a decoded image.
 	public const int MaxHeight = 2560;
+
 	/// Maximum number of pixels in a decoded image.
 	public const int MaxPixelsLength = 1701 * 1678;
 
 	/// Decoded image width.
 	int Width;
+
 	/// Decoded image height.
 	int Height;
+
 	/// Decoded image pixels as 0xRRGGBB.
 	int[MaxPixelsLength] Pixels;
+
 	/// Platform and pixel ratio.
 	RECOILResolution Resolution;
+
 	/// Number of frames (normally 1; 2 or 3 for flickering pictures).
 	int Frames;
 
 	/// `true` if NTSC is preferred over PAL.
-	bool Ntsc = false;
+	bool Ntsc;
+
+	int[16] C64Palette;
+
+	int[256] Atari8Palette;
 
 	int LeftSkip;
 
@@ -4113,16 +4197,92 @@ public class RECOIL
 	public const int MaxPlatformLength = "TRS-80 Color Computer".Length;
 
 	/// Selects the PAL/NTSC video standard for applicable platforms.
+	/// Resets all platform palettes loaded with `SetPlatformPalette` to default.
 	public void SetNtsc!(
 		/// `true` for NTSC, `false` for PAL
 		bool ntsc)
 	{
 		Ntsc = ntsc;
-		SetAtari8Palette(null);
+
+		C64Palette[0] = 0x000000;
+		C64Palette[1] = 0xffffff;
+		C64Palette[2] = 0x68372b;
+		C64Palette[3] = 0x70a4b2;
+		C64Palette[4] = 0x6f3d86;
+		C64Palette[5] = 0x588d43;
+		C64Palette[6] = 0x352879;
+		C64Palette[7] = 0xb8c76f;
+		C64Palette[8] = 0x6f4f25;
+		C64Palette[9] = 0x433900;
+		C64Palette[10] = 0x9a6759;
+		C64Palette[11] = 0x444444;
+		C64Palette[12] = 0x6c6c6c;
+		C64Palette[13] = 0x9ad284;
+		C64Palette[14] = 0x6c5eb5;
+		C64Palette[15] = 0x959595;
+
+		DecodeR8G8B8Colors(Ntsc ? resource<byte[]>("altirrantsc.pal") : resource<byte[]>("altirrapal.pal"), 0, 256, Atari8Palette, 0);
 	}
 
 	/// Returns `true` if NTSC video standard is selected.
 	public bool IsNtsc() => Ntsc;
+
+	static int PackExt(string ext)
+		=> ext.Length == 0 || ext.Length > 4 ? 0
+			: ext[0] + (ext.Length >= 2 ? ext[1] << 8 : 0) + (ext.Length >= 3 ? ext[2] << 16 : 0) + (ext.Length >= 4 ? ext[3] << 24 : 0) | 0x20202020;
+
+	static int GetPackedExt(string filename)
+	{
+		int ext = 0;
+		for (int i = filename.Length; --i >= 0; ) {
+			int c = filename[i];
+			if (c == '.')
+				return ext | 0x20202020;
+			if (c <= ' ' || c > 'z' || ext >= 1 << 24)
+				return 0;
+			ext = (ext << 8) + c;
+		}
+		return 0;
+	}
+
+	/// Sets a custom platform palette.
+	///
+	/// * 768-byte `ACT`/`PAL` file with an Atari 8-bit palette
+	/// * `VPL` VICE Palette file with a C64 palette
+	///
+	/// Returns `true` on success.
+	public bool SetPlatformPalette!(
+		/// Name of the file to decode. Only the extension is processed, for format recognition.
+		string filename,
+		/// File contents.
+		byte[] content,
+		/// File length.
+		int contentLength)
+	{
+		switch (GetPackedExt(filename)) {
+		case PackExt("ACT"):
+		case PackExt("PAL"):
+			if (contentLength != 768)
+				return false;
+			DecodeR8G8B8Colors(content, 0, 256, Atari8Palette, 0);
+			return true;
+		case PackExt("VPL"):
+			VplStream() vpl;
+			vpl.Content = content;
+			vpl.ContentOffset = 0;
+			vpl.ContentLength = contentLength;
+			switch (vpl.Decode()) {
+			case 16:
+				vpl.CopyTo(C64Palette, 16);
+				return true;
+			// TODO: C16
+			default:
+				return false;
+			}
+		default:
+			return false;
+		}
+	}
 
 	/// Initializes decoded image size and resolution.
 	bool SetSize!(int width, int height, RECOILResolution resolution)
@@ -8560,25 +8720,6 @@ public class RECOIL
 		return true;
 	}
 
-	const int[16] C64Palette = {
-		0x000000,
-		0xffffff,
-		0x68372b,
-		0x70a4b2,
-		0x6f3d86,
-		0x588d43,
-		0x352879,
-		0xb8c76f,
-		0x6f4f25,
-		0x433900,
-		0x9a6759,
-		0x444444,
-		0x6c6c6c,
-		0x9ad284,
-		0x6c5eb5,
-		0x959595
-	};
-
 	bool DecodeCle!(byte[] content, int contentLength)
 	{
 		if (contentLength != 8194)
@@ -12909,19 +13050,6 @@ public class RECOIL
 	}
 
 	// Atari 8-bit formats.
-
-	int[256] Atari8Palette;
-
-	/// Sets Atari 8-bit palette.
-	public void SetAtari8Palette!(
-		/// 768-byte array (256 times RGB).
-		/// `null` to use the default.
-		byte[] content)
-	{
-		if (content == null)
-			content = Ntsc ? resource<byte[]>("altirrantsc.pal") : resource<byte[]>("altirrapal.pal");
-		DecodeR8G8B8Colors(content, 0, 256, Atari8Palette, 0);
-	}
 
 	static int ParseAtari8ExecutableHeader(byte[] content, int contentOffset)
 	{
@@ -17288,27 +17416,9 @@ public class RECOIL
 		}
 	}
 
-	static int PackExt(string ext)
-		=> ext.Length == 0 || ext.Length > 4 ? 0
-			: ext[0] + (ext.Length >= 2 ? ext[1] << 8 : 0) + (ext.Length >= 3 ? ext[2] << 16 : 0) + (ext.Length >= 4 ? ext[3] << 24 : 0) | 0x20202020;
-
-	static int GetPackedExt(string filename)
-	{
-		int ext = 0;
-		for (int i = filename.Length; --i >= 0; ) {
-			int c = filename[i];
-			if (c == '.')
-				return ext | 0x20202020;
-			if (c <= ' ' || c > 'z' || ext >= 1 << 24)
-				return 0;
-			ext = (ext << 8) + c;
-		}
-		return 0;
-	}
-
 	/// Checks whether the filename extension is supported by RECOIL.
 	/// `true` doesn't necessarily mean that the file contents is valid for RECOIL.
-	/// This function is meant to avoid reading files which are known to be unsupported.
+	/// With this function you can avoid reading files which are known to be unsupported.
 	/// Another criterium is the maximum file size, `MaxContentLength`.
 	public static bool IsOurFile(
 		/// Name of the file to be checked.

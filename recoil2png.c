@@ -37,7 +37,7 @@ static void print_help(void)
 		"-o FILE  --output=FILE   Set output file name\n"
 		"         --pal           Emulate PAL video standard if applicable (default)\n"
 		"         --ntsc          Emulate NTSC video standard if applicable\n"
-		"-p FILE  --palette=FILE  Load Atari 8-bit palette (768 bytes)\n"
+		"-p FILE  --palette=FILE  Load Atari 8-bit or C64 palette\n"
 		"-h       --help          Display this information\n"
 		"-v       --version       Display version information\n"
 	);
@@ -57,18 +57,17 @@ static int load_file(const char *filename, void *buffer, size_t buffer_len)
 
 static bool load_palette(RECOIL *recoil, const char *filename)
 {
-	uint8_t atari8_palette[768 + 1];
-	switch (load_file(filename, atari8_palette, sizeof(atari8_palette))) {
-	case 768:
-		RECOIL_SetAtari8Palette(recoil, atari8_palette);
-		return true;
-	case -1:
+	uint8_t content[RECOIL_MAX_PLATFORM_PALETTE_CONTENT_LENGTH];
+	int content_len = load_file(filename, content, sizeof(palette));
+	if (content_len < 0) {
 		/* error already printed */
 		return false;
-	default:
-		fprintf(stderr, "recoil2png: %s: palette file must be 768 bytes long\n", filename);
+	}
+	if (!RECOIL_SetPlatformPalette(recoil, filename, content, content_len)) {
+		fprintf(stderr, "recoil2png: %s: invalid palette file\n", filename);
 		return false;
 	}
+	return true;
 }
 
 static bool process_file(RECOIL *recoil, const char *input_file, const char *output_file)

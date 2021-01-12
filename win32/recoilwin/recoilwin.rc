@@ -70,8 +70,8 @@ IDR_MENU MENU
 			MENUITEM "&PAL", IDM_PAL
 			MENUITEM "&NTSC", IDM_NTSC
 		}
-		MENUITEM "&Load Atari 8-bit palette...\tP", IDM_LOADPALETTE
-		MENUITEM "Use Atari 8-bit palette file", IDM_USEPALETTE, GRAYED
+		MENUITEM "&Load platform palette...\tP", IDM_LOADPALETTE
+		MENUITEM "Reset to default palettes", IDM_RESETPALETTES, GRAYED
 		MENUITEM SEPARATOR
 		MENUITEM "Show file &path", IDM_SHOWPATH
 		MENUITEM "&Status bar", IDM_STATUSBAR, CHECKED
