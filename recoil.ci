@@ -413,7 +413,7 @@ class VplStream : Stream
 		}
 	}
 
-	void CopyTo(int[]! palette, int colors)
+	internal void CopyTo(int[]! palette, int colors)
 	{
 		Palette.CopyTo(0, palette, 0, colors);
 	}
