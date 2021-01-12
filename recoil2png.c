@@ -58,7 +58,7 @@ static int load_file(const char *filename, void *buffer, size_t buffer_len)
 static bool load_palette(RECOIL *recoil, const char *filename)
 {
 	uint8_t content[RECOIL_MAX_PLATFORM_PALETTE_CONTENT_LENGTH];
-	int content_len = load_file(filename, content, sizeof(palette));
+	int content_len = load_file(filename, content, sizeof(content));
 	if (content_len < 0) {
 		/* error already printed */
 		return false;
