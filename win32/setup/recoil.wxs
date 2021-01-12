@@ -236,6 +236,13 @@
 			<RegistrySearch Id="paintdotnet.dir" Root="HKLM" Key="SOFTWARE\Paint.NET" Name="TARGETDIR" Type="directory" />
 		</Property>
 
+		<Property Id="TSVN.VER">
+			<RegistrySearch Id="tsvn.ver" Root="HKCU" Key="SOFTWARE\TortoiseSVN" Name="CurrentVersion" Type="raw" />
+		</Property>
+		<Property Id="TGIT.VER">
+			<RegistrySearch Id="tgit.ver" Root="HKCU" Key="SOFTWARE\TortoiseGit" Name="CurrentVersion" Type="raw" />
+		</Property>
+
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="$(var.PROGRAM_FILES_FOLDER)">
 				<Directory Id="RECOIL.DIR" Name="RECOIL">
@@ -326,6 +333,20 @@
 							</Component>
 						<?endif?>
 					<?endif?>
+
+					<Component Id="diff_recoil.js">
+						<File Source="diff-recoil.js" KeyPath="yes" />
+					</Component>
+					<Component Id="diff_tsvn.reg">
+						<?foreach EXT in $(var.RECOIL_EXTS)?>
+							<RegistryValue Root="HKCU" Key="Software\TortoiseSVN\DiffTools" Name=".$(var.EXT)" Value="wscript.exe &quot;[#diff_recoil.js]&quot; %base %mine %bname %yname //E:javascript" Type="string" />
+						<?endforeach?>
+					</Component>
+					<Component Id="diff_tgit.reg">
+						<?foreach EXT in $(var.RECOIL_EXTS)?>
+							<RegistryValue Root="HKCU" Key="Software\TortoiseGit\DiffTools" Name=".$(var.EXT)" Value="wscript.exe &quot;[#diff_recoil.js]&quot; %base %mine %bname %yname //E:javascript" Type="string" />
+						<?endforeach?>
+					</Component>
 				</Directory>
 
 				<Directory Id="XNVIEW.DIR" Name="XnView">
@@ -562,6 +583,19 @@
 		<Feature Id="paintdotnet" Title="Paint.NET plugin" Level="9" ConfigurableDirectory="PAINTDOTNETFILETYPES.DIR" Description="Plugin for Paint.NET" AllowAdvertise="no">
 			<Condition Level="1">PAINTDOTNET.DIR</Condition>
 			<ComponentRef Id="RecoilPaintDotNet.dll" />
+		</Feature>
+
+		<Feature Id="diff_tsvn" Title="TortoiseSVN diff viewer" Level="0" Description="Compare changes in images." AllowAdvertise="no">
+			<Condition Level="1">TSVN.VER</Condition>
+			<ComponentRef Id="recoil2png.exe" />
+			<ComponentRef Id="diff_recoil.js" />
+			<ComponentRef Id="diff_tsvn.reg" />
+		</Feature>
+		<Feature Id="diff_tgit" Title="TortoiseGit diff viewer" Level="0" Description="Compare changes in images." AllowAdvertise="no">
+			<Condition Level="1">TGIT.VER</Condition>
+			<ComponentRef Id="recoil2png.exe" />
+			<ComponentRef Id="diff_recoil.js" />
+			<ComponentRef Id="diff_tgit.reg" />
 		</Feature>
 
 	</Product>
