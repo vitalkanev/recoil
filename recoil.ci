@@ -351,7 +351,7 @@ class SprStream : Stream
 
 class VplStream : Stream
 {
-	int[256] Palette;
+	int[16] Palette;
 
 	int SkipWhitespace!()
 	{
@@ -382,7 +382,7 @@ class VplStream : Stream
 				SkipUntilByte('\n');
 				break;
 			default:
-				if (colors >= 256)
+				if (colors >= Palette.Length)
 					return -1;
 				int r = ParseInt(16, 0xff);
 				if (r < 0)
