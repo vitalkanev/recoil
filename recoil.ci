@@ -61,6 +61,10 @@ enum RECOILResolution
 	Amiga8x1,
 	Amiga1x2,
 	Amiga1x4,
+	AmigaDctv1x1,
+	AmigaDctv1x2,
+	AmigaHame1x1,
+	AmigaHame2x1,
 	Amstrad1x1,
 	Amstrad2x1,
 	Amstrad1x2,
@@ -76,6 +80,8 @@ enum RECOILResolution
 	Xe4x2,
 	Xe4x4,
 	Xe8x8,
+	Vbxe1x1,
+	Vbxe2x1,
 	Portfolio1x1,
 	St1x1,
 	St1x2,
@@ -104,6 +110,7 @@ enum RECOILResolution
 	Msx22x1i,
 	Msx2Plus1x1,
 	Msx2Plus2x1i,
+	MsxV99901x1,
 	Oric1x1,
 	Pc1x1,
 	Pc801x2,
@@ -116,6 +123,9 @@ enum RECOILResolution
 	X68K1x1,
 	Spectrum1x1,
 	Spectrum4x4,
+	SpectrumUlaPlus1x1,
+	ZxEvolution1x1,
+	SpectrumNext1x1,
 	Timex1x1,
 	Timex1x2,
 	Trs1x1,
@@ -4367,6 +4377,7 @@ public class RECOIL
 		int offset = y * Width;
 		switch (Resolution) {
 		case RECOILResolution.Amiga2x1:
+		case RECOILResolution.AmigaHame2x1:
 		case RECOILResolution.Tt2x1:
 		case RECOILResolution.Falcon2x1:
 		case RECOILResolution.Msx22x1i:
@@ -4384,6 +4395,7 @@ public class RECOIL
 				Pixels[offset + x] = rgb;
 			break;
 		case RECOILResolution.Amiga1x2:
+		case RECOILResolution.AmigaDctv1x2:
 		case RECOILResolution.AppleIIGS1x2:
 		case RECOILResolution.St1x2:
 		case RECOILResolution.Ste1x2:
@@ -5724,7 +5736,7 @@ public class RECOIL
 
 	void SetUlaPlus!(byte[] content, int paletteOffset)
 	{
-		SetSize(256, 192, RECOILResolution.Spectrum1x1);
+		SetSize(256, 192, RECOILResolution.SpectrumUlaPlus1x1);
 		for (int i = 0; i < 64; i++)
 			ContentPalette[i] = GetG3R3B2Color(content[paletteOffset + i]);
 	}
@@ -6227,7 +6239,7 @@ public class RECOIL
 				| (c >> 2 & 7) * 0x49 >> 1 << 8
 				| ((c & 3) << 1 | (content[(i << 1) + 1] & 1)) * 0x49 >> 1;
 		}
-		SetSize(256, 192, RECOILResolution.Spectrum1x1);
+		SetSize(256, 192, RECOILResolution.SpectrumNext1x1);
 		DecodeBytes(content, 512);
 		return true;
 	}
@@ -6239,7 +6251,7 @@ public class RECOIL
 			return false;
 		int width = content[8] | content[9] << 8;
 		int height = content[10] | content[11] << 8;
-		if (!SetSize(width, height, RECOILResolution.Spectrum1x1))
+		if (!SetSize(width, height, RECOILResolution.ZxEvolution1x1))
 			return false;
 
 		int paletteOffset = 14 + content[12] + (content[13] << 8);
@@ -7076,7 +7088,7 @@ public class RECOIL
 		int width = content[8] | content[9] << 8;
 		int height = content[10] | content[11] << 8;
 		if (contentLength <= headerLength
-		 || !SetSize(width, height, RECOILResolution.Msx2Plus1x1))
+		 || !SetSize(width, height, RECOILResolution.MsxV99901x1))
 			return false;
 		int unpackedLength = headerLength + (width * depth + 7 >> 3) * height;
 		switch (depth) {
@@ -12562,7 +12574,7 @@ public class RECOIL
 		bool hame = false;
 		for (int y = 0; y < Height; y++) {
 			int lineOffset = y * width;
-			int paletteOffset = Resolution == RECOILResolution.Amiga2x1 && (y & 1) != 0 ? 256 : 0;
+			int paletteOffset = Resolution == RECOILResolution.AmigaHame2x1 && (y & 1) != 0 ? 256 : 0;
 			if (IsHame(content, lineOffset)) {
 				paletteOffset += paletteLength[paletteOffset >> 8];
 				for (int c = 0; c < 64; c++) {
@@ -12645,12 +12657,14 @@ public class RECOIL
 		if (resolution == RECOILResolution.Amiga1x2) {
 			interlace = 0;
 			height--;
+			resolution = RECOILResolution.AmigaDctv1x2;
 		}
 		else {
 			if (!IsDctv(content, bytesPerLine, bitplanes))
 				return false;
 			interlace = 1;
 			height -= 2;
+			resolution = RECOILResolution.AmigaDctv1x1;
 		}
 		SetScaledSize(width, height, resolution);
 
@@ -12721,9 +12735,9 @@ public class RECOIL
 				&& multiPalette == null
 				&& IsHame(unpacked, 0)) {
 				if (resolution == RECOILResolution.Amiga1x2)
-					SetSize(width >> 1, height, RECOILResolution.Amiga1x1);
+					SetSize(width >> 1, height, RECOILResolution.AmigaHame1x1);
 				else
-					SetSize(width, height, RECOILResolution.Amiga2x1);
+					SetSize(width, height, RECOILResolution.AmigaHame2x1);
 				DecodeHame(unpacked, width >> 1);
 			}
 			else if (width >= 256 && height >= 3
@@ -17073,6 +17087,7 @@ public class RECOIL
 		default: // TODO: PGR
 			return false;
 		}
+		RECOILResolution resolution = RECOILResolution.Xe4x1;
 
 		if (contentLength < vbxeOffset + (3 + 48 * 240 * 12))
 			vbxeOffset = -1;
@@ -17085,7 +17100,7 @@ public class RECOIL
 				if (content[vbxeOffset + 1] != 8 // TODO: different color map widths
 				 || content[vbxeOffset + 2] == 0)
 					return false;
-				// TODO: report VBXE
+				resolution = RECOILResolution.Vbxe2x1;
 				break;
 			default:
 				return false;
@@ -17093,7 +17108,6 @@ public class RECOIL
 		}
 
 		byte[336 * 240] frame;
-		RECOILResolution resolution = RECOILResolution.Xe4x1;
 		G2fRenderer() gtia;
 		gtia.Content = content;
 		gtia.PlayfieldColumns = columns;
@@ -17115,7 +17129,7 @@ public class RECOIL
 			AnticMode anticMode;
 			switch (content[fontNumberOffset + modeOffset + row]) {
 			case 1:
-				resolution = RECOILResolution.Xe1x1;
+				resolution = resolution == RECOILResolution.Vbxe2x1 || resolution == RECOILResolution.Vbxe1x1 ? RECOILResolution.Vbxe1x1 : RECOILResolution.Xe1x1;
 				anticMode = AnticMode.HiRes;
 				break;
 			case 2:
@@ -17178,7 +17192,7 @@ public class RECOIL
 	{
 		if (contentLength != 77568)
 			return false;
-		SetSize(320, 240, RECOILResolution.Xe1x1);
+		SetSize(320, 240, RECOILResolution.Vbxe1x1);
 		for (int i = 0; i < 256; i++)
 			ContentPalette[i] = content[0x12c00 + i] << 16 | content[0x12d00 + i] << 8 | content[0x12e00 + i];
 		DecodeBytes(content, 0);
@@ -18760,6 +18774,12 @@ public class RECOIL
 		case RECOILResolution.Amiga1x2:
 		case RECOILResolution.Amiga1x4:
 			return "Amiga";
+		case RECOILResolution.AmigaDctv1x1:
+		case RECOILResolution.AmigaDctv1x2:
+			return "Amiga DCTV";
+		case RECOILResolution.AmigaHame1x1:
+		case RECOILResolution.AmigaHame2x1:
+			return "Amiga HAM-E";
 		case RECOILResolution.Amstrad1x1:
 		case RECOILResolution.Amstrad2x1:
 		case RECOILResolution.Amstrad1x2:
@@ -18781,6 +18801,9 @@ public class RECOIL
 		case RECOILResolution.Xe4x4:
 		case RECOILResolution.Xe8x8:
 			return "Atari 8-bit";
+		case RECOILResolution.Vbxe1x1:
+		case RECOILResolution.Vbxe2x1:
+			return "Atari 8-bit VBXE";
 		case RECOILResolution.Portfolio1x1:
 			return "Atari Portfolio";
 		case RECOILResolution.St1x1:
@@ -18824,6 +18847,8 @@ public class RECOIL
 		case RECOILResolution.Msx2Plus1x1:
 		case RECOILResolution.Msx2Plus2x1i:
 			return "MSX2+";
+		case RECOILResolution.MsxV99901x1:
+			return "MSX V9990 VDP";
 		case RECOILResolution.Oric1x1:
 			return "Oric";
 		case RECOILResolution.Pc1x1:
@@ -18847,6 +18872,12 @@ public class RECOIL
 		case RECOILResolution.Spectrum1x1:
 		case RECOILResolution.Spectrum4x4:
 			return "ZX Spectrum";
+		case RECOILResolution.SpectrumUlaPlus1x1:
+			return "ZX Spectrum ULAplus";
+		case RECOILResolution.ZxEvolution1x1:
+			return "ZX Evolution";
+		case RECOILResolution.SpectrumNext1x1:
+			return "ZX Spectrum Next";
 		case RECOILResolution.Timex1x1:
 		case RECOILResolution.Timex1x2:
 			return "Timex 2048";
@@ -18868,9 +18899,11 @@ public class RECOIL
 	{
 		switch (Resolution) {
 		case RECOILResolution.Amiga2x1:
+		case RECOILResolution.AmigaHame2x1:
 		case RECOILResolution.Amstrad2x1:
 		case RECOILResolution.Xe2x1:
 		case RECOILResolution.Xe2x2:
+		case RECOILResolution.Vbxe2x1:
 		case RECOILResolution.Tt2x1:
 		case RECOILResolution.Falcon2x1:
 		case RECOILResolution.Bbc2x1:
@@ -18956,6 +18989,8 @@ public class RECOIL
 		case RECOILResolution.Xe4x2:
 		case RECOILResolution.Xe4x4:
 		case RECOILResolution.Xe8x8:
+		case RECOILResolution.Vbxe1x1:
+		case RECOILResolution.Vbxe2x1:
 			// https://pineight.com/mw/index.php?title=Dot_clock_rates
 			// http://virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf
 			return Ntsc ? NtscTvYPixelsPerMeter * 7 / 12
@@ -18999,6 +19034,8 @@ public class RECOIL
 		case RECOILResolution.Xe4x2:
 		case RECOILResolution.Xe4x4:
 		case RECOILResolution.Xe8x8:
+		case RECOILResolution.Vbxe1x1:
+		case RECOILResolution.Vbxe2x1:
 			return Ntsc ? NtscTvYPixelsPerMeter / 2 : PalTvYPixelsPerMeter / 2;
 		case RECOILResolution.Portfolio1x1:
 			return PortfolioPixelsPerMeter;

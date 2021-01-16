@@ -2,10 +2,6 @@
 	<platform name="Amiga" href="https://en.wikipedia.org/wiki/Amiga">
 		<format name="AMOS"><ext>ABK</ext></format>
 		<format name="Amiga Continuous Bitmap"><ext>ACBM</ext></format>
-		<format hardware="DCTV" name="DCTV">
-			<ext>DCT</ext>
-			<ext>DCTV</ext>
-		</format>
 		<format name="TVPaint" colors="16777216"><ext>DEEP</ext></format>
 		<format name="Turbo Rascal Syntax Error" width="320" height="200"><ext>FLF</ext></format>
 		<format name="Hold-And-Modify 6" colors="4096">
@@ -16,9 +12,6 @@
 		<format name="Interchange File Format">
 			<ext>IFF</ext>
 			<ext>256</ext>
-		</format>
-		<format hardware="HAM-E" name="HAM-E" maxWidth="384" maxHeight="480" colors="184320"><!-- colors limited by resolution -->
-			<ext>IFF</ext>
 		</format>
 		<format name="Icon" colors="8"><ext>INFO</ext></format>
 		<format name="Interleaved Bitmap">
@@ -34,6 +27,17 @@
 		<format name="Turbo Silver" colors="16777216"><ext>RGB8</ext></format>
 		<format name="Turbo Silver" colors="4096"><ext>RGBN</ext></format>
 		<format name="Sliced HAM" colors="4096"><ext>SHAM</ext></format>
+	</platform>
+	<platform name="Amiga DCTV" href="http://amiga.resource.cx/exp/dctv">
+		<format name="DCTV">
+			<ext>DCT</ext>
+			<ext>DCTV</ext>
+		</format>
+	</platform>
+	<platform name="Amiga HAM-E" href="http://amiga.resource.cx/exp/hame">
+		<format name="HAM-E" maxWidth="384" maxHeight="480" colors="184320"><!-- colors limited by resolution -->
+			<ext>IFF</ext>
+		</format>
 	</platform>
 	<platform name="Amstrad CPC" href="https://en.wikipedia.org/wiki/Amstrad_CPC">
 		<format name="Mode 5" width="288" height="256" colors="27">
@@ -136,7 +140,6 @@
 		<format name="Marco Pixel Editor" width="160" height="192" colors="4"><ext>CPI</ext></format>
 		<format name="Trzmiel (compressed)" width="320" height="192" colors="2"><ext>CPR</ext></format>
 		<format name="Cut Creator" width="96" height="99" colors="2"><ext>CUT</ext></format>
-		<format hardware="VBXE" name="SlideShow for VBXE" width="320" height="240" colors="256"><ext>DAP</ext></format>
 		<format width="320" height="192" colors="10" frames="2"><ext>DIN</ext></format>
 		<format name="DrawIt" width="160" height="96" colors="4"><ext fake="true">DIT</ext></format>
 		<format name="Dir Logo Maker" width="11" height="16" unit="characters" colors="2"><ext>DLM</ext></format>
@@ -258,6 +261,10 @@
 		<format name="VertiZontal Interlacing" width="160" height="200" grayscale="31" frames="2"><ext>VZI</ext></format>
 		<format name="Blazing Paddles window" maxWidth="160" maxHeight="192" colors="4"><ext>WND</ext></format>
 		<format name="XL-Paint" width="160" maxHeight="200" colors="7" frames="2"><ext>XLP</ext></format>
+	</platform>
+	<platform name="Atari 8-bit VBXE" href="http://gury.atari8.info/vbxe.php">
+		<format name="SlideShow for VBXE" width="320" height="240" colors="256"><ext>DAP</ext></format>
+		<format name="Graph2Font" maxWidth="336" height="240" colors="256"><ext>G2F</ext></format>
 	</platform>
 	<platform name="Atari Portfolio" href="https://en.wikipedia.org/wiki/Atari_Portfolio">
 		<format colors="2"><ext>ART</ext></format><!-- not sure if Portfolio -->
@@ -655,7 +662,6 @@
 		<format name="Dynamic Publisher stamp" colors="2"><ext>STP</ext></format>
 	</platform>
 	<platform name="MSX2+" href="https://en.wikipedia.org/wiki/MSX">
-		<format hardware="V9990 VDP" name="GFX9k" colors="32768"><ext>G9B</ext></format>
 		<format colors="12515">
 			<ext>GLA</ext>
 			<companionExt optional="true">PLA</companionExt>
@@ -678,6 +684,9 @@
 			<ext>SCC</ext>
 			<companionExt>S1C</companionExt>
 		</format>
+	</platform>
+	<platform name="MSX V9990 VDP" href="https://www.msx.org/wiki/Yamaha_V9990">
+		<format name="GFX9k" colors="32768"><ext>G9B</ext></format>
 	</platform>
 	<platform name="NEC PC-80" href="https://en.wikipedia.org/wiki/PC-8000_series">
 		<format name="Maki-chan Graphics" maxWidth="640" maxHeight="200" colors="8"><ext>MAG</ext></format>
@@ -774,12 +783,18 @@
 		<format name="MultiArtist 8x4" width="256" height="192" frames="2"><ext>MG4</ext></format>
 		<format name="MultiArtist 8x8" width="256" height="192" frames="2"><ext>MG8</ext></format>
 		<format width="256" height="192" colors="15"><ext>MLT</ext></format>
-		<format hardware="Next" width="256" height="192" colors="256"><ext>NXI</ext></format>
 		<format width="256" height="192" colors="8" frames="3"><ext>RGB</ext></format>
 		<format width="256" height="192" colors="15"><ext>SCR</ext></format>
-		<format hardware="ULAplus" name="ULAplus" width="256" height="192" colors="64"><ext>SCR</ext></format>
 		<format name="Stellar" width="64" height="48" frames="2"><ext>STL</ext></format>
-		<format hardware="Evolution" name="Speccy eXtended Graphics" colors="256"><ext>SXG</ext></format>
 		<format name="ZX-Paintbrush" width="256" height="192" colors="15"><ext>ZXP</ext></format>
+	</platform>
+	<platform name="ZX Spectrum ULAplus" href="https://sites.google.com/site/ulaplus/">
+		<format name="ULAplus" width="256" height="192" colors="64"><ext>SCR</ext></format>
+	</platform>
+	<platform name="ZX Evolution" href="http://nedopc.com/zxevo/zxevo_eng.php">
+		<format name="Speccy eXtended Graphics" colors="256"><ext>SXG</ext></format>
+	</platform>
+	<platform name="ZX Spectrum Next" href="https://en.wikipedia.org/wiki/ZX_Spectrum_Next">
+		<format width="256" height="192" colors="256"><ext>NXI</ext></format>
 	</platform>
 </formats>
