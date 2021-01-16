@@ -18962,6 +18962,12 @@ public class RECOIL
 				: PalTvYPixelsPerMeter * (1773447 * 4 / 1000) / (PalSquareDotClock / 1000);
 		case RECOILResolution.Portfolio1x1:
 			return PortfolioPixelsPerMeter;
+		case RECOILResolution.C641x1:
+		case RECOILResolution.C642x1:
+			// https://codebase64.org/doku.php?id=base:cpu_clocking
+			// https://codebase64.org/doku.php?id=base:pixel_aspect_ratio
+			return Ntsc ? NtscTvYPixelsPerMeter * 2 / 3
+				: PalTvYPixelsPerMeter * (17734475 * 8 / 18000) / (PalSquareDotClock / 1000);
 		case RECOILResolution.Msx11x1:
 		case RECOILResolution.Msx14x4:
 		case RECOILResolution.Msx21x1:
@@ -18996,6 +19002,9 @@ public class RECOIL
 			return Ntsc ? NtscTvYPixelsPerMeter / 2 : PalTvYPixelsPerMeter / 2;
 		case RECOILResolution.Portfolio1x1:
 			return PortfolioPixelsPerMeter;
+		case RECOILResolution.C641x1:
+		case RECOILResolution.C642x1:
+			return Ntsc ? NtscTvYPixelsPerMeter / 2 : PalTvYPixelsPerMeter / 2;
 		case RECOILResolution.Msx11x1:
 		case RECOILResolution.Msx14x4:
 		case RECOILResolution.Msx21x1:
