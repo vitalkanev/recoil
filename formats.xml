@@ -163,9 +163,9 @@
 			<ext>ASC</ext>
 			<ext>SCR</ext>
 		</format>
-		<format name="Mad Studio Graphics 1" width="20" height="24" unit="characters" colors="4"><ext>GR1</ext></format>
+		<format name="Mad Studio Graphics 1" width="20" height="24" unit="characters" colors="5"><ext>GR1</ext></format>
 		<!-- FIVE_CHAR_EXT <format name="Graphics 10+" width="80" height="60" colors="9"><ext>GR10P</ext></format> -->
-		<format name="Mad Studio Graphics 2" width="20" height="12" unit="characters" colors="4"><ext>GR2</ext></format>
+		<format name="Mad Studio Graphics 2" width="20" height="12" unit="characters" colors="5"><ext>GR2</ext></format>
 		<format name="Mad Studio Graphics 3" width="40" height="24" colors="4"><ext>GR3</ext></format>
 		<format name="Graphics 7" width="160" maxHeight="120" colors="4"><ext>GR7</ext></format>
 		<format name="Graphics 8" width="320" maxHeight="240" colors="2"><ext>GR8</ext></format>
