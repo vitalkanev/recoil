@@ -34,6 +34,7 @@
 #include "MagickCore/image.h"
 #include "MagickCore/list.h"
 #include "MagickCore/magick.h"
+#include "MagickCore/pixel-accessor.h"
 #include "MagickCore/quantum-private.h"
 #include "MagickCore/string_.h"
 #include "MagickCore/module.h"
@@ -42,18 +43,13 @@
 #include "magick/studio.h"
 #include "magick/blob.h"
 #include "magick/blob-private.h"
-#include "magick/colorspace.h"
+#include "magick/cache.h"
 #include "magick/exception.h"
 #include "magick/exception-private.h"
 #include "magick/image.h"
-#include "magick/image-private.h"
 #include "magick/list.h"
 #include "magick/magick.h"
-#include "magick/memory_.h"
-#include "magick/monitor.h"
-#include "magick/monitor-private.h"
 #include "magick/quantum-private.h"
-#include "magick/static.h"
 #include "magick/string_.h"
 #include "magick/module.h"
 #define MAGICK7_COMMA_EXCEPTION(exception)
@@ -130,8 +126,13 @@ static Image *ReadRECOILImage(const ImageInfo *image_info, ExceptionInfo *except
 	float x_dpi = RECOIL_GetXPixelsPerInch(recoil);
 	if (x_dpi != 0) {
 		image->units = PixelsPerInchResolution;
+#ifdef MAGICK7
 		image->resolution.x = x_dpi;
-		image->resolution.y = RECOIL_GetYPixelsPerInch(recoil);;
+		image->resolution.y = RECOIL_GetYPixelsPerInch(recoil);
+#else
+		image->x_resolution = x_dpi;
+		image->x_resolution = RECOIL_GetYPixelsPerInch(recoil);
+#endif
 	}
 
 	const int *pixels = RECOIL_GetPixels(recoil);
