@@ -702,7 +702,7 @@
 		<format maxWidth="640" maxHeight="400"><ext>PIC</ext></format>
 	</platform>
 	<platform name="NEC PC-98" href="https://en.wikipedia.org/wiki/PC-9800_series">
-		<format width="640" height="400" colors="16"><ext>ARV</ext></format>
+		<format name="ARTV" width="640" height="400" colors="16"><ext>ARV</ext></format>
 		<format width="640" colors="16"><ext>EBD</ext></format>
 		<format name="Maki-chan Graphics" colors="256">
 			<ext>MAG</ext>
