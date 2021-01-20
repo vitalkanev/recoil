@@ -128,6 +128,7 @@
 			<!-- I only see up to 40x21 in the editor, but the sample file SIANO.ART is bigger --><ext>ART</ext>
 		</format>
 		<format name="Artist by David Eaton" width="160" height="80" colors="4"><ext fake="true">ART</ext></format>
+		<format colors="2"><ext>ART</ext></format><!-- not sure if Atari 8-bit -->
 		<format width="160" height="192" grayscale="16">
 			<ext>BG9</ext>
 			<ext>G09</ext>
@@ -234,6 +235,7 @@
 		<format name="AtariTools-800 player" width="8" height="240" colors="2"><ext>PLA</ext></format>
 		<format name="Plama 256 (SFDN compressed)" width="80" height="96" colors="256"><ext>PLS</ext></format>
 		<format name="PMG Designer by Henryk Karpowicz"><ext>PMD</ext></format>
+		<format name="Print Shop" width="88" height="52" colors="2"><ext>PSF</ext></format>
 		<format name="Vidig Paint" width="80" height="192" colors="16"><ext>RAP</ext></format>
 		<format name="XL-Paint MAX" width="160" height="192" colors="16" frames="2"><ext>RAW</ext></format>
 		<format name="ColorViewSquash" maxWidth="160" maxHeight="192" frames="3"><ext>RGB</ext></format>
@@ -267,7 +269,6 @@
 		<format name="Graph2Font" maxWidth="336" height="240" colors="256"><ext>G2F</ext></format>
 	</platform>
 	<platform name="Atari Portfolio" href="https://en.wikipedia.org/wiki/Atari_Portfolio">
-		<format colors="2"><ext>ART</ext></format><!-- not sure if Portfolio -->
 		<format width="240" height="64" colors="2"><ext>PGC</ext></format>
 		<format width="240" height="64" colors="2"><ext>PGF</ext></format>
 	</platform>

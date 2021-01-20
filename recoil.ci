@@ -4727,25 +4727,6 @@ public class RECOIL
 		return DecodeRleBlackAndWhite(rle, 0xffffff);
 	}
 
-	bool DecodeMonoArt!(byte[] content, int contentLength)
-	{
-		// the origin, even the platform of the format is unknown
-		if (contentLength < 4)
-			return false;
-		int columns = content[0] + 1;
-		int height = content[1] + 1;
-		// size limitations are unknown
-		// several files have content[0] == 0x0b
-		// GUY.ART has content[1] == 0x37
-		if (columns > 30 || height > 64 || contentLength != 3 + columns * height)
-			return false;
-		SetSize(columns << 3, height, RECOILResolution.Portfolio1x1);
-		ContentPalette[0] = 0xffffff;
-		ContentPalette[1] = 0;
-		DecodeBitplanes(content, 2, columns, 1, 0, columns << 3, height);
-		return true;
-	}
-
 	// Psion Series 3 formats.
 
 	bool DecodePsion3Pic!(byte[] content, int contentLength)
@@ -13467,6 +13448,36 @@ public class RECOIL
 		return DecodeMono(content, 0, contentLength, false);
 	}
 
+	bool DecodePsf!(byte[] content, int contentLength)
+	{
+		if (contentLength < 572 || contentLength > 640)
+			return false;
+		SetSize(88, 52, RECOILResolution.Xe1x1);
+		ContentPalette[0] = Atari8Palette[0x0e];
+		ContentPalette[1] = Atari8Palette[0x00];
+		DecodeBitplanes(content, 0, 11, 1, 0, 88, 52);
+		return true;
+	}
+
+	bool DecodeMonoArt!(byte[] content, int contentLength)
+	{
+		// the origin, even the platform of the format is unknown
+		if (contentLength < 4)
+			return false;
+		int columns = content[0] + 1;
+		int height = content[1] + 1;
+		// size limitations are unknown
+		// several files have content[0] == 0x0b
+		// GUY.ART has content[1] == 0x37
+		if (columns > 30 || height > 64 || contentLength != 3 + columns * height)
+			return false;
+		SetSize(columns << 3, height, RECOILResolution.Xe1x1);
+		ContentPalette[0] = Atari8Palette[0x0e];
+		ContentPalette[1] = Atari8Palette[0x00];
+		DecodeBitplanes(content, 2, columns, 1, 0, columns << 3, height);
+		return true;
+	}
+
 	bool DecodeGhg!(byte[] content, int contentLength)
 	{
 		if (contentLength < 4)
@@ -17785,6 +17796,7 @@ public class RECOIL
 		case PackExt("PPH"):
 		case PackExt("PPP"):
 		case PackExt("PSC"):
+		case PackExt("PSF"):
 		case PackExt("Q4"):
 		case PackExt("RAG"):
 		case PackExt("RAP"):
@@ -18556,6 +18568,8 @@ public class RECOIL
 				|| DecodePp(content, contentLength);
 		case PackExt("PSC"):
 			return DecodePsc(content, contentLength);
+		case PackExt("PSF"):
+			return DecodePsf(content, contentLength);
 		case PackExt("Q4"):
 			return DecodeQ4(content, contentLength);
 		case PackExt("RAG"):
