@@ -368,7 +368,7 @@ static bool OpenImage(bool show_error)
 	}
 	else {
 		palette_colors = 0;
-		bytes_per_line = (width * 3 + 3) & ~3;
+		bytes_per_line = width << 2;
 	}
 	SetMenuEnabled(IDM_INVERT, palette_colors == 2);
 
@@ -384,7 +384,7 @@ static bool OpenImage(bool show_error)
 	bitmap->bmiHeader.biWidth = width;
 	bitmap->bmiHeader.biHeight = height;
 	bitmap->bmiHeader.biPlanes = 1;
-	bitmap->bmiHeader.biBitCount = palette != NULL ? 8 : 24;
+	bitmap->bmiHeader.biBitCount = palette != NULL ? 8 : 32;
 	bitmap->bmiHeader.biCompression = BI_RGB;
 	bitmap->bmiHeader.biSizeImage = bitmap_length;
 	bitmap->bmiHeader.biXPelsPerMeter = RECOIL_GetXPixelsPerMeter(recoil);
@@ -393,24 +393,21 @@ static bool OpenImage(bool show_error)
 		bitmap->bmiHeader.biXPelsPerMeter = bitmap->bmiHeader.biYPelsPerMeter = 96 * 10000 / 254;
 	bitmap->bmiHeader.biClrUsed = palette_colors;
 	bitmap->bmiHeader.biClrImportant = palette_colors;
+
 	bitmap_pixels = (BYTE *) (bitmap->bmiColors + palette_colors);
+	const BYTE *pixels;
+	int pixels_stride;
 	if (palette != NULL) {
 		memcpy(bitmap->bmiColors, palette, palette_colors * 4);
-		for (int y = 0; y < height; y++)
-			memcpy(bitmap_pixels + (height - 1 - y) * bytes_per_line, indexes + y * width, width);
+		pixels = indexes;
+		pixels_stride = width;
 	}
 	else {
-		const int *pixels = RECOIL_GetPixels(recoil);
-		for (int y = 0; y < height; y++) {
-			BYTE *dest = bitmap_pixels + (height - 1 - y) * bytes_per_line;
-			for (int x = 0; x < width; x++) {
-				int rgb = *pixels++;
-				*dest++ = (BYTE) rgb;
-				*dest++ = (BYTE) (rgb >> 8);
-				*dest++ = (BYTE) (rgb >> 16);
-			}
-		}
+		pixels = (const BYTE *) RECOIL_GetPixels(recoil);
+		pixels_stride = bytes_per_line;
 	}
+	for (int y = 0; y < height; y++)
+		memcpy(bitmap_pixels + (height - 1 - y) * bytes_per_line, pixels + y * pixels_stride, pixels_stride);
 
 	Repaint(true);
 	return true;
