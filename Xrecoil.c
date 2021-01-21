@@ -62,6 +62,33 @@ typedef struct {
 	unsigned char blue[256];
 } GFP_COLORMAP;
 
+typedef struct {
+	INT plugin_version;
+
+	INT frame_count;
+
+	INT pictype;
+	INT width;
+	INT height;
+	INT xdpi;
+	INT bits_per_pixel;
+	INT bytes_per_line;
+	BOOL has_colormap;
+
+	char label[256];
+
+	void *FuncParm;
+	void (API *AddExtra)(void *ptr, const char *key, const char *value);
+
+	// 1.97.7
+	INT original_width;
+	INT original_height;
+	INT original_bits_per_pixel;
+
+	// plugin version 5
+	INT ydpi;
+} GFP_PICTUREINFO;
+
 static size_t strlcpy(char *dst, const char *src, size_t size)
 {
 	int i;
@@ -128,6 +155,12 @@ DLL_EXPORT void * API gfpLoadPictureInit(const char *filename)
 	return recoil;
 }
 
+static INT ppmToDpi(int ppm)
+{
+	// meters to inches with rounding
+	return ppm == 0 ? 68 : (ppm * 254 + 127) / 10000;
+}
+
 DLL_EXPORT BOOL API gfpLoadPictureGetInfo(
 	void *ptr, INT *pictype, INT *width, INT *height,
 	INT *dpi, INT *bits_per_pixel, INT *bytes_per_line,
@@ -139,13 +172,30 @@ DLL_EXPORT BOOL API gfpLoadPictureGetInfo(
 	*width = RECOIL_GetWidth(recoil);
 	*height = RECOIL_GetHeight(recoil);
 	// choose the vertical DPI, so that platforms using a TV have same DPI
-	int ppm = RECOIL_GetYPixelsPerMeter(recoil);
-	// meters to inches with rounding
-	*dpi = ppm == 0 ? 68 : (ppm * 254 + 127) / 10000;
+	*dpi = ppmToDpi(RECOIL_GetYPixelsPerMeter(recoil));
 	*bits_per_pixel = 24;
 	*bytes_per_line = *width * 3;
 	*has_colormap = FALSE;
 	strlcpy(label, RECOIL_GetPlatform(recoil), label_max_size);
+
+	return TRUE;
+}
+
+DLL_EXPORT BOOL API gfpLoadPictureGetInfoEx(
+	void *ptr, INT frame_index, GFP_PICTUREINFO *info)
+{
+	const RECOIL* recoil = (const RECOIL*) ptr;
+
+	info->pictype = GFP_RGB;
+	info->width = RECOIL_GetWidth(recoil);
+	info->height = RECOIL_GetHeight(recoil);
+	info->xdpi = ppmToDpi(RECOIL_GetXPixelsPerMeter(recoil));
+	if (info->plugin_version >= 5)
+		info->ydpi = ppmToDpi(RECOIL_GetYPixelsPerMeter(recoil));
+	info->bits_per_pixel = 24;
+	info->bytes_per_line = info->width * 3;
+	info->has_colormap = FALSE;
+	strlcpy(info->label, RECOIL_GetPlatform(recoil), sizeof(info->label));
 
 	return TRUE;
 }
