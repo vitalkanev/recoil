@@ -4171,13 +4171,13 @@ public class RECOIL
 	public const int MaxPlatformPaletteContentLength = 32768;
 
 	/// Maximum width of a decoded image.
-	public const int MaxWidth = 10000;
+	const int MaxWidth = 10000;
 
 	/// Maximum height of a decoded image.
-	public const int MaxHeight = 2560;
+	const int MaxHeight = 2560;
 
 	/// Maximum number of pixels in a decoded image.
-	public const int MaxPixelsLength = 1701 * 1678;
+	const int MaxPixelsLength = 1701 * 1678;
 
 	/// Decoded image width.
 	int Width;

@@ -30,6 +30,7 @@
 #include <tchar.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "recoil-win32.h"
@@ -63,11 +64,7 @@ static int window_height;
 static bool show_path = false;
 static bool status_bar = true;
 
-static struct {
-	BITMAPINFOHEADER bmiHeader;
-	RGBQUAD bmiColors[256];
-	BYTE pixels[RECOIL_MAX_PIXELS_LENGTH * 3];
-} bitmap;
+static BITMAPINFO *bitmap = NULL;
 static BYTE *bitmap_pixels;
 
 static void ShowError(const char *message)
@@ -351,41 +348,61 @@ static bool OpenImage(bool show_error)
 		}
 		return false;
 	}
+
 	int width = RECOIL_GetWidth(recoil);
 	int height = RECOIL_GetHeight(recoil);
-	const int *palette = RECOIL_ToPalette(recoil, bitmap.pixels + RECOIL_MAX_PIXELS_LENGTH); // an area we won't need later
-	int colors = RECOIL_GetColors(recoil);
-	SetMenuEnabled(IDM_INVERT, colors == 2);
+	static int indexes_length = 0;
+	static BYTE *indexes = NULL;
+	if (indexes_length < width * height) {
+		indexes_length = width * height;
+		free(indexes);
+		indexes = (BYTE *) malloc(indexes_length); 
+	}
+	const int *palette = RECOIL_ToPalette(recoil, indexes);
 
-	bitmap.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bitmap.bmiHeader.biWidth = width;
-	bitmap.bmiHeader.biHeight = height;
-	bitmap.bmiHeader.biPlanes = 1;
-	bitmap.bmiHeader.biBitCount = palette != NULL ? 8 : 24;
-	bitmap.bmiHeader.biCompression = BI_RGB;
-	bitmap.bmiHeader.biXPelsPerMeter = RECOIL_GetXPixelsPerMeter(recoil);
-	bitmap.bmiHeader.biYPelsPerMeter = RECOIL_GetYPixelsPerMeter(recoil);
-	if (bitmap.bmiHeader.biXPelsPerMeter == 0)
-		bitmap.bmiHeader.biXPelsPerMeter = bitmap.bmiHeader.biYPelsPerMeter = 96 * 10000 / 254;
+	int palette_colors;
+	int bytes_per_line;
 	if (palette != NULL) {
-		int bytesPerLine = (width + 3) & ~3;
-		bitmap.bmiHeader.biSizeImage = sizeof(BITMAPINFOHEADER) + colors * sizeof(RGBQUAD) + height * bytesPerLine;
-		bitmap.bmiHeader.biClrUsed = colors;
-		bitmap.bmiHeader.biClrImportant = colors;
-		memcpy(bitmap.bmiColors, palette, colors * 4);
-		bitmap_pixels = (BYTE *) (bitmap.bmiColors + colors);
-		for (int y = 0; y < height; y++)
-			memcpy(bitmap_pixels + (height - 1 - y) * bytesPerLine, bitmap.pixels + RECOIL_MAX_PIXELS_LENGTH + y * width, width);
+		palette_colors = RECOIL_GetColors(recoil);
+		bytes_per_line = (width + 3) & ~3;
 	}
 	else {
-		int bytesPerLine = (width * 3 + 3) & ~3;
+		palette_colors = 0;
+		bytes_per_line = (width * 3 + 3) & ~3;
+	}
+	SetMenuEnabled(IDM_INVERT, palette_colors == 2);
+
+	DWORD bitmap_length = (DWORD) (sizeof(BITMAPINFOHEADER) + palette_colors * sizeof(RGBQUAD) + height * bytes_per_line);
+	static DWORD old_bitmap_length = 0;
+	if (old_bitmap_length < bitmap_length) {
+		old_bitmap_length = bitmap_length;
+		free(bitmap);
+		bitmap = (BITMAPINFO *) malloc(bitmap_length);
+	}
+
+	bitmap->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bitmap->bmiHeader.biWidth = width;
+	bitmap->bmiHeader.biHeight = height;
+	bitmap->bmiHeader.biPlanes = 1;
+	bitmap->bmiHeader.biBitCount = palette != NULL ? 8 : 24;
+	bitmap->bmiHeader.biCompression = BI_RGB;
+	bitmap->bmiHeader.biSizeImage = bitmap_length;
+	bitmap->bmiHeader.biXPelsPerMeter = RECOIL_GetXPixelsPerMeter(recoil);
+	bitmap->bmiHeader.biYPelsPerMeter = RECOIL_GetYPixelsPerMeter(recoil);
+	if (bitmap->bmiHeader.biXPelsPerMeter == 0)
+		bitmap->bmiHeader.biXPelsPerMeter = bitmap->bmiHeader.biYPelsPerMeter = 96 * 10000 / 254;
+	bitmap->bmiHeader.biClrUsed = palette_colors;
+	bitmap->bmiHeader.biClrImportant = palette_colors;
+	bitmap_pixels = (BYTE *) (bitmap->bmiColors + palette_colors);
+	if (palette != NULL) {
+		memcpy(bitmap->bmiColors, palette, palette_colors * 4);
+		for (int y = 0; y < height; y++)
+			memcpy(bitmap_pixels + (height - 1 - y) * bytes_per_line, indexes + y * width, width);
+	}
+	else {
 		const int *pixels = RECOIL_GetPixels(recoil);
-		bitmap.bmiHeader.biSizeImage = sizeof(BITMAPINFOHEADER) + height * bytesPerLine;
-		bitmap.bmiHeader.biClrUsed = 0;
-		bitmap.bmiHeader.biClrImportant = 0;
-		bitmap_pixels = (BYTE *) bitmap.bmiColors;
 		for (int y = 0; y < height; y++) {
-			BYTE *dest = bitmap_pixels + (height - 1 - y) * bytesPerLine;
+			BYTE *dest = bitmap_pixels + (height - 1 - y) * bytes_per_line;
 			for (int x = 0; x < width; x++) {
 				int rgb = *pixels++;
 				*dest++ = (BYTE) rgb;
@@ -604,7 +621,7 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 				int y = rect.bottom > show_height ? (rect.bottom - show_height) >> 1 : 0;
 				SetStretchBltMode(hdc, COLORONCOLOR);
 				StretchDIBits(hdc, x, y, show_width, show_height, 0, 0, RECOIL_GetWidth(recoil), RECOIL_GetHeight(recoil),
-					bitmap_pixels, (CONST BITMAPINFO *) &bitmap, DIB_RGB_COLORS, SRCCOPY);
+					bitmap_pixels, bitmap, DIB_RGB_COLORS, SRCCOPY);
 			}
 			EndPaint(hWnd, &ps);
 		}
@@ -656,9 +673,9 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			break;
 		case IDM_COPY:
 			if (OpenClipboard(hWnd)) {
-				void *p = (void *) GlobalAlloc(GMEM_FIXED, bitmap.bmiHeader.biSizeImage);
+				void *p = (void *) GlobalAlloc(GMEM_FIXED, bitmap->bmiHeader.biSizeImage);
 				if (p != NULL) {
-					memcpy(p, &bitmap, bitmap.bmiHeader.biSizeImage);
+					memcpy(p, bitmap, bitmap->bmiHeader.biSizeImage);
 					EmptyClipboard();
 					SetClipboardData(CF_DIB, GlobalHandle(p));
 				}
@@ -702,10 +719,10 @@ static LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 			ZoomSet(900);
 			break;
 		case IDM_INVERT:
-			if (bitmap.bmiHeader.biClrUsed == 2) {
-				RGBQUAD c0 = bitmap.bmiColors[0];
-				bitmap.bmiColors[0] = bitmap.bmiColors[1];
-				bitmap.bmiColors[1] = c0;
+			if (bitmap->bmiHeader.biClrUsed == 2) {
+				RGBQUAD c0 = bitmap->bmiColors[0];
+				bitmap->bmiColors[0] = bitmap->bmiColors[1];
+				bitmap->bmiColors[1] = c0;
 				Repaint(true);
 			}
 			break;

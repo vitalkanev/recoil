@@ -105,12 +105,13 @@ bool RECOIL_SavePng(RECOIL *self, FILE *fp)
 	png_write_info(png_ptr, info_ptr);
 	if (packing)
 		png_set_packing(png_ptr);
-	png_bytep row_pointers[RECOIL_MAX_HEIGHT];
+	png_bytep *row_pointers = (png_bytep *) malloc(height * sizeof(png_bytep));
 	for (int y = 0; y < height; y++)
 		row_pointers[y] = pixels + y * width;
 	png_write_image(png_ptr, row_pointers);
 	png_write_end(png_ptr, info_ptr);
 	png_destroy_write_struct(&png_ptr, &info_ptr);
+	free(row_pointers);
 	free(pixels);
 	return fclose(fp) == 0;
 }
