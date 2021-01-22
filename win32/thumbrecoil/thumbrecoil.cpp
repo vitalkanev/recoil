@@ -1,7 +1,7 @@
 /*
  * thumbrecoil.cpp - Windows thumbnail provider for RECOIL
  *
- * Copyright (C) 2011-2020  Piotr Fusik
+ * Copyright (C) 2011-2021  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -31,25 +31,9 @@
 #include <shobjidl.h>
 #include <stdint.h>
 
-enum WTS_ALPHATYPE
-{
-	WTSAT_UNKNOWN = 0,
-	WTSAT_RGB = 1,
-	WTSAT_ARGB = 2
-};
-
-static const IID IID_IThumbnailProvider =
-	{ 0xe357fccd, 0xa995, 0x4576, { 0xb0, 0x1f, 0x23, 0x46, 0x30, 0x15, 0x4e, 0x96 } };
-#undef INTERFACE
-#define INTERFACE IThumbnailProvider
-DECLARE_INTERFACE_(IThumbnailProvider, IUnknown)
-{
-	STDMETHOD(QueryInterface)(THIS_ REFIID, PVOID *) PURE;
-	STDMETHOD_(ULONG, AddRef)(THIS) PURE;
-	STDMETHOD_(ULONG, Release)(THIS) PURE;
-	STDMETHOD(GetThumbnail)(THIS_ UINT, HBITMAP *, WTS_ALPHATYPE *) PURE;
-};
-#undef INTERFACE
+#if THUMBRECOIL_VISTA
+#include <thumbcache.h>
+#endif
 
 #include "recoil-win32.h"
 #include "formats.h"
@@ -95,7 +79,7 @@ class CRECOILThumbProvider : IPersistFile, IExtractImage
 		const int *pixels = RECOIL_GetPixels(m_pRecoil);
 
 		// convert to bitmap
-		BITMAPINFO bmi = {};
+		BITMAPINFO bmi {};
 		bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
 		bmi.bmiHeader.biWidth = width;
 		bmi.bmiHeader.biHeight = -height;
@@ -132,23 +116,23 @@ public:
 
 	STDMETHODIMP QueryInterface(REFIID riid, void **ppv)
 	{
-		if (riid == IID_IUnknown || riid == IID_IPersistFile) {
+		if (riid == __uuidof(IUnknown) || riid == __uuidof(IPersistFile)) {
 			*ppv = static_cast<IPersistFile *>(this);
 			AddRef();
 			return S_OK;
 		}
-		if (riid == IID_IExtractImage) {
+		if (riid == __uuidof(IExtractImage)) {
 			*ppv = static_cast<IExtractImage *>(this);
 			AddRef();
 			return S_OK;
 		}
 #if THUMBRECOIL_VISTA
-		if (riid == IID_IInitializeWithStream) {
+		if (riid == __uuidof(IInitializeWithStream)) {
 			*ppv = static_cast<IInitializeWithStream *>(this);
 			AddRef();
 			return S_OK;
 		}
-		if (riid == IID_IThumbnailProvider) {
+		if (riid == __uuidof(IThumbnailProvider)) {
 			*ppv = static_cast<IThumbnailProvider *>(this);
 			AddRef();
 			return S_OK;
@@ -289,7 +273,7 @@ public:
 
 	STDMETHODIMP QueryInterface(REFIID riid, void **ppv)
 	{
-		if (riid == IID_IUnknown || riid == IID_IClassFactory) {
+		if (riid == __uuidof(IUnknown) || riid == __uuidof(IClassFactory)) {
 			*ppv = static_cast<IClassFactory *>(this);
 			DllAddRef();
 			return S_OK;
