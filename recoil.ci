@@ -681,7 +681,7 @@ class PchgPalette : MultiPalette
 	bool Ocs;
 	int StartLine;
 	int LineCount;
-	byte[RECOIL.MaxHeight / 8] HavePaletteChange;
+	byte[]# HavePaletteChange;
 	int TreeOffset;
 	int TreeLastOffset;
 	bool Compressed;
@@ -730,8 +730,7 @@ class PchgPalette : MultiPalette
 		StartLine = Content[ContentOffset + 4] << 8 | Content[ContentOffset + 5];
 		LineCount = Content[ContentOffset + 6] << 8 | Content[ContentOffset + 7];
 		int havePaletteChangeLength = LineCount + 31 >> 5 << 2;
-		if (havePaletteChangeLength > HavePaletteChange.Length)
-			return false;
+		HavePaletteChange = new byte[havePaletteChangeLength];
 
 		switch (Content[ContentOffset + 1]) {
 		case 0:
@@ -2021,7 +2020,7 @@ class DeepStream : PackBitsStream
 	internal int Components = 0;
 	int[6] ComponentShift;
 	int CurrentByte; // delta compression only
-	internal int[RECOIL.MaxWidth] Line; // delta compression only
+	internal int[]# Line = null; // delta compression only
 
 	internal bool SetDpel!(int chunkOffset, int chunkLength)
 	{
@@ -2090,6 +2089,8 @@ class DeepStream : PackBitsStream
 
 	internal bool ReadDeltaLine!(int width, int tvdcOffset)
 	{
+		if (Line == null)
+			Line = new int[width];
 		for (int c = 0; c < Components; c++) {
 			int count = 0;
 			int value = 0;
@@ -4170,12 +4171,6 @@ public class RECOIL
 	// Largest VPL included with VICE 3.5 is 3112 bytes.
 	public const int MaxPlatformPaletteContentLength = 32768;
 
-	/// Maximum width of a decoded image.
-	const int MaxWidth = 10000;
-
-	/// Maximum height of a decoded image.
-	const int MaxHeight = 2560;
-
 	/// Maximum number of pixels in a decoded image.
 	const int MaxPixelsLength = 1701 * 1678;
 
@@ -4297,9 +4292,7 @@ public class RECOIL
 	/// Initializes decoded image size and resolution.
 	bool SetSize!(int width, int height, RECOILResolution resolution)
 	{
-		if (width <= 0 || width > MaxWidth
-		 || height <= 0 || height > MaxHeight
-		 || width * height > MaxPixelsLength)
+		if (width <= 0 || height <= 0 || height > MaxPixelsLength / width)
 			return false;
 		Width = width;
 		Height = height;
@@ -8370,7 +8363,9 @@ public class RECOIL
 		int colorOffset = headerOffset + Get32LittleEndian(content, headerOffset + 24);
 		if (haveDelta.ContentOffset < 0 || deltaOffset < 0 || colorOffset < 0)
 			return false;
-		byte[MaxWidth + 3 >> 2] deltas = 0;
+		byte[]# deltas = new byte[bytesPerLine >> 2];
+		for (int x = 0; x < bytesPerLine >> 2; x++)
+			deltas[x] = 0;
 		for (int y = 0; y < height; y++) {
 			int delta = 0; // initialize only to avoid warnings
 			for (int x = 0; x < bytesPerLine; x++) {
@@ -9906,8 +9901,9 @@ public class RECOIL
 		// Because it can be even 13360 pixels wide, we choose to layout it in several rows,
 		// taking care not to break any character.
 		int width = height << 4; // arbitrary
-		if (width > MaxWidth)
-			width = MaxWidth;
+		const int maxWidth = 3840; // arbitrary
+		if (width > maxWidth)
+			width = maxWidth;
 		stream.ContentOffset = characterOffset;
 		stream.ContentLength = characterEndOffset;
 		int leftX = 0;
@@ -10717,7 +10713,7 @@ public class RECOIL
 		if (bitplanes == 24) // XXX: only 24?
 			bytesPerBitplane = (bytesPerBitplane + 1) & ~1;
 		int bytesPerLine = bitplanes * bytesPerBitplane;
-		byte[MaxWidth * 32 / 8] unpacked = 0;
+		byte[]# unpacked = new byte[bytesPerLine];
 		for (int y = 0; y < height; ) {
 			int lineRepeatCount = rle.GetLineRepeatCount();
 			if (lineRepeatCount > height - y)
@@ -10729,6 +10725,8 @@ public class RECOIL
 					return false;
 				if (b != ImgStream.Keep)
 					unpacked[x] = b;
+				else if (y == 0)
+					unpacked[x] = 0;
 			}
 
 			for (int x = 0; x < width; x++) {
@@ -12601,6 +12599,8 @@ public class RECOIL
 		}
 	}
 
+	const int DctvMaxWidth = 2048; // not sure; ZXGIRL.DCTV is 1024 pixels wide
+
 	int GetDctvValue(byte[] content, int contentOffset, int x, int bitplanes)
 	{
 		int c = GetBitplaneWordsPixel(content, contentOffset, x, bitplanes);
@@ -12650,7 +12650,7 @@ public class RECOIL
 		SetScaledSize(width, height, resolution);
 
 		int contentOffset = bytesPerLine << interlace;
-		int[MaxWidth] chroma;
+		int[DctvMaxWidth] chroma;
 		for (int y = 0; y < height; y++) {
 			int odd = y >> interlace & 1;
 			int rgb = 0;
@@ -12721,7 +12721,7 @@ public class RECOIL
 					SetSize(width, height, RECOILResolution.AmigaHame2x1);
 				DecodeHame(unpacked, width >> 1);
 			}
-			else if (width >= 256 && height >= 3
+			else if (width >= 256 && width <= DctvMaxWidth && height >= 3
 				&& (resolution == RECOILResolution.Amiga1x2 || resolution == RECOILResolution.Amiga1x1)
 				&& multiPalette == null
 				&& DecodeDctv(unpacked, width, height, resolution, bitplanes)) {
