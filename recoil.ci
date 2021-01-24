@@ -7085,8 +7085,7 @@ public class RECOIL
 				if (!SetG9bPalette(content, 64))
 					return false;
 				// colors 64-255 are not expected
-				for (int c = 64; c < 256; c++)
-					ContentPalette[c] = 0;
+				ContentPalette.Fill(0, 64, 192);
 				break;
 			default:
 				return false;
@@ -7339,8 +7338,7 @@ public class RECOIL
 	bool DecodeAppleSpr!(byte[] content, int contentLength)
 	{
 		SetSize(SprStream.Width, SprStream.Height, RECOILResolution.AppleII1x1);
-		for (int i = 0; i < SprStream.Width * SprStream.Height; i++)
-			Pixels[i] = 0;
+		Pixels.Fill(0, 0, SprStream.Width * SprStream.Height);
 		SprStream() s;
 		s.Content = content;
 		s.ContentOffset = 0;
@@ -8098,9 +8096,7 @@ public class RECOIL
 
 		if (!SetSize(width, height, RECOILResolution.Pc981x1))
 			return false;
-		int pixelsLength = width * height;
-		for (int pixelsOffset = 0; pixelsOffset < pixelsLength; pixelsOffset++)
-			Pixels[pixelsOffset] = 0;
+		Pixels.Fill(0, 0, width * height);
 		int imageOffset = 0;
 		while (stream.FindImage())
 			imageOffset += DecodeMl1Mx1(stream, imageOffset) * width;
@@ -8364,8 +8360,7 @@ public class RECOIL
 		if (haveDelta.ContentOffset < 0 || deltaOffset < 0 || colorOffset < 0)
 			return false;
 		byte[]# deltas = new byte[bytesPerLine >> 2];
-		for (int x = 0; x < bytesPerLine >> 2; x++)
-			deltas[x] = 0;
+		deltas.Fill(0, 0, bytesPerLine >> 2);
 		for (int y = 0; y < height; y++) {
 			int delta = 0; // initialize only to avoid warnings
 			for (int x = 0; x < bytesPerLine; x++) {
@@ -12564,8 +12559,7 @@ public class RECOIL
 				}
 				paletteLength[paletteOffset >> 8] = paletteLength[paletteOffset >> 8] + 64 & 0xff;
 				hame = GetHameByte(content, lineOffset, 7) == 0x18;
-				for (int x = 0; x < Width; x++)
-					Pixels[y * Width + x] = 0; // blank the special line
+				Pixels.Fill(0, y * Width, Width); // blank the special line
 			}
 			else {
 				int paletteBank = 0;
@@ -12831,19 +12825,17 @@ public class RECOIL
 					return false;
 				if (colors > 32)
 					ocsPalette = false;
-				int c;
-				for (c = 0; c < colors; c++) {
+				for (int c = 0; c < colors; c++) {
 					ContentPalette[c] = GetR8G8B8Color(content, contentOffset + 8 + c * 3);
 					if ((ContentPalette[c] & 0x0f0f0f) != 0)
 						ocsPalette = false;
 				}
-				for ( ; c < 256; c++)
-					ContentPalette[c] = 0;
 				if (ocsPalette) {
 					// 0xR0G0B0 -> 0xRRGGBB
-					for (c = 0; c < colors; c++)
+					for (int c = 0; c < colors; c++)
 						ContentPalette[c] |= ContentPalette[c] >> 4;
 				}
+				ContentPalette.Fill(0, colors, 256 - colors);
 			}
 			else if (IsStringAt(content, contentOffset, "CAMG") && chunkLength >= 4) {
 				camg = Get32BigEndian(content, contentOffset + 8);
@@ -13034,8 +13026,7 @@ public class RECOIL
 			if (contentLength != 0xfa0e + colors * 3)
 				return false;
 			DecodeR8G8B8Colors(content, 0xfa0e, colors, ContentPalette, 0);
-			for (int c = colors; c < 256; c++)
-				ContentPalette[c] = 0;
+			ContentPalette.Fill(0, colors, 256 - colors);
 			SetSize(320, 200, RECOILResolution.Amiga1x1);
 			DecodeBytes(content, 13);
 			return true;
@@ -13268,8 +13259,7 @@ public class RECOIL
 	{
 		for ( ; y < Height; y += 2) {
 			int frameOffset = y * Width - LeftSkip;
-			int x;
-			for (x = LeftSkip; x < Width; x++) {
+			for (int x = LeftSkip; x < Width; x++) {
 				int c = content[contentOffset + (x >> 3)] << (x & 4) & 0xf0;
 				// Average intensity from neighboring lines. This doesn't happen on real hardware,
 				// but avoids ugly aliasing with non-integer zoom factors.
@@ -13282,8 +13272,7 @@ public class RECOIL
 				if (y < Height - 1)
 					frame[frameOffset + Width + x] = c | (frame[frameOffset + Width + x] & 0x0f);
 			}
-			for ( ; x < Width + LeftSkip; x++)
-				frame[frameOffset + x] = 0;
+			frame.Fill(0, frameOffset + Width, LeftSkip);
 			contentOffset += contentStride;
 		}
 	}
