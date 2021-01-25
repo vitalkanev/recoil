@@ -10627,7 +10627,8 @@ public class RECOIL
 
 		if (headerLength == 18 && content[16] == 0 && content[17] == 3) {
 			// Ventura Publisher true color, e.g. BILD0005.IMG
-			SetSize(width, height, RECOILResolution.Falcon1x1);
+			if (!SetSize(width, height, RECOILResolution.Falcon1x1))
+				return false;
 			int contentOffset = 18;
 			int pixelsLength = width * height;
 			int count = 0;
