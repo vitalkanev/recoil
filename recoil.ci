@@ -19075,7 +19075,7 @@ public class RECOIL
 	public int GetFrames() => Frames;
 
 	// One bit for each RGB value.
-	byte[256 * 256 * 256 / 8] ColorInUse;
+	byte[]# ColorInUse = null;
 
 	// Number of unique colors in `pixels`.
 	int Colors;
@@ -19088,7 +19088,10 @@ public class RECOIL
 	/// Calculates palette for the decoded picture.
 	void CalculatePalette!()
 	{
-		ColorInUse.Fill(0);
+		const int colorInUseLength = 256 * 256 * 256 / 8;
+		if (ColorInUse == null)
+			ColorInUse = new byte[colorInUseLength];
+		ColorInUse.Fill(0, 0, colorInUseLength);
 		Colors = 0;
 		Palette.Fill(0);
 		int pixelsCount = Width * Height;
