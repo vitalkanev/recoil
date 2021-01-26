@@ -4,7 +4,7 @@
 	<script>
 	function fullScreen()
 	{
-		var canvas = document.getElementById("canvas");
+		const canvas = document.getElementById("canvas");
 		if (canvas.webkitRequestFullScreen)
 			canvas.webkitRequestFullScreen();
 		else if (canvas.mozRequestFullScreen)

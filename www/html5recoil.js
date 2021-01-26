@@ -1,7 +1,7 @@
 /*
  * html5recoil.js - HTML 5 viewer
  *
- * Copyright (C) 2013-2018  Piotr Fusik
+ * Copyright (C) 2013-2021  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -21,39 +21,39 @@
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-var recoilFiles;
+let recoilFiles;
 
 function recoil2canvas(mainFilename)
 {
-	var recoil = new RECOIL();
-	recoil.readFile = function(filename, content, contentLength) {
+	const recoil = new RECOIL();
+	recoil.readFile = (filename, content, contentLength) => {
 		if (!recoilFiles.hasOwnProperty(filename))
 			return -1;
-		var source = recoilFiles[filename];
+		const source = recoilFiles[filename];
 		if (contentLength > source.length)
 			contentLength = source.length;
-		for (var i = 0; i < contentLength; i++)
+		for (let i = 0; i < contentLength; i++)
 			content[i] = source[i];
 		return contentLength;
-	}
+	};
 
-	var content = recoilFiles[mainFilename];
+	const content = recoilFiles[mainFilename];
 	if (!recoil.decode(mainFilename, content, content.length)) {
 		alert("Error!");
 		return;
 	}
 
-	var canvas = document.getElementById("canvas");
-	var width = recoil.getWidth();
-	var height = recoil.getHeight();
-	var pixels = recoil.getPixels();
+	const canvas = document.getElementById("canvas");
+	const width = recoil.getWidth();
+	const height = recoil.getHeight();
+	const pixels = recoil.getPixels();
 	canvas.width = width;
 	canvas.height = height;
-	var context = canvas.getContext("2d");
-	var imageData = context.createImageData(width, height);
-	for (var i = 0; i < width * height; i++) {
-		var rgb = pixels[i];
-		var j = i << 2;
+	const context = canvas.getContext("2d");
+	const imageData = context.createImageData(width, height);
+	for (let i = 0; i < width * height; i++) {
+		const rgb = pixels[i];
+		const j = i << 2;
 		imageData.data[j] = rgb >> 16;
 		imageData.data[j + 1] = rgb >> 8 & 0xff;
 		imageData.data[j + 2] = rgb & 0xff;
@@ -61,13 +61,13 @@ function recoil2canvas(mainFilename)
 	}
 	context.putImageData(imageData, 0, 0);
 
-	var status = document.getElementById("status");
+	const status = document.getElementById("status");
 	status.innerHTML = recoil.getPlatform() + ", " + recoil.getOriginalWidth() + "x" + recoil.getOriginalHeight();
 
 	if (canvas.webkitRequestFullScreen || canvas.mozRequestFullScreen)
 		document.getElementById("fullScreenButton").style.display = "";
 
-	var pngLink = document.getElementById("pngLink");
+	const pngLink = document.getElementById("pngLink");
 	pngLink.href = canvas.toDataURL("image/png");
 	pngLink.download = mainFilename + ".png";
 	pngLink.style.display = "";
@@ -75,7 +75,7 @@ function recoil2canvas(mainFilename)
 
 function populateFiles(contents, mainFilenames)
 {
-	var select = document.getElementById("fileSelect");
+	const select = document.getElementById("fileSelect");
 	switch (mainFilenames.length) {
 	case 0:
 		alert("No supported file selected");
@@ -85,12 +85,12 @@ function populateFiles(contents, mainFilenames)
 		break;
 	default:
 		select.innerHTML = "";
-		mainFilenames.forEach(function(name) {
-				var option = document.createElement("option");
-				option.text = name;
-				option.value = name;
-				select.add(option);
-			});
+		for (const name of mainFilenames) {
+			const option = document.createElement("option");
+			option.text = name;
+			option.value = name;
+			select.add(option);
+		}
 		select.style.display = "";
 		break;
 	}
@@ -100,18 +100,18 @@ function populateFiles(contents, mainFilenames)
 
 function openFiles(files)
 {
-	var mainFilenames = new Array();
-	var contents = new Object();
-	var count = files.length;
-	Array.prototype.forEach.call(files, function(file) {
-			if (RECOIL.isOurFile(file.name))
-				mainFilenames.push(file.name);
-			var reader = new FileReader();
-			reader.onload = function (e) {
-				contents[file.name] = new Uint8Array(e.target.result);
-				if (--count == 0)
-					populateFiles(contents, mainFilenames);
-			};
-			reader.readAsArrayBuffer(file);
-		});
+	const mainFilenames = [];
+	const contents = {};
+	let count = files.length;
+	for (const file of files) {
+		if (RECOIL.isOurFile(file.name))
+			mainFilenames.push(file.name);
+		const reader = new FileReader();
+		reader.onload = e => {
+			contents[file.name] = new Uint8Array(e.target.result);
+			if (--count == 0)
+				populateFiles(contents, mainFilenames);
+		};
+		reader.readAsArrayBuffer(file);
+	}
 }
