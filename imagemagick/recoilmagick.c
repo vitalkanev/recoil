@@ -1,7 +1,7 @@
 /*
  * recoilmagick.c - RECOIL coder for ImageMagick
  *
- * Copyright (C) 2009-2020  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2021  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -57,7 +57,7 @@
 
 static MagickBooleanType IsRECOIL(const unsigned char *magick, const size_t length)
 {
-	/* TODO: Should we really perform checks, having only seven bytes of file? */
+	// TODO: Should we really perform checks, having only seven bytes of file?
 	return MagickTrue;
 }
 
@@ -78,7 +78,7 @@ static Image *ReadRECOILImage(const ImageInfo *image_info, ExceptionInfo *except
 	MagickSizeType content_len = GetBlobSize(image);
 	if (content_len > RECOIL_MAX_CONTENT_LENGTH)
 		ThrowReaderException(CorruptImageError, "ImageTypeNotSupported");
-	if (content_len == 0) /* failed to get file length */
+	if (content_len == 0) // failed to get file length
 		content_len = RECOIL_MAX_CONTENT_LENGTH;
 	RECOIL *recoil = RECOIL_New();
 	if (recoil == NULL)
