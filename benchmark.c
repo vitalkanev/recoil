@@ -1,7 +1,7 @@
 /*
  * benchmark.c - RECOIL benchmark
  *
- * Copyright (C) 2013-2019  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2013-2021  Piotr Fusik and Adrian Matoga
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -59,13 +59,12 @@ int main(int argc, char **argv)
 		clock_t decode_time = clock();
 		int colors = RECOIL_GetColors(recoil);
 		clock_t colors_time = clock();
-		static uint8_t indexes[RECOIL_MAX_PIXELS_LENGTH];
-		RECOIL_ToPalette(recoil, indexes);
+		RECOIL_ToPalette(recoil);
 		clock_t palette_time = clock();
 
 		RECOIL_Decode(recoil, arg, content, content_len);
 		clock_t decode2_time = clock();
-		RECOIL_ToPalette(recoil, indexes);
+		RECOIL_ToPalette(recoil);
 		clock_t palette2_time = clock();
 		if (RECOIL_GetColors(recoil) != colors) {
 			fprintf(stderr, "benchmark: RECOIL_GetColors failed for %s\n", arg);

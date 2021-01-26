@@ -49,12 +49,11 @@ bool RECOIL_SavePng(RECOIL *self, FILE *fp)
 		png_destroy_write_struct(&png_ptr, NULL);
 		return false;
 	}
-	/* Set error handling. */
-	png_bytep pixels = NULL;
+	// Set error handling.
 	if (setjmp(png_jmpbuf(png_ptr))) {
-		/* If we get here, we had a problem writing the file */
+		// If we get here, we had a problem writing the file
 		png_destroy_write_struct(&png_ptr, &info_ptr);
-		free(pixels);
+		// TODO: free row_pointers, pixels
 		fclose(fp);
 		return false;
 	}
@@ -62,16 +61,10 @@ bool RECOIL_SavePng(RECOIL *self, FILE *fp)
 
 	int width = RECOIL_GetWidth(self);
 	int height = RECOIL_GetHeight(self);
-	pixels = (png_bytep) malloc(width * height);
-	if (pixels == NULL) {
-		png_destroy_write_struct(&png_ptr, &info_ptr);
-		fclose(fp);
-		return false;
-	}
-	const int *palette = RECOIL_ToPalette(self, pixels);
+	const int *palette = RECOIL_ToPalette(self);
+	png_bytep pixels;
 	bool packing;
 	if (palette == NULL) {
-		free(pixels);
 		pixels = (png_bytep) malloc(width * height * sizeof(png_color));
 		if (pixels == NULL) {
 			png_destroy_write_struct(&png_ptr, &info_ptr);
@@ -85,6 +78,7 @@ bool RECOIL_SavePng(RECOIL *self, FILE *fp)
 		packing = false;
 	}
 	else {
+		pixels = (png_bytep) RECOIL_GetIndexes(self);
 		int colors = RECOIL_GetColors(self);
 		int bit_depth = colors <= 2 ? 1
 			: colors <= 4 ? 2
@@ -112,6 +106,7 @@ bool RECOIL_SavePng(RECOIL *self, FILE *fp)
 	png_write_end(png_ptr, info_ptr);
 	png_destroy_write_struct(&png_ptr, &info_ptr);
 	free(row_pointers);
-	free(pixels);
+	if (palette == NULL)
+		free(pixels);
 	return fclose(fp) == 0;
 }

@@ -351,14 +351,7 @@ static bool OpenImage(bool show_error)
 
 	int width = RECOIL_GetWidth(recoil);
 	int height = RECOIL_GetHeight(recoil);
-	static int indexes_length = 0;
-	static BYTE *indexes = NULL;
-	if (indexes_length < width * height) {
-		indexes_length = width * height;
-		free(indexes);
-		indexes = (BYTE *) malloc(indexes_length); 
-	}
-	const int *palette = RECOIL_ToPalette(recoil, indexes);
+	const int *palette = RECOIL_ToPalette(recoil);
 
 	int palette_colors;
 	int bytes_per_line;
@@ -399,7 +392,7 @@ static bool OpenImage(bool show_error)
 	int pixels_stride;
 	if (palette != NULL) {
 		memcpy(bitmap->bmiColors, palette, palette_colors * 4);
-		pixels = indexes;
+		pixels = RECOIL_GetIndexes(recoil);
 		pixels_stride = width;
 	}
 	else {

@@ -19086,6 +19086,9 @@ public class RECOIL
 	// Values are in ascending order for the sake of binary search.
 	int[256] Palette;
 
+	byte[]# Indexes = null;
+	int IndexesLength = 0;
+
 	/// Calculates palette for the decoded picture.
 	void CalculatePalette!()
 	{
@@ -19164,19 +19167,26 @@ public class RECOIL
 	/// Call `GetColors()` for the actual number of colors.
 	/// Returns `null` if conversion fails,
 	/// because there are more than 256 colors.
-	public int[] ToPalette!(
-		/// Out: palette-indexed picture.
-		/// It must be caller-allocated of length `GetWidth() * GetHeight()`.
-		byte[]! indexes)
+	public int[] ToPalette!()
 	{
 		if (Colors == UnknownColors)
 			CalculatePalette();
 		if (Colors > 256)
 			return null;
 		SortPalette(0, Colors);
-		int pixelsCount = Width * Height;
-		for (int i = 0; i < pixelsCount; i++)
-			indexes[i] = FindInSortedPalette(Pixels[i]);
+		int pixelsLength = Width * Height;
+		if (IndexesLength < pixelsLength) {
+			IndexesLength = pixelsLength;
+			Indexes = null; // free first
+			Indexes = new byte[pixelsLength];
+		}
+		for (int i = 0; i < pixelsLength; i++)
+			Indexes[i] = FindInSortedPalette(Pixels[i]);
 		return Palette;
 	}
+
+	/// Returns the palette-indexed picture,
+	/// as a bitmap of `GetHeight()` rows of `GetWidth()` pixels.
+	/// Call after `ToPalette()` returns non-null.
+	public byte[] GetIndexes() => Indexes;
 }
