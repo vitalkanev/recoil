@@ -26,7 +26,7 @@
 
 #include "pngsave.h"
 
-static void RECOIL_Rgb2Png(png_colorp dest, const int *src, int length)
+static void rgb2png(png_colorp dest, const int *src, int length)
 {
 	for (int i = 0; i < length; i++) {
 		int rgb = src[i];
@@ -36,16 +36,13 @@ static void RECOIL_Rgb2Png(png_colorp dest, const int *src, int length)
 	}
 }
 
-bool RECOIL_SavePng(RECOIL *self, FILE *fp)
+static bool save_png_rows(const RECOIL *recoil, FILE *fp, int bit_depth, int color_type, png_const_colorp png_palette, int colors, png_bytepp row_pointers)
 {
 	png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if (png_ptr == NULL) {
-		fclose(fp);
+	if (png_ptr == NULL)
 		return false;
-	}
 	png_infop info_ptr = png_create_info_struct(png_ptr);
 	if (info_ptr == NULL) {
-		fclose(fp);
 		png_destroy_write_struct(&png_ptr, NULL);
 		return false;
 	}
@@ -53,60 +50,63 @@ bool RECOIL_SavePng(RECOIL *self, FILE *fp)
 	if (setjmp(png_jmpbuf(png_ptr))) {
 		// If we get here, we had a problem writing the file
 		png_destroy_write_struct(&png_ptr, &info_ptr);
-		// TODO: free row_pointers, pixels
-		fclose(fp);
 		return false;
 	}
 	png_init_io(png_ptr, fp);
+	png_set_IHDR(png_ptr, info_ptr, RECOIL_GetWidth(recoil), RECOIL_GetHeight(recoil), bit_depth, color_type,
+		PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+	if (png_palette != NULL)
+		png_set_PLTE(png_ptr, info_ptr, png_palette, colors);
+	int x_ppm = RECOIL_GetXPixelsPerMeter(recoil);
+	if (x_ppm != 0)
+		png_set_pHYs(png_ptr, info_ptr, x_ppm, RECOIL_GetYPixelsPerMeter(recoil), PNG_RESOLUTION_METER);
+	png_write_info(png_ptr, info_ptr);
+	if (bit_depth < 8)
+		png_set_packing(png_ptr);
+	png_write_image(png_ptr, row_pointers);
+	png_write_end(png_ptr, info_ptr);
+	png_destroy_write_struct(&png_ptr, &info_ptr);
+	return true;
+}
 
-	int width = RECOIL_GetWidth(self);
-	int height = RECOIL_GetHeight(self);
-	const int *palette = RECOIL_ToPalette(self);
-	png_bytep pixels;
-	bool packing;
+static bool save_png(const RECOIL *recoil, FILE *fp, int bit_depth, int color_type, png_const_colorp png_palette, int colors, const void *pixels, size_t stride)
+{
+	int height = RECOIL_GetHeight(recoil);
+	png_bytepp row_pointers = (png_bytepp) malloc(height * sizeof(png_bytep));
+	if (row_pointers == NULL)
+		return false;
+	for (int y = 0; y < height; y++)
+		row_pointers[y] = (png_bytep) pixels + y * stride;
+	bool ok = save_png_rows(recoil, fp, bit_depth, color_type, png_palette, colors, row_pointers);
+	free(row_pointers);
+	return ok;
+}
+
+bool RECOIL_SavePng(RECOIL *recoil, FILE *fp)
+{
+	int width = RECOIL_GetWidth(recoil);
+	const int *palette = RECOIL_ToPalette(recoil);
+	bool ok;
 	if (palette == NULL) {
-		pixels = (png_bytep) malloc(width * height * sizeof(png_color));
-		if (pixels == NULL) {
-			png_destroy_write_struct(&png_ptr, &info_ptr);
+		int pixels_length = width * RECOIL_GetHeight(recoil);
+		png_colorp png_pixels = (png_colorp) malloc(pixels_length * sizeof(png_color));
+		if (png_pixels == NULL) {
 			fclose(fp);
 			return false;
 		}
-		RECOIL_Rgb2Png((png_colorp) pixels, RECOIL_GetPixels(self), width * height);
-		png_set_IHDR(png_ptr, info_ptr, width, height, 8, PNG_COLOR_TYPE_RGB,
-			PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
-		width *= sizeof(png_color);
-		packing = false;
+		rgb2png(png_pixels, RECOIL_GetPixels(recoil), pixels_length);
+		ok = save_png(recoil, fp, 8, PNG_COLOR_TYPE_RGB, NULL, 0, png_pixels, width * sizeof(png_color));
+		free(png_pixels);
 	}
 	else {
-		pixels = (png_bytep) RECOIL_GetIndexes(self);
-		int colors = RECOIL_GetColors(self);
+		int colors = RECOIL_GetColors(recoil);
 		int bit_depth = colors <= 2 ? 1
 			: colors <= 4 ? 2
 			: colors <= 16 ? 4
 			: 8;
 		png_color png_palette[256];
-		RECOIL_Rgb2Png(png_palette, palette, colors);
-		png_set_IHDR(png_ptr, info_ptr, width, height, bit_depth, PNG_COLOR_TYPE_PALETTE,
-			PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
-		png_set_PLTE(png_ptr, info_ptr, png_palette, colors);
-		packing = bit_depth < 8;
+		rgb2png(png_palette, palette, colors);
+		ok = save_png(recoil, fp, bit_depth, PNG_COLOR_TYPE_PALETTE, png_palette, colors, RECOIL_GetIndexes(recoil), width);
 	}
-	float x_ppm = RECOIL_GetXPixelsPerMeter(self);
-	if (x_ppm != 0) {
-		float y_ppm = RECOIL_GetYPixelsPerMeter(self);
-		png_set_pHYs(png_ptr, info_ptr, x_ppm, y_ppm, PNG_RESOLUTION_METER);
-	}
-	png_write_info(png_ptr, info_ptr);
-	if (packing)
-		png_set_packing(png_ptr);
-	png_bytep *row_pointers = (png_bytep *) malloc(height * sizeof(png_bytep));
-	for (int y = 0; y < height; y++)
-		row_pointers[y] = pixels + y * width;
-	png_write_image(png_ptr, row_pointers);
-	png_write_end(png_ptr, info_ptr);
-	png_destroy_write_struct(&png_ptr, &info_ptr);
-	free(row_pointers);
-	if (palette == NULL)
-		free(pixels);
-	return fclose(fp) == 0;
+	return fclose(fp) == 0 && ok;
 }
