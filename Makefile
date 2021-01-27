@@ -128,9 +128,7 @@ missing-examples:
 
 cmp-examples: recoil2png
 	rm -f ../png/*.png
-	for p in ../examples/*; do \
-		./recoil2png -o "../png/$${p#../examples/}.png" "$$p" && cmp "../ref/$${p#../examples/}.png" "../png/$${p#../examples/}.png"; \
-	done
+	ls ../examples | xargs -P 5 -i sh -c "./recoil2png -o '../png/{}.png' '../examples/{}' && cmp '../ref/{}.png' '../png/{}.png'"
 
 .PHONY: all clean install uninstall install-recoil2png uninstall-recoil2png $(if $(CAN_INSTALL_MAGICK),install-magick uninstall-magick) \
 	install-mime uninstall-mime install-thumbnailer uninstall-thumbnailer install-gnome2-thumbnailer uninstall-gnome2-thumbnailer \
