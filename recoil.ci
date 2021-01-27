@@ -8360,8 +8360,8 @@ public class RECOIL
 		int colorOffset = headerOffset + Get32LittleEndian(content, headerOffset + 24);
 		if (haveDelta.ContentOffset < 0 || deltaOffset < 0 || colorOffset < 0)
 			return false;
-		byte[]# deltas = new byte[bytesPerLine >> 2];
-		deltas.Fill(0, 0, bytesPerLine >> 2);
+		byte[]# deltas = new byte[bytesPerLine + 3 >> 2];
+		deltas.Fill(0, 0, bytesPerLine + 3 >> 2);
 		for (int y = 0; y < height; y++) {
 			int delta = 0; // initialize only to avoid warnings
 			for (int x = 0; x < bytesPerLine; x++) {
