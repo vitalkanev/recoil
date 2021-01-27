@@ -4349,6 +4349,7 @@ public class RECOIL
 			width <<= 3;
 			break;
 		case RECOILResolution.Amiga1x2:
+		case RECOILResolution.AmigaDctv1x2:
 		case RECOILResolution.St1x2:
 		case RECOILResolution.Ste1x2:
 		case RECOILResolution.Msx21x2:
