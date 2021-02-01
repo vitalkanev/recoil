@@ -1,7 +1,7 @@
 /*
  * benchmark.c - RECOIL benchmark
  *
- * Copyright (C) 2013-2021  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2013-2021  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net

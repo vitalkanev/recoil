@@ -1,7 +1,7 @@
 /*
  * recoilimagine.c - RECOIL coder for Imagine
  *
- * Copyright (C) 2012-2020  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2012-2020  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net

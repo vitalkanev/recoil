@@ -1,16 +1,15 @@
 ﻿<page title="Contact">
 	<authors>
 		<author name="Piotr Fusik" email="fox@scene.pl" href="http://fusik.info/piotr/">Idea, programming.</author>
+		<author name="Lonny Pursell" href="http://gfabasic.net">Atari ST/Falcon formats research.</author>
+		<author name="FRS" href="http://frs.badcoffee.info">MSX expertise.</author>
 		<author name="Mariusz Rozwadowski" rip="true">Formats research, testing.</author>
 		<author name="Adrian Matoga" email="epi@atari8.info">Programming.</author>
-		<author name="Lonny Pursell" href="http://gfabasic.net">Atari ST/Falcon formats research.</author>
-		<author name="cholok" email="cholok@poczta.fm">IFF expertise.</author>
-		<author name="FRS" href="http://frs.badcoffee.info">MSX expertise.</author>
 		<author name="Petri Pyy" email="laskipeto@gmail.com">macOS Quick Look plugin.</author>
+		<author name="cholok" email="cholok@poczta.fm">IFF expertise.</author>
 		<author name="Paweł Szewczyk" email="ripek77@gmail.com">Icons, testing.</author>
 		<author name="Sławomir Śledź" email="slaves@scene.pl">Testing.</author>
 		<author name="Peter Dell" email="jac@wudsn.com">Testing.</author>
-		<author name="Monika Wesołowska" email="giulio.caesar@gmail.com">Testing.</author>
 	</authors>
 
 	<h2>Feedback</h2>

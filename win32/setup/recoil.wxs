@@ -25,9 +25,9 @@
 	<?endif?>
 
 	<Product Id="*" Name="RECOIL - Retro Computer Image Library $(var.VERSION)" Language="1033"
-		Version="$(var.VERSION)" Manufacturer="Piotr Fusik and Adrian Matoga" UpgradeCode="$(var.UPGRADE_GUID)">
+		Version="$(var.VERSION)" Manufacturer="Piotr Fusik" UpgradeCode="$(var.UPGRADE_GUID)">
 
-		<Package Description="RECOIL - Retro Computer Image Library" Manufacturer="Piotr Fusik and Adrian Matoga" InstallerVersion="200" Compressed="yes" />
+		<Package Description="RECOIL - Retro Computer Image Library" Manufacturer="Piotr Fusik" InstallerVersion="200" Compressed="yes" />
 		<MajorUpgrade DowngradeErrorMessage="Newer version of RECOIL is already installed!" />
 		<Media Id="1" Cabinet="recoil.cab" EmbedCab="yes" CompressionLevel="high" />
 

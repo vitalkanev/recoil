@@ -1,7 +1,7 @@
 /*
  * pngsave.c - save PNG file
  *
- * Copyright (C) 2009-2021  Piotr Fusik and Adrian Matoga
+ * Copyright (C) 2009-2021  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
