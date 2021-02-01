@@ -26,6 +26,7 @@ DO = mkdir -p $(@D) &&
 else
 DO = @echo $@ && mkdir -p $(@D) && 
 endif
+DO_SIGN = $(DO)signtool sign -n "Open Source Developer, Piotr Fusik" -t http://time.certum.pl -fd sha256 $^ && touch $@
 
 WIN32_BIN = i686/recoil2png.exe i686/IM_MOD_RL_recoil_.dll i686/Xrecoil.usr i686/recoilwin.exe i686/thumbrecoil.dll i686/RECOIL.plg paint.net/RecoilPaintDotNet.dll
 WIN64_BIN = $(WIN32_BIN) x86_64/IM_MOD_RL_recoil_.dll x86_64/Xrecoil.usr x86_64/thumbrecoil.dll x86_64/RECOIL.plg64
@@ -78,14 +79,16 @@ recoil.ico: ../recoil-512x512.png
 COPYING.txt: ../COPYING
 	$(DO)$(UNIX2DOS) <$< >$@
 
-setup: ../../recoil-$(VERSION)-win32.msi
+signed: $(WIN32_BIN) $(WIN64_BIN)
+	$(DO_SIGN)
 
-x64-setup: ../../recoil-$(VERSION)-win64.msi
+../../recoil-$(VERSION)-win32.zip: COPYING.txt $(WIN32_BIN) signed
+	$(DO)$(RM) $@ && $(SEVENZIP) -tzip $@ COPYING.txt $(WIN32_BIN:%=./%)
 
-../../recoil-$(VERSION)-win32.msi: i686/recoil.wixobj recoil.ico setup/dialog.jpg setup/banner.jpg setup/license.rtf $(WIN32_BIN)
+../../recoil-$(VERSION)-win32.msi: i686/recoil.wixobj recoil.ico setup/dialog.jpg setup/banner.jpg setup/license.rtf $(WIN32_BIN) signed
 	$(DO)$(LIGHT) -ext WixUIExtension -sice:ICE69 $<
 
-../../recoil-$(VERSION)-win64.msi: x86_64/recoil.wixobj recoil.ico setup/dialog.jpg setup/banner.jpg setup/license.rtf $(WIN64_BIN)
+../../recoil-$(VERSION)-win64.msi: x86_64/recoil.wixobj recoil.ico setup/dialog.jpg setup/banner.jpg setup/license.rtf $(WIN64_BIN) signed
 	$(DO)$(LIGHT) -ext WixUIExtension -sice:ICE69 -sice:ICE80 $<
 
 i686/recoil.wixobj x86_64/recoil.wixobj: setup/recoil.wxs setup/formats.wxi
@@ -111,10 +114,10 @@ srcdist: ../../recoil-$(VERSION).tar.gz
 ../../recoil-$(VERSION).tar.gz: ../MANIFEST ../recoil.c ../recoil.h
 	$(DO)$(RM) $@ && $(TAR) -c --numeric-owner --owner=0 --group=0 --mode=644 -C .. -T ../MANIFEST --transform=s,,recoil-$(VERSION)/, | $(SEVENZIP) -tgzip -si $@
 
-dist: srcdist ../../recoil-$(VERSION)-win32.zip setup x64-setup
+signed-msi: ../../recoil-$(VERSION)-win32.msi ../../recoil-$(VERSION)-win64.msi
+	$(DO_SIGN)
 
-../../recoil-$(VERSION)-win32.zip: COPYING.txt $(WIN32_BIN)
-	$(DO)$(RM) $@ && $(SEVENZIP) -tzip $@ COPYING.txt $(WIN32_BIN:%=./%)
+dist: srcdist ../../recoil-$(VERSION)-win32.zip signed-msi
 
 deb64:
 	scp ../../recoil-$(VERSION).tar.gz vm:.
@@ -128,9 +131,9 @@ rpm64:
 
 clean:
 	$(RM) $(WIN64_BIN) i686/recoilwin-res.o recoil.ico COPYING.txt \
-		i686/recoil.wixobj x86_64/recoil.wixobj setup/formats.wxi setup/dialog.jpg setup/banner.jpg \
+		i686/recoil.wixobj x86_64/recoil.wixobj setup/formats.wxi setup/dialog.jpg setup/banner.jpg signed-msi signed \
 		paint.net/RecoilFileTypeFactory.cs paint.net/RECOIL.cs ../formats.h
 
-.PHONY: all clean setup x64-setup ../MANIFEST srcdist dist deb64 rpm64 ../../recoil-$(VERSION).tar.gz
+.PHONY: all clean ../MANIFEST srcdist dist deb64 rpm64 ../../recoil-$(VERSION).tar.gz
 
 .DELETE_ON_ERROR:
