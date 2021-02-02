@@ -34,6 +34,7 @@ using Windows.UI.Popups;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 
 namespace RECOIL
@@ -78,18 +79,11 @@ namespace RECOIL
 				await new MessageDialog("Decoding error." + Disclaimer).ShowAsync();
 				return;
 			}
+
+			// convert to BGRA
 			int width = recoil.GetWidth();
 			int height = recoil.GetHeight();
 			int[] pixels = recoil.GetPixels();
-			float dpiX = recoil.GetXPixelsPerInch();
-			if (dpiX == 0)
-				this.DpiX = this.DpiY = 96;
-			else {
-				this.DpiX = dpiX;
-				this.DpiY = recoil.GetYPixelsPerInch();
-			}
-
-			// convert to BGRA
 			WriteableBitmap bitmap = new WriteableBitmap(width, height);
 			byte[] line = new byte[width << 2];
 			for (int x = 0; x < width; x++)
@@ -102,6 +96,19 @@ namespace RECOIL
 					line[(x << 2) + 2] = (byte) (rgb >> 16);
 				}
 				line.CopyTo(0, bitmap.PixelBuffer, (uint) (y * width << 2), width << 2);
+			}
+
+			// apply Pixel Aspect Ratio
+			float dpiX = recoil.GetXPixelsPerInch();
+			if (dpiX == 0) {
+				this.DpiX = this.DpiY = 96;
+				this.Image.RenderTransform = null;
+			}
+			else {
+				float dpiY = recoil.GetYPixelsPerInch();
+				this.DpiX = dpiX;
+				this.DpiY = dpiY;
+				this.Image.RenderTransform = dpiX >= dpiY ? new ScaleTransform { ScaleX = dpiY / dpiX } : new ScaleTransform { ScaleY = dpiX / dpiY };
 			}
 
 			// display
