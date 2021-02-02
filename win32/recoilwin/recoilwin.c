@@ -78,8 +78,7 @@ static void ShowAbout(void)
 		sizeof(MSGBOXPARAMSA),
 		hWnd,
 		hInst,
-		"Retro Computer Image Library\n"
-		"(C) " RECOIL_YEARS " Piotr Fusik\n\n"
+		RECOIL_CREDITS "\n"
 		RECOIL_COPYRIGHT,
 		APP_TITLE " " RECOIL_VERSION,
 		MB_OK | MB_USERICON,
