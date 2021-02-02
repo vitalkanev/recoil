@@ -1,4 +1,9 @@
 ﻿<page title="Linux">
+	<h2>XnView MP plugin</h2>
+	<p>On Debian/Ubuntu install <a href="https://www.xnview.com/en/xnviewmp/">XnView MP</a>,
+	then <download prefix="recoil-xnview_" suffix="-1_amd64.deb" />.</p>
+	<img src="xnview-ubuntu.png" alt="XnView MP on Ubuntu" />
+
 	<h2>Command-line converter</h2>
 	<p>To install:</p>
 	<ul>
