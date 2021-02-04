@@ -1,4 +1,32 @@
 ﻿<page title="News">
+	<release project="RECOIL" version="6.0.0" date="2021-02-04">
+		<ul title="Rendering">
+			<li>PAL/NTSC can be selected in recoil2png and RECOILWin, affects Pixel Aspect Ratio and Atari 8-bit palette</li>
+			<li>Pixel Aspect Ratio (PAR) implemented for platforms: Apple II, Atari 8-bit (PAL/NTSC), Atari Portfolio, C64 (PAL/NTSC), MSX
+			in recoil2png, ImageMagick/Paint.NET/XnView plugins, Windows 10 app, RECOILWin (save as PNG, copy to clipboard only)</li>
+			<li>C64 palette can be loaded from a VPL file in recoil2png and RECOILWin</li>
+		</ul>
+		<ul title="New formats">
+			<li>Atari 8-bit: ART, MGA, PI8, PI9, PIX, Print Shop (PSF)</li>
+			<li>C64: Image System Hires (ISH)</li>
+			<li>MSX2: Dot Designer's Club (CMP)</li>
+			<li>NEC PC-98: ARTV (ARV), EBD</li>
+		</ul>
+		<ul title="Improved formats">
+			<li>Graphics expansions are identified: Amiga DCTV/HAM-E, Atari 8-bit VBXE, MSX V990 VDP, ZX Spectrum ULAplus/Next, ZX Evolution</li>
+			<li>Decoding more Atari ST PaintShop files (PSC)</li>
+		</ul>
+		<ul title="Ports">
+			<li>Fixed "No supported files" on Android 11</li>
+			<li>XnView MP plugin released for Ubuntu</li>
+			<li>Unicode filenames in Windows Explorer, RECOILWin, Imagine</li>
+			<li>Multi-file images in Imagine</li>
+			<li>Updated to ImageMagick 7</li>
+			<li>TortoiseSVN/TortoiseGit plugins for comparing images</li>
+			<li>Windows binaries are now signed</li>
+		</ul>
+	</release>
+
 	<release project="RECOIL" version="5.1.1" date="2020-10-30">
 		<ul>
 			<li>New format: NEC PC-88 ArtMaster88 (IMG).</li>
