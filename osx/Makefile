@@ -15,7 +15,7 @@ bin/QuickLook:
 
 $(QLCODESIGN): $(QLRECOIL) $(PLIST)
 ifdef RECOIL_CODESIGNING_IDENTITY
-	codesign --entitlements entitlements.xml -f -s "$(RECOIL_CODESIGNING_IDENTITY)" bin/RECOIL.qlgenerator
+	codesign --options runtime --entitlements entitlements.xml -f -s "$(RECOIL_CODESIGNING_IDENTITY)" bin/RECOIL.qlgenerator
 else
 	rm -rf $(@D)
 endif
@@ -41,7 +41,7 @@ bin/bin:
 bin/recoil2png: ../recoil2png.c ../pngsave.c ../pngsave.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
 	mkdir -p $(@D) && $(CC) $(CFLAGS) -o $@ -I .. ../recoil2png.c ../pngsave.c ../recoil-stdio.c ../recoil.c /usr/local/lib/libpng.a -lz
 ifdef RECOIL_CODESIGNING_IDENTITY
-	codesign -f -s "$(RECOIL_CODESIGNING_IDENTITY)" bin/recoil2png
+	codesign --options runtime -f -s "$(RECOIL_CODESIGNING_IDENTITY)" bin/recoil2png
 endif
 
 %.c %.h: %.ci ../altirrantsc.pal ../altirrapal.pal ../atari8.fnt ../c16.pal ../c64.fnt ../zx81.fnt
