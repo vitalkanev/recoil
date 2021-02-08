@@ -1,7 +1,7 @@
 /*
  * recoil-win32.c - Win32 API subclass of RECOIL
  *
- * Copyright (C) 2015-2020  Piotr Fusik
+ * Copyright (C) 2015-2021  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -84,3 +84,9 @@ bool RECOILWin32_DecodeW(RECOIL *self, LPCWSTR filename, uint8_t const *content,
 	*(const RECOILVtbl **) self = &vtbl;
 	return RECOIL_Decode(self, utf8Filename, content, contentLength);
 }
+
+void RECOILWin32_GetPlatformW(const RECOIL *self, WCHAR (*platform)[RECOIL_MAX_PLATFORM_LENGTH + 1])
+{
+	MultiByteToWideChar(CP_UTF8, 0, RECOIL_GetPlatform(self), -1, *platform, RECOIL_MAX_PLATFORM_LENGTH + 1);
+}
+

@@ -1,7 +1,7 @@
 /*
  * recoil-win32.h - Win32 API subclass of RECOIL
  *
- * Copyright (C) 2015-2020  Piotr Fusik
+ * Copyright (C) 2015-2021  Piotr Fusik
  *
  * This file is part of RECOIL (Retro Computer Image Library),
  * see http://recoil.sourceforge.net
@@ -37,6 +37,11 @@ int RECOILWin32_SlurpFileA(const char *filename, uint8_t *buffer, int len);
 int RECOILWin32_SlurpFileW(LPCWSTR filename, uint8_t *buffer, int len);
 bool RECOILWin32_DecodeA(RECOIL *self, const char *filename, uint8_t const *content, int contentLength);
 bool RECOILWin32_DecodeW(RECOIL *self, LPCWSTR filename, uint8_t const *content, int contentLength);
+
+// Use as follows:
+// WCHAR platform[RECOIL_MAX_PLATFORM_LENGTH + 1];
+// RECOILWin32_GetPlatformW(recoil, &platform);
+void RECOILWin32_GetPlatformW(const RECOIL *self, WCHAR (*platform)[RECOIL_MAX_PLATFORM_LENGTH + 1]);
 
 #ifdef UNICODE
 #define RECOILWin32_IsOurFile RECOILWin32_IsOurFileW
