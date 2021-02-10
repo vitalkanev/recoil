@@ -121,6 +121,7 @@ enum RECOILResolution
 	Psion31x1,
 	SamCoupe1x1,
 	X68K1x1,
+	Tandy1x1,
 	Spectrum1x1,
 	Spectrum4x4,
 	SpectrumUlaPlus1x1,
@@ -17201,6 +17202,55 @@ public class RECOIL
 		return true;
 	}
 
+	// Tandy 1000 formats.
+
+	bool DecodeTandyPnt!(byte[] content, int contentLength)
+	{
+		if (contentLength < 22 + 312 * 176 / 2 / 255 * 2 || content[0] != 0x13 || content[1] != 'P' || content[2] != 'N' || content[3] != 'T')
+			return false;
+		SetSize(312, 176, RECOILResolution.Tandy1x1);
+		const int[16] palette = {
+			0x000000, // Black
+			0x000099, // Dark Blue
+			0x009900, // Dark Green
+			0x339999, // Dark Cyan
+			0x990000, // Dark Red
+			0xcc33cc, // Dark Magenta
+			0xcc6600, // Orange
+			0x999999, // Light Gray
+			0x996633, // Dark Gray
+			0x6633ff, // Light Blue
+			0x33cc00, // Light Green
+			0x66cccc, // Light Cyan
+			0xffcccc, // Light Red
+			0xff99ff, // Light Magenta
+			0xffff00, // Yellow
+			0xffffff  // White
+		};
+		if (contentLength == 22 + 312 * 176 / 2) {
+			palette.CopyTo(0, ContentPalette, 0, 16);
+			DecodeNibbles(content, 22, 312 / 2);
+			return true;
+		}
+		int contentOffset = 22;
+		int repeatCount = 1;
+		int repeatValue = 0;
+		for (int pixelsOffset = 0; pixelsOffset < 312 * 176; pixelsOffset += 2) {
+			if (--repeatCount == 0) {
+				if (contentOffset + 1 >= contentLength)
+					return false;
+				repeatCount = content[contentOffset + 1];
+				if (repeatCount == 0)
+					return false;
+				repeatValue = content[contentOffset];
+				contentOffset += 2;
+			}
+			Pixels[pixelsOffset] = palette[repeatValue >> 4];
+			Pixels[pixelsOffset + 1] = palette[repeatValue & 0xf];
+		}
+		return contentOffset == contentLength;
+	}
+
 	// PC formats.
 
 	bool DecodeHs2!(byte[] content, int contentLength)
@@ -18546,6 +18596,7 @@ public class RECOIL
 			return DecodePmg(content, contentLength);
 		case PackExt("PNT"):
 			return DecodeFalconPnt(content, contentLength)
+				|| DecodeTandyPnt(content, contentLength)
 				|| DecodeApfShr(content, contentLength)
 				|| DecodeMac(content, contentLength)
 				|| DecodeAppleIIShr(content, contentLength)
@@ -18874,6 +18925,8 @@ public class RECOIL
 			return "SAM Coupe";
 		case RECOILResolution.X68K1x1:
 			return "Sharp X68000";
+		case RECOILResolution.Tandy1x1:
+			return "Tandy 1000";
 		case RECOILResolution.Spectrum1x1:
 		case RECOILResolution.Spectrum4x4:
 			return "ZX Spectrum";
