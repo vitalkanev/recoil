@@ -19174,30 +19174,6 @@ public class RECOIL
 		return Colors;
 	}
 
-	void SortPalette!(int start, int end)
-	{
-		while (start + 1 < end) {
-			int left = start + 1;
-			int right = end;
-			int pivot = Palette[start];
-			int rgb;
-			while (left < right) {
-				rgb = Palette[left];
-				if (rgb <= pivot)
-					left++;
-				else {
-					Palette[left] = Palette[--right];
-					Palette[right] = rgb;
-				}
-			}
-			rgb = Palette[--left];
-			Palette[left] = Palette[start];
-			Palette[start] = rgb;
-			SortPalette(start, left);
-			start = right;
-		}
-	}
-
 	/// Find the index of the `rgb` color in the sorted palette.
 	int FindInSortedPalette(int rgb)
 	{
@@ -19227,7 +19203,7 @@ public class RECOIL
 			CalculatePalette();
 		if (Colors > 256)
 			return null;
-		SortPalette(0, Colors);
+		Palette.Sort(0, Colors);
 		int pixelsLength = Width * Height;
 		if (IndexesLength < pixelsLength) {
 			IndexesLength = pixelsLength;
