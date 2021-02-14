@@ -29,26 +29,27 @@ endif
 DO_SIGN = $(DO)signtool sign -n "Open Source Developer, Piotr Fusik" -t http://time.certum.pl -fd sha256 $^ && touch $@
 
 WIN32_BIN = i686/recoil2png.exe i686/IM_MOD_RL_recoil_.dll i686/Xrecoil.usr i686/recoilwin.exe i686/thumbrecoil.dll i686/RECOIL.plg paint.net/RecoilPaintDotNet.dll
-WIN64_BIN = $(WIN32_BIN) x86_64/IM_MOD_RL_recoil_.dll x86_64/Xrecoil.usr x86_64/thumbrecoil.dll x86_64/RECOIL.plg64
+WIN64_BIN = x86_64/recoil2png.exe x86_64/IM_MOD_RL_recoil_.dll x86_64/Xrecoil.usr x86_64/recoilwin.exe x86_64/thumbrecoil.dll x86_64/RECOIL.plg64 paint.net/RecoilPaintDotNet.dll
+WINBOTH_BIN = $(WIN64_BIN) i686/IM_MOD_RL_recoil_.dll i686/Xrecoil.usr i686/thumbrecoil.dll i686/RECOIL.plg
 
 all: $(WIN32_BIN) $(WIN64_BIN)
 
-i686/recoil2png.exe: ../recoil2png.c ../pngsave.c ../pngsave.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
-	$(DO)$(DO_CC) -lpng16 -lz
+%/recoil2png.exe: ../recoil2png.c ../pngsave.c ../pngsave.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
+	$(DO)$(DO_CC) -static -lpng16 -lz
 
-i686/IM_MOD_RL_recoil_.dll x86_64/IM_MOD_RL_recoil_.dll: ../imagemagick/recoilmagick.c ../formats.h ../recoil.c ../recoil.h
+%/IM_MOD_RL_recoil_.dll: ../imagemagick/recoilmagick.c ../formats.h ../recoil.c ../recoil.h
 	$(DO)$(DO_CC) -D MAGICK7 -I"$(IMAGEMAGICK_$(@D)_DIR)"/include -lCORE_RL_MagickCore_ -L"$(IMAGEMAGICK_$(@D)_DIR)" -static-libgcc
  
-i686/Xrecoil.usr x86_64/Xrecoil.usr: ../Xrecoil.c ../formats.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
+%/Xrecoil.usr: ../Xrecoil.c ../formats.h ../recoil-stdio.c ../recoil-stdio.h ../recoil.c ../recoil.h
 	$(DO)$(DO_CC) -static 
 
 %/recoilwin.exe: recoilwin/recoilwin.c recoilwin/recoilwin.h recoil-win32.c recoil-win32.h %/recoilwin-res.o ../pngsave.c ../pngsave.h ../formats.h ../recoil.c ../recoil.h
 	$(DO)$(DO_CC) -municode -Wl,-subsystem,windows -lcomctl32 -lcomdlg32 -lgdi32 -lpng16 -lz
 
-i686/recoilwin-res.o x86_64/recoilwin-res.o: recoilwin/recoilwin.rc recoilwin/recoilwin.h recoil.ico ../recoil.h
+%/recoilwin-res.o: recoilwin/recoilwin.rc recoilwin/recoilwin.h recoil.ico ../recoil.h
 	$(DO)$(WINDRES) -o $@ -I.. $<
 
-i686/thumbrecoil.dll x86_64/thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../formats.h recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h
+%/thumbrecoil.dll: thumbrecoil/thumbrecoil.cpp ../formats.h recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h
 	$(DO)$(CXX) -o $@ $(CFLAGS) $(LDFLAGS_DLL) -I. -I.. thumbrecoil/thumbrecoil.cpp -xc recoil-win32.c -xc ../recoil.c -static -lgdi32 -lole32
 
 i686/RECOIL.plg x86_64/RECOIL.plg64: imagine/recoilimagine.c ../formats.h recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h
@@ -63,7 +64,7 @@ paint.net/RecoilFileTypeFactory.cs: paint.net/RecoilFileTypeFactory.cs.xsl ../fo
 paint.net/RECOIL.cs: ../recoil.ci ../altirrantsc.pal ../altirrapal.pal ../atari8.fnt ../c16.pal ../c64.fnt ../zx81.fnt
 	$(DO)$(CITO) -o $@ -I .. -n Recoil $<
 
-i686/by-platform.exe: by-platform.c recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h
+%/by-platform.exe: by-platform.c recoil-win32.c recoil-win32.h ../recoil.c ../recoil.h
 	$(DO)$(DO_CC)
 
 ../formats.h: ../formats.h.xsl ../formats.xml
@@ -85,10 +86,13 @@ signed: $(WIN32_BIN) $(WIN64_BIN)
 ../../recoil-$(VERSION)-win32.zip: COPYING.txt $(WIN32_BIN) signed
 	$(DO)$(RM) $@ && $(SEVENZIP) -tzip $@ COPYING.txt $(WIN32_BIN:%=./%)
 
+../../recoil-$(VERSION)-win64.zip: COPYING.txt $(WIN64_BIN) signed
+	$(DO)$(RM) $@ && $(SEVENZIP) -tzip $@ COPYING.txt $(WIN64_BIN:%=./%)
+
 ../../recoil-$(VERSION)-win32.msi: i686/recoil.wixobj recoil.ico setup/dialog.jpg setup/banner.jpg setup/license.rtf $(WIN32_BIN) signed
 	$(DO)$(LIGHT) -ext WixUIExtension -sice:ICE69 $<
 
-../../recoil-$(VERSION)-win64.msi: x86_64/recoil.wixobj recoil.ico setup/dialog.jpg setup/banner.jpg setup/license.rtf $(WIN64_BIN) signed
+../../recoil-$(VERSION)-win64.msi: x86_64/recoil.wixobj recoil.ico setup/dialog.jpg setup/banner.jpg setup/license.rtf $(WINBOTH_BIN) signed
 	$(DO)$(LIGHT) -ext WixUIExtension -sice:ICE69 -sice:ICE80 $<
 
 i686/recoil.wixobj x86_64/recoil.wixobj: setup/recoil.wxs setup/formats.wxi
@@ -117,7 +121,7 @@ srcdist: ../../recoil-$(VERSION).tar.gz
 signed-msi: ../../recoil-$(VERSION)-win32.msi ../../recoil-$(VERSION)-win64.msi
 	$(DO_SIGN)
 
-dist: srcdist ../../recoil-$(VERSION)-win32.zip signed-msi
+dist: srcdist ../../recoil-$(VERSION)-win32.zip ../../recoil-$(VERSION)-win64.zip signed-msi
 
 deb64:
 	scp ../../recoil-$(VERSION).tar.gz vm:.
@@ -130,7 +134,7 @@ rpm64:
 	scp vm:rpmbuild/RPMS/x86_64/recoil-2png-$(VERSION)-1.x86_64.rpm vm:rpmbuild/RPMS/noarch/recoil-thumbnailer-$(VERSION)-1.noarch.rpm ../../
 
 clean:
-	$(RM) $(WIN64_BIN) i686/recoilwin-res.o recoil.ico COPYING.txt \
+	$(RM) i686/recoil2png.exe i686/recoilwin.exe $(WINBOTH_BIN) i686/recoilwin-res.o x86_64/recoilwin-res.o recoil.ico COPYING.txt \
 		i686/recoil.wixobj x86_64/recoil.wixobj setup/formats.wxi setup/dialog.jpg setup/banner.jpg signed-msi signed \
 		paint.net/RecoilFileTypeFactory.cs paint.net/RECOIL.cs ../formats.h
 
