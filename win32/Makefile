@@ -26,7 +26,7 @@ DO = mkdir -p $(@D) &&
 else
 DO = @echo $@ && mkdir -p $(@D) && 
 endif
-DO_SIGN = $(DO)signtool sign -n "Open Source Developer, Piotr Fusik" -t http://time.certum.pl -fd sha256 $^ && touch $@
+DO_SIGN = $(DO)signtool sign -d "RECOIL - Retro Computer Image Library $(VERSION)" -n "Open Source Developer, Piotr Fusik" -t http://time.certum.pl -fd sha256 $^ && touch $@
 
 WIN32_BIN = i686/recoil2png.exe i686/IM_MOD_RL_recoil_.dll i686/Xrecoil.usr i686/recoilwin.exe i686/thumbrecoil.dll i686/RECOIL.plg paint.net/RecoilPaintDotNet.dll
 WIN64_BIN = x86_64/recoil2png.exe x86_64/IM_MOD_RL_recoil_.dll x86_64/Xrecoil.usr x86_64/recoilwin.exe x86_64/thumbrecoil.dll x86_64/RECOIL.plg64 paint.net/RecoilPaintDotNet.dll
